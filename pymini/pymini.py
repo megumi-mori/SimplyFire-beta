@@ -2,12 +2,13 @@ from tkinter import ttk
 import tkinter as Tk
 
 from config import config
-from control_panel import control_panel, font_bar
+from control_panel import font_bar
 
 from menubar import menubar
 
-from control_panel.detector import Detector
+# from control_panel.detector import Detector
 
+from control_panel import detector
 print('pymini loaded')
 
 def on_close():
@@ -34,9 +35,9 @@ pw.grid(column=0, row=0, sticky='news')
 
 
 
-##############################
-#        CONTROL PANEL       #
-##############################
+##################################################
+#                 CONTROL PANEL                  #
+##################################################
 
 # set up frame
 left = Tk.Frame(background='blue')
@@ -53,17 +54,22 @@ cp.grid(column=0 ,row=0, sticky='news')
 cp_notebook = ttk.Notebook(cp)
 cp_notebook.grid(column=0, row=0, sticky='news')
 
-detector = Detector(cp)
-cp_notebook.add(detector.get_frame(), text='Detector')
+# insert detector options tab into control panel
+cp.detector_tab = detector.load(cp)
+cp_notebook.add(cp.detector_tab.get_frame(), text='Detector')
+
+# insert style options tab into control panel
+
+
 
 # set up font adjustment bar
 fb = font_bar.load(left)
 fb.grid(column=0, row=1, sticky='news')
 
 
-##############################
-#        Data Display        #
-##############################
+##################################################
+#                  DATA DISPLAY                  #
+##################################################
 # set up frame
 right = Tk.Frame(pw, background = 'pink')
 right.grid(column=1, row=0, sticky='news')
@@ -84,9 +90,9 @@ except:
     pw.paneconfig(left, width=int(config.default_relative_cp_width * root.winfo_width()))
 
 
-##############################
-#          Menu Bar          #
-##############################
+##################################################
+#                    MENU BAR                    #
+##################################################
 
 # set up menubar
 menubar = menubar.load_menubar(root)
