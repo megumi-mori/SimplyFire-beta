@@ -8,7 +8,7 @@
 #aesthetics
 geometry : [900,600]
 font_size : 9
-cp_width : 200
+cp_width : 220
 
 
 #detector
