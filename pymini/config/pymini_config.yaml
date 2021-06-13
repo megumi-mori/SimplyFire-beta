@@ -1,0 +1,20 @@
+#################################################################
+# PyMini Configuration
+#################################################################
+# This file contains configurations that can be altered by
+# the user.
+#################################################################
+
+#aesthetics
+font_size : 9
+
+#detector
+direction : 'negative'
+min_amp : 0.3
+points_baseline : 500
+points_search : 300
+min_decay : 0
+max_points_baseline : 1000
+max_points_decay : 40000
+manual_pixel_offset : 0
+update_events : 0

@@ -1,0 +1,26 @@
+#################################################################
+# PyMini Defaults
+#################################################################
+# This file contains the default configuration options
+# for PyMini. IT SHOULD NOT BE EDITED!
+#################################################################
+
+#aesthetics
+default_geometry : [900,600]
+default_relative_cp_width : 0.25
+default_font_size : 9
+
+
+#detector parameters
+default_direction : 'positive'
+default_min_amp : 0.3
+default_points_baseline : 100
+default_points_search : 300
+default_min_decay : 0
+default_max_points_baseline : 1000
+default_max_points_decay : 40000
+default_manual_pixel_offset : 0
+default_update_events : 0
+separator : true
+label_width : 150
+entry_width : 10
