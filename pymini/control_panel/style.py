@@ -37,3 +37,10 @@ def populate(optionframe):
         default=config.default_max_y,
         validate_type='auto/float'
     )
+    optionframe.insert_entry(
+        name='line_color',
+        label='Trace line color:',
+        value=config.line_color,
+        default=config.default_line_color,
+        validate_type='color'
+    )
