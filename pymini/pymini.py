@@ -6,7 +6,7 @@ from control_panel import font_bar
 
 from menubar import menubar
 
-from control_panel import detector
+from control_panel import detector, style
 from utils.scrollable_option_frame import ScrollableOptionFrame
 print('pymini loaded')
 
@@ -59,8 +59,9 @@ detector.populate(cp.detector_tab)
 cp_notebook.add(cp.detector_tab.get_frame(), text='Detector')
 
 # insert style options tab into control panel
-
-
+cp.style_tab = ScrollableOptionFrame(cp)
+style.populate(cp.style_tab)
+cp_notebook.add(cp.style_tab.get_frame(), text='Style')
 
 # set up font adjustment bar
 fb = font_bar.load(left)

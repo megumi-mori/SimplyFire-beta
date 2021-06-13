@@ -2,8 +2,9 @@ import tkinter as Tk
 from tkinter import ttk, font
 from config import config
 from utils import validation
-class LabeledWidget():
 
+
+class LabeledWidget():
     def __init__(self,
                  parent,
                  label,
@@ -16,14 +17,14 @@ class LabeledWidget():
         self.frame.grid_columnconfigure(1, weight=0)
         self.label = ttk.Label(self.frame, text=label)
         self.label.config(wraplength=config.label_width)
-        self.label.bind('<Configure>',self.adjust_width)
+        self.label.bind('<Configure>', self.adjust_width)
 
         self.var = Tk.StringVar()
         self.var.set(value)
         self.default = default
         self.prev = value
         self.widget = None
-        self.command=command
+        self.command = command
 
         self.label.grid(column=0, row=0, sticky='news')
 
@@ -46,9 +47,7 @@ class LabeledWidget():
         self.label.config(wraplength=int(self.parent.winfo_width() - self.widget.winfo_width()))
 
     def adjust_widget_width(self):
-        self.widget.config(width = int(self.parent.winfo_width() * config.relative_widget_width))
-
-
+        self.widget.config(width=int(self.parent.winfo_width() * config.relative_widget_width))
 
     def grid(self, *args, **kwargs):
         self.frame.grid(*args, **kwargs)
@@ -79,13 +78,14 @@ class LabeledWidget():
         except:
             pass
 
+
 class LabeledEntry(LabeledWidget):
     def __init__(self,
                  parent,
                  label="Enter value",
                  value="default value",
                  default=None,
-                 validate_type = "float",
+                 validate_type="float",
                  command=None):
         LabeledWidget.__init__(
             self,
@@ -98,40 +98,36 @@ class LabeledEntry(LabeledWidget):
         self.widget = Tk.Entry(
             self.frame,
             textvariable=self.var,
-            validate='focus',
             width=config.entry_width,
-            validatecommand=(self.frame.register(self.validate), validate_type, '%P'),
             justify=Tk.RIGHT,
             command=command
         )
 
         self.widget.grid(column=1, row=0, sticky='sew')
-        self.widget.bind('<FocusOut>', print, add='+')
+        self.widget.bind('<FocusOut>', lambda e, v=validate_type: self.validate(e, v), add='+')
 
-    def set(self, value):
-        #cannot use Tk.StringVar.set() due to validatecommand conflict
+    def set(self, value=""):
+        # cannot use Tk.StringVar.set() due to validatecommand conflict
         self.widget.delete(0, len(self.get()))
         self.widget.insert(0, value)
 
-    def validate(self, validate_type, value):
-        if validate_type == 'float':
-            if validation.is_float(value):
-                self.prev = value
-                return True
-            self.revert()
-            return False
-        elif validate_type == 'int':
-            if validation.is_int(value):
-                self.prev = value
-                return True
+    def validate(self, event, validation_type, c=None):
+        value = self.get()
+        if validation.validate(validation_type, self.get()):
+            self.prev = value
+            return True
+        elif validation_type == 'int':
             try:
-                new_value = int(float(value))
+                new_value = str(int(float(value)))
                 self.set(new_value)
                 self.prev = new_value
                 return True
             except:
                 self.revert()
                 return False
+        else:
+            self.revert()
+            return False
 
 
 class LabeledOptionMenu(LabeledWidget):
