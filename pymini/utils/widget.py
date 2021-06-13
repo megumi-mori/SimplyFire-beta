@@ -93,7 +93,6 @@ class LabeledEntry(LabeledWidget):
             label,
             value,
             default,
-            command
         )
 
         self.widget = Tk.Entry(
@@ -102,14 +101,12 @@ class LabeledEntry(LabeledWidget):
             validate='focus',
             width=config.entry_width,
             validatecommand=(self.frame.register(self.validate), validate_type, '%P'),
-            justify=Tk.RIGHT
+            justify=Tk.RIGHT,
+            command=command
         )
 
-
-
-        self.bind(command)
-
         self.widget.grid(column=1, row=0, sticky='sew')
+        self.widget.bind('<FocusOut>', print, add='+')
 
     def set(self, value):
         #cannot use Tk.StringVar.set() due to validatecommand conflict
@@ -152,8 +149,7 @@ class LabeledOptionMenu(LabeledWidget):
             parent,
             label,
             value,
-            default,
-            command
+            default
         )
 
         if value is None:
@@ -163,10 +159,9 @@ class LabeledOptionMenu(LabeledWidget):
             self.frame,
             self.var,
             value,
-            *options,
-            command=command
+            *options
         )
-        self.bind(command)
+        self.widget.bind('<FocusOut>', self.test, add='+')
         self.widget.grid(column=1, row=0, sticky='ews')
 
     def replace_options(self, options=[]):
@@ -176,6 +171,9 @@ class LabeledOptionMenu(LabeledWidget):
                 label=i,
                 command=self.command
             )
+
+    def test(self, event=None):
+        print('testing')
 
 
 class LabeledCheckbox(LabeledWidget):

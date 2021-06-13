@@ -151,6 +151,9 @@ class ScrollableOptionFrame(ScrollableFrame):
         for key in self.widgets:
             self.widgets[key].set_wraplength(fontsize / 9 * config.label_length)
 
+    def update_value(self, event):
+        print(event)
+        print('update value')
 
 
 

@@ -3,8 +3,7 @@ from tkinter import ttk
 from control_panel import detector
 
 from utils import scrollable_frame
-notebook = None
-print('control panel loaded')
+
 def load(parent):
     frame = Tk.Frame(parent, bg='purple')
     frame.grid_columnconfigure(0, weight =1)
@@ -13,8 +12,9 @@ def load(parent):
     notebook = ttk.Notebook(frame)
     notebook.grid(column=0, row=0, sticky='news')
     tabs={}
-    tabs['detector'] = detector.Detector(frame)
+    # tabs['detector'] = detector.Detector(frame)
 
+    tabs['detector'] = detector.load(frame)
     # notebook.add(tabs['detector'].get_frame(), text='Mini')
     notebook.add(tabs['detector'].get_frame(), text='Mini')
     # notebook.add(detector.load(notebook), text='Detector')

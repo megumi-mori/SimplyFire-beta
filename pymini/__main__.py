@@ -3,6 +3,7 @@ from config import config
 
 import control_panel
 import utils
+import menubar
 
 if __name__ == '__main__':
 
