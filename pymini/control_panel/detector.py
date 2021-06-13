@@ -1,8 +1,8 @@
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 
-def load(parent):
-    frame = ScrollableOptionFrame(parent)
+def populate(frame):
+    # frame = ScrollableOptionFrame(parent)
 
     ##################################################
     #          Populate detector option tab          #

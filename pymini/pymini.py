@@ -6,9 +6,8 @@ from control_panel import font_bar
 
 from menubar import menubar
 
-# from control_panel.detector import Detector
-
 from control_panel import detector
+from utils.scrollable_option_frame import ScrollableOptionFrame
 print('pymini loaded')
 
 def on_close():
@@ -40,7 +39,7 @@ pw.grid(column=0, row=0, sticky='news')
 ##################################################
 
 # set up frame
-left = Tk.Frame(background='blue')
+left = Tk.Frame(pw, background='blue')
 left.grid(column=0, row=0, sticky='news')
 left.grid_rowconfigure(0, weight=1)
 left.grid_columnconfigure(0, weight=1)
@@ -55,7 +54,8 @@ cp_notebook = ttk.Notebook(cp)
 cp_notebook.grid(column=0, row=0, sticky='news')
 
 # insert detector options tab into control panel
-cp.detector_tab = detector.load(cp)
+cp.detector_tab = ScrollableOptionFrame(cp)
+detector.populate(cp.detector_tab)
 cp_notebook.add(cp.detector_tab.get_frame(), text='Detector')
 
 # insert style options tab into control panel
