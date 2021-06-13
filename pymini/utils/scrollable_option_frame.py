@@ -3,6 +3,7 @@ import tkinter as Tk
 from tkinter import ttk
 from utils import widget
 from config import config
+import yaml
 
 class ScrollableOptionFrame(ScrollableFrame):
     def __init__(self, parent, scrollbar=True):
@@ -31,6 +32,7 @@ class ScrollableOptionFrame(ScrollableFrame):
 
         w = widget.LabeledEntry(
             parent=panel,
+            name=name,
             label=label,
             value=value,
             default=default,
@@ -56,6 +58,7 @@ class ScrollableOptionFrame(ScrollableFrame):
 
         w = widget.LabeledOptionMenu(
             parent=panel,
+            name=name,
             label=label,
             value=value,
             default=default,
@@ -82,6 +85,7 @@ class ScrollableOptionFrame(ScrollableFrame):
 
         w = widget.LabeledCheckbox(
             parent=panel,
+            name=name,
             label=label,
             value=value,
             default=default,
@@ -151,10 +155,10 @@ class ScrollableOptionFrame(ScrollableFrame):
         for key in self.widgets:
             self.widgets[key].set_wraplength(fontsize / 9 * config.label_length)
 
-    def update_value(self, event):
-        print(event)
-        print('update value')
+    def get(self, key):
+        self.widgets[key].get()
 
-
-
-
+    def safe_dump_vars(self):
+        vars = [(key, self.widgets[key].get()) for key in self.widgets]
+        d = dict(vars)
+        return yaml.safe_dump(d)

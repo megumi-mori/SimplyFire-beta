@@ -1,6 +1,7 @@
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 
+
 def populate(frame):
     # frame = ScrollableOptionFrame(parent)
 
@@ -75,10 +76,10 @@ def populate(frame):
         default=config.default_update_events,
     )
     frame.insert_checkbox(
-        name='save_detector_preferencs',
+        name='save_detector_preferences',
         label='Save preferences',
-        value=config.update_events,
-        default=config.default_update_events
+        value=config.save_detector_preferences,
+        default=config.default_save_detector_preferences
     )
     frame.insert_button(
         text='Default Paramters',
@@ -95,6 +96,7 @@ def populate(frame):
     frame.insert_button(text='hello, world!')
 
     return frame
+
 
 class Detector(ScrollableOptionFrame):
     def __init__(self, parent):

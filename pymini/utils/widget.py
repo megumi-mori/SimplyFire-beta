@@ -7,11 +7,13 @@ from utils import validation
 class LabeledWidget():
     def __init__(self,
                  parent,
+                 name,
                  label,
                  value="",
                  default="",
                  command=None):
         self.parent = parent
+        self.name=name
         self.frame = Tk.Frame(parent)
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_columnconfigure(1, weight=0)
@@ -82,6 +84,7 @@ class LabeledWidget():
 class LabeledEntry(LabeledWidget):
     def __init__(self,
                  parent,
+                 name,
                  label="Enter value",
                  value="default value",
                  default=None,
@@ -90,6 +93,7 @@ class LabeledEntry(LabeledWidget):
         LabeledWidget.__init__(
             self,
             parent,
+            name,
             label,
             value,
             default,
@@ -134,6 +138,7 @@ class LabeledOptionMenu(LabeledWidget):
     def __init__(
             self,
             parent,
+            name,
             label,
             value,
             default=None,
@@ -143,6 +148,7 @@ class LabeledOptionMenu(LabeledWidget):
         LabeledWidget.__init__(
             self,
             parent,
+            name,
             label,
             value,
             default
@@ -176,6 +182,7 @@ class LabeledCheckbox(LabeledWidget):
     def __init__(
             self,
             parent,
+            name,
             label=None,
             value=None,
             default=None,
@@ -184,6 +191,7 @@ class LabeledCheckbox(LabeledWidget):
         LabeledWidget.__init__(
             self,
             parent,
+            name,
             label,
             value,
             default

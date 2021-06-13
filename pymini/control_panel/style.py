@@ -37,10 +37,44 @@ def populate(optionframe):
         default=config.default_max_y,
         validate_type='auto/float'
     )
+    optionframe.insert_checkbox(
+        name='apply_axis_limit',
+        label='Apply axis limits on a new trace',
+        value=config.apply_axis_limit,
+        default=config.default_apply_axis_limit
+    )
     optionframe.insert_entry(
         name='line_color',
         label='Trace line color:',
         value=config.line_color,
         default=config.default_line_color,
+        validate_type='color'
+    )
+    optionframe.insert_entry(
+        name='event_color',
+        label='Event peak color:',
+        value=config.event_color,
+        default=config.default_event_color,
+        validate_type='color'
+    )
+    optionframe.insert_entry(
+        name='baseline_color',
+        label='Event baseline color:',
+        value=config.baseline_color,
+        default=config.default_baseline_color,
+        validate_type='color'
+    )
+    optionframe.insert_entry(
+        name='decay_color',
+        label='Event decay (tau) color:',
+        value=config.decay_color,
+        default=config.default_decay_color,
+        validate_type='color'
+    )
+    optionframe.insert_entry(
+        name='highlight_color',
+        label='Event highlight color:',
+        value=config.highlight_color,
+        default=config.default_highlight_color,
         validate_type='color'
     )

@@ -1,36 +1,14 @@
 #################################################################
-# PyMini Configuration
-#################################################################
-# This file contains configurations that can be altered by
-# the user.
+# PyMini user configurations
 #################################################################
 
-#aesthetics
-geometry : [900,600]
-relative_cp_width : 0.25
-font_size : 9
-separator : true
-label_width : 150
-entry_width : 10
-
-#detector
-direction : 'negative'
-min_amp : 0.3
-points_baseline : 500
-points_search : 300
-min_decay : 0
-max_points_baseline : 1000
-max_points_decay : 40000
-manual_pixel_offset : 0
-update_events : 0
-
-#style
-min_x : 'auto'
-max_x : 'auto'
-min_y : 'auto'
-max_y : 'auto'
-line_color : 'black'
-tick : 'auto'
-minor_tick : 'auto'
-peak_color : 'yellow'
-highlight_color: 'red'
+direction: positive
+manual_pixel_offset: '0'
+max_points_baseline: '1000'
+max_points_decay: '40000'
+min_amp: '0.3'
+min_decay: '0'
+points_baseline: '100'
+points_search: '300'
+save_detector_preferences: '0'
+update_events: '0'

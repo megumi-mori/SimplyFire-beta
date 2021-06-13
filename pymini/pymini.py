@@ -12,6 +12,7 @@ print('pymini loaded')
 
 def on_close():
     print('closing')
+    config.dump_config([cp.detector_tab])
     root.destroy()
 
 root = Tk.Tk()
