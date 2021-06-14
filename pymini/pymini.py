@@ -6,13 +6,31 @@ from control_panel import font_bar
 
 from menubar import menubar
 
-from control_panel import detector, style
+from control_panel import detector, style, progress_bar
 from utils.scrollable_option_frame import ScrollableOptionFrame
-print('pymini loaded')
 
+
+##################################################
+#                Closing Sequence                #
+##################################################
 def on_close():
+    """
+    :input: None
+    The function is called when the program is closing (pressing X)
+    Uses the config module to write out user-defined parameters
+    :return: None
+    """
     print('closing')
-    config.dump_config([cp.detector_tab])
+    tabs = []
+    if cp.detector_tab.get_value('save_detector_preferences') == '1':
+
+        print('detector_tab')
+        tabs.append(cp.detector_tab)
+    if cp.style_tab.get_value('save_style_preferences') == '1':
+        print('style_tab')
+        tabs.append(cp.style_tab)
+    config.dump_config(tabs)
+
     root.destroy()
 
 root = Tk.Tk()
@@ -57,6 +75,7 @@ cp_notebook.grid(column=0, row=0, sticky='news')
 # insert detector options tab into control panel
 cp.detector_tab = ScrollableOptionFrame(cp)
 detector.populate(cp.detector_tab)
+print(cp.detector_tab.widgets)
 cp_notebook.add(cp.detector_tab.get_frame(), text='Detector')
 
 # insert style options tab into control panel
@@ -67,6 +86,11 @@ cp_notebook.add(cp.style_tab.get_frame(), text='Style')
 # set up font adjustment bar
 fb = font_bar.load(left)
 fb.grid(column=0, row=1, sticky='news')
+
+# set up progress bar
+pb = progress_bar.ProgressBar(left)
+pb.grid(column=0, row=2, stick='news')
+
 
 
 ##################################################

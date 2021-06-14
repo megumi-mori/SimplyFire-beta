@@ -15,6 +15,7 @@ default_font_size : 9
 default_separator : true
 default_label_width : 150
 default_entry_width : 10
+default_progress_bar_color : 'blue'
 
 #detector parameters
 default_direction : 'positive'
@@ -41,3 +42,4 @@ default_event_color : 'yellow'
 default_baseline_color : 'red'
 default_decay_color : 'blue'
 default_highlight_color: 'red'
+default_save_style_preferences : 0

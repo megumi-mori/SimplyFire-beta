@@ -94,6 +94,7 @@ class ScrollableOptionFrame(ScrollableFrame):
 
         w.grid(column=0, row=0, stick='news')
         self.widgets[name] = w
+        print(self.widgets[name])
 
         self.insert_panel(panel)
         return w
@@ -155,8 +156,10 @@ class ScrollableOptionFrame(ScrollableFrame):
         for key in self.widgets:
             self.widgets[key].set_wraplength(fontsize / 9 * config.label_length)
 
-    def get(self, key):
-        self.widgets[key].get()
+    def get_value(self, key):
+        print(key)
+        print(self.widgets[key].get())
+        return self.widgets[key].get()
 
     def safe_dump_vars(self):
         vars = [(key, self.widgets[key].get()) for key in self.widgets]

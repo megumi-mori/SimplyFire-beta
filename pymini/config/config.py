@@ -5,6 +5,7 @@ import pymini
 from tkinter import font
 from control_panel import detector
 
+import time
 
 version = "b0.1.0"
 
@@ -56,8 +57,11 @@ def dump_config(tabs):
         f.write("# PyMini user configurations\n")
         f.write("#################################################################\n")
         f.write("\n")
-        for t in tabs:
+        pymini.pb.initiate()
+        for i, t in enumerate(tabs):
             f.write(t.safe_dump_vars())
+            pymini.pb.progress((i + 1) / len(tabs))
+
         # f.write(yaml.safe_dump(user_vars))
     print('Completed')
 
