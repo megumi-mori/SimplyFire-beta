@@ -12,9 +12,7 @@ class ProgressBar(Tk.Frame):
         self.bar.config(bg=config.default_progress_bar_color)
 
     def progress(self, percent):
-        print(percent)
         w = self.parent.winfo_width()
-        print(percent * w)
         self.bar.config(width=percent * w)
         self.update()
 
