@@ -8,9 +8,12 @@ valid_types = [
 
 
 def validate(validate_type, value):
-    types = validate_type.split('/')
-    if len(types) == 0:
+    if validate_type is None:
         return True
+    if len(validate_type) == 0:
+        return True
+    types = validate_type.split('/')
+
     for type in types:
         if type == 'float':
             if is_float(value):
