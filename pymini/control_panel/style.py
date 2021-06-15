@@ -81,11 +81,5 @@ def load(parent):
         default=config.default_highlight_color,
         validate_type='color'
     )
-    optionframe.insert_checkbox(
-        name='save_style_preferences',
-        label='Save preferences',
-        value=config.save_style_preferences,
-        default=config.default_save_style_preferences
-    )
 
     return optionframe

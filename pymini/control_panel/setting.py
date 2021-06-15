@@ -18,7 +18,8 @@ def load(parent):
         value=config.config_autoload,
         default=0
     )
-    print('dir_panel')
+
+    # auto_load directory panel
 
     dir_panel = frame.make_panel(separator=True)
     dir_frame = ttk.Frame(dir_panel)
@@ -27,25 +28,22 @@ def load(parent):
     ttk.Label(master=dir_frame,
              text='Configuration file directory:').grid(column=0, row=0, sticky='news')
 
-    # dir_entry = widget.LinkedEntry(
-    #     parent=dir_panel,
-    #     name="config_dir",
-    #     value=config.convert_to_path(config.config_path),
-    #     default=config.convert_to_path(config.default_config_path),
-    #     validate_type="dir"
-    # )
-    dir_entry = Tk.Text(dir_frame)
-    dir_entry.insert(1.0, config.convert_to_path(config.config_path))
-    dir_entry.configure(state='disabled', height = 1)
-    dir_entry.grid(column=0,row=1,sticky='news')
+    dir_entry = widget.LinkedText(
+        parent=dir_frame,
+        name='config_dir',
+        value=config.convert_to_path(config.config_path),
+        default=config.convert_to_path(config.default_config_path)
+    )
+    # dir_entry.insert(1.0, config.convert_to_path(config.config_path))
+    dir_entry.widget.configure(state='disabled', height=2)
+    dir_entry.widget.grid(column=0,row=1,sticky='news')
     frame.widgets['config_dir'] = dir_entry
 
-    dir_button = Tk.Button(
+    Tk.Button(
         master=dir_frame,
         text='Browse',
         command=ask_dirname
-    )
-    dir_button.grid(column=1, row=1, sticky='news')
+    ).grid(column=1, row=1, sticky='news')
 
     ttk.Label(master=dir_frame,
               text='Configuration file name:').grid(column=0, row=2, sticky='news')
@@ -59,6 +57,13 @@ def load(parent):
     )
     file_entry.widget.grid(column=0, row=3, sticky='news')
 
+    Tk.Button(
+        master=dir_frame,
+        text='Save Now',
+        command=None
+    ).grid(column=1, row=3, sticky='news')
+
+
     frame.insert_button("Save Config As...")
     frame.insert_button("Load Config", command=config.load_config)
 
@@ -67,7 +72,8 @@ def load(parent):
 
 def ask_dirname(e=None):
     dir = filedialog.askdirectory(mustexist=True)
-    pymini.cp.settings_tab.widgets['config_dir'].widget.config(state="normal")
-    pymini.cp.settings_tab.widgets['config_dir'].set(dir)
-    pymini.cp.settings_tab.widgets['config_dir'].widget.config(state='disabled')
+    if dir:
+        pymini.cp.settings_tab.widgets['config_dir'].widget.config(state="normal")
+        pymini.cp.settings_tab.widgets['config_dir'].set(dir)
+        pymini.cp.settings_tab.widgets['config_dir'].widget.config(state='disabled')
 

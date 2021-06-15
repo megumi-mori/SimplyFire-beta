@@ -61,6 +61,13 @@ def load(parent):
         validate_type='float'
     )
     frame.insert_label_entry(
+        name='min_auc',
+        label='Minimum area under the curve',
+        value=config.min_auc,
+        default=config.default_min_auc,
+        validate_type='float'
+    )
+    frame.insert_label_entry(
         name='max_points_baseline',
         label='Maximum data points to consider before peak to find the baseline',
         value=config.max_points_baseline,
@@ -86,12 +93,6 @@ def load(parent):
         label='Update graph after each event detection (will slow down search)',
         value=config.update_events,
         default=config.default_update_events,
-    )
-    frame.insert_checkbox(
-        name='save_detector_preferences',
-        label='Save preferences',
-        value=config.save_detector_preferences,
-        default=config.default_save_detector_preferences
     )
     frame.insert_button(
         text='Default Paramters',

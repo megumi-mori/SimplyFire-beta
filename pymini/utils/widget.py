@@ -57,7 +57,7 @@ class LinkedEntry(LinkedWidget):
         ):
         super().__init__(parent, name, value, default)
         self.widget = Tk.Entry(
-            parent,
+            master=parent,
             textvariable=self.var,
             width=config.entry_width,
             justify=Tk.RIGHT
@@ -116,6 +116,28 @@ class LinkedOptionMenu(LinkedWidget):
                 label=i,
                 command=self.command
             )
+
+class LinkedText(LinkedWidget):
+    def __init__(self,
+            parent,
+            name="",
+            value="",
+            default=""
+                 ):
+        super().__init__(parent=parent,
+                         name=name,
+                         value=value,
+                         default=default)
+        self.widget = Tk.Text(master=parent)
+        self.set(value)
+
+    def set(self, value):
+        self.widget.delete(1.0, Tk.END)
+        self.widget.insert(1.0, value)
+
+    def get(self):
+        self.widget.get(1.0, Tk.END)
+
 
 
 
