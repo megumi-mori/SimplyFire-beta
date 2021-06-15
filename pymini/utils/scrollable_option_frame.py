@@ -276,8 +276,9 @@ class ScrollableOptionFrame(Tk.Frame):
         pass
 
     def adjust_button_width(self, button):
+        width = self.canvas.winfo_width()
+        button.config(width=int(width/2), wraplength= int(width / 2) - 4)
 
-        button.config(wraplength=button.winfo_width() - 4)
     def default(self):
         for key in self.widgets:
             self.widgets[key].set_to_default()
