@@ -132,13 +132,15 @@ class LinkedText(LinkedWidget):
         self.set(value)
 
     def set(self, value):
+        disable = False
+        if self.widget['state'] == 'disabled':
+            disable = True
+            self.widget.config(state='normal')
         self.widget.delete(1.0, Tk.END)
         self.widget.insert(1.0, value)
-
-    def get(self):
-        self.widget.get(1.0, Tk.END)
-
-
+        self.var.set(value)
+        if disable:
+            self.widget.config(state='disabled')
 
 
 class LabeledWidget():
