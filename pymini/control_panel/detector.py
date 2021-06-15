@@ -25,49 +25,56 @@ def load(parent):
         default=config.default_direction,
         options=['positive', 'negative']
     )
-    frame.insert_entry(
+    frame.insert_label_entry(
         name='min_amp',
         label='Minimum amplitude (nA):',
         value=config.min_amp,
         default=config.default_min_amp,
         validate_type='float'
     )
-    frame.insert_entry(
+    # frame.insert_entry(
+    #     name='min_amp',
+    #     label='Minimum amplitude (nA):',
+    #     value=config.min_amp,
+    #     default=config.default_min_amp,
+    #     validate_type='float'
+    # )
+    frame.insert_label_entry(
         name='points_baseline',
         label='Number of data points to average for baseline:',
         value=config.points_baseline,
         default=config.default_points_baseline,
         validate_type='int'
     )
-    frame.insert_entry(
+    frame.insert_label_entry(
         name='points_search',
         label='Number of data points to search for a peak',
         value=config.points_search,
         default=config.default_points_search,
         validate_type='int'
     )
-    frame.insert_entry(
+    frame.insert_label_entry(
         name='min_decay',
         label='Minimum decay constant (tau) (ms)',
         value=config.min_decay,
         default=config.default_min_decay,
         validate_type='float'
     )
-    frame.insert_entry(
+    frame.insert_label_entry(
         name='max_points_baseline',
         label='Maximum data points to consider before peak to find the baseline',
         value=config.max_points_baseline,
         default=config.default_max_points_baseline,
         validate_type='int'
     )
-    frame.insert_entry(
+    frame.insert_label_entry(
         name='max_points_decay',
         label='Maximum data points after peak to consider for decay',
         value=config.max_points_decay,
         default=config.default_max_points_decay,
         validate_type='int'
     )
-    frame.insert_entry(
+    frame.insert_label_entry(
         name='manual_pixel_offset',
         label='Pixel offset for manually picking events',
         value=config.manual_pixel_offset,

@@ -12,28 +12,28 @@ def load(parent):
     #               Parameter options                #
     ##################################################
 
-    optionframe.insert_entry(
+    optionframe.insert_label_entry(
         name='min_x',
         label='Min x-axis:',
         value=config.min_x,
         default=config.default_min_x,
         validate_type='auto/float'
     )
-    optionframe.insert_entry(
+    optionframe.insert_label_entry(
         name='max_x',
         label='Max x-axis:',
         value=config.max_x,
         default=config.default_max_x,
         validate_type='auto/float'
     )
-    optionframe.insert_entry(
+    optionframe.insert_label_entry(
         name='min_y',
         label='Min y-axis:',
         value=config.min_y,
         default=config.default_min_y,
         validate_type='auto/float'
     )
-    optionframe.insert_entry(
+    optionframe.insert_label_entry(
         name='max_y',
         label='Max y-axis:',
         value=config.max_y,
@@ -46,35 +46,35 @@ def load(parent):
         value=config.apply_axis_limit,
         default=config.default_apply_axis_limit
     )
-    optionframe.insert_entry(
+    optionframe.insert_label_entry(
         name='line_color',
         label='Trace line color:',
         value=config.line_color,
         default=config.default_line_color,
         validate_type='color'
     )
-    optionframe.insert_entry(
+    optionframe.insert_label_entry(
         name='event_color',
         label='Event peak color:',
         value=config.event_color,
         default=config.default_event_color,
         validate_type='color'
     )
-    optionframe.insert_entry(
+    optionframe.insert_label_entry(
         name='baseline_color',
         label='Event baseline color:',
         value=config.baseline_color,
         default=config.default_baseline_color,
         validate_type='color'
     )
-    optionframe.insert_entry(
+    optionframe.insert_label_entry(
         name='decay_color',
         label='Event decay (tau) color:',
         value=config.decay_color,
         default=config.default_decay_color,
         validate_type='color'
     )
-    optionframe.insert_entry(
+    optionframe.insert_label_entry(
         name='highlight_color',
         label='Event highlight color:',
         value=config.highlight_color,

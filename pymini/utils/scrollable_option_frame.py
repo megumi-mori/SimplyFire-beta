@@ -4,6 +4,21 @@ from tkinter import ttk
 from utils import widget
 from config import config
 import yaml
+import textwrap
+
+
+def make_label(
+        parent,
+        name,
+        label
+):
+
+    wrapped_label = textwrap.wrap(label, width=config.default_label_length)
+    text = '\n'.join(wrapped_label)
+    label = ttk.Label(parent, text=text)
+
+    return label
+
 
 class ScrollableOptionFrame():
     def __init__(self, parent, scrollbar=True):
@@ -48,6 +63,7 @@ class ScrollableOptionFrame():
         self.frame.grid_rowconfigure(0,weight=1)
         self.widgets = {}
         self.buttons = {}
+        self.labels = {}
         self.num_row = 0
         self.col_button = 0
     def adjust_width(self, e):
@@ -103,6 +119,43 @@ class ScrollableOptionFrame():
 
         self.insert_panel(panel)
         return w
+
+    def insert_label_entry(
+            self,
+            name,
+            label="Enter value",
+            value="default value",
+            default=None,
+            validate_type=None
+    ):
+
+        panel = Tk.Frame(self.frame)
+        panel.grid_columnconfigure(0, weight=1)
+
+        widget_frame = Tk.Frame(panel)
+        widget_frame.grid_columnconfigure(0, weight=1)
+        widget_frame.grid(column=0, row=0, sticky='news')
+
+        wrapped_label = textwrap.wrap(label, width=config.default_label_length)
+        text = '\n'.join(wrapped_label)
+        label_widget = ttk.Label(widget_frame, text=text)
+
+        self.labels[name] = label_widget
+        label_widget.grid(column=0, row=0, sticky='news')
+
+        entry_widget = widget.LinkedEntry(
+            widget_frame,
+            name,
+            value,
+            default,
+            validate_type
+        ).widget
+
+        self.widgets[name]=entry_widget
+        entry_widget.grid(column=1,row=0, sticky='ews')
+
+        self.insert_panel(panel)
+        return entry_widget
 
     def insert_optionmenu(
             self,
@@ -225,13 +278,6 @@ class ScrollableOptionFrame():
     def default(self):
         for key in self.widgets:
             self.widgets[key].set_to_default()
-
-    def update_width(self, fontsize):
-        print('update_width')
-        for key in self.widgets:
-            self.widgets[key].set_wraplength(fontsize / 9 * config.label_length)
-        for key in self.buttons:
-            self.buttons[key].config(wraplength = self.buttons[key].winfo_width() - 4)
 
     def get_value(self, key):
         return self.widgets[key].get()

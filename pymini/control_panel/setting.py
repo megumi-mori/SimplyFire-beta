@@ -1,6 +1,7 @@
 from utils.scrollable_option_frame import ScrollableOptionFrame
 import tkinter as Tk
 from utils import widget
+from config import  config
 def load(parent):
 
     frame = ScrollableOptionFrame(parent)
