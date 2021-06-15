@@ -18,7 +18,7 @@ def load(parent):
     :return:
     """
     frame = ScrollableOptionFrame(parent)
-    frame.insert_optionmenu(
+    frame.insert_label_optionmenu(
         name='direction',
         label='Direction',
         value=config.direction,

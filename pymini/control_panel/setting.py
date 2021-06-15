@@ -9,26 +9,8 @@ def load(parent):
     #               Parameter Options                #
     ##################################################
 
-    browse_panel = frame.insert_frame()
-    browse_panel.grid_columnconfigure(0, weight =1)
-    dir_var = Tk.StringVar()
-    dir_entry = Tk.Entry(
-        browse_panel,
-        textvariable=dir_var,
-        justify=Tk.RIGHT
-    )
-    dir_entry.grid(column=0, row=0, sticky='news')
-    new_panel = frame.insert_frame()
-    new_panel.grid_columnconfigure(0, weight=1)
-    test_entry = widget.LinkedEntry(
-        parent = new_panel,
-        name = 'test',
-        value = 'test',
-        default = 'none',
-        validate_type = "string"
-
-    )
-    test_entry.grid(column=0, row=0, sticky='news')
+    dir_panel = frame.make_panel(separator=False)
+    frame.make_entry('test', value="hello")
 
     return frame
     pass
