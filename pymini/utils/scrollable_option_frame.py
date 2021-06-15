@@ -20,11 +20,12 @@ def make_label(
     return label
 
 
-class ScrollableOptionFrame():
+class ScrollableOptionFrame(Tk.Frame):
     def __init__(self, parent, scrollbar=True):
-        self.container = Tk.Frame(parent, bg='red')
-        self.canvas = Tk.Canvas(self.container, bg='orange')
-        self.scrollbar = ttk.Scrollbar(self.container, orient="vertical", command=self.canvas.yview)
+        super().__init__(parent)
+        # self.container = Tk.Frame(parent, bg='red')
+        self.canvas = Tk.Canvas(self, bg='orange')
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.frame = Tk.Frame(self.canvas, bg='green')
 
         self.frame.bind(
@@ -38,9 +39,10 @@ class ScrollableOptionFrame():
 
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        self.container.grid(column=0, row=0, sticky='news')
-        self.container.grid_columnconfigure(0, weight=1)
-        self.container.grid_rowconfigure(0, weight=1)
+        self.grid(column=0, row=0, sticky='news')
+        self.grid(column=0, row=0, sticky='news')
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
         self.canvas.grid(column=0, row=0, sticky='news')
         self.canvas.grid_columnconfigure(0, weight=1)
@@ -66,12 +68,13 @@ class ScrollableOptionFrame():
         self.labels = {}
         self.num_row = 0
         self.col_button = 0
+
     def adjust_width(self, e):
         self.canvas.itemconfigure('option', width=e.width-4)
         pass
 
     def get_frame(self):
-        return self.container
+        return self.frame
 
     def get_canvas(self):
         return self.canvas
@@ -85,39 +88,63 @@ class ScrollableOptionFrame():
     def _on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
-    def insert_entry(self,
+    def make_entry(self,
                      name,
-                     label="Enter value",
+                     parent=None,
                      value="default value",
                      default=None,
                      validate_type=None,
                      command=None
                      ):
-        """
-        :param name: name used to store the widget for later retrieval
-        :param label: Text used as the label describing the widget
-        :param value: Value of the Entry widget
-        :param default: Default value of the Entry widget
-        :param validate_type: Text validation type supports ("int", "float", "auto", "color").
-        To allow for multiple validation types, separate type by "/"
-        :param command: command linked to the Entry widget (currently not supported)
-        :return:
-        """
-        panel = Tk.Frame(self.frame)
-        panel.grid_columnconfigure(0, weight=1)
+        if parent == None:
+            autoinsert = True
+            parent = self.make_panel()
+        else:
+            autoinsert = False
 
-        w = widget.LabeledEntry(
-            parent=panel,
+        w = widget.LinkedEntry(
+            parent=parent,
             name=name,
-            label=label,
             value=value,
             default=default,
-            validate_type=validate_type,
-            command=command)
-        w.grid(column=0, row=0, stick='news')
+            validate_type=validate_type
+        )
         self.widgets[name] = w
 
-        self.insert_panel(panel)
+        if autoinsert:
+            w.grid(column=0, row=0, stick='news')
+
+        return w
+
+    def make_optionmenu(
+            self,
+            name,
+            parent=None,
+            default=None,
+            value=None,
+            options=[],
+            command=None
+    ):
+        if parent is None:
+            autoinsert = True
+            parent = self.make_panel()
+        else:
+            autoinsert = False
+
+        w = widget.LinkedOptionMenu(
+            parent=panel,
+            name=name,
+            value=value,
+            default=default,
+            options=options,
+            command=command
+        )
+
+        self.widgets[name] = w
+
+        if autoinsert:
+            w.grid(column=0, row=0, stick='news')
+
         return w
 
     def insert_label_entry(
@@ -129,8 +156,7 @@ class ScrollableOptionFrame():
             validate_type=None
     ):
 
-        panel = Tk.Frame(self.frame)
-        panel.grid_columnconfigure(0, weight=1)
+        panel = self.make_panel(separator=config.default_separator)
 
         widget_frame = Tk.Frame(panel)
         widget_frame.grid_columnconfigure(0, weight=1)
@@ -143,46 +169,51 @@ class ScrollableOptionFrame():
         self.labels[name] = label_widget
         label_widget.grid(column=0, row=0, sticky='news')
 
-        entry_widget = widget.LinkedEntry(
-            widget_frame,
+        entry_widget = self.make_entry(
             name,
-            value,
-            default,
-            validate_type
-        ).widget
-
-        self.widgets[name]=entry_widget
+            parent = widget_frame,
+            value=value,
+            default=default,
+            validate_type=validate_type
+        )
         entry_widget.grid(column=1,row=0, sticky='ews')
 
-        self.insert_panel(panel)
         return entry_widget
 
-    def insert_optionmenu(
+    def insert_label_optionmenu(
             self,
             name,
-            label="Label",
-            default=None,
+            label="",
             value=None,
-            options=[],
+            default=None,
+            options=None,
             command=None
     ):
-        panel = Tk.Frame(self.frame)
-        panel.grid_columnconfigure(0, weight=1)
 
-        w = widget.LabeledOptionMenu(
-            parent=panel,
+        panel = self.make_panel(separator=config.default_separator)
+
+        widget_frame = Tk.Frame(panel)
+        widget_frame.grid_columnconfigure(0, weight=1)
+        widget_frame.grid(column=0, row=0, sticky='news')
+
+        wrapped_label = textwrap.wrap(label, width=config.default_label_length)
+        text = '\n'.join(wrapped_label)
+        label_widget = ttk.Label(widget_frame, text=text)
+
+        self.labels[name] = label_widget
+        label_widget.grid(column=0, row=0, sticky='news')
+        w = widget.LinkedOptionMenu(
+            parent=widget_frame,
             name=name,
-            label=label,
             value=value,
             default=default,
             options=options,
             command=command
         )
 
-        w.grid(column=0, row=0, stick='news')
-        self.widgets[name] = w
+        self.widgets[name]=w
+        w.grid(column=1,row=0, sticky='ews')
 
-        self.insert_panel(panel)
         return w
 
     def insert_checkbox(
@@ -208,21 +239,22 @@ class ScrollableOptionFrame():
         w.grid(column=0, row=0, stick='news')
         self.widgets[name] = w
 
-        self.insert_panel(panel)
+        self.insert_panel(panel, config.default_separator)
         return w
 
-    def insert_frame(
+    def make_panel(
             self,
-            name="",
+            separator=True
     ):
         panel = Tk.Frame(self.frame)
-        self.insert_panel(panel)
+        panel.grid_columnconfigure(0, weight=1)
+        self.insert_panel(panel, separator)
         return panel
 
-    def insert_panel(self, panel):
-        panel.grid(row=self.num_row, column=0,sticky='news')
-        if config.separator:
-            separator = ttk.Separator(panel, orient='horizontal')
+    def insert_panel(self, frame, separator=True):
+        frame.grid(row=self.num_row, column=0,sticky='news')
+        if separator:
+            separator = ttk.Separator(frame, orient='horizontal')
             separator.grid(column=0, row=1, sticky='news')
         self.num_row += 1
         self.col_button = 0

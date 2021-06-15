@@ -74,15 +74,15 @@ cp_notebook.grid(column=0, row=0, sticky='news')
 
 # insert detector options tab into control panel
 cp.detector_tab = detector.load(cp)
-cp_notebook.add(cp.detector_tab.get_frame(), text='Detector')
+cp_notebook.add(cp.detector_tab, text='Detector')
 
 # insert style options tab into control panel
 cp.style_tab = style.load(cp)
-cp_notebook.add(cp.style_tab.get_frame(), text='Style')
+cp_notebook.add(cp.style_tab, text='Style')
 
 # insert settings option tab into control panel
 cp.settings_tab = setting.load(cp)
-cp_notebook.add(cp.settings_tab.get_frame(), text='Settings')
+cp_notebook.add(cp.settings_tab, text='Settings')
 
 # set up font adjustment bar
 fb = font_bar.load(left)

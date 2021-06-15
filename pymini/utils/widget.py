@@ -86,6 +86,37 @@ class LinkedEntry(LinkedWidget):
             self.revert()
             return False
 
+class LinkedOptionMenu(LinkedWidget):
+    def __init__(self, parent, name, value, default=None, options=None, command=None):
+        super().__init__(parent, name, value, default)
+
+        if options is None:
+            options = []
+
+        if value is None:
+            value = default
+            print("lom: {}, {}".format(value, default))
+
+        self.command = command
+        self.widget = ttk.OptionMenu(
+            parent,
+            self.var,
+            value,
+            *options,
+            command=command
+        )
+
+    def replace_options(self, options=None):
+        if options is None:
+            options = []
+        self.widget['menu'].delete(0, 'end')
+        for i in options:
+            self.widget['menu'].add_command(
+                label=i,
+                command=self.command
+            )
+
+
 
 class LabeledWidget():
     def __init__(self,
@@ -106,7 +137,7 @@ class LabeledWidget():
         text = '\n'.join(wrapped_label)
         self.label = ttk.Label(self.frame, text=text)
 
-        self.label.config(width=20)
+        # self.label.config(width=20)
         # self.label.bind('<Configure>', self.adjust_width)
 
         self.var = Tk.StringVar()
@@ -143,103 +174,6 @@ class LabeledWidget():
             self.widget.bind(command)
         except:
             pass
-
-
-class LabeledEntry(LabeledWidget):
-    def __init__(self,
-                 parent,
-                 name,
-                 label="Enter value",
-                 value="default value",
-                 default=None,
-                 validate_type="float",
-                 command=None):
-        LabeledWidget.__init__(
-            self,
-            parent,
-            name,
-            label,
-            value,
-            default,
-        )
-
-        self.widget = Tk.Entry(
-            self.frame,
-            textvariable=self.var,
-            width=config.entry_width,
-            justify=Tk.RIGHT,
-            command=command
-        )
-
-        self.widget.grid(column=1, row=0, sticky='sew')
-        self.widget.bind('<FocusOut>', lambda e, v=validate_type: self.validate(e, v), add='+')
-
-    def set(self, value=""):
-        # cannot use Tk.StringVar.set() due to validatecommand conflict
-        self.widget.delete(0, len(self.get()))
-        self.widget.insert(0, value)
-
-    def validate(self, event, validation_type, c=None):
-        value = self.get()
-        if validation.validate(validation_type, self.get()):
-            self.prev = value
-            return True
-        elif validation_type == 'int':
-            try:
-                new_value = str(int(float(value)))
-                self.set(new_value)
-                self.prev = new_value
-                return True
-            except:
-                self.revert()
-                return False
-        else:
-            self.revert()
-            return False
-
-
-class LabeledOptionMenu(LabeledWidget):
-    def __init__(
-            self,
-            parent,
-            name,
-            label,
-            value,
-            default=None,
-            options=[],
-            command=None
-    ):
-        LabeledWidget.__init__(
-            self,
-            parent,
-            name,
-            label,
-            value,
-            default
-        )
-
-        if value is None:
-            value = default
-
-        self.widget = ttk.OptionMenu(
-            self.frame,
-            self.var,
-            value,
-            *options
-        )
-        self.widget.bind('<FocusOut>', self.test, add='+')
-        self.widget.grid(column=1, row=0, sticky='ews')
-
-    def replace_options(self, options=[]):
-        self.widget.delete(0, 'end')
-        for i in options:
-            self.widget.add_command(
-                label=i,
-                command=self.command
-            )
-
-    def test(self, event=None):
-        print('testing')
 
 
 class LabeledCheckbox(LabeledWidget):
