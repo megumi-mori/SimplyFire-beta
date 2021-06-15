@@ -2,7 +2,7 @@ from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 
 
-def populate(frame):
+def load(parent):
     # frame = ScrollableOptionFrame(parent)
 
     ##################################################
@@ -12,7 +12,12 @@ def populate(frame):
     ##################################################
     #               Parameter options                #
     ##################################################
-
+    """
+    Populates the detector tab in the control panel.
+    :param frame:
+    :return:
+    """
+    frame = ScrollableOptionFrame(parent)
     frame.insert_optionmenu(
         name='direction',
         label='Direction',
@@ -185,6 +190,8 @@ class Detector(ScrollableOptionFrame):
         self.insert_button(text='hello, world!')
         self.isolate_button()
         self.insert_button(text='hello, world!')
+
+        return self
 
 
 
