@@ -158,27 +158,18 @@ class ScrollableOptionFrame(Tk.Frame):
 
         panel = self.make_panel(separator=config.default_separator)
 
-        widget_frame = Tk.Frame(panel)
-        widget_frame.grid_columnconfigure(0, weight=1)
-        widget_frame.grid(column=0, row=0, sticky='news')
-
-        wrapped_label = textwrap.wrap(label, width=config.default_label_length)
-        text = '\n'.join(wrapped_label)
-        label_widget = ttk.Label(widget_frame, text=text)
-
-        self.labels[name] = label_widget
-        label_widget.grid(column=0, row=0, sticky='news')
-
-        entry_widget = self.make_entry(
-            name,
-            parent = widget_frame,
+        w = widget.LabeledEntry(
+            parent = panel,
+            name=name,
+            label=label,
             value=value,
             default=default,
             validate_type=validate_type
         )
-        entry_widget.grid(column=1,row=0, sticky='ews')
+        w.grid(column=0,row=0, sticky='ews')
+        self.widgets[name] = w
 
-        return entry_widget
+        return w
 
     def insert_label_optionmenu(
             self,
@@ -191,29 +182,18 @@ class ScrollableOptionFrame(Tk.Frame):
     ):
 
         panel = self.make_panel(separator=config.default_separator)
-
-        widget_frame = Tk.Frame(panel)
-        widget_frame.grid_columnconfigure(0, weight=1)
-        widget_frame.grid(column=0, row=0, sticky='news')
-
-        wrapped_label = textwrap.wrap(label, width=config.default_label_length)
-        text = '\n'.join(wrapped_label)
-        label_widget = ttk.Label(widget_frame, text=text)
-
-        self.labels[name] = label_widget
-        label_widget.grid(column=0, row=0, sticky='news')
-        w = widget.LinkedOptionMenu(
-            parent=widget_frame,
+        w = widget.LabeledOptionMenu(
+            parent = panel,
             name=name,
+            label=label,
             value=value,
             default=default,
-            options=options,
-            command=command
+            options=options
         )
 
-        self.widgets[name]=w
-        w.grid(column=1,row=0, sticky='ews')
+        w.grid(column=0, row=0, sticky='news')
 
+        self.widgets[name] = w
         return w
 
     def insert_checkbox(
@@ -224,9 +204,7 @@ class ScrollableOptionFrame(Tk.Frame):
             value=None,
             command=None
     ):
-        panel = Tk.Frame(self.frame)
-        panel.grid_columnconfigure(0, weight=1)
-
+        panel = self.make_panel(separator=config.default_separator)
         w = widget.LabeledCheckbox(
             parent=panel,
             name=name,
@@ -235,11 +213,8 @@ class ScrollableOptionFrame(Tk.Frame):
             default=default,
             command=command
         )
-
         w.grid(column=0, row=0, stick='news')
         self.widgets[name] = w
-
-        self.insert_panel(panel, config.default_separator)
         return w
 
     def make_panel(
