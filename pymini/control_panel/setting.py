@@ -5,6 +5,7 @@ from utils import widget
 from config import  config
 import pymini
 from tkinter import ttk
+import os
 
 def load(parent):
 
@@ -14,8 +15,14 @@ def load(parent):
     ##################################################
     frame.insert_checkbox(
         name='config_autoload',
-        label='Automatically save and load user configurations?',
+        label='Automatically load configurations at the beginning of the next session',
         value=config.config_autoload,
+        default=0
+    )
+    frame.insert_checkbox(
+        name='config_autosave',
+        label='Automatically save configurations at the end of this session',
+        value=config.config_autosave,
         default=0
     )
 
@@ -26,18 +33,17 @@ def load(parent):
     dir_frame.grid(column=0, row=0, sticky='news')
     dir_frame.columnconfigure(0, weight=1)
     ttk.Label(master=dir_frame,
-             text='Configuration file directory:').grid(column=0, row=0, sticky='news')
+             text='Configuration file path:').grid(column=0, row=0, sticky='news')
 
     dir_entry = widget.LinkedText(
         parent=dir_frame,
-        name='config_dir',
+        name='config_path',
         value=config.convert_to_path(config.config_path),
-        default=config.convert_to_path(config.default_config_path)
+        default=config.convert_to_path(config.system_default_config_path)
     )
-    # dir_entry.insert(1.0, config.convert_to_path(config.config_path))
     dir_entry.widget.configure(state='disabled', height=2)
     dir_entry.widget.grid(column=0,row=1,sticky='news')
-    frame.widgets['config_dir'] = dir_entry
+    frame.widgets['config_path'] = dir_entry
 
     Tk.Button(
         master=dir_frame,
@@ -45,35 +51,33 @@ def load(parent):
         command=ask_dirname
     ).grid(column=1, row=1, sticky='news')
 
-    ttk.Label(master=dir_frame,
-              text='Configuration file name:').grid(column=0, row=2, sticky='news')
+    frame.insert_button("Save current config now", command= _save_config)
 
-    file_entry = widget.LinkedEntry(
-        parent=dir_frame,
-        name='config_fname',
-        value=config.config_fname,
-        default=config.default_config_fname,
-        validate_type="fname"
+    frame.insert_button("Save current config As...", command=_save_config_as)
+
+    frame.insert_button("Load config from file...", command=config.load_config)
+
+    frame.insert_button(
+        text='Reset to default parameters',
+        command=frame.default
     )
-    file_entry.widget.grid(column=0, row=3, sticky='news')
-
-    Tk.Button(
-        master=dir_frame,
-        text='Save Now',
-        command=None
-    ).grid(column=1, row=3, sticky='news')
-
-
-    frame.insert_button("Save Config As...")
-    frame.insert_button("Load Config", command=config.load_config)
 
     return frame
+
+def _save_config():
+    path = pymini.cp.settings_tab.widgets['config_path'].get()
+    config.dump_user_config(path)
     pass
 
+def _save_config_as():
+    dir = filedialog.asksaveasfilename(filetypes=[('yaml file','*yaml')], defaultextension='.yaml')
+    config.dump_user_config(dir)
+
 def ask_dirname(e=None):
-    dir = filedialog.askdirectory(mustexist=True)
+    dir = filedialog.asksaveasfilename(filetypes=[('yaml file','*.yaml')], defaultextension='.yaml')
+    print(str(dir))
     if dir:
-        pymini.cp.settings_tab.widgets['config_dir'].widget.config(state="normal")
-        pymini.cp.settings_tab.widgets['config_dir'].set(dir)
-        pymini.cp.settings_tab.widgets['config_dir'].widget.config(state='disabled')
+        pymini.cp.settings_tab.widgets['config_path'].widget.config(state="normal")
+        pymini.cp.settings_tab.widgets['config_path'].set(dir)
+        pymini.cp.settings_tab.widgets['config_path'].widget.config(state='disabled')
 
