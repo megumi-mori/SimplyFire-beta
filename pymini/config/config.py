@@ -2,10 +2,16 @@ import yaml
 import os
 import inspect
 import pymini
-from tkinter import font
+from tkinter import font, filedialog
 from control_panel import detector
 
 import time
+
+
+def convert_to_path(paths):
+    p = [i if i != "DIR" else DIR for i in paths]
+    return os.path.join(*p)
+
 
 version = "b0.1.0"
 
@@ -14,8 +20,20 @@ DIR = os.path.dirname(os.path.realpath(inspect.getfile(pymini)))
 print(DIR)
 
 # Load user configurations
+system_vars = {}
+system_config_path = os.path.join(DIR, "config", "pymini_config.yaml")
+
+try:
+    with open(system_config_path) as f:
+        configs = yaml.safe_load(f)
+        for c, v in configs.items():
+            globals()[c] = v
+            system_vars[c] = v
+except:
+    pass
+
 user_vars = {}
-user_config_path = os.path.join(DIR, "config", "pymini_config.yaml")
+user_config_path = convert_to_path([*config_path, config_fname + '.yaml'])
 try:
     with open(user_config_path) as f:
         configs = yaml.safe_load(f)
@@ -27,7 +45,7 @@ except:
 
 # Load defaults
 default_vars = {}
-default_config_path = os.path.join(DIR,"config", "default_config.yaml")
+default_config_path = os.path.join(DIR, "config", "default_config.yaml")
 with open(default_config_path) as f:
     configs = yaml.safe_load(f)
     for c, v in configs.items():
@@ -41,10 +59,6 @@ with open(default_config_path) as f:
             user_vars[c[8:]] = v
 
 
-
-# global_font=font.Font.copy()
-
-
 def set_fontsize(fontsize):
     fonts = [
         "TkDefaultFont",
@@ -54,7 +68,6 @@ def set_fontsize(fontsize):
     for f in fonts:
         def_font = font.nametofont(f)
         def_font.configure(size=fontsize)
-
 
 
 def dump_config(tabs):
@@ -73,8 +86,18 @@ def dump_config(tabs):
     print('Completed')
 
 
+def load_config(e=None):
+    f = filedialog.askopenfile()
+    configs = yaml.safe_load(f)
+    tabs = [pymini.cp.detector_tab, pymini.cp.style_tab]
+    for c, v in configs.items():
+        for t in tabs:
+            try:
+                t.widgets[c].set(v)
+                break
+            except Exception as e:
+                print(e)
+                pass
 
 
-
-# control panel
 

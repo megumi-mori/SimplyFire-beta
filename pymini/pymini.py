@@ -20,12 +20,14 @@ def _on_close():
     :return: None
     """
     print('closing')
-    tabs = []
-    if cp.detector_tab.get_value('save_detector_preferences') == '1':
-        tabs.append(cp.detector_tab)
-    if cp.style_tab.get_value('save_style_preferences') == '1':
-        tabs.append(cp.style_tab)
-    config.dump_config(tabs)
+    tabs = [cp.detector_tab, cp.style_tab]
+    # if cp.detector_tab.get_value('save_detector_preferences') == '1':
+    #     tabs.append(cp.detector_tab)
+    # if cp.style_tab.get_value('save_style_preferences') == '1':
+    #     tabs.append(cp.style_tab)
+    print(cp.settings_tab.get_value('config_autoload'))
+    if cp.settings_tab.get_value('config_autoload') == '1':
+        config.dump_config(tabs)
 
     root.destroy()
 
