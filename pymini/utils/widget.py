@@ -68,6 +68,7 @@ class LinkedEntry(LinkedWidget):
         # cannot use Tk.StringVar.set() due to validatecommand conflict
         self.widget.delete(0, len(self.get()))
         self.widget.insert(0, value)
+        print(value)
 
     def validate(self, event, validation_type, c=None):
         value = self.get()

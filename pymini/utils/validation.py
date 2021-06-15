@@ -1,9 +1,11 @@
 from matplotlib import colors
+import os
 
 valid_types = [
     "float",
     "int",
-    "auto"
+    "auto",
+    "dir"
 ]
 
 
@@ -29,6 +31,9 @@ def validate(validate_type, value):
                 return True
         elif type == "string":
             return True
+        elif type == "dir":
+            if os.path.isdir(value):
+                return True
         else:
             pass
     return False
