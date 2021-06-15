@@ -25,10 +25,9 @@ def _on_close():
     #     tabs.append(cp.detector_tab)
     # if cp.style_tab.get_value('save_style_preferences') == '1':
     #     tabs.append(cp.style_tab)
-    print(cp.settings_tab.get_value('config_autoload'))
-    if cp.settings_tab.get_value('config_autoload') == '1':
-        config.dump_config(tabs)
-
+    if cp.settings_tab.get_value('config_autosave') == '1':
+        config.dump_user_config(cp.settings_tab.get_value('config_path'))
+    config.dump_system_config()
     root.destroy()
 
 def _update_config(filepath):
