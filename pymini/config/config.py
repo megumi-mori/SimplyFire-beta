@@ -34,7 +34,8 @@ with open(default_config_path) as f:
         globals()[c] = v
         default_vars[c] = v
         try:
-            user_vars[c[8:]]
+            if c[0:8] == 'default_':
+                user_vars[c[8:]]
         except:
             globals()[c[8:]] = v
             user_vars[c[8:]] = v
@@ -45,10 +46,16 @@ with open(default_config_path) as f:
 
 
 def set_fontsize(fontsize):
-    def_font = font.nametofont("TkDefaultFont")
-    def_font.configure(size=fontsize)
-    def_font = font.nametofont("TkTextFont")
-    def_font.configure(size=fontsize)
+    fonts = [
+        "TkDefaultFont",
+        "TkTextFont",
+        "TkMenuFont"
+    ]
+    for f in fonts:
+        def_font = font.nametofont(f)
+        def_font.configure(size=fontsize)
+
+
 
 def dump_config(tabs):
     print('Writing out configuration variables....')
