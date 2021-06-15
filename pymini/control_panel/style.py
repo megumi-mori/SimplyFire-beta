@@ -1,6 +1,9 @@
 from config import config
+from utils.scrollable_option_frame import ScrollableOptionFrame
 
-def populate(optionframe):
+def load(parent):
+
+    optionframe = ScrollableOptionFrame(parent)
     ##################################################
     #           Populate style option tab            #
     ##################################################
@@ -84,3 +87,5 @@ def populate(optionframe):
         value=config.save_style_preferences,
         default=config.default_save_style_preferences
     )
+
+    return optionframe
