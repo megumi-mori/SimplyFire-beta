@@ -24,8 +24,7 @@ class ScrollableOptionFrame(Tk.Frame):
     def __init__(self, parent, scrollbar=True):
         super().__init__(parent)
         # self.container = Tk.Frame(parent, bg='red')
-        self.canvas = Tk.Canvas(self, bg='orange')
-        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.canvas = Tk.Canvas(self)
         self.frame = Tk.Frame(self.canvas, bg='green')
 
         self.frame.bind(
@@ -37,17 +36,16 @@ class ScrollableOptionFrame(Tk.Frame):
 
         self.canvas.create_window((0, 0), window=self.frame, anchor='nw', tag='option')
 
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-
-        self.grid(column=0, row=0, sticky='news')
-        self.grid(column=0, row=0, sticky='news')
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         self.canvas.grid(column=0, row=0, sticky='news')
         self.canvas.grid_columnconfigure(0, weight=1)
         self.canvas.grid_rowconfigure(0, weight=1)
+
         if scrollbar:
+            self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+            self.canvas.configure(yscrollcommand=self.scrollbar.set)
             self.scrollbar.grid(column=2, row=0, sticky='ns')
 
         self.canvas.bind('<Configure>', self.adjust_width)
@@ -56,10 +54,6 @@ class ScrollableOptionFrame(Tk.Frame):
         # Windows only for now:
         self.frame.bind('<Enter>', self._bind_mousewheel)
         self.frame.bind('<Leave>', self._unbind_mousewheel)
-
-        # if not scrollbar:
-        #     print('forget scrollbar')
-        #     self.scrollbar.grid_forget()
 
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_rowconfigure(0,weight=1)
@@ -86,7 +80,8 @@ class ScrollableOptionFrame(Tk.Frame):
         self.canvas.unbind_all('<MouseWheel')
 
     def _on_mousewheel(self, event):
-        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        if self.frame.winfo_height() > self.canvas.winfo_height():
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def make_entry(self,
                      name,
@@ -235,6 +230,7 @@ class ScrollableOptionFrame(Tk.Frame):
         self.col_button = 0
 
     def insert_separator(self):
+
         ttk.Separator(self.frame, orient='horizontal').grid(row=self.num_row, column=0, sticky='news')
 
         self.num_row += 1
