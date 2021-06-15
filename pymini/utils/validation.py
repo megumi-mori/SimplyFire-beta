@@ -9,6 +9,8 @@ valid_types = [
 
 def validate(validate_type, value):
     types = validate_type.split('/')
+    if len(types) == 0:
+        return True
     for type in types:
         if type == 'float':
             if is_float(value):
@@ -22,6 +24,8 @@ def validate(validate_type, value):
         elif type == 'auto':
             if is_auto(value):
                 return True
+        elif type == "string":
+            return True
         else:
             pass
     return False
