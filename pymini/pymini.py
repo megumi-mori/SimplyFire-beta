@@ -6,16 +6,15 @@ from control_panel import font_bar
 
 from menubar import menubar
 
-from control_panel import detector, style, progress_bar
+from control_panel import detector, style, progress_bar, setting
 from utils.scrollable_option_frame import ScrollableOptionFrame
 
 
 ##################################################
 #                Closing Sequence                #
 ##################################################
-def on_close():
+def _on_close():
     """
-    :input: None
     The function is called when the program is closing (pressing X)
     Uses the config module to write out user-defined parameters
     :return: None
@@ -23,15 +22,16 @@ def on_close():
     print('closing')
     tabs = []
     if cp.detector_tab.get_value('save_detector_preferences') == '1':
-
-        print('detector_tab')
         tabs.append(cp.detector_tab)
     if cp.style_tab.get_value('save_style_preferences') == '1':
-        print('style_tab')
         tabs.append(cp.style_tab)
     config.dump_config(tabs)
 
     root.destroy()
+
+def _update_config(filepath):
+    pass
+
 
 root = Tk.Tk()
 root.title('PyMini v{}'.format(config.version))
@@ -73,15 +73,16 @@ cp_notebook = ttk.Notebook(cp)
 cp_notebook.grid(column=0, row=0, sticky='news')
 
 # insert detector options tab into control panel
-cp.detector_tab = ScrollableOptionFrame(cp)
-detector.populate(cp.detector_tab)
-print(cp.detector_tab.widgets)
+cp.detector_tab = detector.load(cp)
 cp_notebook.add(cp.detector_tab.get_frame(), text='Detector')
 
 # insert style options tab into control panel
-cp.style_tab = ScrollableOptionFrame(cp)
-style.populate(cp.style_tab)
+cp.style_tab = style.load(cp)
 cp_notebook.add(cp.style_tab.get_frame(), text='Style')
+
+# insert settings option tab into control panel
+cp.settings_tab = setting.load(cp)
+cp_notebook.add(cp.settings_tab.get_frame(), text='Settings')
 
 # set up font adjustment bar
 fb = font_bar.load(left)
@@ -107,13 +108,10 @@ pw.add(right)
 
 # adjust frame width
 try:
-
     pw.paneconfig(left, width=config.cp_width)
-    print('try')
 except:
     root.update()
-    print(root.winfo_width())
-    pw.paneconfig(left, width=int(config.default_relative_cp_width * root.winfo_width()))
+    pw.paneconfig(left, width=int(config.default_cp_width))
 
 
 ##################################################
@@ -125,7 +123,7 @@ menubar = menubar.load_menubar(root)
 root.config(menu=menubar)
 
 # set up closing sequence
-root.protocol('WM_DELETE_WINDOW', on_close)
+root.protocol('WM_DELETE_WINDOW', _on_close)
 
 def load():
     return root
