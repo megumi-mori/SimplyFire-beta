@@ -35,7 +35,7 @@ with open(default_config_path) as f:
         default_vars[c] = v
         try:
             if c[0:8] == 'default_':
-                user_vars[c[8:]]
+                var = user_vars[c[8:]]
         except:
             globals()[c[8:]] = v
             user_vars[c[8:]] = v
