@@ -24,39 +24,42 @@ class ScrollableOptionFrame(Tk.Frame):
     def __init__(self, parent, scrollbar=True):
         super().__init__(parent)
         # self.container = Tk.Frame(parent, bg='red')
-        self.canvas = Tk.Canvas(self)
-        self.frame = Tk.Frame(self.canvas, bg='green')
-
-        self.frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(
-                scrollregion=self.canvas.bbox('all')
-            )
-        )
-
-        self.canvas.create_window((0, 0), window=self.frame, anchor='nw', tag='option')
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-
-        self.canvas.grid(column=0, row=0, sticky='news')
-        self.canvas.grid_columnconfigure(0, weight=1)
-        self.canvas.grid_rowconfigure(0, weight=1)
+        self.scrollbar = scrollbar
 
         if scrollbar:
+            self.canvas = Tk.Canvas(self)
+            self.frame = Tk.Frame(self.canvas, bg='green')
+
+            self.frame.bind(
+                "<Configure>",
+                lambda e: self.canvas.configure(
+                    scrollregion=self.canvas.bbox('all')
+                )
+            )
+
+            self.canvas.create_window((0, 0), window=self.frame, anchor='nw', tag='option')
+
+            self.grid_columnconfigure(0, weight=1)
+            self.grid_rowconfigure(0, weight=1)
+
+            self.canvas.grid(column=0, row=0, sticky='news')
+            self.canvas.grid_columnconfigure(0, weight=1)
+            self.canvas.grid_rowconfigure(0, weight=1)
+
             self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
             self.canvas.configure(yscrollcommand=self.scrollbar.set)
             self.scrollbar.grid(column=2, row=0, sticky='ns')
 
-        self.canvas.bind('<Configure>', self.adjust_width)
+            self.canvas.bind('<Configure>', self.adjust_width)
 
-        # bind mousewheel
-        # Windows only for now:
-        self.frame.bind('<Enter>', self._bind_mousewheel)
-        self.frame.bind('<Leave>', self._unbind_mousewheel)
+            # bind mousewheel
+            # Windows only for now:
+            self.frame.bind('<Enter>', self._bind_mousewheel)
+            self.frame.bind('<Leave>', self._unbind_mousewheel)
 
-        self.frame.grid_columnconfigure(0, weight=1)
-        self.frame.grid_rowconfigure(0,weight=1)
+            self.frame.grid_columnconfigure(0, weight=1)
+            self.frame.grid_rowconfigure(0,weight=1)
+
         self.widgets = {}
         self.buttons = {}
         self.labels = {}
@@ -68,10 +71,10 @@ class ScrollableOptionFrame(Tk.Frame):
         pass
 
     def get_frame(self):
-        return self.frame
-
-    def get_canvas(self):
-        return self.canvas
+        if scrollable:
+            return self.frame
+        else:
+            return self
 
     def _bind_mousewheel(self, event):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
