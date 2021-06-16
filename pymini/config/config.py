@@ -111,6 +111,7 @@ def dump_system_config():
         f.write("\n")
 
         f.write(pymini.cp.settings_tab.safe_dump_vars())
+    print('Completed')
 
 
 def load_config(e=None):
