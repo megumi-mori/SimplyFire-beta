@@ -289,6 +289,9 @@ class ScrollableOptionFrame(Tk.Frame):
     def get_value(self, key):
         return self.widgets[key].get()
 
+    def set_value(self, key, value):
+        self.widgets[key].set(value)
+
     def safe_dump_vars(self):
         vars = [(key, self.widgets[key].get()) for key in self.widgets]
         d = dict(vars)
