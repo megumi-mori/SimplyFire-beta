@@ -144,6 +144,30 @@ class LinkedText(LinkedWidget):
         if disable:
             self.widget.config(state='disabled')
 
+class LinkedScale(LinkedWidget):
+    def __init__(self,
+                 parent,
+                 name="",
+                 value="",
+                 default='',
+                 from_=0,
+                 to=100,
+                 orient=Tk.VERTICAL,
+                 command=None):
+        super().__init__(parent=parent,
+                         name=name,
+                         value=None,
+                         default=None
+                         )
+        self.var = Tk.DoubleVar()
+        self.widget = ttk.Scale(master=parent,
+                                 variable=self.var,
+                                 from_=from_,
+                                 to=to,
+                                 orient=orient,
+                                 command=command)
+
+
 
 class LabeledWidget():
     def __init__(self,
