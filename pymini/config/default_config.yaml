@@ -3,7 +3,12 @@
 #################################################################
 # This file contains the default configuration options
 # for PyMini. IT SHOULD NOT BE EDITED!
-# parameters starting with 'default_' can be adjusted by the user
+#
+# user-defined parameters should be named exactly as the default
+# counterpart in this file, without the 'default_' tag
+#
+# widgets that use these parameters should also be named exactly
+# as the default variable name, without hte 'default_' tag
 #################################################################
 
 #aesthetics
@@ -18,6 +23,12 @@ default_separator : true
 default_label_length: 25
 default_entry_width : 10
 default_progress_bar_color : 'blue'
+default_gp_height : 450
+default_pw_handlesize : 15
+
+# navigatoin
+default_scroll_amount : 2.5
+default_scroll_wait : 25
 
 
 #detector parameters
@@ -31,6 +42,7 @@ default_max_points_decay : 40000
 default_manual_pixel_offset : 0
 default_update_events : 0
 default_save_detector_preferences : 0
+default_min_auc : 0
 
 #style
 default_min_x : 'auto'
@@ -48,7 +60,13 @@ default_highlight_color: 'red'
 default_save_style_preferences : 0
 
 #system
-default_config_path :
+system_default_config_path :
   - 'DIR'
   - 'config'
-default_config_fname : "pymini_config.yaml"
+  - "user_config.yaml"
+system_default_system_path :
+  - 'DIR'
+  - 'config'
+  - 'pymini_config.yaml'
+system_default_config_autoload : 0
+system_default_config_autosave : 0
