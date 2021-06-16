@@ -2,6 +2,8 @@ import tkinter as Tk
 from tkinter import ttk, font
 from config import config
 from utils import validation
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+
 import textwrap
 
 class LinkedWidget():
@@ -152,7 +154,7 @@ class LabeledWidget():
                  default="",
                  command=None):
         self.parent = parent
-        self.name=name
+        self.name = name
         self.frame = Tk.Frame(parent)
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_columnconfigure(1, weight=0)
@@ -258,9 +260,9 @@ class LabeledOptionMenu(LabeledWidget):
     def __init__(
             self,
             parent,
-            name,
-            label,
-            value,
+            name=None,
+            label="",
+            value="",
             default=None,
             options=[],
             command=None
@@ -268,10 +270,10 @@ class LabeledOptionMenu(LabeledWidget):
         LabeledWidget.__init__(
             self,
             parent,
-            name,
-            label,
-            value,
-            default
+            name=name,
+            label=label,
+            value=value,
+            default=default
         )
 
         if value is None:
@@ -283,7 +285,7 @@ class LabeledOptionMenu(LabeledWidget):
             value,
             *options
         )
-        self.widget.bind('<FocusOut>', self.test, add='+')
+        # self.widget.bind('<FocusOut>', self.test, add='+')
         self.widget.grid(column=1, row=0, sticky='ews')
 
     def replace_options(self, options=None):
@@ -328,3 +330,11 @@ class LabeledCheckbox(LabeledWidget):
 
         self.bind(command)
         self.widget.grid(column=1, row=0, sticky='ews')
+
+class NavigationToolbar(NavigationToolbar2Tk):
+    def __init__(self, canvas, parent):
+        self.toolitems = [t for t in self.toolitems if t[0] in ('Pan', 'Zoom', 'Save')]
+        NavigationToolbar2Tk.__init__(self, canvas, parent)
+
+
+
