@@ -80,7 +80,7 @@ cp_notebook.add(cp.detector_tab, text='Detector')
 
 # insert style options tab into control panel
 cp.style_tab = style.load(cp)
-cp_notebook.add(cp.style_tab, text='Style')
+cp_notebook.add(cp.style_tab, text='Plot')
 
 # insert settings option tab into control panel
 cp.settings_tab = setting.load(cp)
@@ -112,6 +112,7 @@ pw_2 = Tk.PanedWindow(
     sashrelief=Tk.SUNKEN,
     handlesize=config.default_pw_handlesize
 )
+
 
 gp = graph_panel.load(pw_2)
 gp.grid(column=0, row=0, sticky='news')
