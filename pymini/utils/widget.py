@@ -169,6 +169,8 @@ class LinkedScale(LinkedWidget):
 
 
 
+
+
 class LabeledWidget():
     def __init__(self,
                  parent,
