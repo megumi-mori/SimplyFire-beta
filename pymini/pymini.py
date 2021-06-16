@@ -7,6 +7,8 @@ from control_panel import font_bar
 from menubar import menubar
 
 from control_panel import detector, style, progress_bar, setting
+
+from data_panel import graph_panel, table_panel
 from utils.scrollable_option_frame import ScrollableOptionFrame
 
 
@@ -36,10 +38,8 @@ def _update_config(filepath):
 
 root = Tk.Tk()
 root.title('PyMini v{}'.format(config.version))
-try:
-    root.geometry('{}x{}'.format(config.user_geometry[0], config.user_geometry[1]))
-except:
-    root.geometry('{}x{}'.format(config.default_geometry[0], config.default_geometry[1]))
+root.geometry('{}x{}'.format(config.geometry[0], config.geometry[1]))
+
 root.grid_rowconfigure(0, weight=1)
 root.grid_columnconfigure(0, weight=1)
 
@@ -48,6 +48,7 @@ pw = Tk.PanedWindow(
     orient=Tk.HORIZONTAL,
     showhandle=True,
     sashrelief=Tk.SUNKEN,
+    handlesize=config.default_pw_handlesize
 )
 
 pw.grid(column=0, row=0, sticky='news')
@@ -96,23 +97,46 @@ pb.grid(column=0, row=2, stick='news')
 
 
 ##################################################
-#                  DATA DISPLAY                  #
+#                   DATA PANEL                   #
 ##################################################
 # set up frame
 right = Tk.Frame(pw, background = 'pink')
-right.grid(column=1, row=0, sticky='news')
+right.grid(column=0, row=0, sticky='news')
+right.columnconfigure(0, weight=1)
+right.rowconfigure(0, weight=1)
+
+pw_2 = Tk.PanedWindow(
+    right,
+    orient=Tk.VERTICAL,
+    showhandle=True,
+    sashrelief=Tk.SUNKEN,
+    handlesize=config.default_pw_handlesize
+)
+
+gp = graph_panel.load(pw_2)
+gp.grid(column=0, row=0, sticky='news')
+pw_2.add(gp)
+
+tp = table_panel.load(pw_2)
+pw_2.add(tp)
+
+pw_2.grid(column=0, row=0, sticky='news')
+pw_2.paneconfig(gp, height=config.gp_height)
 
 
+# finis up the pw setting:
 
+pw.grid(column=0, row=0, sticky='news')
 pw.add(left)
 pw.add(right)
 
 # adjust frame width
-try:
-    pw.paneconfig(left, width=config.cp_width)
-except:
-    root.update()
-    pw.paneconfig(left, width=int(config.default_cp_width))
+root.update()
+pw.paneconfig(left, width=int(config.cp_width))
+
+
+
+
 
 
 ##################################################

@@ -4,6 +4,7 @@ from config import config
 import control_panel
 import utils
 import menubar
+import data_panel
 
 if __name__ == '__main__':
 
