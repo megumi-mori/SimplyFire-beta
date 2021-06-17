@@ -71,7 +71,8 @@ def _save_config():
 
 def _save_config_as():
     dir = filedialog.asksaveasfilename(filetypes=[('yaml file','*yaml')], defaultextension='.yaml')
-    config.dump_user_config(dir)
+    if dir:
+        config.dump_user_config(dir)
 
 def _ask_dirname(e=None):
     dir = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file','*.yaml')], defaultextension='.yaml')
