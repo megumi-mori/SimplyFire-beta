@@ -32,8 +32,7 @@ def _on_close():
     config.dump_system_config()
     root.destroy()
 
-def _update_config(filepath):
-    pass
+
 
 def open_trace():
     f = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf")])
