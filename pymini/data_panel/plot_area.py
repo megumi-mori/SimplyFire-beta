@@ -84,6 +84,8 @@ class InteractivePlot():
     def open_trace(self, filename):
         self.trace = trace.Trace(filename)
 
+        self.trace.get_ys()
+
 
     def plot(self, trace, maintain_axis=False):
         if maintain_axis:
