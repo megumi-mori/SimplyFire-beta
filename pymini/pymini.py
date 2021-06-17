@@ -37,6 +37,8 @@ def _update_config(filepath):
 
 def open_trace():
     f = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf")])
+    plot_area.open_trace(f)
+
 
 
 root = Tk.Tk()
@@ -120,6 +122,8 @@ pw_2 = Tk.PanedWindow(
 gp = graph_panel.load(pw_2)
 gp.grid(column=0, row=0, sticky='news')
 pw_2.add(gp)
+
+plot_area = gp.plot
 
 tp = table_panel.load(pw_2)
 pw_2.add(tp)

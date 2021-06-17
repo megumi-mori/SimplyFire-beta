@@ -3,7 +3,7 @@ from config import config
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from utils.trace import Trace
+from utils import trace
 import matplotlib.colors
 
 class InteractivePlot():
@@ -83,5 +83,13 @@ class InteractivePlot():
 
     def open_trace(self, filename):
         self.trace = trace.Trace(filename)
+
+
+    def plot(self, trace, maintain_axis=False):
+        if maintain_axis:
+            xlim = self.ax.get_xlim()
+            ylim = self.ax.get_ylim()
+
+
 
 
