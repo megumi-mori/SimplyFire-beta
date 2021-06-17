@@ -118,6 +118,8 @@ def dump_system_config():
 
 def load_config(e=None):
     f = filedialog.askopenfile()
+    if not f:
+        return None
     configs = yaml.safe_load(f)
     tabs = [pymini.cp.detector_tab, pymini.cp.style_tab]
     for c, v in configs.items():
