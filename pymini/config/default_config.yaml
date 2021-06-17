@@ -27,8 +27,9 @@ default_gp_height : 450
 default_pw_handlesize : 15
 
 # navigatoin
-default_scroll_amount : 2.5
-default_scroll_wait : 25
+default_scroll_percent : 2.5
+default_nav_wait : 25
+default_zoom_percent : 5
 
 
 #detector parameters
