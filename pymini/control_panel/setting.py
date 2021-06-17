@@ -48,7 +48,7 @@ def load(parent):
     Tk.Button(
         master=dir_frame,
         text='Browse',
-        command=ask_dirname
+        command=_ask_dirname
     ).grid(column=1, row=1, sticky='news')
 
     frame.insert_button("Save current config now", command= _save_config)
@@ -73,8 +73,8 @@ def _save_config_as():
     dir = filedialog.asksaveasfilename(filetypes=[('yaml file','*yaml')], defaultextension='.yaml')
     config.dump_user_config(dir)
 
-def ask_dirname(e=None):
-    dir = filedialog.asksaveasfilename(filetypes=[('yaml file','*.yaml')], defaultextension='.yaml')
+def _ask_dirname(e=None):
+    dir = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file','*.yaml')], defaultextension='.yaml')
     print(str(dir))
     if dir:
         pymini.cp.settings_tab.widgets['config_path'].widget.config(state="normal")
