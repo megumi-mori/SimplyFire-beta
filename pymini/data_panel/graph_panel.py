@@ -1,14 +1,37 @@
 import tkinter as Tk
 from tkinter import ttk
+from PIL import Image, ImageTk
 from utils import widget
 from utils.scrollable_option_frame import ScrollableOptionFrame
 from config import config
 
 from data_panel.plot_area import InteractivePlot
 import pymini
+import os
 
 
 def load(parent):
+
+    def scroll_plot(axis, dir):
+        scroll_plot_repeat(axis, dir)
+        return None
+
+    def scroll_plot_repeat(axis, dir):
+        global jobid
+        jobid = pymini.root.after(config.nav_wait, scroll_plot_repeat, axis, dir)
+        plot.scroll(axis, dir)
+        return None
+
+    def zoom_plot(axis, dir):
+        zoom_plot_repeat(axis, dir)
+        return None
+
+    def zoom_plot_repeat(axis, dir):
+        global jobid
+        jobid = pymini.root.after(config.nav_wait, zoom_plot_repeat, axis, dir)
+        plot.zoom(axis, dir)
+        return None
+
     frame = ScrollableOptionFrame(parent, False)
     frame.grid_columnconfigure(0, weight=1)
     frame.grid_rowconfigure(0, weight=1)
@@ -29,7 +52,7 @@ def load(parent):
     #                    Top Row                     #
     ##################################################
 
-    big_frame = Tk.Frame(frame, bg='pink')
+    big_frame = Tk.Frame(frame)
     big_frame.grid_columnconfigure(1, weight=1)
     big_frame.grid_rowconfigure(1, weight=1)
     big_frame.grid(column=0, row=0, sticky='news')
@@ -39,19 +62,37 @@ def load(parent):
     y_zoom_frame.grid_columnconfigure(0, weight=1)
     y_zoom_frame.grid_rowconfigure(0, weight=1)
     y_zoom_frame.grid_rowconfigure(1, weight=1)
-    ttk.Button(y_zoom_frame, text='+').grid(column=0, row=0, sticky='news')
-    ttk.Button(y_zoom_frame, text='-').grid(column=0, row=1, sticky='news')
+
+
+    y_zoom_in = Tk.Button(y_zoom_frame)
+    y_zoom_in.image = Tk.PhotoImage(file=os.path.join(config.DIR, 'img','y_zoom_in.png'))
+    y_zoom_in.config(image=y_zoom_in.image)
+    y_zoom_in.grid(column=0, row=0, sticky='news')
+    y_zoom_in.bind('<ButtonPress-1>', lambda e, c='y', d=1 : zoom_plot(c, d))
+    y_zoom_in.bind('<ButtonRelease-1>', stop)
+
+    y_zoom_out = Tk.Button(y_zoom_frame)
+    y_zoom_out.image = Tk.PhotoImage(file=os.path.join(config.DIR, 'img', 'y_zoom_out.png'))
+    y_zoom_out.config(image=y_zoom_out.image)
+    y_zoom_out.grid(column=0, row=1, sticky='news')
+    y_zoom_out.bind('<ButtonPress-1>', lambda e, c='y', d=-1: zoom_plot(c, d))
+    y_zoom_out.bind('<ButtonRelease-1>', stop)
 
     yscrollbar_frame = Tk.Frame(big_frame, bg='lime')
     yscrollbar_frame.grid(column=0, row=1, sticky='news')
     yscrollbar_frame.grid_columnconfigure(0, weight=1)
     yscrollbar_frame.grid_rowconfigure(1, weight=1)
 
-    pan_up = ttk.Button(yscrollbar_frame, text='^')
+    arrow = Image.open(os.path.join(config.DIR, 'img', 'arrow.png'))
+    pan_up = Tk.Button(yscrollbar_frame)
+    pan_up.image = ImageTk.PhotoImage(arrow)
+    pan_up.config(image=pan_up.image)
     pan_up.grid(column=0, row=0, sticky='news')
     pan_up.bind('<ButtonPress-1>', lambda e, c='y', d=1: scroll_plot(c, d))
     pan_up.bind('<ButtonRelease-1>', stop)
-    pan_down = ttk.Button(yscrollbar_frame, text='v')
+    pan_down = Tk.Button(yscrollbar_frame)
+    pan_down.image = ImageTk.PhotoImage(arrow.rotate(180))
+    pan_down.config(image=pan_down.image)
     pan_down.grid(column=0, row=2, sticky='news')
     pan_down.bind('<ButtonPress-1>', lambda e, c='y', d=-1: scroll_plot(c, d))
     pan_down.bind('<ButtonRelease-1>', stop)
@@ -77,8 +118,8 @@ def load(parent):
 
     toolbar_frame = Tk.Frame(big_frame)
     toolbar_frame.grid_columnconfigure(0, weight=1)
-    toolbar_frame.grid_rowconfigure(0, weight=1)
-    toolbar_frame.grid(column=1, row=0, sticky='news')
+    # toolbar_frame.grid_rowconfigure(0, weight=1)
+    toolbar_frame.grid(column=1, row=0, sticky='new')
     navigation_toolbar = widget.NavigationToolbar(plot.canvas, toolbar_frame)
     navigation_toolbar.grid(column=0, row=0, sticky='news')
     navigation_toolbar.update()
@@ -88,22 +129,36 @@ def load(parent):
                                                                value='0',
                                                                default='0',
                                                                options=[0])
-    frame.widgets['channel_option'].frame.grid(column=2, row=0, sticky='news')
+    frame.widgets['channel_option'].frame.grid(column=1, row=0, sticky='ews')
 
     x_zoom_frame = Tk.Frame(frame, bg='orange')
     x_zoom_frame.grid_rowconfigure(0, weight=1)
     x_zoom_frame.grid_columnconfigure(3, weight=1)
     x_zoom_frame.grid(column=0, row=2, sticky='news')
 
-    ttk.Button(x_zoom_frame, text='+').grid(column=0, row=0, sticky='news')
-    ttk.Button(x_zoom_frame, text='-').grid(column=1, row=0, sticky='news')
+    x_zoom_in = Tk.Button(x_zoom_frame)
+    x_zoom_in.image = Tk.PhotoImage(file=os.path.join(config.DIR, 'img', 'x_zoom_in.png'))
+    x_zoom_in.config(image=x_zoom_in.image)
+    x_zoom_in.grid(column=0, row=0, sticky='news')
+    x_zoom_in.bind('<ButtonPress-1>', lambda e, c='x', d=1 : zoom_plot(c, d))
+    x_zoom_in.bind('<ButtonRelease-1>', stop)
+    x_zoom_out = Tk.Button(x_zoom_frame)
+    x_zoom_out.image = Tk.PhotoImage(file=os.path.join(config.DIR, 'img', 'x_zoom_out.png'))
+    x_zoom_out.config(image=x_zoom_out.image)
+    x_zoom_out.grid(column=1, row=0, sticky='news')
+    x_zoom_out.bind('<ButtonPress-1>', lambda e, c='x', d=-1: zoom_plot(c, d))
+    x_zoom_out.bind('<ButtonRelease-1>', stop)
 
-    pan_left = ttk.Button(x_zoom_frame, text='<')
+    pan_left = Tk.Button(x_zoom_frame)
+    pan_left.image = ImageTk.PhotoImage(arrow.rotate(90))
+    pan_left.config(image=pan_left.image)
     pan_left.grid(column=2, row=0, sticky='news')
     pan_left.bind('<ButtonPress-1>', lambda e, c='x', d=-1: scroll_plot(c, d))
     pan_left.bind('<ButtonRelease-1>', stop)
 
-    pan_right = ttk.Button(x_zoom_frame, text='>')
+    pan_right = Tk.Button(x_zoom_frame)
+    pan_right.image = ImageTk.PhotoImage(arrow.rotate(270))
+    pan_right.config(image=pan_right.image)
     pan_right.grid(column=4, row=0, sticky='news')
     pan_right.bind('<ButtonPress-1>', lambda e, c='x', d=1: scroll_plot(c, d))
     pan_right.bind('<ButtonRelease-1>', stop)
@@ -121,16 +176,11 @@ def load(parent):
     return frame
 
 
-def scroll_plot(axis, dir):
-    scroll_plot_repeat(axis, dir)
-    return None
 
 
-def scroll_plot_repeat(axis, dir):
-    global jobid
-    jobid = pymini.root.after(config.scroll_wait, scroll_plot_repeat, axis, dir)
-    pymini.gp.plot.scroll(axis, dir)
-    return None
+
+
+
 
 
 def stop(e=None):

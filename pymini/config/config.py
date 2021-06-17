@@ -23,7 +23,9 @@ def convert_to_path(paths):
 version = "b0.1.0"
 
 # Constants
+global DIR
 DIR = os.path.dirname(os.path.realpath(inspect.getfile(pymini)))
+
 print(DIR)
 
 # Load defaults
