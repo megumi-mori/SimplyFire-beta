@@ -36,7 +36,8 @@ def _on_close():
 
 def open_trace():
     f = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf")])
-    plot_area.open_trace(f)
+    if f:
+        plot_area.open_trace(f)
 
 
 
