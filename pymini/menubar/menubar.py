@@ -13,13 +13,11 @@ def _setting_window(event=None):
     notebook = ttk.Notebook(frame)
     notebook.grid(column=0, row=0, sticky='news')
 
-
-
 def load_menubar(parent):
     menubar = Tk.Menu(parent)
     # FILE
     file_menu = Tk.Menu(menubar, tearoff=0)
-    file_menu.add_command(label="Open", command=None)
+    file_menu.add_command(label="Open", command=pymini.open_trace)
 
     menubar.add_cascade(label='File', menu=file_menu)
 

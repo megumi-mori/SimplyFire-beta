@@ -1,4 +1,4 @@
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import tkinter as Tk
 
 from config import config
@@ -34,6 +34,9 @@ def _on_close():
 
 def _update_config(filepath):
     pass
+
+def open_trace():
+    f = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf")])
 
 
 root = Tk.Tk()
