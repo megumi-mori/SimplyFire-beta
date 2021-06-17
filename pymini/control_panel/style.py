@@ -46,6 +46,10 @@ def load(parent):
         value=config.apply_axis_limit,
         default=config.default_apply_axis_limit
     )
+    optionframe.insert_button(
+        text='Get current axes limits',
+        command=None
+    )
     optionframe.insert_label_entry(
         name='line_color',
         label='Trace line color:',
