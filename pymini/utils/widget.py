@@ -70,7 +70,8 @@ class LinkedEntry(LinkedWidget):
             width=config.entry_width,
             justify=Tk.RIGHT
         )
-        self.widget.bind('<FocusOut>', lambda e, v=validate_type: self.validate(e, v), add='+')
+        self.widget.bind('<FocusOut>', lambda e, v=validate_type: self.validate(e, v))
+        self.widget.bind('<Return>', lambda e, v=validate_type: self.validate(e, v), add="+")
 
     def set(self, value=""):
         # cannot use Tk.StringVar.set() due to validatecommand conflict
@@ -79,6 +80,7 @@ class LinkedEntry(LinkedWidget):
         print(value)
 
     def validate(self, event, validation_type, c=None):
+        print('validate')
         value = self.get()
         if validation.validate(validation_type, self.get()):
             self.prev = value
@@ -266,6 +268,7 @@ class LabeledEntry(LabeledWidget):
 
         self.widget.grid(column=1, row=0, sticky='sew')
         self.widget.bind('<FocusOut>', lambda e, v=validate_type: self.validate(e, v), add='+')
+        self.widget.bind('<Return>', lambda e, v=validate_type: self.validate(e, v), add="+")
 
     def set(self, value=""):
         # cannot use Tk.StringVar.set() due to validatecommand conflict
