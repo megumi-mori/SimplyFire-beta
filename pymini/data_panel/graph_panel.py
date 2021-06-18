@@ -8,28 +8,28 @@ from config import config
 from data_panel.plot_area import InteractivePlot
 import pymini
 import os
-
+import time
 
 def load(parent):
 
     def scroll_plot(axis, dir):
-        scroll_plot_repeat(axis, dir)
+        scroll_plot_repeat(axis, dir, int(pymini.get_value('nav_fps')), float(pymini.get_value('scroll_percent')))
         return None
 
-    def scroll_plot_repeat(axis, dir):
+    def scroll_plot_repeat(axis, dir, fps, percent):
         global jobid
-        jobid = pymini.root.after(config.nav_wait, scroll_plot_repeat, axis, dir)
-        plot.scroll(axis, dir)
+        jobid = pymini.root.after(int(1000 / fps), scroll_plot_repeat, axis, dir, fps, percent)
+        plot.scroll(axis, dir, percent)
         return None
 
     def zoom_plot(axis, dir):
-        zoom_plot_repeat(axis, dir)
+        zoom_plot_repeat(axis, dir, int(pymini.get_value('nav_fps')), float(pymini.get_value('zoom_percent')))
         return None
 
-    def zoom_plot_repeat(axis, dir):
+    def zoom_plot_repeat(axis, dir, fps, percent):
         global jobid
-        jobid = pymini.root.after(config.nav_wait, zoom_plot_repeat, axis, dir)
-        plot.zoom(axis, dir)
+        jobid = pymini.root.after(int(1000 / fps), zoom_plot_repeat, axis, dir, fps, percent)
+        plot.zoom(axis, dir, percent)
         return None
 
     frame = ScrollableOptionFrame(parent, False)

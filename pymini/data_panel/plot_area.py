@@ -24,7 +24,7 @@ class InteractivePlot():
         self.default_xlim = self.ax.get_xlim()
         self.default_ylim = self.ax.get_ylim()
 
-    def scroll(self, axis, dir=1):
+    def scroll(self, axis, dir=1, percent=0):
         if axis == "x":
             win_lim = self.ax.get_xlim()
         elif axis == "y":
@@ -33,7 +33,7 @@ class InteractivePlot():
         else:
             return None
         width = win_lim[1] - win_lim[0]
-        delta = width * config.scroll_percent / 100
+        delta = width * percent / 100
         new_lim = (win_lim[0] + delta * dir, win_lim[1] + delta * dir)
 
         if axis == "x":
@@ -46,7 +46,7 @@ class InteractivePlot():
         need to link this to the scrollbar once the trace is opened
         """
 
-    def zoom(self, axis, dir=1, event=None):
+    def zoom(self, axis, dir=1, percent=0):
         """
         zooms in/out of the axes by percentage specified in config
         :param axis: 'x' for x-axis, 'y' for y-axis. currently does not support both
@@ -61,7 +61,7 @@ class InteractivePlot():
         else:
             return None
 
-        delta = (win_lim[1] - win_lim[0]) * config.zoom_percent * dir / 100
+        delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
         center_pos = 0.5
         try:
             if axis == 'x':
@@ -148,6 +148,7 @@ class InteractivePlot():
 
     def draw(self):
         self.canvas.draw()
+        self.focus()
 
         pass
 
@@ -172,6 +173,13 @@ class InteractivePlot():
         self.focus()
         for a in axis:
             self._set_ax_lim(a, axis[a])
+
+    def set_single_axis_limit(self, axis, idx, value):
+        self.focus()
+        if idx == 0:
+            self._set_ax_lim(axis, (value, self.get_axis_limits(axis)[1]))
+        elif idx == 1:
+            self._set_ax_lim(axis, (self.get_axis_limits(axis)[0], value))
 
     def _set_ax_lim(self, axis=None, lim=None):
         """

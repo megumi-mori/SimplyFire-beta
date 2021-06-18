@@ -22,6 +22,7 @@ def _on_close():
     :return: None
     """
     print('closing')
+    plot_area.focus()
     tabs = [detector_tab, style_tab]
     # if cp.detector_tab.get_value('save_detector_preferences') == '1':
     #     tabs.append(cp.detector_tab)
@@ -140,6 +141,9 @@ pw.add(right)
 root.update()
 pw.paneconfig(left, width=int(config.cp_width))
 
+# focus on plot
+plot_area.focus()
+
 
 
 
@@ -159,5 +163,11 @@ root.protocol('WM_DELETE_WINDOW', _on_close)
 def load():
     return root
 
-def get_value(value):
-    pass
+def get_value(key):
+    tabs = [detector_tab, style_tab]
+    for t in tabs:
+        try:
+            return t.get_value(key)
+        except:
+            pass
+
