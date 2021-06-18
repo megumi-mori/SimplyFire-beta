@@ -3,6 +3,15 @@ from utils.scrollable_option_frame import ScrollableOptionFrame
 
 def load(parent):
 
+    def check_axis_limit():
+        if optionframe.get_value('min_x') == 'auto' or \
+            optionframe.get_value('max_x') == 'auto' or\
+            optionframe.get_value('max_y') == 'auto' or\
+            optionframe.get_value('min_y') == 'auto':
+            optionframe.set_value('apply_axis_limit', 0)
+        print(optionframe.get_value('apply_axis_limit'))
+
+
     optionframe = ScrollableOptionFrame(parent)
     ##################################################
     #           Populate style option tab            #
@@ -42,13 +51,21 @@ def load(parent):
     )
     optionframe.insert_checkbox(
         name='apply_axis_limit',
-        label='Apply axis limits on a new trace',
+        label='Apply axis limits on a new trace (cannot have "auto")',
         value=config.apply_axis_limit,
-        default=config.default_apply_axis_limit
+        default=config.default_apply_axis_limit,
+        command=check_axis_limit
     )
     optionframe.insert_button(
         text='Get current axes limits',
         command=None
+    )
+    optionframe.insert_label_entry(
+        name='line_width',
+        label='Trace line width:',
+        value=config.line_width,
+        default=config.default_line_width,
+        validate_type='color'
     )
     optionframe.insert_label_entry(
         name='line_color',
