@@ -95,7 +95,7 @@ def dump_user_config(path):
         f.write("#################################################################\n")
         f.write("\n")
         pymini.pb.initiate()
-        tabs = [pymini.cp.detector_tab, pymini.cp.style_tab]
+        tabs = [pymini.detector_tab, pymini.style_tab]
         for i, t in enumerate(tabs):
             f.write(t.safe_dump_vars())
             pymini.pb.progress((i + 1) / len(tabs))
@@ -121,7 +121,7 @@ def load_config(e=None):
     if not f:
         return None
     configs = yaml.safe_load(f)
-    tabs = [pymini.cp.detector_tab, pymini.cp.style_tab]
+    tabs = [pymini.detector_tab, pymini.style_tab]
     for c, v in configs.items():
         for t in tabs:
             try:

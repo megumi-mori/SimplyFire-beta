@@ -22,7 +22,7 @@ def _on_close():
     :return: None
     """
     print('closing')
-    tabs = [cp.detector_tab, cp.style_tab]
+    tabs = [detector_tab, style_tab]
     # if cp.detector_tab.get_value('save_detector_preferences') == '1':
     #     tabs.append(cp.detector_tab)
     # if cp.style_tab.get_value('save_style_preferences') == '1':
@@ -31,8 +31,6 @@ def _on_close():
         config.dump_user_config(cp.settings_tab.get_value('config_path'))
     config.dump_system_config()
     root.destroy()
-
-
 
 def open_trace():
     f = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf")])
@@ -108,12 +106,12 @@ cp_notebook = ttk.Notebook(cp)
 cp_notebook.grid(column=0, row=0, sticky='news')
 
 # insert detector options tab into control panel
-cp.detector_tab = detector.load(cp)
-cp_notebook.add(cp.detector_tab, text='Detector')
+detector_tab = detector.load(cp)
+cp_notebook.add(detector_tab, text='Detector')
 
 # insert style options tab into control panel
-cp.style_tab = style.load(cp)
-cp_notebook.add(cp.style_tab, text='Plot')
+style_tab = style.load(cp)
+cp_notebook.add(style_tab, text='Plot')
 
 # insert settings option tab into control panel
 cp.settings_tab = setting.load(cp)
@@ -162,3 +160,4 @@ def load():
     return root
 
 def get_value(value):
+    pass
