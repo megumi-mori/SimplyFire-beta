@@ -5,6 +5,7 @@ import pymini
 
 def load(parent):
     def apply_axes_limits():
+        pymini.plot_area.focus()
         pymini.plot_area.set_axis_limits(
             {
                 'x': (
@@ -24,6 +25,13 @@ def load(parent):
         optionframe.set_value('min_y', 'auto')
         optionframe.set_value('max_y', 'auto')
         pass
+
+    def default_nav_parameters():
+        optionframe.default([
+            'nav_fps',
+            'scroll_percent',
+            'zoom_percent'
+        ])
 
     def apply_axis_limit(name, axis, idx):
         print((name, axis, idx))
@@ -52,7 +60,8 @@ def load(parent):
     )
     optionframe.get_widget('min_x').bind(
         '<Return>',
-        lambda e, n='min_x', a='x', i=0: apply_axis_limit(n, a, i)
+        lambda e, n='min_x', a='x', i=0: apply_axis_limit(n, a, i),
+        add="+"
     )
     optionframe.insert_label_entry(
         name='max_x',
@@ -63,7 +72,8 @@ def load(parent):
     )
     optionframe.get_widget('max_x').bind(
         '<Return>',
-        lambda e, n='max_x', a='x', i=1: apply_axis_limit(n, a, i)
+        lambda e, n='max_x', a='x', i=1: apply_axis_limit(n, a, i),
+        add="+"
     )
     optionframe.insert_label_entry(
         name='min_y',
@@ -74,7 +84,8 @@ def load(parent):
     )
     optionframe.get_widget('min_y').bind(
         '<Return>',
-        lambda e, n='min_y', a='y', i=0: apply_axis_limit(n, a, i)
+        lambda e, n='min_y', a='y', i=0: apply_axis_limit(n, a, i),
+        add="+"
     )
     optionframe.insert_label_entry(
         name='max_y',
@@ -85,22 +96,14 @@ def load(parent):
     )
     optionframe.get_widget('max_y').bind(
         '<Return>',
-        lambda e, n='max_y', a='y', i=1: apply_axis_limit(n, a, i)
+        lambda e, n='max_y', a='y', i=1: apply_axis_limit(n, a, i),
+        add="+"
     )
     optionframe.insert_checkbox(
         name='apply_axis_limit',
-        label='Apply axis limits on a new trace',
+        label='Force axes limits on a new trace',
         value=config.apply_axis_limit,
         default=config.default_apply_axis_limit
-    )
-
-    optionframe.insert_button(
-        text='Default axis limits',
-        command=default_axis_parameters
-    )
-    optionframe.insert_button(
-        text='Get current axes limits',
-        command=get_current_axes
     )
     optionframe.insert_button(
         text='Show all trace',
@@ -109,6 +112,14 @@ def load(parent):
     optionframe.insert_button(
         text='Apply axes limits',
         command=apply_axes_limits
+    )
+    optionframe.insert_button(
+        text='Get default parameters',
+        command=default_axis_parameters
+    )
+    optionframe.insert_button(
+        text='Get current axes limits',
+        command=get_current_axes
     )
 
     optionframe.insert_label_entry(
@@ -134,10 +145,12 @@ def load(parent):
     )
     optionframe.insert_button(
         text='Apply',
-        # command=apply_all_style
+        command=pymini.plot_area.focus
     )
     optionframe.insert_button(
         text='Default parameters',
-        # command=default_style_parameters
+        command=default_nav_parameters
     )
+
+    return optionframe
 
