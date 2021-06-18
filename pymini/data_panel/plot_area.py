@@ -6,6 +6,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from utils import trace
 import matplotlib.colors
 import pymini
+import time
+
 
 class InteractivePlot():
     def __init__(self, parent):
@@ -20,8 +22,7 @@ class InteractivePlot():
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
         self.ax.plot()
 
-
-    def scroll(self, axis, dir = 1):
+    def scroll(self, axis, dir=1):
         if axis == "x":
             win_lim = self.ax.get_xlim()
         elif axis == "y":
@@ -37,15 +38,15 @@ class InteractivePlot():
             self.ax.set_xlim(new_lim)
         else:
             self.ax.set_ylim(new_lim)
-        self.canvas.draw()
+        self._draw()
 
         """
         need to link this to the scrollbar once the trace is opened
         """
 
-    def zoom(self, axis, dir = 1, event=None):
+    def zoom(self, axis, dir=1, event=None):
         """
-
+        zooms in/out of the axes by percentage specified in config
         :param axis: 'x' for x-axis, 'y' for y-axis. currently does not support both
         :param dir: 1 to zoom in , -1 to zoom out
         :param event:
@@ -86,38 +87,45 @@ class InteractivePlot():
         self.trace = trace.Trace(filename)
         self._clear()
 
-        if pymini.cp.style_tab.get_value('apply_axis_limit') != "1":
-            self.ax.autoscale(enable=True, axis='x', tight=True)
-            self.ax.autoscale(enable=True, axis='y')
-        else:
-            self.ax.autoscale(enable=False, axis='x')
-            self.ax.autoscale(enable=False, axis='y')
+        xlim = None
+        ylim = None
 
-        self.plot(self.trace)
+        self.ax.autoscale(enable=True, axis='x', tight=True)
+        self.ax.autoscale(enable=True, axis='y')
+
+        self.plot(self.trace, xlim, ylim)
+
+        self.default_xlim = self.ax.get_xlim()
+        self.default_ylim = self.ax.get_ylim()
+
+        if pymini.cp.style_tab.get_value('apply_axis_limit') == "1":
+
+            self.ax.set_xlim (
+                float(pymini.cp.style_tab.get_value('min_x')),
+                float(pymini.cp.style_tab.get_value('max_x'))
+            )
+            self.ax.set_ylim(
+                float(pymini.cp.style_tab.get_value('min_y')),
+                float(pymini.cp.style_tab.get_value('max_y'))
+            )
+
+        self._draw()
 
 
-    def plot(self, trace):
+    def plot(self, trace, xlim=None, ylim=None):
         xs = trace.get_xs()
         ys = trace.get_ys()
         line, = self.ax.plot(
             xs,
             ys,
-            linewidth = pymini.cp.style_tab.get_value('line_width'),
+            linewidth=pymini.cp.style_tab.get_value('line_width'),
             c=pymini.cp.style_tab.get_value('line_color')
         )
-        if pymini.cp.style_tab.get_value('apply_axis_limit') == '1':
-            self.ax.set_xlim(
-                (
-                    float(pymini.cp.style_tab.get_value('min_x')),
-                    float(pymini.cp.style_tab.get_value('max_x'))
-                )
-            )
-            self.ax.set_ylim(
-                (
-                    float(pymini.cp.style_tab.get_value('min_y')),
-                    flaot(pymini.cp.style_tab.get_value('max_y'))
-                )
-            )
+        try:
+            self.ax.set_xlim(xlim)
+            self.ax.set_ylim(ylim)
+        except:
+            pass
         self._draw()
 
     def _clear(self):
@@ -126,7 +134,6 @@ class InteractivePlot():
         # print(self.ax.lines)
         for l in self.ax.lines:
             self.ax.lines.remove(l)
-        print(self.ax.lines)
         for c in self.ax.collections:
             self.ax.collections.remove(i)
         self.ax.clear()
@@ -135,8 +142,33 @@ class InteractivePlot():
     def _draw(self):
         self.canvas.draw()
 
-
         pass
+
+    def set_axis(self, axis='x', lim=None):
+        if axis == 'x':
+            self.ax.set_xlim(lim)
+        elif axis == 'y':
+            self.ax.set_ylim(lim)
+
+    def get_axis(self, axis='x'):
+
+        if axis == 'x':
+            return self.ax.get_xlim()
+        elif axis == 'y':
+            return self.ax.get_ylim()
+        return None
+
+    def auto_axis(self, axis='x'):
+        try:
+            if axis == 'x':
+                self.ax.set_xlim(self.default_xlim)
+            elif axis == 'y':
+                self.ax.set_ylim(self.default_ylim)
+        except:
+            pass
+
+    def refresh(self):
+        self._draw()
 
 
 
