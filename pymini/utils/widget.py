@@ -5,6 +5,7 @@ from utils import validation
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 
 import textwrap
+import pymini
 
 class LinkedWidget():
     """
@@ -49,6 +50,8 @@ class LinkedWidget():
 
     def grid(self, *args, **kargs):
         self.widget.grid(*args, **kargs)
+
+
 
 
 class LinkedEntry(LinkedWidget):
@@ -159,8 +162,8 @@ class LinkedScale(LinkedWidget):
                  command=None):
         super().__init__(parent=parent,
                          name=name,
-                         value=None,
-                         default=None
+                         value="",
+                         default=""
                          )
         self.var = Tk.DoubleVar()
         self.widget = ttk.Scale(master=parent,

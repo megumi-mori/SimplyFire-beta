@@ -62,7 +62,8 @@ class ScrollableOptionFrame(Tk.Frame):
 
         self.widgets = {}
         self.buttons = {}
-        self.labels = {}
+        # self.labels = {}
+        self.titles = {}
         self.num_row = 0
         self.col_button = 0
 
@@ -218,6 +219,21 @@ class ScrollableOptionFrame(Tk.Frame):
         self.widgets[name] = w
         return w
 
+    def insert_title(
+            self,
+            name="",
+            text=""
+    ):
+        panel = self.make_panel(separator=config.default_separator)
+        label = Tk.Label(panel, text=text, justify=Tk.CENTER, font='bold')
+        self.titles[name] = label
+        label.grid(column=0, row=0, sticky='news')
+
+
+
+
+
+
     def make_panel(
             self,
             separator=True
@@ -285,8 +301,10 @@ class ScrollableOptionFrame(Tk.Frame):
         width = self.canvas.winfo_width()
         button.config(width=int(width/2), wraplength= int(width / 2) - 4)
 
-    def default(self):
-        for key in self.widgets:
+    def default(self, keys=None):
+        if keys is None:
+            keys = self.widgets.keys()
+        for key in keys:
             self.widgets[key].set_to_default()
 
     def get_value(self, key):
