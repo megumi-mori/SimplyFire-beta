@@ -309,7 +309,8 @@ class LabeledOptionMenu(LabeledWidget):
             self.frame,
             self.var,
             value,
-            *options
+            *options,
+            command=command
         )
         # self.widget.bind('<FocusOut>', self.test, add='+')
         self.widget.grid(column=1, row=0, sticky='ews')
@@ -344,11 +345,12 @@ class LabeledCheckbox(LabeledWidget):
             name,
             label,
             value,
-            default
+            default,
         )
         self.widget = ttk.Checkbutton(
             self.frame,
-            variable=self.var
+            variable=self.var,
+            command=command
         )
         if value is None:
             value = default
