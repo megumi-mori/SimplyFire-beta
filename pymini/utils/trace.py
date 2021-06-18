@@ -21,7 +21,9 @@ class Trace():
             self.channel_count = data.channelCount
             self.channel_names = data.adcNames
             self.channel_units = data.adcUnits
+            self.channel_label = [""] * self.channel_count
             self.x_unit = data.sweepUnitsX
+            self.x_label = data.sweepLabelX # in the form of Label (Units)
 
             self.sweep_count = data.sweepCount
             self.x_data = [0]*self.sweep_count
@@ -32,6 +34,7 @@ class Trace():
             pymini.pb.initiate()
             for i in range(self.channel_count):
                 data.setSweep(channel=i, sweepNumber=0)
+                self.channel_label[i] = data.sweepLabelY
                 for j in range(self.sweep_count):
                     data.setSweep(sweepNumber=j)
                     if i == 0:
@@ -42,7 +45,6 @@ class Trace():
                     progress += 1
                     pymini.pb.progress((progress/total * 100))
             pymini.pb.clear()
-
 
             # implemenation to store sweep data as vstacks in np.array:
             # start = time.perf_counter()

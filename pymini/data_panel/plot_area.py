@@ -21,8 +21,14 @@ class InteractivePlot():
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
         self.ax.plot()
+        self.labels = {'x': 'Time (n/a)',
+                      'y': 'y (n/a)'}
+        self.ax.set_xlabel(self.labels['x'])
+        self.ax.set_ylabel(self.labels['y'])
         self.default_xlim = self.ax.get_xlim()
         self.default_ylim = self.ax.get_ylim()
+
+
 
     def scroll(self, axis, dir=1, percent=0):
         if axis == "x":
@@ -94,23 +100,23 @@ class InteractivePlot():
         ylim = None
 
         self.ax.autoscale(enable=True, axis='x', tight=True)
-        self.ax.autoscale(enable=True, axis='y')
+        self.ax.autoscale(enable=True, axis='y', tight=True)
 
         self.plot(self.trace, xlim, ylim)
 
         self.default_xlim = self.ax.get_xlim()
         self.default_ylim = self.ax.get_ylim()
 
-        if pymini.style_tab.get_value('apply_axis_limit') == "1":
+        if pymini.get_value('apply_axis_limit') == "1":
             self.set_axis_limits(
                 {
                     'x': (
-                        pymini.style_tab.get_value('min_x'),
-                        pymini.style_tab.get_value('max_x')
+                        pymini.get_value('min_x'),
+                        pymini.get_value('max_x')
                     ),
                     'y': (
-                        pymini.style_tab.get_value('min_y'),
-                        pymini.style_tab.get_value('max_y')
+                        pymini.get_value('min_y'),
+                        pymini.get_value('max_y')
                     )
 
                 }
@@ -118,21 +124,28 @@ class InteractivePlot():
 
         self.draw()
 
-
     def plot(self, trace, xlim=None, ylim=None):
         xs = trace.get_xs()
         ys = trace.get_ys()
-        line, = self.ax.plot(
+        self.ax.set_xlabel(
+            trace.x_label
+        )
+        self.ax.set_ylabel(
+            trace.channel_label[trace.channel]
+        )
+
+        self.ax.plot(
             xs,
             ys,
-            linewidth=pymini.style_tab.get_value('line_width'),
-            c=pymini.style_tab.get_value('line_color')
+            linewidth=pymini.get_value('line_width'),
+            c=pymini.get_value('line_color')
         )
         try:
             self.ax.set_xlim(xlim)
             self.ax.set_ylim(ylim)
         except:
             pass
+
         self.draw()
 
     def _clear(self):
@@ -148,7 +161,6 @@ class InteractivePlot():
 
     def draw(self):
         self.canvas.draw()
-        self.focus()
 
         pass
 
@@ -170,12 +182,10 @@ class InteractivePlot():
         min and max values can be float, 'auto', or None
         :return:
         """
-        self.focus()
         for a in axis:
             self._set_ax_lim(a, axis[a])
 
     def set_single_axis_limit(self, axis, idx, value):
-        self.focus()
         if idx == 0:
             self._set_ax_lim(axis, (value, self.get_axis_limits(axis)[1]))
         elif idx == 1:
@@ -213,29 +223,26 @@ class InteractivePlot():
         self.draw()
 
     def show_all_plot(self):
-        self.focus()
         self.ax.set_xlim(self.default_xlim)
         self.ax.set_ylim(self.default_ylim)
         self.draw()
 
     def apply_all_style(self):
-        self.focus()
         # markers should be in collections, not lines, so this shouldn't affect peaks, baselines, etc
         for l in self.ax.lines:
-            l.set_color(pymini.style_tab.get_value('line_color'))
-            l.set_linewidth(float(pymini.style_tab.get_value('line_width')))
+            l.set_color(pymini.get_value('line_color'))
+            l.set_linewidth(float(pymini.get_value('line_width')))
 
         self.draw()
 
     def apply_style(self, key):
-        self.focus()
         try:
             if key == 'line_width':
                 for l in self.ax.lines:
-                    l.set_linewidth(float(pymini.style_tab.get_value('line_width')))
+                    l.set_linewidth(float(pymini.get_value('line_width')))
             elif key == 'line_color':
                 for l in self.ax.lines:
-                    l.set_color(pymini.style_tab.get_value('line_color'))
+                    l.set_color(pymini.get_value('line_color'))
             self.draw()
             return True
         except:
