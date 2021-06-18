@@ -58,7 +58,35 @@ pw = Tk.PanedWindow(
 
 pw.grid(column=0, row=0, sticky='news')
 
+##################################################
+#                   DATA PANEL                   #
+##################################################
+# set up frame
+right = Tk.Frame(pw, background = 'pink')
+right.grid(column=0, row=0, sticky='news')
+right.columnconfigure(0, weight=1)
+right.rowconfigure(0, weight=1)
 
+pw_2 = Tk.PanedWindow(
+    right,
+    orient=Tk.VERTICAL,
+    showhandle=True,
+    sashrelief=Tk.SUNKEN,
+    handlesize=config.default_pw_handlesize
+)
+
+
+gp = graph_panel.load(pw_2)
+gp.grid(column=0, row=0, sticky='news')
+pw_2.add(gp)
+
+plot_area = gp.plot
+
+tp = table_panel.load(pw_2)
+pw_2.add(tp)
+
+pw_2.grid(column=0, row=0, sticky='news')
+pw_2.paneconfig(gp, height=config.gp_height)
 
 ##################################################
 #                 CONTROL PANEL                  #
@@ -101,35 +129,7 @@ pb.grid(column=0, row=2, stick='news')
 
 
 
-##################################################
-#                   DATA PANEL                   #
-##################################################
-# set up frame
-right = Tk.Frame(pw, background = 'pink')
-right.grid(column=0, row=0, sticky='news')
-right.columnconfigure(0, weight=1)
-right.rowconfigure(0, weight=1)
 
-pw_2 = Tk.PanedWindow(
-    right,
-    orient=Tk.VERTICAL,
-    showhandle=True,
-    sashrelief=Tk.SUNKEN,
-    handlesize=config.default_pw_handlesize
-)
-
-
-gp = graph_panel.load(pw_2)
-gp.grid(column=0, row=0, sticky='news')
-pw_2.add(gp)
-
-plot_area = gp.plot
-
-tp = table_panel.load(pw_2)
-pw_2.add(tp)
-
-pw_2.grid(column=0, row=0, sticky='news')
-pw_2.paneconfig(gp, height=config.gp_height)
 
 
 # finis up the pw setting:
@@ -160,3 +160,5 @@ root.protocol('WM_DELETE_WINDOW', _on_close)
 
 def load():
     return root
+
+def get_value(value):
