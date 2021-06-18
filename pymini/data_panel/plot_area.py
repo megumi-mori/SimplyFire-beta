@@ -62,6 +62,7 @@ class InteractivePlot():
             return None
 
         delta = (win_lim[1] - win_lim[0]) * config.zoom_percent * dir / 100
+        center_pos = 0.5
         try:
             if axis == 'x':
                 center_pos = (event.xdata - win_lim[0]) / (win_lim[1] - win_lim[0])
@@ -100,16 +101,16 @@ class InteractivePlot():
         self.default_xlim = self.ax.get_xlim()
         self.default_ylim = self.ax.get_ylim()
 
-        if pymini.cp.style_tab.get_value('apply_axis_limit') == "1":
+        if pymini.style_tab.get_value('apply_axis_limit') == "1":
             self.set_axis_limits(
                 {
                     'x': (
-                        pymini.cp.style_tab.get_value('min_x'),
-                        pymini.cp.style_tab.get_value('max_x')
+                        pymini.style_tab.get_value('min_x'),
+                        pymini.style_tab.get_value('max_x')
                     ),
                     'y': (
-                        pymini.cp.style_tab.get_value('min_y'),
-                        pymini.cp.style_tab.get_value('max_y')
+                        pymini.style_tab.get_value('min_y'),
+                        pymini.style_tab.get_value('max_y')
                     )
 
                 }
@@ -124,8 +125,8 @@ class InteractivePlot():
         line, = self.ax.plot(
             xs,
             ys,
-            linewidth=pymini.cp.style_tab.get_value('line_width'),
-            c=pymini.cp.style_tab.get_value('line_color')
+            linewidth=pymini.style_tab.get_value('line_width'),
+            c=pymini.style_tab.get_value('line_color')
         )
         try:
             self.ax.set_xlim(xlim)
@@ -150,12 +151,6 @@ class InteractivePlot():
 
         pass
 
-    # def set_axis(self, axis='x', lim=None):
-    #     if axis == 'x':
-    #         self.ax.set_xlim(lim)
-    #     elif axis == 'y':
-    #         self.ax.set_ylim(lim)
-
     def get_axis_limits(self, axis='x'):
 
         if axis == 'x':
@@ -165,6 +160,7 @@ class InteractivePlot():
         return None
 
     def set_axis_limits(self, axis=None):
+
         """
 
         :param axis: dict of axis parameters, shoud be given as:
@@ -173,7 +169,7 @@ class InteractivePlot():
         min and max values can be float, 'auto', or None
         :return:
         """
-
+        self.focus()
         for a in axis:
             self._set_ax_lim(a, axis[a])
 
@@ -209,9 +205,40 @@ class InteractivePlot():
         self.draw()
 
     def show_all_plot(self):
+        self.focus()
         self.ax.set_xlim(self.default_xlim)
         self.ax.set_ylim(self.default_ylim)
         self.draw()
+
+    def apply_all_style(self):
+        self.focus()
+        # markers should be in collections, not lines, so this shouldn't affect peaks, baselines, etc
+        for l in self.ax.lines:
+            l.set_color(pymini.style_tab.get_value('line_color'))
+            l.set_linewidth(float(pymini.style_tab.get_value('line_width')))
+
+        self.draw()
+
+    def apply_style(self, key):
+        self.focus()
+        try:
+            if key == 'line_width':
+                for l in self.ax.lines:
+                    l.set_linewidth(float(pymini.style_tab.get_value('line_width')))
+            elif key == 'line_color':
+                for l in self.ax.lines:
+                    l.set_color(pymini.style_tab.get_value('line_color'))
+            self.draw()
+            return True
+        except:
+            return False
+
+    def focus(self):
+        self.canvas.get_tk_widget().focus_set()
+
+
+
+
 
 
 

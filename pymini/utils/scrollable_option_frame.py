@@ -77,7 +77,7 @@ class ScrollableOptionFrame(Tk.Frame):
             return self
 
     def get_widget(self, name):
-        self.widgets[name].get_widget()
+        return self.widgets[name].get_widget()
 
     def _bind_mousewheel(self, event):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)

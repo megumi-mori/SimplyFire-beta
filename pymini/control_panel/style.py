@@ -19,16 +19,28 @@ def load(parent):
             }
         )
 
-    def apply_axis_limit(type, idx, lim):
-
+    def default_axis_parameters():
+        optionframe.set_value('min_x', 'auto')
+        optionframe.set_value('max_x', 'auto')
+        optionframe.set_value('min_y', 'auto')
+        optionframe.set_value('max_y', 'auto')
         pass
+
     def get_current_axes():
         xlim = pymini.plot_area.get_axis_limits('x')
-        pymini.cp.style_tab.set_value('min_x', xlim[0])
-        pymini.cp.style_tab.set_value('max_x', xlim[1])
+        optionframe.set_value('min_x', xlim[0])
+        optionframe.set_value('max_x', xlim[1])
         ylim = pymini.plot_area.get_axis_limits('y')
-        pymini.cp.style_tab.set_value('min_y', ylim[0])
-        pymini.cp.style_tab.set_value('max_y', ylim[1])
+        optionframe.set_value('min_y', ylim[0])
+        optionframe.set_value('max_y', ylim[1])
+
+    def apply_all_style():
+        pymini.plot_area.apply_all_style()
+        pass
+
+    def apply_style(style):
+        print('apply_style {}'.format(style))
+        pymini.plot_area.apply_style(style)
 
     optionframe = ScrollableOptionFrame(parent)
     ##################################################
@@ -85,12 +97,20 @@ def load(parent):
         text='Show all trace',
         command=pymini.plot_area.show_all_plot
     )
+    optionframe.insert_button(
+        text='Default axis limits',
+        command=default_axis_parameters
+    )
     optionframe.insert_label_entry(
         name='line_width',
         label='Trace line width:',
         value=config.line_width,
         default=config.default_line_width,
         validate_type='color'
+    )
+    optionframe.get_widget('line_width').bind(
+        '<Return>',
+        lambda e, k='line_width': apply_style(k)
     )
     optionframe.insert_label_entry(
         name='line_color',
@@ -99,12 +119,20 @@ def load(parent):
         default=config.default_line_color,
         validate_type='color'
     )
+    optionframe.get_widget('line_color').bind(
+        '<Return>',
+        lambda e, k='line_color': apply_style(k)
+    )
     optionframe.insert_label_entry(
         name='event_color',
         label='Event peak color:',
         value=config.event_color,
         default=config.default_event_color,
         validate_type='color'
+    )
+    optionframe.get_widget('event_color').bind(
+        '<Return>',
+        lambda e, k='event_color': apply_style
     )
     optionframe.insert_label_entry(
         name='baseline_color',
@@ -113,6 +141,10 @@ def load(parent):
         default=config.default_baseline_color,
         validate_type='color'
     )
+    optionframe.get_widget('baseline_color').bind(
+        '<Return>',
+        lambda e, k='baseline_color': apply_style
+    )
     optionframe.insert_label_entry(
         name='decay_color',
         label='Event decay (tau) color:',
@@ -120,12 +152,24 @@ def load(parent):
         default=config.default_decay_color,
         validate_type='color'
     )
+    optionframe.get_widget('decay_color').bind(
+        '<Return>',
+        lambda e, k='decay_color': apply_style
+    )
     optionframe.insert_label_entry(
         name='highlight_color',
         label='Event highlight color:',
         value=config.highlight_color,
         default=config.default_highlight_color,
         validate_type='color'
+    )
+    optionframe.get_widget('highlight_color').bind(
+        '<Return>',
+        lambda e, k='highlight_color': apply_style
+    )
+    optionframe.insert_button(
+        text='Apply',
+        command=apply_all_style
     )
 
     return optionframe
