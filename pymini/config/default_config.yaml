@@ -28,7 +28,6 @@ default_pw_handlesize : 15
 
 # navigation
 default_scroll_percent : 10
-default_nav_wait : 100
 default_nav_fps : 10
 default_zoom_percent : 10
 
