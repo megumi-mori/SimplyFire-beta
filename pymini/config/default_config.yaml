@@ -52,6 +52,7 @@ default_min_y : 'auto'
 default_max_y : 'auto'
 default_apply_axis_limit : 0
 default_line_color : 'black'
+default_line_width : 0.25
 default_major_tick : 'auto'
 default_minor_tick : 'auto'
 default_event_color : 'yellow'
