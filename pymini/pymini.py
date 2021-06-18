@@ -6,7 +6,7 @@ from control_panel import font_bar
 
 from menubar import menubar
 
-from control_panel import detector, style, progress_bar, setting
+from control_panel import detector, style, progress_bar, setting, navigation
 
 from data_panel import graph_panel, table_panel
 from utils.scrollable_option_frame import ScrollableOptionFrame
@@ -23,7 +23,6 @@ def _on_close():
     """
     print('closing')
     plot_area.focus()
-    tabs = [detector_tab, style_tab]
     # if cp.detector_tab.get_value('save_detector_preferences') == '1':
     #     tabs.append(cp.detector_tab)
     # if cp.style_tab.get_value('save_style_preferences') == '1':
@@ -106,13 +105,22 @@ cp.grid(column=0 ,row=0, sticky='news')
 cp_notebook = ttk.Notebook(cp)
 cp_notebook.grid(column=0, row=0, sticky='news')
 
+tabs = {}
+
 # insert detector options tab into control panel
-detector_tab = detector.load(cp)
-cp_notebook.add(detector_tab, text='Detector')
+tabs['detector'] = detector.load(cp)
+cp_notebook.add(tabs['detector'], text='Detector')
+
+
+# insert navigation tab into control panel
+tabs['navigation'] = navigation.load(cp)
+cp_notebook.add(tabs['navigation'], text='Navigation')
 
 # insert style options tab into control panel
-style_tab = style.load(cp)
-cp_notebook.add(style_tab, text='Plot')
+tabs['style'] = style.load(cp)
+cp_notebook.add(tabs['style'], text='Style')
+
+
 
 # insert settings option tab into control panel
 cp.settings_tab = setting.load(cp)
@@ -164,10 +172,9 @@ def load():
     return root
 
 def get_value(key):
-    tabs = [detector_tab, style_tab]
     for t in tabs:
         try:
-            return t.get_value(key)
+            return tabs[t].get_value(key)
         except:
             pass
 
