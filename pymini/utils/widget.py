@@ -31,6 +31,9 @@ class LinkedWidget():
     def get(self):
         return self.var.get()
 
+    def get_widget(self):
+        return self.widget
+
     def set(self, value):
         self.var.set(value)
         self.prev = value
@@ -220,6 +223,9 @@ class LabeledWidget():
     def revert(self):
         print('revert')
         self.set(self.prev)
+
+    def get_widget(self):
+        return self.widget
 
 
     def bind(self, command):
