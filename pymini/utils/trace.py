@@ -43,7 +43,8 @@ class Trace():
                     pymini.pb.progress((progress/total * 100))
             pymini.pb.clear()
 
-            end = time.perf_counter()
+            print(self.x_data)
+
 
             # implemenation to store sweep data as vstacks in np.array:
             # start = time.perf_counter()
@@ -88,7 +89,21 @@ class Trace():
             # d = self.y_data[self.channel].flatten()
             # end = time.perf_counter()
             # print(end - start)
-            return d
+            # return d
+        else:
+            return self.y_data[self.channel][sweep]
+
+    def get_xs(self, mode='continuous', sweep=0):
+        if mode == 'continuous':
+            xs = np.array(self.x_data[0])
+            for i in range(1, self.sweep_count):
+                try:
+                    xs = np.concatenate((xs, self.x_data[i] + xs[-1] + self.x_interval))
+                except:
+                    pass
+            return xs
+        else:
+            return self.x_data[sweep]
 
 
 

@@ -5,6 +5,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from utils import trace
 import matplotlib.colors
+import pymini
 
 class InteractivePlot():
     def __init__(self, parent):
@@ -83,15 +84,59 @@ class InteractivePlot():
 
     def open_trace(self, filename):
         self.trace = trace.Trace(filename)
+        self._clear()
 
-        self.trace.get_ys()
+        if pymini.cp.style_tab.get_value('apply_axis_limit') != "1":
+            self.ax.autoscale(enable=True, axis='x', tight=True)
+            self.ax.autoscale(enable=True, axis='y')
+        else:
+            self.ax.autoscale(enable=False, axis='x')
+            self.ax.autoscale(enable=False, axis='y')
+
+        self.plot(self.trace)
 
 
-    def plot(self, trace, maintain_axis=False):
-        if maintain_axis:
-            xlim = self.ax.get_xlim()
-            ylim = self.ax.get_ylim()
+    def plot(self, trace):
+        xs = trace.get_xs()
+        ys = trace.get_ys()
+        line, = self.ax.plot(
+            xs,
+            ys,
+            linewidth = pymini.cp.style_tab.get_value('line_width'),
+            c=pymini.cp.style_tab.get_value('line_color')
+        )
+        if pymini.cp.style_tab.get_value('apply_axis_limit') == '1':
+            self.ax.set_xlim(
+                (
+                    float(pymini.cp.style_tab.get_value('min_x')),
+                    float(pymini.cp.style_tab.get_value('max_x'))
+                )
+            )
+            self.ax.set_ylim(
+                (
+                    float(pymini.cp.style_tab.get_value('min_y')),
+                    flaot(pymini.cp.style_tab.get_value('max_y'))
+                )
+            )
+        self._draw()
 
+    def _clear(self):
+        # for l in self.ax.lines:
+        #     l.remove()
+        # print(self.ax.lines)
+        for l in self.ax.lines:
+            self.ax.lines.remove(l)
+        print(self.ax.lines)
+        for c in self.ax.collections:
+            self.ax.collections.remove(i)
+        self.ax.clear()
+        self._draw()
+
+    def _draw(self):
+        self.canvas.draw()
+
+
+        pass
 
 
 
