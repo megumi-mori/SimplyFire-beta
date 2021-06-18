@@ -26,6 +26,11 @@ def load(parent):
         optionframe.set_value('max_y', 'auto')
         pass
 
+    def apply_axis_limit(name, axis, idx):
+        print((name, axis, idx))
+        pymini.plot_area.set_single_axis_limit(axis, idx, optionframe.get_value(name))
+
+
     def get_current_axes():
         xlim = pymini.plot_area.get_axis_limits('x')
         optionframe.set_value('min_x', xlim[0])
@@ -39,8 +44,18 @@ def load(parent):
         pass
 
     def apply_style(style):
-        print('apply_style {}'.format(style))
         pymini.plot_area.apply_style(style)
+        pass
+
+    def default_style_parameters():
+        optionframe.default([
+            'line_color',
+            'line_width',
+            'event_color',
+            'highlight_color',
+            'baseline_color',
+            'decay_color'
+        ])
 
     optionframe = ScrollableOptionFrame(parent)
     ##################################################
@@ -50,13 +65,20 @@ def load(parent):
     ##################################################
     #               Parameter options                #
     ##################################################
-
+    optionframe.insert_title(
+        name='axis',
+        text='Axes'
+    )
     optionframe.insert_label_entry(
         name='min_x',
         label='Min x-axis:',
         value=config.min_x,
         default=config.default_min_x,
         validate_type='auto/float'
+    )
+    optionframe.get_widget('min_x').bind(
+        '<Return>',
+        lambda e, n='min_x', a='x', i=0: apply_axis_limit(n,a,i)
     )
     optionframe.insert_label_entry(
         name='max_x',
@@ -65,12 +87,20 @@ def load(parent):
         default=config.default_max_x,
         validate_type='auto/float'
     )
+    optionframe.get_widget('max_x').bind(
+        '<Return>',
+        lambda e, n='max_x', a='x', i=1: apply_axis_limit(n, a, i)
+    )
     optionframe.insert_label_entry(
         name='min_y',
         label='Min y-axis:',
         value=config.min_y,
         default=config.default_min_y,
         validate_type='auto/float'
+    )
+    optionframe.get_widget('min_y').bind(
+        '<Return>',
+        lambda e, n='min_y', a='y', i=0: apply_axis_limit(n, a, i)
     )
     optionframe.insert_label_entry(
         name='max_y',
@@ -79,18 +109,23 @@ def load(parent):
         default=config.default_max_y,
         validate_type='auto/float'
     )
+    optionframe.get_widget('max_y').bind(
+        '<Return>',
+        lambda e, n='max_y', a='y', i=1: apply_axis_limit(n, a, i)
+    )
     optionframe.insert_checkbox(
         name='apply_axis_limit',
         label='Apply axis limits on a new trace',
         value=config.apply_axis_limit,
         default=config.default_apply_axis_limit
     )
+
     optionframe.insert_button(
-        text='Apply axes limits',
-        command=apply_axes_limits
+        text='Default axis limits',
+        command=default_axis_parameters
     )
     optionframe.insert_button(
-        text='Fetch current axes limits',
+        text='Get current axes limits',
         command=get_current_axes
     )
     optionframe.insert_button(
@@ -98,9 +133,10 @@ def load(parent):
         command=pymini.plot_area.show_all_plot
     )
     optionframe.insert_button(
-        text='Default axis limits',
-        command=default_axis_parameters
+        text='Apply axes limits',
+        command=apply_axes_limits
     )
+
     optionframe.insert_label_entry(
         name='line_width',
         label='Trace line width:',
@@ -170,6 +206,39 @@ def load(parent):
     optionframe.insert_button(
         text='Apply',
         command=apply_all_style
+    )
+    optionframe.insert_button(
+        text='Default parameters',
+        command=default_style_parameters
+    )
+    optionframe.insert_label_entry(
+        name='nav_fps',
+        label='Smooth navigation speed (fps):',
+        value=config.nav_fps,
+        default=config.default_nav_fps,
+        validate_type='int'
+    )
+    optionframe.insert_label_entry(
+        name='scroll_percent',
+        label='Scroll speed (percent axis):',
+        value=config.scroll_percent,
+        default=config.default_scroll_percent,
+        validate_type='float'
+    )
+    optionframe.insert_label_entry(
+        name='zoom_percent',
+        label='Zoom speed (percent axis):',
+        value=config.zoom_percent,
+        default=config.default_zoom_percent,
+        validate_type='float'
+    )
+    optionframe.insert_button(
+        text='Apply',
+        # command=apply_all_style
+    )
+    optionframe.insert_button(
+        text='Default parameters',
+        # command=default_style_parameters
     )
 
     return optionframe
