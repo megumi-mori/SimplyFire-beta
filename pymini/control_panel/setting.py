@@ -37,13 +37,13 @@ def load(parent):
     ##################################################
     #               Parameter Options                #
     ##################################################
-    frame.insert_checkbox(
+    frame.insert_label_checkbox(
         name='config_autoload',
         label='Automatically load configurations at the beginning of the next session',
         value=config.config_autoload,
         default=0
     )
-    frame.insert_checkbox(
+    frame.insert_label_checkbox(
         name='config_autosave',
         label='Automatically save configurations at the end of this session',
         value=config.config_autosave,

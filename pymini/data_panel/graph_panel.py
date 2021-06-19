@@ -133,38 +133,41 @@ def load(parent):
     navigation_toolbar.grid(column=0, row=0, sticky='news')
     navigation_toolbar.update()
 
-    channel_frame = Tk.Frame(toolbar_frame)
+    channel_frame = ScrollableOptionFrame(toolbar_frame, scrollbar = False)
     channel_frame.grid(column=1, row=0, sticky='ews')
     channel_frame.grid_rowconfigure(0, weight=1)
     channel_frame.grid_rowconfigure(1, weight=1)
     channel_frame.grid_columnconfigure(0, weight=1)
 
-    frame.widgets['channel_option'] = widget.LabeledOptionMenu(
-        channel_frame,
+    channel_frame.insert_label_optionmenu(
+        name='channel_option',
         label='channel',
         value='',
         default='',
-        options=[''],
-        command=_choose_channel
+        options=['']
     )
-    frame.widgets['channel_option'].frame.grid(column=0, row=0, sticky='news')
-
-    frame.widgets['force_channel'] = widget.LabeledCheckbox(
-        parent=channel_frame,
+    channel_frame.insert_label_checkbox(
+        name='force_channel',
         label='Always open the same channel:',
         value=config.force_channel,
         default=config.default_force_channel,
         command=force_channel
     )
-    frame.widgets['force_channel'].frame.grid(column=0, row=1, sticky='news')
 
-    frame.widgets['force_channel_id'] = widget.LinkedEntry(
-        parent=channel_frame,
+    frame.widgets['channel_option'] = channel_frame.widgets['channel_option']
+    frame.labels['channel_option'] = channel_frame.labels['channel_option']
+
+    frame.widgets['force_channel'] = channel_frame.widgets['force_channel']
+    frame.labels['force_channel'] = channel_frame.labels['force_channel']
+
+
+    frame.widgets['force_channel_id'] = widget.VarEntry(
+        parent=channel_frame.widgets['force_channel']._nametowidget(channel_frame.widgets['force_channel'].winfo_parent()),
         value=config.force_channel_id,
         default=config.default_force_channel_id,
         validate_type='int'
     )
-    frame.widgets['force_channel_id'].grid(column=1,row=1,sticky='ews')
+    frame.widgets['force_channel_id'].grid(column=2,row=0,sticky='ews')
     frame.get_widget('force_channel_id').config(state='disabled')
     x_zoom_frame = Tk.Frame(frame, bg='orange')
     x_zoom_frame.grid_rowconfigure(0, weight=1)

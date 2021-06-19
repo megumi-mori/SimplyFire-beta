@@ -32,13 +32,6 @@ def load(parent):
         default=config.default_min_amp,
         validate_type='float'
     )
-    # frame.insert_entry(
-    #     name='min_amp',
-    #     label='Minimum amplitude (nA):',
-    #     value=config.min_amp,
-    #     default=config.default_min_amp,
-    #     validate_type='float'
-    # )
     frame.insert_label_entry(
         name='points_baseline',
         label='Number of data points to average for baseline:',
@@ -88,7 +81,7 @@ def load(parent):
         default=config.default_manual_pixel_offset,
         validate_type='int'
     )
-    frame.insert_checkbox(
+    frame.insert_label_checkbox(
         name='update_events',
         label='Update graph after each event detection (will slow down search)',
         value=config.update_events,

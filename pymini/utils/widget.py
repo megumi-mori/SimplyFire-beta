@@ -12,10 +12,9 @@ class VarWidget():
             self,
             parent,
             value="",
-            default="",
-            **kwargs
+            default=""
     ):
-        self.var = Tk.StringVar()
+        self.var = Tk.StringVar(parent)
         self.var.set(value)
         self.default=default
 
@@ -71,28 +70,93 @@ class VarEntry(VarWidget, Tk.Entry):
         print(value)
 
     def validate(self, event, validation_type, c=None):
-        print('validate')
         value = self.get()
         if validation.validate(validation_type, self.get()):
             self.prev = value
-            print('good')
             return True
         elif validation_type == 'int':
             try:
                 new_value = str(int(float(value)))
                 self.set(new_value)
-                print('good')
                 return True
             except:
                 self.revert()
-                print('bad')
                 return False
         else:
             self.revert()
             return False
 
 
+class VarOptionmenu(VarWidget, ttk.OptionMenu):
+    def __init__(
+            self,
+            parent,
+            value=None,
+            default="",
+            options=None,
+            command=None,
+            **kwargs
+    ):
+        VarWidget.__init__(
+            self,
+            parent=parent,
+            value=value,
+            default=default
+        )
+        if options is None:
+            options = []
+        if value is None:
+            value = default
+        self.command = command
+        ttk.OptionMenu.__init__(
+            self,
+            parent,
+            self.var,
+            value,
+            *options,
+            command=command,
+            **kwargs
+        )
 
+    def replace_options(self, options=None):
+        if options is None:
+            options = []
+        self['menu'].delete(0, 'end')
+        for i in options:
+            self['menu'].add_command(
+                label=i,
+                command=self.command
+            )
+
+    def clear_options(self):
+        self['menu'].delete(0, 'end')
+
+    def add_option(self, *args, **kwargs):
+        self['menu'].add_command(*args, **kwargs)
+
+class VarCheckbutton(VarWidget, ttk.Checkbutton):
+    def __init__(
+            self,
+            parent,
+            value=None,
+            default=None,
+            command=None,
+            **kwargs
+    ):
+        VarWidget.__init__(
+            self,
+            parent=parent,
+            value=value,
+            default=default
+
+        )
+        ttk.Checkbutton.__init__(
+            self,
+            master=parent,
+            variable=self.var,
+            command=command,
+            **kwargs
+        )
 
 class LinkedWidget():
     """
@@ -164,7 +228,6 @@ class LinkedEntry(LinkedWidget):
         # cannot use Tk.StringVar.set() due to validatecommand conflict
         self.widget.delete(0, len(self.get()))
         self.widget.insert(0, value)
-        print(value)
 
     def validate(self, event, validation_type, c=None):
         print('validate')

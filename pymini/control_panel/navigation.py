@@ -99,7 +99,7 @@ def load(parent):
         lambda e, n='max_y', a='y', i=1: apply_axis_limit(n, a, i),
         add="+"
     )
-    optionframe.insert_checkbox(
+    optionframe.insert_label_checkbox(
         name='apply_axis_limit',
         label='Force axes limits on a new trace',
         value=config.apply_axis_limit,

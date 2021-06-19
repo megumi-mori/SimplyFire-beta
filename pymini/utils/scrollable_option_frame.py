@@ -60,7 +60,11 @@ class ScrollableOptionFrame(Tk.Frame):
             self.frame.bind('<Leave>', self._unbind_mousewheel)
 
             self.frame.grid_columnconfigure(0, weight=1)
-            self.frame.grid_rowconfigure(0,weight=1)
+            # self.frame.grid_rowconfigure(0,weight=1)
+        else:
+            self.frame = Tk.Frame(self)
+            self.frame.grid(column=0, row=0, sticky='news')
+            self.frame.grid_columnconfigure(0, weight=1)
 
         self.widgets = {}
         self.buttons = {}
@@ -100,7 +104,9 @@ class ScrollableOptionFrame(Tk.Frame):
                 label="",
                 value="",
                 default="",
-                validate_type=""
+                validate_type="",
+                *args,
+                **kwargs
         ):
             panel = self.make_panel(separator=config.default_separator)
             frame = ttk.Frame(panel)
@@ -108,21 +114,20 @@ class ScrollableOptionFrame(Tk.Frame):
             frame.grid_rowconfigure(0, weight=1)
             wrapped_label = textwrap.wrap(label, width=config.default_label_length)
             text='\n'.join(wrapped_label)
-            self.labels[name] = Tk.Label(frame, text=text)
+            self.labels[name] = ttk.Label(frame, text=text)
             self.labels[name].grid(column=0, row=0, sticky='news')
             frame.grid(column=0,row=0, sticky='news')
-            w = func(self, parent=frame, name=name, value=value, default=default,validate_type=validate_type)
+            w = func(self, parent=frame, value=value, default=default, *args, **kwargs)
             self.widgets[name] = w
         return call
     #
     @insert_label_widget
     def insert_label_entry(
             self,
-            name,
             parent,
             value,
             default,
-            validate_type
+            validate_type=None
 
     ):
         w = widget.VarEntry(
@@ -135,29 +140,45 @@ class ScrollableOptionFrame(Tk.Frame):
 
         return w
 
+    @insert_label_widget
     def insert_label_optionmenu(
             self,
-            name,
-            label="",
+            parent,
             value=None,
-            default=None,
+            default='',
             options=None,
-            command=None
+            command=None,
+            **kwargs
     ):
-
-        panel = self.make_panel(separator=config.default_separator)
-        w = widget.LabeledOptionMenu(
-            parent = panel,
-            name=name,
-            label=label,
+        w = widget.VarOptionmenu(
+            parent=parent,
             value=value,
             default=default,
-            options=options
+            options=options,
+            command=command,
+            **kwargs
+
         )
+        w.grid(column=1, row=0, sticky='news')
+        return w
 
-        w.grid(column=0, row=0, sticky='news')
-
-        self.widgets[name] = w
+    @insert_label_widget
+    def insert_label_checkbox(
+            self,
+            parent,
+            value=None,
+            default=None,
+            command=None,
+            **kwargs
+    ):
+        w = widget.VarCheckbutton(
+            parent=parent,
+            value=value,
+            default=default,
+            command=command,
+            **kwargs
+        )
+        w.grid(column=1, row=0, sticky='news')
         return w
 
     def insert_checkbox(
