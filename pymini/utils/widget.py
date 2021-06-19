@@ -52,19 +52,24 @@ class VarEntry(VarWidget, Tk.Entry):
             width=config.entry_width,
             justify=Tk.RIGHT
         )
+        self.validate_type=validate_type
         self.prev = value
         self.validate_type = validate_type
+        self.validate(None, validate_type)
         self.bind('<FocusOut>', lambda e, v=validate_type: self.validate(e, v))
         self.bind('<Return>', lambda e, v=validate_type: self.validate(e, v), add="+")
 
     def revert(self):
-        self.set(self.prev)
+        if validation.validate(self.validate_type, self.prev):
+            self.set(self.prev)
+        else:
+            self.set_to_default()
+            self.prev = self.default
 
     def set(self, value=""):
         # cannot use Tk.StringVar.set() due to validatecommand conflict
         self.delete(0, len(self.get()))
         self.insert(0, value)
-        print(value)
 
     def validate(self, event, validation_type, c=None):
         value = self.get()
