@@ -7,6 +7,93 @@ from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import textwrap
 import pymini
 
+class VarWidget():
+    def __init__(
+            self,
+            parent,
+            value="",
+            default="",
+            **kwargs
+    ):
+        self.var = Tk.StringVar()
+        self.var.set(value)
+        self.default=default
+
+    def get(self):
+        return self.var.get()
+
+    def set(self, value):
+        self.var.set(value)
+
+    def get_default(self):
+        return self.default
+
+    def set_to_default(self):
+        self.set(self.default)
+
+    def get_widget(self):
+        return self
+
+class VarEntry(VarWidget, Tk.Entry):
+    def __init__(
+            self,
+            parent,
+            value="",
+            default="",
+            validate_type=None
+    ):
+        self.prev = value
+        VarWidget.__init__(
+            self,
+            parent=parent,
+            value=value,
+            default=default
+        )
+        Tk.Entry.__init__(
+            self,
+            master=parent,
+            textvariable=self.var,
+            width=config.entry_width,
+            justify=Tk.RIGHT
+        )
+        self.prev = value
+        self.validate_type = validate_type
+        self.bind('<FocusOut>', lambda e, v=validate_type: self.validate(e, v))
+        self.bind('<Return>', lambda e, v=validate_type: self.validate(e, v), add="+")
+
+    def revert(self):
+        self.set(self.prev)
+
+    def set(self, value=""):
+        # cannot use Tk.StringVar.set() due to validatecommand conflict
+        self.delete(0, len(self.get()))
+        self.insert(0, value)
+        print(value)
+
+    def validate(self, event, validation_type, c=None):
+        print('validate')
+        value = self.get()
+        if validation.validate(validation_type, self.get()):
+            self.prev = value
+            print('good')
+            return True
+        elif validation_type == 'int':
+            try:
+                new_value = str(int(float(value)))
+                self.set(new_value)
+                print('good')
+                return True
+            except:
+                self.revert()
+                print('bad')
+                return False
+        else:
+            self.revert()
+            return False
+
+
+
+
 class LinkedWidget():
     """
     This is a parent class for making modified tkinter widgets

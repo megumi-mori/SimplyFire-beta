@@ -6,6 +6,8 @@ from config import config
 import yaml
 import textwrap
 
+from functools import wraps
+
 
 def make_label(
         parent,
@@ -62,8 +64,9 @@ class ScrollableOptionFrame(Tk.Frame):
 
         self.widgets = {}
         self.buttons = {}
-        # self.labels = {}
+        self.labels = {}
         self.titles = {}
+        self.variables = {}
         self.num_row = 0
         self.col_button = 0
 
@@ -77,9 +80,6 @@ class ScrollableOptionFrame(Tk.Frame):
         else:
             return self
 
-    def get_widget(self, name):
-        return self.widgets[name].get_widget()
-
     def _bind_mousewheel(self, event):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
 
@@ -90,86 +90,48 @@ class ScrollableOptionFrame(Tk.Frame):
         if self.frame.winfo_height() > self.canvas.winfo_height():
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
-    def make_entry(self,
-                     name,
-                     parent=None,
-                     value="default value",
-                     default=None,
-                     validate_type=None,
-                     command=None
-                     ):
-        if parent == None:
-            autoinsert = True
-            parent = self.make_panel()
-        else:
-            autoinsert = False
+    def get_widget(self, name):
+        return self.widgets[name].get_widget()
 
-        w = widget.LinkedEntry(
-            parent=parent,
-            name=name,
-            value=value,
-            default=default,
-            validate_type=validate_type
-        )
-        self.widgets[name] = w
-
-        if autoinsert:
-            w.grid(column=0, row=0, stick='news')
-
-        return w
-
-    def make_optionmenu(
-            self,
-            name,
-            parent=None,
-            default=None,
-            value=None,
-            options=[],
-            command=None
-    ):
-        if parent is None:
-            autoinsert = True
-            parent = self.make_panel()
-        else:
-            autoinsert = False
-
-        w = widget.LinkedOptionMenu(
-            parent=panel,
-            name=name,
-            value=value,
-            default=default,
-            options=options,
-            command=command
-        )
-
-        self.widgets[name] = w
-
-        if autoinsert:
-            w.grid(column=0, row=0, stick='news')
-
-        return w
-
+    def insert_label_widget(func):
+        def call(
+                self,
+                name,
+                label="",
+                value="",
+                default="",
+                validate_type=""
+        ):
+            panel = self.make_panel(separator=config.default_separator)
+            frame = ttk.Frame(panel)
+            frame.grid_columnconfigure(0, weight=1)
+            frame.grid_rowconfigure(0, weight=1)
+            wrapped_label = textwrap.wrap(label, width=config.default_label_length)
+            text='\n'.join(wrapped_label)
+            self.labels[name] = Tk.Label(frame, text=text)
+            self.labels[name].grid(column=0, row=0, sticky='news')
+            frame.grid(column=0,row=0, sticky='news')
+            w = func(self, parent=frame, name=name, value=value, default=default,validate_type=validate_type)
+            self.widgets[name] = w
+        return call
+    #
+    @insert_label_widget
     def insert_label_entry(
             self,
             name,
-            label="Enter value",
-            value="default value",
-            default=None,
-            validate_type=None
+            parent,
+            value,
+            default,
+            validate_type
+
     ):
-
-        panel = self.make_panel(separator=config.default_separator)
-
-        w = widget.LabeledEntry(
-            parent = panel,
-            name=name,
-            label=label,
+        w = widget.VarEntry(
+            parent=parent,
             value=value,
             default=default,
             validate_type=validate_type
         )
-        w.grid(column=0,row=0, sticky='ews')
-        self.widgets[name] = w
+        w.grid(column=1, row=0, sticky='ews')
 
         return w
 
