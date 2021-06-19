@@ -99,13 +99,7 @@ class InteractivePlot():
         xlim = None
         ylim = None
 
-        self.ax.autoscale(enable=True, axis='x', tight=True)
-        self.ax.autoscale(enable=True, axis='y', tight=True)
-
         self.plot(self.trace, xlim, ylim)
-
-        self.default_xlim = self.ax.get_xlim()
-        self.default_ylim = self.ax.get_ylim()
 
         if pymini.get_value('apply_axis_limit') == "1":
             self.set_axis_limits(
@@ -137,17 +131,20 @@ class InteractivePlot():
         self._clear()
         self.trace.set_channel(num)
 
-        self.ax.autoscale(enable=True, axis='x', tight=True)
-        self.ax.autoscale(enable=True, axis='y', tight=True)
-
         self.plot(self.trace, xlim)
-
-        self.default_xlim = self.ax.get_xlim()
-        self.default_ylim = self.ax.get_ylim()
 
         pass
 
     def plot(self, trace, xlim=None, ylim=None):
+        """
+        plots data from the trace
+        will first plot everything with autoscale, and save the limits as defaults.
+        To avoid this behavior, make a separate function
+        :param trace: Trace object
+        :param xlim: desired xlim
+        :param ylim: desired ylim
+        :return:
+        """
         # print('trace channel = {}'.format(trace.channel))
         xs = trace.get_xs()
         ys = trace.get_ys()
@@ -157,6 +154,8 @@ class InteractivePlot():
         self.ax.set_ylabel(
             trace.channel_label[trace.channel]
         )
+        self.ax.autoscale(enable=True, axis='x', tight=True)
+        self.ax.autoscale(enable=True, axis='y', tight=True)
 
         self.ax.plot(
             xs,
@@ -164,6 +163,9 @@ class InteractivePlot():
             linewidth=pymini.get_value('line_width'),
             c=pymini.get_value('line_color')
         )
+        self.default_xlim = self.ax.get_xlim()
+        self.default_ylim = self.ax.get_ylim()
+
         try:
             self.ax.set_xlim(xlim)
         except:
