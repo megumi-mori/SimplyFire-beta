@@ -35,6 +35,12 @@ def load(parent):
     def _choose_channel(event):
         pass
 
+    def force_channel(event=None):
+        if frame.get_value('force_channel') == '1':
+            frame.get_widget('force_channel_id').config(state='normal')
+        else:
+            frame.get_widget('force_channel_id').config(state='disabled')
+
     frame = ScrollableOptionFrame(parent, False)
     frame.grid_columnconfigure(0, weight=1)
     frame.grid_rowconfigure(0, weight=1)
@@ -127,16 +133,39 @@ def load(parent):
     navigation_toolbar.grid(column=0, row=0, sticky='news')
     navigation_toolbar.update()
 
+    channel_frame = Tk.Frame(toolbar_frame)
+    channel_frame.grid(column=1, row=0, sticky='ews')
+    channel_frame.grid_rowconfigure(0, weight=1)
+    channel_frame.grid_rowconfigure(1, weight=1)
+    channel_frame.grid_columnconfigure(0, weight=1)
+
     frame.widgets['channel_option'] = widget.LabeledOptionMenu(
-        toolbar_frame,
+        channel_frame,
         label='channel',
-        value='0',
-        default='0',
-        options=[0],
+        value='',
+        default='',
+        options=[''],
         command=_choose_channel
     )
-    frame.widgets['channel_option'].frame.grid(column=1, row=0, sticky='ews')
+    frame.widgets['channel_option'].frame.grid(column=0, row=0, sticky='news')
 
+    frame.widgets['force_channel'] = widget.LabeledCheckbox(
+        parent=channel_frame,
+        label='Always open the same channel:',
+        value=config.force_channel,
+        default=config.default_force_channel,
+        command=force_channel
+    )
+    frame.widgets['force_channel'].frame.grid(column=0, row=1, sticky='news')
+
+    frame.widgets['force_channel_id'] = widget.LinkedEntry(
+        parent=channel_frame,
+        value=config.force_channel_id,
+        default=config.default_force_channel_id,
+        validate_type='int'
+    )
+    frame.widgets['force_channel_id'].grid(column=1,row=1,sticky='ews')
+    frame.get_widget('force_channel_id').config(state='disabled')
     x_zoom_frame = Tk.Frame(frame, bg='orange')
     x_zoom_frame.grid_rowconfigure(0, weight=1)
     x_zoom_frame.grid_columnconfigure(3, weight=1)

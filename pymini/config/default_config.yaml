@@ -72,3 +72,8 @@ system_default_system_path :
   - 'pymini_config.yaml'
 system_default_config_autoload : 0
 system_default_config_autosave : 0
+
+# channel
+default_channel_choice : ""
+default_force_channel : 0
+default_force_channel_id: 0

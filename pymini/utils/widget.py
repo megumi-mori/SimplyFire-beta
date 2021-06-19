@@ -243,7 +243,7 @@ class LabeledWidget():
 class LabeledEntry(LabeledWidget):
     def __init__(self,
                  parent,
-                 name,
+                 name=None,
                  label="Enter value",
                  value="default value",
                  default=None,
@@ -353,7 +353,7 @@ class LabeledCheckbox(LabeledWidget):
     def __init__(
             self,
             parent,
-            name,
+            name=None,
             label=None,
             value=None,
             default=None,
