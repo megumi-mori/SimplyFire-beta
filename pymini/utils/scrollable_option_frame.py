@@ -104,8 +104,6 @@ class ScrollableOptionFrame(Tk.Frame):
                 label="",
                 value="",
                 default="",
-                validate_type="",
-                *args,
                 **kwargs
         ):
             panel = self.make_panel(separator=config.default_separator)
@@ -117,7 +115,7 @@ class ScrollableOptionFrame(Tk.Frame):
             self.labels[name] = ttk.Label(frame, text=text)
             self.labels[name].grid(column=0, row=0, sticky='news')
             frame.grid(column=0,row=0, sticky='news')
-            w = func(self, parent=frame, value=value, default=default, *args, **kwargs)
+            w = func(self, parent=frame, value=value, default=default, **kwargs)
             self.widgets[name] = w
         return call
     #
@@ -127,7 +125,8 @@ class ScrollableOptionFrame(Tk.Frame):
             parent,
             value,
             default,
-            validate_type=None
+            validate_type=None,
+            **kwargs
 
     ):
         w = widget.VarEntry(
