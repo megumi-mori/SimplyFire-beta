@@ -32,6 +32,9 @@ def load(parent):
         plot.zoom(axis, dir, percent)
         return None
 
+    def _choose_channel(event):
+        pass
+
     frame = ScrollableOptionFrame(parent, False)
     frame.grid_columnconfigure(0, weight=1)
     frame.grid_rowconfigure(0, weight=1)
@@ -124,11 +127,14 @@ def load(parent):
     navigation_toolbar.grid(column=0, row=0, sticky='news')
     navigation_toolbar.update()
 
-    frame.widgets['channel_option'] = widget.LabeledOptionMenu(toolbar_frame,
-                                                               label='channel',
-                                                               value='0',
-                                                               default='0',
-                                                               options=[0])
+    frame.widgets['channel_option'] = widget.LabeledOptionMenu(
+        toolbar_frame,
+        label='channel',
+        value='0',
+        default='0',
+        options=[0],
+        command=_choose_channel
+    )
     frame.widgets['channel_option'].frame.grid(column=1, row=0, sticky='ews')
 
     x_zoom_frame = Tk.Frame(frame, bg='orange')

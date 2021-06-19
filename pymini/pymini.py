@@ -55,6 +55,7 @@ pw = Tk.PanedWindow(
 )
 
 pw.grid(column=0, row=0, sticky='news')
+tabs = {}
 
 ##################################################
 #                   DATA PANEL                   #
@@ -74,17 +75,17 @@ pw_2 = Tk.PanedWindow(
 )
 
 
-gp = graph_panel.load(pw_2)
-gp.grid(column=0, row=0, sticky='news')
-pw_2.add(gp)
+tabs['graph_panel'] = graph_panel.load(pw_2)
+tabs['graph_panel'].grid(column=0, row=0, sticky='news')
+pw_2.add(tabs['graph_panel'])
 
-plot_area = gp.plot
+plot_area = tabs['graph_panel'].plot
 
 tp = table_panel.load(pw_2)
 pw_2.add(tp)
 
 pw_2.grid(column=0, row=0, sticky='news')
-pw_2.paneconfig(gp, height=config.gp_height)
+pw_2.paneconfig(tabs['graph_panel'], height=config.gp_height)
 
 ##################################################
 #                 CONTROL PANEL                  #
@@ -105,7 +106,7 @@ cp.grid(column=0 ,row=0, sticky='news')
 cp_notebook = ttk.Notebook(cp)
 cp_notebook.grid(column=0, row=0, sticky='news')
 
-tabs = {}
+
 
 # insert detector options tab into control panel
 tabs['detector'] = detector.load(cp)
@@ -171,10 +172,40 @@ root.protocol('WM_DELETE_WINDOW', _on_close)
 def load():
     return root
 
-def get_value(key):
-    for t in tabs:
-        try:
-            return tabs[t].get_value(key)
-        except:
-            pass
+def get_value(key, tab=None):
+    try:
+        return tabs[tab].get_value(key)
+    except:
+        for t in tabs:
+            try:
+                return tabs[t].get_value(key)
+            except:
+                pass
+    return None
+
+def get_widget(key, tab=None):
+    try:
+        return tabs[tab].get_widget(key)
+    except:
+        for t in tabs:
+            try:
+                return tabs[t].get_widget(key)
+            except:
+                pass
+    return None
+
+def set_value(key, value, tab=None):
+    try:
+        tabs[tab].set_value(key)
+        print(tabs[tab].get_value(key))
+        return True
+    except:
+        for t in tabs:
+            try:
+                tabs[t].set_value(key, value)
+                return True
+            except Exception as e:
+                print(e)
+                pass
+    return False
 

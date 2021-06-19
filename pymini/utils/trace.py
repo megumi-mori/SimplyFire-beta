@@ -27,7 +27,7 @@ class Trace():
 
             self.sweep_count = data.sweepCount
             self.x_data = [0]*self.sweep_count
-            self.y_data = [[0] * self.sweep_count] * self.channel_count
+            self.y_data = [[[] for _ in range(self.sweep_count)] for _ in range(self.channel_count)]
 
             total = self.sweep_count * (self.channel_count + 1)
             progress = 0
@@ -36,7 +36,7 @@ class Trace():
                 data.setSweep(channel=i, sweepNumber=0)
                 self.channel_label[i] = data.sweepLabelY
                 for j in range(self.sweep_count):
-                    data.setSweep(sweepNumber=j)
+                    data.setSweep(channel=i, sweepNumber=j)
                     if i == 0:
                         self.x_data[j] = np.array(data.sweepX, 'f8')
                         progress += 1
@@ -74,6 +74,7 @@ class Trace():
     def get_ys(self, mode='continuous', sweep=0):
         """
         """
+
         if mode == 'continuous':
             ys = np.array([])
             for i in range(self.sweep_count):

@@ -324,18 +324,26 @@ class LabeledOptionMenu(LabeledWidget):
             *options,
             command=command
         )
+        self.command=command
         # self.widget.bind('<FocusOut>', self.test, add='+')
         self.widget.grid(column=1, row=0, sticky='ews')
+        self.widget.replace_options = self.replace_options
+        self.widget.clear_options = self.clear_options
+        self.widget.add_option = self.add_option
 
-    def replace_options(self, options=None):
+    def clear_options(self):
         self.widget['menu'].delete(0, 'end')
-        if options is None:
-            return
-        for i in options:
-            self.widget['menu'].add_command(
-                label=i,
-                command=self.command
-            )
+    def add_option(self, *args, **kwargs):
+        self.widget['menu'].add_command(*args, **kwargs)
+    def replace_options(self, options):
+        print('replace option')
+        self.widget['menu'].delete(0, 'end')
+        try:
+            for i in options:
+                self.widget['menu'].add_command(i)
+            self.set(options[0])
+        except:
+            pass
 
     def test(self, event=None):
         print('testing')

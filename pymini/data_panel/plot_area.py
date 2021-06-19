@@ -121,10 +121,34 @@ class InteractivePlot():
 
                 }
             )
-
+        pymini.get_widget('channel_option').clear_options()
+        for i in range(self.trace.channel_count):
+            pymini.get_widget('channel_option').add_option(
+                label = "{}: {}".format(i+1, self.trace.channel_label[i]),
+                command=lambda c=i:self._choose_channel(c)
+            )
+        pymini.set_value('channel_option', "{}: {}".format(1, self.trace.channel_label[0]))
         self.draw()
 
+    def _choose_channel(self, num):
+        pymini.set_value('channel_option', "{}: {}".format(num+1, self.trace.channel_label[num]))
+
+        xlim = self.ax.get_xlim()
+        self._clear()
+        self.trace.set_channel(num)
+
+        self.ax.autoscale(enable=True, axis='x', tight=True)
+        self.ax.autoscale(enable=True, axis='y', tight=True)
+
+        self.plot(self.trace, xlim)
+
+        self.default_xlim = self.ax.get_xlim()
+        self.default_ylim = self.ax.get_ylim()
+
+        pass
+
     def plot(self, trace, xlim=None, ylim=None):
+        # print('trace channel = {}'.format(trace.channel))
         xs = trace.get_xs()
         ys = trace.get_ys()
         self.ax.set_xlabel(
@@ -142,6 +166,9 @@ class InteractivePlot():
         )
         try:
             self.ax.set_xlim(xlim)
+        except:
+            pass
+        try:
             self.ax.set_ylim(ylim)
         except:
             pass
