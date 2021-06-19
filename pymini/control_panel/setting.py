@@ -59,14 +59,14 @@ def load(parent):
     ttk.Label(master=dir_frame,
              text='Configuration file path:').grid(column=0, row=0, sticky='news')
 
-    dir_entry = widget.LinkedText(
+    dir_entry = widget.VarText(
         parent=dir_frame,
         name='config_path',
         value=config.convert_to_path(config.config_path),
         default=config.convert_to_path(config.system_default_config_path)
     )
-    dir_entry.widget.configure(state='disabled', height=2)
-    dir_entry.widget.grid(column=0,row=1,sticky='news')
+    dir_entry.configure(state='disabled', height=2)
+    dir_entry.grid(column=0,row=1,sticky='news')
     frame.widgets['config_path'] = dir_entry
 
     Tk.Button(

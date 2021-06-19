@@ -106,14 +106,14 @@ def load(parent):
     pan_down.bind('<ButtonPress-1>', lambda e, c='y', d=-1: scroll_plot(c, d))
     pan_down.bind('<ButtonRelease-1>', stop)
 
-    frame.widgets['y_scrollbar'] = widget.LinkedScale(parent=yscrollbar_frame,
+    frame.widgets['y_scrollbar'] = widget.VarScale(parent=yscrollbar_frame,
                                                       name='y_scrollbar',
                                                       from_=0,
                                                       to=100,
                                                       orient=Tk.VERTICAL,
                                                       command=None)
-    frame.widgets['y_scrollbar'].widget.grid(column=0, row=1, sticky='news')
-    frame.widgets['y_scrollbar'].widget.config(state='disabled')  # disabled until a trace is loaded
+    frame.widgets['y_scrollbar'].grid(column=0, row=1, sticky='news')
+    frame.widgets['y_scrollbar'].config(state='disabled')  # disabled until a trace is loaded
     frame.widgets['y_scrollbar'].set(50)
 
     graph_frame = Tk.Frame(big_frame)
@@ -201,14 +201,14 @@ def load(parent):
     pan_right.bind('<ButtonPress-1>', lambda e, c='x', d=1: scroll_plot(c, d))
     pan_right.bind('<ButtonRelease-1>', stop)
 
-    frame.widgets['x_scrollbar'] = widget.LinkedScale(parent=x_zoom_frame,
+    frame.widgets['x_scrollbar'] = widget.VarScale(parent=x_zoom_frame,
                                                       name='y_scrollbar',
                                                       from_=0,
                                                       to=100,
                                                       orient=Tk.HORIZONTAL,
                                                       command=None)
-    frame.widgets['x_scrollbar'].widget.grid(column=3, row=0, sticky='news')
-    frame.widgets['x_scrollbar'].widget.config(state='disabled')  # disabled until a trace is loaded
+    frame.widgets['x_scrollbar'].grid(column=3, row=0, sticky='news')
+    frame.widgets['x_scrollbar'].config(state='disabled')  # disabled until a trace is loaded
     frame.widgets['x_scrollbar'].set(50)
 
     return frame
