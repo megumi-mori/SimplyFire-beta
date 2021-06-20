@@ -220,6 +220,29 @@ class VarScale(VarWidget, ttk.Scale):
             **kwargs
         )
 
+class VarLabel(VarWidget, ttk.Label):
+    def __init__(
+            self,
+            parent,
+            value="",
+            default="",
+            **kwargs
+    ):
+        VarWidget.__init__(
+            self,
+            parent=parent,
+            value=value,
+            default=default
+        )
+        ttk.Label.__init__(
+            self,
+            master=parent,
+            text=value
+        )
+
+    def set(self, value):
+        self.config(text = value)
+
 class NavigationToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas, parent):
         self.toolitems = [t for t in self.toolitems if t[0] in ('Pan', 'Zoom', 'Save')]
