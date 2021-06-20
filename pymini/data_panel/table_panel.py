@@ -22,14 +22,10 @@ class InteractiveTable(Tk.Frame):
         hsb.grid(column=0, row=2, sticky='ew')
         self.table.configure(xscrollcommand=hsb.set)
 
-        # need to bind
-
-    def fill_data_table(self):
-        self.cols = pymini.tabs['detector'].get_value_dict(filter='data_display_')
-
-        data_tag = {
+        self.header = {
             'data_display_time': 't',
-            'data_display_amplitude': 'Amp ({})'.format(pymini.plot_area.get_unit('y')),
+            'data_display_amplitude': 'Amp',
+            'data_display_amp_unit': 'unit',
             'data_display_decay' : 'Decay (ms)',
             'data_display_decay_time': 't (decay)',
             'data_display_rise': 'Rise (ms)',
@@ -37,16 +33,50 @@ class InteractiveTable(Tk.Frame):
             'data_display_channel': 'Ch'
         }
 
-        self.table.config(columns=[data_tag[key] for key in self.cols if self.cols[key]], show='headings')
-        pymini.root.update()
+        self.table.config(columns=[k for k in self.header.keys()], show='headings')
 
-        for i, col in enumerate(self.cols):
-            if self.cols[col]:
-                self.table.heading(i, text=data_tag[col])
-                self.table.column(i, width=80, stretch=Tk.NO)
+        # first show all data
+        for i, col in enumerate(self.header):
+            self.table.heading(i, text=self.header[col], command=lambda _col=col: self._sort(_col, False))
+            self.table.column(i, width=80, stretch=Tk.NO)
 
-    # sort based on tutorial from Tek Recipes
-    # https://tekrecipes.com/2019/04/20/tkinter-treeview-enable-sorting-upon-clicking-column-headings/
+        # need to bind
+
+    def show_columns(self):
+        cols = pymini.tabs['detector'].get_value_dict(filter='data_display_')
+        self.table.config(displaycolumns=tuple([i for i, e in enumerate(cols) if cols[e]]))
+
+    def fit_columns(self):
+        cols = pymini.tabs['detector'].get_value_dict(filter='data_display_')
+        indices = [i for i, e in enumerate(cols) if cols[e]]
+        w = int(self.table.winfo_width() / len(indices))
+        for i in indices:
+            self.table.column(i, width=w)
+
+
+    def _sort(self, col, reverse):
+        # sort based on tutorial from Tek Recipes
+        # https://tekrecipes.com/2019/04/20/tkinter-treeview-enable-sorting-upon-clicking-column-headings/
+        try:
+            selected_iids = self.table.selection() #may need to debug this later - keeping a finger on all selected values
+        except:
+            pass
+        try:
+            l = [(float(self.table.set(k, col)), k) for k in self.table.get_children('')]
+        except:
+            l = [(self.table.set(k, col), k) for k in self.table.get_children('')]
+        l.sort(reverse=reverse)
+        for index, (val, k) in enumerate(l):
+            self.table.move(k, '', index)
+        self.table.heading(col, command=lambda _col=col:self._sort(_col, not reverse))
+
+
+
+
+
+    def display_column(self):
+        pass
+
 
 
 

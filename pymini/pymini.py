@@ -13,6 +13,7 @@ from data_panel import graph_panel, table_panel
 from utils import widget
 
 
+
 ##################################################
 #                    Methods                     #
 ##################################################
@@ -197,7 +198,7 @@ pw.paneconfig(left, width=int(config.cp_width))
 # focus on plot
 plot_area.focus()
 
-table_panel.fill_data_table()
+table_panel.show_columns()
 
 
 

@@ -50,6 +50,7 @@ default_min_auc : 0
 default_data_export_all : 1
 default_data_display_time : 1
 default_data_display_amplitude : 1
+default_data_display_amp_unit : 1
 default_data_display_decay : 1
 default_data_display_decay_time : 1
 default_data_display_rise : 1

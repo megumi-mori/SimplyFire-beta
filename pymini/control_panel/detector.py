@@ -1,8 +1,31 @@
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
+import pymini
 
 
 def load(parent):
+    ##################################################
+    #                    Methods                     #
+    ##################################################
+    def _apply_column():
+        pymini.table_panel.show_columns()
+
+    def _adjust_data_col_width():
+        pymini.table_panel.fit_columns()
+
+    def _show_all():
+        for key in frame.get_keys(filter='data_display_'):
+            frame.widgets[key].set(1)
+        pymini.table_panel.show_columns()
+
+    def _hide_all():
+        for key in frame.get_keys(filter='data_display_'):
+            frame.widgets[key].set('')
+        pymini.table_panel.show_columns()
+
+
+
+
     # frame = ScrollableOptionFrame(parent)
 
     ##################################################
@@ -131,7 +154,7 @@ def load(parent):
         label='Event peak time',
         value=config.data_display_time,
         default=config.default_data_display_time,
-        command=None, #connect this to data frame after
+        command=_apply_column,
         onvalue="1",
         offvalue=""
     )
@@ -140,8 +163,16 @@ def load(parent):
         label='Event amplitude',
         value=config.data_display_amplitude,
         default=config.default_data_display_amplitude,
-        command=None,  # connect this to data frame after
+        command=_apply_column,
         onvalue="1",
+        offvalue=""
+    )
+    frame.insert_label_checkbox(
+        name='data_display_amp_unit',
+        label='Event amplitude unit',
+        value=config.data_display_amp_unit,
+        command=_apply_column,
+        onvalue='1',
         offvalue=""
     )
     frame.insert_label_checkbox(
@@ -149,7 +180,7 @@ def load(parent):
         label='Event decay constant',
         value=config.data_display_decay,
         default=config.default_data_display_decay,
-        command=None,  # connect this to data frame after
+        command=_apply_column,
         onvalue="1",
         offvalue=""
     )
@@ -158,7 +189,7 @@ def load(parent):
         label='Event decay time point',
         value=config.data_display_decay_time,
         default=config.default_data_display_decay_time,
-        command=None,  # connect this to data frame after
+        command=_apply_column,
         onvalue="1",
         offvalue=""
     )
@@ -167,7 +198,7 @@ def load(parent):
         label='Event rise duration',
         value=config.data_display_rise,
         default=config.default_data_display_rise,
-        command=None,  # connect this to data frame after
+        command=_apply_column,
         onvalue="1",
         offvalue=""
     )
@@ -176,7 +207,7 @@ def load(parent):
         label='Event start time',
         value=config.data_display_baseline,
         default=config.default_data_display_baseline,
-        command=None,  # connect this to data frame after
+        command=_apply_column,
         onvalue="1",
         offvalue=""
     )
@@ -185,9 +216,21 @@ def load(parent):
         label='Event data channel',
         value=config.data_display_channel,
         default=config.default_data_display_channel,
-        command=None,  # connect this to data frame after
+        command=_apply_column,
         onvalue="1",
         offvalue=""
+    )
+    frame.insert_button(
+        text='Show All',
+        command=_show_all
+    )
+    frame.insert_button(
+        text='Hide All',
+        command=_hide_all
+    )
+    frame.insert_button(
+        text='Fit columns',
+        command=_adjust_data_col_width
     )
 
     return frame

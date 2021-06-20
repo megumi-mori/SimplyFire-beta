@@ -296,3 +296,8 @@ class ScrollableOptionFrame(Tk.Frame):
                 d[key] = self.widgets[key].get()
         return d
 
+    def get_keys(self, filter=None):
+        if filter:
+            return [key for key in self.widgets if filter in key]
+        return self.widgets.keys()
+
