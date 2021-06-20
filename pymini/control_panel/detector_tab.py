@@ -142,6 +142,7 @@ def load(parent):
     ##################################################
     #                  Data Display                  #
     ##################################################
+    # all column display options for the data table must start with "data_display_"
 
     frame.insert_title(
         name='dataframe',
