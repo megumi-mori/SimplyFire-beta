@@ -37,7 +37,55 @@ def open_trace():
     if f:
         plot_area.open_trace(f)
 
+def get_value(key, tab=None):
+    try:
+        return tabs[tab].get_value(key)
+    except:
+        for t in tabs:
+            try:
+                return tabs[t].get_value(key)
+            except:
+                pass
+    return None
 
+def get_widget(key, tab=None):
+    try:
+        return tabs[tab].get_widget(key)
+    except:
+        for t in tabs:
+            try:
+                return tabs[t].get_widget(key)
+            except:
+                pass
+    return None
+
+def set_value(key, value, tab=None):
+    try:
+        tabs[tab].set_value(key, value)
+        print(tabs[tab].get_value(key))
+        return True
+    except:
+        for t in tabs:
+            try:
+                tabs[t].set_value(key, value)
+                return True
+            except Exception as e:
+                print(e)
+                pass
+    return False
+
+def change_label(key, value, tab=None):
+    try:
+        tabs[tab].change_label(key, value)
+        return True
+    except:
+        for t in tabs:
+            try:
+                tabs[t].change_label(key, value)
+                return True
+            except:
+                pass
+    return False
 
 root = Tk.Tk()
 root.title('PyMini v{}'.format(config.version))
@@ -172,40 +220,5 @@ root.protocol('WM_DELETE_WINDOW', _on_close)
 def load():
     return root
 
-def get_value(key, tab=None):
-    try:
-        return tabs[tab].get_value(key)
-    except:
-        for t in tabs:
-            try:
-                return tabs[t].get_value(key)
-            except:
-                pass
-    return None
 
-def get_widget(key, tab=None):
-    try:
-        return tabs[tab].get_widget(key)
-    except:
-        for t in tabs:
-            try:
-                return tabs[t].get_widget(key)
-            except:
-                pass
-    return None
-
-def set_value(key, value, tab=None):
-    try:
-        tabs[tab].set_value(key)
-        print(tabs[tab].get_value(key))
-        return True
-    except:
-        for t in tabs:
-            try:
-                tabs[t].set_value(key, value)
-                return True
-            except Exception as e:
-                print(e)
-                pass
-    return False
 
