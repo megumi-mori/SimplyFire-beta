@@ -20,8 +20,12 @@ def load(parent):
             'event_color',
             'highlight_color',
             'baseline_color',
-            'decay_color'
+            'decay_color',
+            'trace_highlight_color'
         ])
+    def _change_display_mode(e):
+        print(e)
+
 
     optionframe = ScrollableOptionFrame(parent)
     ##################################################
@@ -32,7 +36,10 @@ def load(parent):
     #               Parameter options                #
     ##################################################
 
-
+    optionframe.insert_title(
+        name='plot_style',
+        text='Graph Style'
+    )
     optionframe.insert_label_entry(
         name='line_width',
         label='Trace line width:',
@@ -99,6 +106,17 @@ def load(parent):
         '<Return>',
         lambda e, k='highlight_color': apply_style
     )
+    optionframe.insert_label_entry(
+        name='trace_highlight_color',
+        label='Trace highlight color:',
+        value=config.trace_highlight_color,
+        default=config.default_highlight_color,
+        validate_type='color'
+    )
+    optionframe.get_widget('highlight_color').bind(
+        '<Return>',
+        lambda e, k='highlight_color': apply_style
+    )
     optionframe.insert_button(
         text='Apply',
         command=apply_all_style
@@ -107,6 +125,24 @@ def load(parent):
         text='Default parameters',
         command=default_style_parameters
     )
+
+    # ##################################################
+    # #                  Display Mode                  #
+    # ##################################################
+    # optionframe.insert_title(
+    #     name='plot_mode',
+    #     text="Display Mode"
+    # )
+    # optionframe.insert_label_optionmenu(
+    #     name='plot_mode',
+    #     label='Select display mode',
+    #     value=config.plot_mode,
+    #     default=config.default_plot_mode,
+    #     options=['Continuous', 'Overlay'],
+    #     command=_change_display_mode
+    # )
+
+
 
 
     return optionframe
