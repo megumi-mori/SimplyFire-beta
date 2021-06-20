@@ -62,7 +62,7 @@ class ScrollableOptionFrame(Tk.Frame):
             self.frame.grid_columnconfigure(0, weight=1)
             # self.frame.grid_rowconfigure(0,weight=1)
         else:
-            self.frame = Tk.Frame(self)
+            self.frame = Tk.Frame(self, bg='yellow')
             self.frame.grid(column=0, row=0, sticky='news')
             self.frame.grid_columnconfigure(0, weight=1)
 
@@ -180,26 +180,6 @@ class ScrollableOptionFrame(Tk.Frame):
         w.grid(column=1, row=0, sticky='news')
         return w
 
-    def insert_checkbox(
-            self,
-            name,
-            label="Label",
-            default=None,
-            value=None,
-            command=None
-    ):
-        panel = self.make_panel(separator=config.default_separator)
-        w = widget.LabeledCheckbox(
-            parent=panel,
-            name=name,
-            label=label,
-            value=value,
-            default=default,
-            command=command
-        )
-        w.grid(column=0, row=0, stick='news')
-        self.widgets[name] = w
-        return w
 
     def insert_title(
             self,
@@ -294,6 +274,9 @@ class ScrollableOptionFrame(Tk.Frame):
 
     def set_value(self, key, value):
         self.widgets[key].set(value)
+
+    def change_label(self, key, value):
+        self.labels[key].set(value)
 
     def safe_dump_vars(self):
         vars = [(key, self.widgets[key].get()) for key in self.widgets]
