@@ -13,7 +13,6 @@ class InteractiveTable(Tk.Frame):
         self.table = ttk.Treeview(self, selectmode='extended')
         self.table.grid(column=0, row=1, sticky='news')
 
-
         vsb = ttk.Scrollbar(self, orient=Tk.VERTICAL, command=self.table.yview)
         vsb.grid(column=1, row=1, sticky='ns')
         self.table.configure(yscrollcommand=vsb.set)
@@ -30,7 +29,8 @@ class InteractiveTable(Tk.Frame):
             'data_display_decay' : 'Decay (ms)',
             'data_display_decay_time': 't (decay)',
             'data_display_rise': 'Rise (ms)',
-            'data_display_baseline': 't (baseline)',
+            'data_display_start': 't (start)',
+            'data_display_end': 't (end)',
             'data_display_channel': 'Ch'
         }
 
@@ -40,6 +40,7 @@ class InteractiveTable(Tk.Frame):
         for i, col in enumerate(self.header):
             self.table.heading(i, text=self.header[col], command=lambda _col=col: self._sort(_col, False))
             self.table.column(i, width=80, stretch=Tk.NO)
+        # self.fit_columns()
 
         # need to bind
 

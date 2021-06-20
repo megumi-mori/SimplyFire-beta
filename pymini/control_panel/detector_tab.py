@@ -166,13 +166,13 @@ def load(parent):
 
     frame.insert_title(
         name='dataframe',
-        text='Data Display'
+        text='Data Table Display'
     )
 
 
     frame.insert_label_checkbox(
         name='data_display_time',
-        label='Event peak time',
+        label='Peak time',
         value=config.data_display_time,
         default=config.default_data_display_time,
         command=_apply_column,
@@ -181,7 +181,7 @@ def load(parent):
     )
     frame.insert_label_checkbox(
         name='data_display_amplitude',
-        label='Event amplitude',
+        label='Amplitude',
         value=config.data_display_amplitude,
         default=config.default_data_display_amplitude,
         command=_apply_column,
@@ -190,7 +190,7 @@ def load(parent):
     )
     frame.insert_label_checkbox(
         name='data_display_amp_unit',
-        label='Event amplitude unit',
+        label='Amplitude unit',
         value=config.data_display_amp_unit,
         command=_apply_column,
         onvalue='1',
@@ -198,7 +198,7 @@ def load(parent):
     )
     frame.insert_label_checkbox(
         name='data_display_decay',
-        label='Event decay constant',
+        label='Decay constant',
         value=config.data_display_decay,
         default=config.default_data_display_decay,
         command=_apply_column,
@@ -207,7 +207,7 @@ def load(parent):
     )
     frame.insert_label_checkbox(
         name='data_display_decay_time',
-        label='Event decay time point',
+        label='Decay time point',
         value=config.data_display_decay_time,
         default=config.default_data_display_decay_time,
         command=_apply_column,
@@ -216,7 +216,7 @@ def load(parent):
     )
     frame.insert_label_checkbox(
         name='data_display_rise',
-        label='Event rise duration',
+        label='Rise duration',
         value=config.data_display_rise,
         default=config.default_data_display_rise,
         command=_apply_column,
@@ -224,17 +224,27 @@ def load(parent):
         offvalue=""
     )
     frame.insert_label_checkbox(
-        name='data_display_baseline',
-        label='Event start time',
-        value=config.data_display_baseline,
-        default=config.default_data_display_baseline,
+        name='data_display_start',
+        label='End time',
+        value=config.data_display_start,
+        default=config.default_data_display_start,
         command=_apply_column,
         onvalue="1",
         offvalue=""
     )
     frame.insert_label_checkbox(
+        name='data_display_end',
+        label='Start time',
+        value=config.data_display_end,
+        default=config.default_data_display_end,
+        command=_apply_column,
+        onvalue="1",
+        offvalue=""
+    )
+
+    frame.insert_label_checkbox(
         name='data_display_channel',
-        label='Event data channel',
+        label='Channel',
         value=config.data_display_channel,
         default=config.default_data_display_channel,
         command=_apply_column,
