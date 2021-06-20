@@ -125,15 +125,23 @@ def load(parent):
     frame.plot = plot
     plot.frame.grid(column=0, row=0, sticky='news')
 
-    toolbar_frame = Tk.Frame(big_frame)
+    upper_frame = Tk.Frame(big_frame)
+    upper_frame.grid_columnconfigure(0, weight=1)
+    upper_frame.grid_rowconfigure(0, weight=1)
+    upper_frame.grid(column=1,row=0, sticky='news')
+
+
+    toolbar_frame = Tk.Frame(upper_frame)
     toolbar_frame.grid_columnconfigure(0, weight=1)
-    # toolbar_frame.grid_rowconfigure(0, weight=1)
-    toolbar_frame.grid(column=1, row=0, sticky='new')
+    toolbar_frame.grid(column=0, row=0, sticky='news')
     navigation_toolbar = widget.NavigationToolbar(plot.canvas, toolbar_frame)
     navigation_toolbar.grid(column=0, row=0, sticky='news')
-    navigation_toolbar.update()
 
-    channel_frame = ScrollableOptionFrame(toolbar_frame, scrollbar = False)
+
+    frame.labels['trace_info'] = widget.VarLabel(toolbar_frame, text='no file open')
+    frame.labels['trace_info'].grid(column=0, row=1, sticky='news')
+
+    channel_frame = ScrollableOptionFrame(upper_frame, scrollbar = False)
     channel_frame.grid(column=1, row=0, sticky='ews')
     channel_frame.grid_rowconfigure(0, weight=1)
     channel_frame.grid_rowconfigure(1, weight=1)
@@ -146,6 +154,7 @@ def load(parent):
         default='',
         options=['']
     )
+
     channel_frame.insert_label_checkbox(
         name='force_channel',
         label='Always open the same channel:',

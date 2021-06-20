@@ -8,10 +8,11 @@ class Trace():
     def __init__(self, filename):
         self.filename = filename
         self._open_file(filename)
-        self.channel = 0
+        self.set_channel(0)
 
     def _open_file(self, filename):
         self.filetype = os.path.splitext(self.filename)[1]
+        _, self.fname = os.path.split(self.filename)
         if self.filetype == ".abf":
             data = abf.ABF(filename)
             self.sampling_rate = data.dataRate
@@ -21,7 +22,7 @@ class Trace():
             self.channel_count = data.channelCount
             self.channel_names = data.adcNames
             self.channel_units = data.adcUnits
-            self.channel_label = [""] * self.channel_count
+            self.channel_labels = [""] * self.channel_count
             self.x_unit = data.sweepUnitsX
             self.x_label = data.sweepLabelX # in the form of Label (Units)
 
@@ -34,7 +35,7 @@ class Trace():
             pymini.pb.initiate()
             for i in range(self.channel_count):
                 data.setSweep(channel=i, sweepNumber=0)
-                self.channel_label[i] = data.sweepLabelY
+                self.channel_labels[i] = data.sweepLabelY
                 for j in range(self.sweep_count):
                     data.setSweep(channel=i, sweepNumber=j)
                     if i == 0:
@@ -45,6 +46,7 @@ class Trace():
                     progress += 1
                     pymini.pb.progress((progress/total * 100))
             pymini.pb.clear()
+
 
             # implemenation to store sweep data as vstacks in np.array:
             # start = time.perf_counter()
@@ -69,7 +71,11 @@ class Trace():
 
 
     def set_channel(self, num):
-        self.channel = num
+        if num > self.channel_count:
+            raise Exception('specified channel does not exist')
+        else:
+            self.channel = num
+            self.y_label = self.channel_labels[num]
 
     def get_ys(self, mode='continuous', sweep=0):
         """
@@ -101,6 +107,10 @@ class Trace():
             return xs
         else:
             return self.x_data[sweep]
+
+    def forget(self):
+        self.y_data = None
+        self.x_data = None
 
 
 

@@ -21,6 +21,7 @@ class InteractivePlot():
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
         self.ax.plot()
+
         self.labels = {'x': 'Time (n/a)',
                       'y': 'y (n/a)'}
         self.ax.set_xlabel(self.labels['x'])
@@ -94,7 +95,25 @@ class InteractivePlot():
 
     def open_trace(self, filename):
         self.trace = trace.Trace(filename)
+        if pymini.get_value('force_channel') == '1':
+            try:
+                self.trace.set_channel(
+                    int(pymini.get_value('force_channel_id')) - 1 #1indexing
+                )
+            except:
+                pass
         self._clear()
+
+        pymini.change_label(
+            'trace_info',
+            '{} : {}Hz : {} channel{}'.format(
+                self.trace.fname,
+                self.trace.sampling_rate,
+                self.trace.channel_count,
+                's' if self.trace.channel_count > 1 else ""
+            ),
+            tab='graph_panel'
+        )
 
         xlim = None
         ylim = None
@@ -118,18 +137,32 @@ class InteractivePlot():
         pymini.get_widget('channel_option').clear_options()
         for i in range(self.trace.channel_count):
             pymini.get_widget('channel_option').add_option(
-                label = "{}: {}".format(i+1, self.trace.channel_label[i]),
+                label = "{}: {}".format(i+1, self.trace.channel_labels[i]),
                 command=lambda c=i:self._choose_channel(c)
             )
-        pymini.set_value('channel_option', "{}: {}".format(1, self.trace.channel_label[0]))
+        pymini.set_value('channel_option', "{}: {}".format(self.trace.channel + 1, self.trace.y_label))
+        self.draw()
+
+    def close(self):
+        self._clear()
+        pymini.get_widget('channel_option').clear_options()
+        pymini.set_value('channel_option', '', 'graph_panel')
+        pymini.change_label('trace_info', "", 'graph_panel')
+        try:
+            self.trace.forget()
+            self.trace = None
+        except:
+            pass
+
         self.draw()
 
     def _choose_channel(self, num):
-        pymini.set_value('channel_option', "{}: {}".format(num+1, self.trace.channel_label[num]))
+        self.trace.set_channel(num)
+        pymini.set_value('channel_option', "{}: {}".format(self.trace.channel, self.trace.y_label))
 
         xlim = self.ax.get_xlim()
         self._clear()
-        self.trace.set_channel(num)
+
 
         self.plot(self.trace, xlim)
 
@@ -152,7 +185,7 @@ class InteractivePlot():
             trace.x_label
         )
         self.ax.set_ylabel(
-            trace.channel_label[trace.channel]
+            trace.y_label
         )
         self.ax.autoscale(enable=True, axis='x', tight=True)
         self.ax.autoscale(enable=True, axis='y', tight=True)
