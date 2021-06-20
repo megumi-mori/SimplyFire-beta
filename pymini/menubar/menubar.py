@@ -18,6 +18,7 @@ def load_menubar(parent):
     # FILE
     file_menu = Tk.Menu(menubar, tearoff=0)
     file_menu.add_command(label="Open", command=pymini.open_trace)
+    # file_menu.add_command(label='Close', command=pymini.plot_area.close)
 
     menubar.add_cascade(label='File', menu=file_menu)
 
@@ -25,6 +26,8 @@ def load_menubar(parent):
     options_menu.add_command(label="Setting", command=_setting_window)
 
     menubar.add_cascade(label="Options", menu=options_menu)
+
+
 
     return menubar
 
