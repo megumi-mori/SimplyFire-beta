@@ -286,6 +286,12 @@ class InteractivePlot():
 
         self.draw()
 
+    def get_unit(self, axis):
+        try:
+            return getattr(self.trace, '{}_unit'.format(axis), 'n/a')
+        except:
+            return 'n/a'
+
     def show_all_plot(self):
         self.ax.set_xlim(self.default_xlim)
         self.ax.set_ylim(self.default_ylim)
