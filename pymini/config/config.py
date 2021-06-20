@@ -96,7 +96,10 @@ def dump_user_config(path, tabs, ignore=None):
         pymini.pb.initiate()
         for i, t in enumerate(tabs):
             if t not in ignore:
-                f.write(tabs[t].safe_dump_vars())
+                try:
+                    f.write(tabs[t].safe_dump_vars())
+                except:
+                    pass
                 pymini.pb.progress((i + 1) / (len(tabs.keys()) - len(ignore)))
         pymini.pb.clear()
 

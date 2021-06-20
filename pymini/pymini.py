@@ -17,7 +17,18 @@ from utils import widget
 ##################################################
 #                    Methods                     #
 ##################################################
+def test():
+    data_table.add_event({
+            't':0.001,
+    }, iid=0.001)
+    data_table.add_event({
+        't':0.25,
+    }, iid=0.25)
+    data_table.add_event({
+        't':0.02
+    }, iid=0.02)
 
+    print(data_table.data)
 def _on_close():
     """
     The function is called when the program is closing (pressing X)
@@ -132,8 +143,10 @@ pw_2.add(tabs['graph_panel'])
 
 plot_area = tabs['graph_panel'].plot
 
-table_panel = table_panel.load(pw_2)
-pw_2.add(table_panel)
+tabs['table_panel'] = table_panel.load(pw_2)
+pw_2.add(tabs['table_panel'])
+
+data_table = tabs['table_panel'].table
 
 pw_2.grid(column=0, row=0, sticky='news')
 pw_2.paneconfig(tabs['graph_panel'], height=config.gp_height)
@@ -199,7 +212,7 @@ pw.paneconfig(left, width=int(config.cp_width))
 # focus on plot
 plot_area.focus()
 
-table_panel.show_columns()
+data_table.show_columns()
 
 
 
@@ -216,6 +229,8 @@ root.config(menu=menubar)
 
 # set up closing sequence
 root.protocol('WM_DELETE_WINDOW', _on_close)
+
+test()
 
 def load():
     return root

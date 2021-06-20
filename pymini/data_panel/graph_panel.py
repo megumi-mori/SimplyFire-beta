@@ -74,8 +74,8 @@ def load(parent):
     big_frame.grid_rowconfigure(1, weight=1)
     big_frame.grid(column=0, row=0, sticky='news')
 
-    y_zoom_frame = Tk.Frame(big_frame, bg='')
-    y_zoom_frame.grid(column=0, row=0, sticky='news')
+    y_zoom_frame = Tk.Frame(big_frame)
+    y_zoom_frame.grid(column=0, row=0, sticky='ews')
     y_zoom_frame.grid_columnconfigure(0, weight=1)
     y_zoom_frame.grid_rowconfigure(0, weight=1)
     y_zoom_frame.grid_rowconfigure(1, weight=1)

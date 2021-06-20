@@ -12,20 +12,24 @@ def load(parent):
         pymini.plot_area.focus()
 
     def _apply_column():
-        pymini.table_panel.show_columns()
+        pymini.data_table.show_columns()
 
     def _adjust_data_col_width():
-        pymini.table_panel.fit_columns()
+        pymini.data_table.fit_columns()
 
     def _show_all():
         for key in frame.get_keys(filter='data_display_'):
             frame.widgets[key].set(1)
-        pymini.table_panel.show_columns()
+        pymini.data_table.show_columns()
 
     def _hide_all():
         for key in frame.get_keys(filter='data_display_'):
             frame.widgets[key].set('')
-        pymini.table_panel.show_columns()
+        pymini.data_table.show_columns()
+
+    def _hide_partner(partner):
+        frame.set_value(partner, '')
+        _apply_column()
 
 
 
@@ -184,7 +188,7 @@ def load(parent):
         label='Amplitude',
         value=config.data_display_amplitude,
         default=config.default_data_display_amplitude,
-        command=_apply_column,
+        command=lambda p='data_display_amp_unit':_hide_partner(p),
         onvalue="1",
         offvalue=""
     )
@@ -197,10 +201,18 @@ def load(parent):
         offvalue=""
     )
     frame.insert_label_checkbox(
-        name='data_display_decay',
+        name='data_display_decay_constant',
         label='Decay constant',
-        value=config.data_display_decay,
-        default=config.default_data_display_decay,
+        value=config.data_display_decay_constant,
+        command=lambda p='data_display_decay_unit': _hide_partner(p),
+        onvalue="1",
+        offvalue=""
+    )
+    frame.insert_label_checkbox(
+        name='data_display_decay_unit',
+        label='Decay unit',
+        value=config.data_display_decay_unit,
+        default=config.default_data_display_decay_unit,
         command=_apply_column,
         onvalue="1",
         offvalue=""
@@ -215,10 +227,36 @@ def load(parent):
         offvalue=""
     )
     frame.insert_label_checkbox(
-        name='data_display_rise',
+        name='data_display_rise_constant',
         label='Rise duration',
-        value=config.data_display_rise,
-        default=config.default_data_display_rise,
+        value=config.data_display_rise_constant,
+        command=lambda p='data_display_rise_unit': _hide_partner(p),
+        onvalue="1",
+        offvalue=""
+    )
+    frame.insert_label_checkbox(
+        name='data_display_rise_unit',
+        label='Rise unit',
+        value=config.data_display_rise_unit,
+        default=config.default_data_display_rise_unit,
+        command=_apply_column,
+        onvalue="1",
+        offvalue=""
+    )
+    frame.insert_label_checkbox(
+        name='data_display_baseline',
+        label='Baseline',
+        value=config.data_display_baseline,
+        default=config.default_data_display_baseline,
+        command=lambda p='data_display_baseline_unit': _hide_partner(p),
+        onvalue="1",
+        offvalue=""
+    )
+    frame.insert_label_checkbox(
+        name='data_display_baseline_unit',
+        label='Baseline unit',
+        value=config.data_display_baseline_unit,
+        default=config.default_data_display_baseline_unit,
         command=_apply_column,
         onvalue="1",
         offvalue=""
