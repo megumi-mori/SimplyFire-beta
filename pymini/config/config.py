@@ -78,7 +78,8 @@ def set_fontsize(fontsize):
     fonts = [
         "TkDefaultFont",
         "TkTextFont",
-        "TkMenuFont"
+        "TkMenuFont",
+        "TkHeadingFont"
     ]
     for f in fonts:
         def_font = font.nametofont(f)
