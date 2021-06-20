@@ -195,10 +195,12 @@ pw.add(right)
 # root.update()
 pw.paneconfig(left, width=int(config.cp_width))
 
+
 # focus on plot
 plot_area.focus()
 
 table_panel.show_columns()
+
 
 
 

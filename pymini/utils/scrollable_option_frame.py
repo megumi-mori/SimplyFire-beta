@@ -188,7 +188,7 @@ class ScrollableOptionFrame(Tk.Frame):
             text=""
     ):
         panel = self.make_panel(separator=config.default_separator)
-        label = Tk.Label(panel, text=text, justify=Tk.CENTER, font='bold')
+        label = Tk.Label(panel, text=text, justify=Tk.CENTER)
         self.titles[name] = label
         label.grid(column=0, row=0, sticky='news')
 
