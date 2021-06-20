@@ -8,8 +8,9 @@ from tkinter import ttk
 import os
 
 def load(parent):
-
-    # functions called by widgets:
+    ##################################################
+    #                    Methods                     #
+    ##################################################
     def _save_config():
         """
         Linked to the settings_tab "Save current config now" button
@@ -32,6 +33,10 @@ def load(parent):
         dir = filedialog.asksaveasfilename(filetypes=[('yaml file', '*yaml')], defaultextension='.yaml')
         if dir:
             config.dump_user_config(dir)
+
+    ##################################################
+    #                    Populate                    #
+    ##################################################
 
     frame = ScrollableOptionFrame(parent)
     ##################################################

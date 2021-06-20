@@ -4,6 +4,9 @@ import pymini
 
 
 def load(parent):
+    ##################################################
+    #                    Methods                     #
+    ##################################################
     def apply_axes_limits():
         pymini.plot_area.focus()
         pymini.plot_area.set_axis_limits(
@@ -47,6 +50,10 @@ def load(parent):
         ylim = pymini.plot_area.get_axis_limits('y')
         optionframe.set_value('min_y', ylim[0])
         optionframe.set_value('max_y', ylim[1])
+
+    ##################################################
+    #                    Populate                    #
+    ##################################################
 
     optionframe = ScrollableOptionFrame(parent)
 

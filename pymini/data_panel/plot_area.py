@@ -12,6 +12,8 @@ import time
 class InteractivePlot():
     def __init__(self, parent):
         self.frame = Tk.Frame(parent)
+        # self.frame.grid_columnconfigure(0, weight=1)
+        # self.frame.grid_rowconfigure(0 ,weight=1) #I guess this doesn't matter?
 
         self.fig = Figure()
         self.fig.set_tight_layout(True)

@@ -11,6 +11,9 @@ import os
 import time
 
 def load(parent):
+    ##################################################
+    #                    Methods                     #
+    ##################################################
 
     def scroll_plot(axis, dir):
         scroll_plot_repeat(
