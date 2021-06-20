@@ -6,15 +6,17 @@ from control_panel import font_bar
 
 from menubar import menubar
 
-from control_panel import detector, style, progress_bar, setting, navigation
+from control_panel import detector, style, progress_bar, setting, navigation, sweep
 
 from data_panel import graph_panel, table_panel
-from utils.scrollable_option_frame import ScrollableOptionFrame
+
+from utils import widget
 
 
 ##################################################
-#                Closing Sequence                #
+#                    Methods                     #
 ##################################################
+
 def _on_close():
     """
     The function is called when the program is closing (pressing X)
@@ -28,7 +30,7 @@ def _on_close():
     # if cp.style_tab.get_value('save_style_preferences') == '1':
     #     tabs.append(cp.style_tab)
     if cp.settings_tab.get_value('config_autosave') == '1':
-        config.dump_user_config(cp.settings_tab.get_value('config_path'))
+        config.dump_user_config(cp.settings_tab.get_value('config_path'), tabs)
     config.dump_system_config()
     root.destroy()
 
@@ -129,8 +131,8 @@ pw_2.add(tabs['graph_panel'])
 
 plot_area = tabs['graph_panel'].plot
 
-tp = table_panel.load(pw_2)
-pw_2.add(tp)
+table_panel = table_panel.load(pw_2)
+pw_2.add(table_panel)
 
 pw_2.grid(column=0, row=0, sticky='news')
 pw_2.paneconfig(tabs['graph_panel'], height=config.gp_height)
@@ -154,12 +156,13 @@ cp.grid(column=0 ,row=0, sticky='news')
 cp_notebook = ttk.Notebook(cp)
 cp_notebook.grid(column=0, row=0, sticky='news')
 
-
-
 # insert detector options tab into control panel
+#need to check user defined mode
 tabs['detector'] = detector.load(cp)
 cp_notebook.add(tabs['detector'], text='Detector')
 
+#insert sweep tab
+tabs['sweep'] = sweep.load(cp)
 
 # insert navigation tab into control panel
 tabs['navigation'] = navigation.load(cp)
@@ -168,8 +171,6 @@ cp_notebook.add(tabs['navigation'], text='Navigation')
 # insert style options tab into control panel
 tabs['style'] = style.load(cp)
 cp_notebook.add(tabs['style'], text='Style')
-
-
 
 # insert settings option tab into control panel
 cp.settings_tab = setting.load(cp)
@@ -183,11 +184,6 @@ fb.grid(column=0, row=1, sticky='news')
 pb = progress_bar.ProgressBar(left)
 pb.grid(column=0, row=2, stick='news')
 
-
-
-
-
-
 # finis up the pw setting:
 
 pw.grid(column=0, row=0, sticky='news')
@@ -195,13 +191,13 @@ pw.add(left)
 pw.add(right)
 
 # adjust frame width
-root.update()
+# root.update()
 pw.paneconfig(left, width=int(config.cp_width))
 
 # focus on plot
 plot_area.focus()
 
-
+table_panel.fill_data_table()
 
 
 
@@ -211,6 +207,7 @@ plot_area.focus()
 ##################################################
 
 # set up menubar
+tabs['menu'] = widget.PseudoFrame()
 menubar = menubar.load_menubar(root)
 root.config(menu=menubar)
 

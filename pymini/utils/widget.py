@@ -3,6 +3,7 @@ from tkinter import ttk, font
 from config import config
 from utils import validation
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+import yaml
 
 class VarWidget():
     def __init__(
@@ -247,6 +248,23 @@ class NavigationToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas, parent):
         self.toolitems = [t for t in self.toolitems if t[0] in ('Pan', 'Zoom', 'Save')]
         NavigationToolbar2Tk.__init__(self, canvas, parent)
+
+class PseudoFrame():
+    """
+    this class is used to store information similarly to ScrollableOptionFrame
+    """
+    def __init__(self):
+        self.data = {}
+
+    def get_value(self, key):
+        return self.data[key]
+
+    def set_value(self, key, value):
+        self.data[key] = value
+
+    def safe_dump_vars(self):
+        return yaml.safe_dump(self.data)
+
 
 
 

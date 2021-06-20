@@ -87,7 +87,7 @@ def set_fontsize(fontsize):
         def_font.configure(size=fontsize)
 
 
-def dump_user_config(path):
+def dump_user_config(path, tabs):
     print('Writing out configuration variables....')
     with open(path, 'w') as f:
         f.write("#################################################################\n")
@@ -95,9 +95,9 @@ def dump_user_config(path):
         f.write("#################################################################\n")
         f.write("\n")
         pymini.pb.initiate()
-        for i, t in enumerate(pymini.tabs.keys()):
-            f.write(pymini.tabs[t].safe_dump_vars())
-            pymini.pb.progress((i + 1) / len(pymini.tabs.keys()))
+        for i, t in enumerate(tabs):
+            f.write(tabs[t].safe_dump_vars())
+            pymini.pb.progress((i + 1) / len(tabs.keys()))
         pymini.pb.clear()
 
         # f.write(yaml.safe_dump(user_vars))

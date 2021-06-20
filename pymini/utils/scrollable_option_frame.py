@@ -6,6 +6,7 @@ from config import config
 import yaml
 import textwrap
 
+
 from functools import wraps
 
 
@@ -230,7 +231,7 @@ class ScrollableOptionFrame(Tk.Frame):
 
     ):
         if self.col_button > 0:
-            panel = self.frame.children['!frame{}'.format(self.num_row)]
+            panel = self.frame.children['!frame{}'.format(self.num_row if self.num_row>1 else "")]
             panel.grid_columnconfigure(1, weight=1)
             row = self.num_row - 1
         else:
@@ -282,3 +283,16 @@ class ScrollableOptionFrame(Tk.Frame):
         vars = [(key, self.widgets[key].get()) for key in self.widgets]
         d = dict(vars)
         return yaml.safe_dump(d)
+
+    def get_value_dict(self, filter=None):
+        d = {}
+        for key in self.widgets:
+            if filter:
+                if filter in key:
+                    d[key] = self.widgets[key].get()
+                else:
+                    continue
+            else:
+                d[key] = self.widgets[key].get()
+        return d
+

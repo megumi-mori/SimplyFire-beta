@@ -70,7 +70,7 @@ default_event_color : 'yellow'
 default_baseline_color : 'red'
 default_decay_color : 'blue'
 default_highlight_color: 'red'
-default_save_style_preferences : 0
+default_trace_highlight_color : 'red'
 
 #system
 system_default_config_path :
@@ -88,3 +88,9 @@ system_default_config_autosave : 0
 default_channel_choice : ""
 default_force_channel : 0
 default_force_channel_id: 0
+
+# sweep
+default_export_sweep : 1
+
+# menu
+default_trace_mode : 'continuous'
