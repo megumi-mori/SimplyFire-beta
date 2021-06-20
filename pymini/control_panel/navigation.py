@@ -30,7 +30,9 @@ def load(parent):
         optionframe.default([
             'nav_fps',
             'scroll_percent',
-            'zoom_percent'
+            'zoom_percent',
+            'mirror_y_scroll',
+            'mirror_x_scroll'
         ])
 
     def apply_axis_limit(name, axis, idx):
@@ -47,6 +49,10 @@ def load(parent):
         optionframe.set_value('max_y', ylim[1])
 
     optionframe = ScrollableOptionFrame(parent)
+
+    ##################################################
+    #                      Axes                      #
+    ##################################################
     optionframe.insert_title(
         name='axis',
         text='Axes'
@@ -122,6 +128,14 @@ def load(parent):
         command=get_current_axes
     )
 
+    ##################################################
+    #                  Scroll/Zoom                   #
+    ##################################################
+
+    optionframe.insert_title(
+        name='Scroll/Zoom',
+        text='Axes'
+    )
     optionframe.insert_label_entry(
         name='nav_fps',
         label='Smooth navigation speed (fps):',
@@ -143,6 +157,20 @@ def load(parent):
         default=config.default_zoom_percent,
         validate_type='float'
     )
+    optionframe.insert_label_checkbox(
+        name='mirror_y_scroll',
+        label='Mirror y-axis scroll button directions',
+        value=config.mirror_y_scroll,
+        default=config.default_mirror_y_scroll
+    )
+    optionframe.widgets['mirror_y_scroll'].config(onvalue=-1, offvalue=1)
+    optionframe.insert_label_checkbox(
+        name='mirror_x_scroll',
+        label='Mirror x-axis scroll button directions',
+        value=config.mirror_x_scroll,
+        default=config.default_mirror_x_scroll
+    )
+    optionframe.widgets['mirror_x_scroll'].config(onvalue=-1, offvalue=1)
     optionframe.insert_button(
         text='Apply',
         command=pymini.plot_area.focus
@@ -151,6 +179,7 @@ def load(parent):
         text='Default parameters',
         command=default_nav_parameters
     )
+
 
     return optionframe
 

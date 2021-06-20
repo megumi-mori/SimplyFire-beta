@@ -13,7 +13,12 @@ import time
 def load(parent):
 
     def scroll_plot(axis, dir):
-        scroll_plot_repeat(axis, dir, int(pymini.get_value('nav_fps')), float(pymini.get_value('scroll_percent')))
+        scroll_plot_repeat(
+            axis,
+            dir * int(pymini.get_value('mirror_{}_scroll'.format(axis), 'plot_area')),
+            int(pymini.get_value('nav_fps')),
+            float(pymini.get_value('scroll_percent'))
+        )
         return None
 
     def scroll_plot_repeat(axis, dir, fps, percent):
@@ -177,7 +182,8 @@ def load(parent):
         validate_type='int'
     )
     frame.widgets['force_channel_id'].grid(column=2,row=0,sticky='ews')
-    frame.get_widget('force_channel_id').config(state='disabled')
+    if frame.get_widget('force_channel').get() == "0":
+        frame.get_widget('force_channel_id').config(state='disabled')
     x_zoom_frame = Tk.Frame(frame, bg='orange')
     x_zoom_frame.grid_rowconfigure(0, weight=1)
     x_zoom_frame.grid_columnconfigure(3, weight=1)
