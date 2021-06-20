@@ -8,16 +8,20 @@ def load(parent):
     ##################################################
     #          Populate detector option tab          #
     ##################################################
-
-    ##################################################
-    #               Parameter options                #
-    ##################################################
     """
     Populates the detector tab in the control panel.
     :param frame:
     :return:
     """
     frame = ScrollableOptionFrame(parent)
+
+    ##################################################
+    #              Detector parameters               #
+    ##################################################
+    frame.insert_title(
+        name = 'detector',
+        text='Detector Parameters'
+    )
     frame.insert_label_optionmenu(
         name='direction',
         label='Direction',
@@ -92,14 +96,87 @@ def load(parent):
         command=frame.default
     )
 
-    ##################################################
-    #                    Buttons                     #
-    ##################################################
-
     frame.insert_button(text='hello, world!')
     frame.insert_button(text='hello, world!')
     frame.isolate_button()
     frame.insert_button(text='hello, world!')
+
+    ##################################################
+    #                  Data Export                   #
+    ##################################################
+    frame.insert_title(
+        name='data_export',
+        text='Data Export'
+    )
+    frame.insert_label_checkbox(
+        name='data_export_all',
+        label='Export all visible and hidden data?',
+        value=config.data_export_all,
+        default=config.default_data_export_all,
+        # command=None #Link this to exporting data sets
+    )
+
+    ##################################################
+    #                  Data Display                  #
+    ##################################################
+
+    frame.insert_title(
+        name='dataframe',
+        text='Data Display'
+    )
+
+
+    frame.insert_label_checkbox(
+        name='data_display_time',
+        label='Event peak time',
+        value=config.data_display_time,
+        default=config.default_data_display_time,
+        command=None #connect this to data frame after
+    )
+    frame.insert_label_checkbox(
+        name='data_display_amplitude',
+        label='Event amplitude',
+        value=config.data_display_amplitude,
+        default=config.default_data_display_amplitude,
+        command=None  # connect this to data frame after
+    )
+    frame.insert_label_checkbox(
+        name='data_display_decay',
+        label='Event decay constant',
+        value=config.data_display_decay,
+        default=config.default_data_display_decay,
+        command=None  # connect this to data frame after
+    )
+    frame.insert_label_checkbox(
+        name='data_display_decay_time',
+        label='Event decay time point',
+        value=config.data_display_decay_time,
+        default=config.default_data_display_decay_time,
+        command=None  # connect this to data frame after
+    )
+    frame.insert_label_checkbox(
+        name='data_display_rise',
+        label='Event rise duration',
+        value=config.data_display_rise,
+        default=config.default_data_display_rise,
+        command=None  # connect this to data frame after
+    )
+    frame.insert_label_checkbox(
+        name='data_display_baseline',
+        label='Event start time',
+        value=config.data_display_baseline,
+        default=config.default_data_display_baseline,
+        command=None  # connect this to data frame after
+    )
+    frame.insert_label_checkbox(
+        name='data_display_channel',
+        label='Event data channel',
+        value=config.data_display_channel,
+        default=config.default_data_display_channel,
+        command=None  # connect this to data frame after
+    )
+
+
 
     return frame
 
