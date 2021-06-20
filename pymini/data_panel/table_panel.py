@@ -22,6 +22,7 @@ class InteractiveTable(Tk.Frame):
         hsb.grid(column=0, row=2, sticky='ew')
         self.table.configure(xscrollcommand=hsb.set)
 
+        # add any other columns needed here to translate from name of widget to header info
         self.header = {
             'data_display_time': 't',
             'data_display_amplitude': 'Amp',
@@ -43,11 +44,11 @@ class InteractiveTable(Tk.Frame):
         # need to bind
 
     def show_columns(self):
-        cols = pymini.tabs['detector'].get_value_dict(filter='data_display_')
+        cols = pymini.tabs['detector_tab'].get_value_dict(filter='data_display_')
         self.table.config(displaycolumns=tuple([i for i, e in enumerate(cols) if cols[e]]))
 
     def fit_columns(self):
-        cols = pymini.tabs['detector'].get_value_dict(filter='data_display_')
+        cols = pymini.tabs['detector_tab'].get_value_dict(filter='data_display_')
         indices = [i for i, e in enumerate(cols) if cols[e]]
         w = int(self.table.winfo_width() / len(indices))
         for i in indices:

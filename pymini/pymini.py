@@ -6,7 +6,7 @@ from control_panel import font_bar
 
 from menubar import menubar
 
-from control_panel import detector, style, progress_bar, setting, navigation, sweep
+from control_panel import detector_tab, style_tab, progress_bar, setting_tab, navigation_tab, sweep_tab
 
 from data_panel import graph_panel, table_panel
 
@@ -26,12 +26,12 @@ def _on_close():
     """
     print('closing')
     plot_area.focus()
-    # if cp.detector_tab.get_value('save_detector_preferences') == '1':
-    #     tabs.append(cp.detector_tab)
-    # if cp.style_tab.get_value('save_style_preferences') == '1':
-    #     tabs.append(cp.style_tab)
-    if cp.settings_tab.get_value('config_autosave') == '1':
-        config.dump_user_config(cp.settings_tab.get_value('config_path'), tabs)
+    # if cp.detector_tab_tab.get_value('save_detector_tab_preferences') == '1':
+    #     tabs.append(cp.detector_tab_tab)
+    # if cp.style_tab_tab.get_value('save_style_tab_preferences') == '1':
+    #     tabs.append(cp.style_tab_tab)
+    if tabs['settings_tab'].get_value('config_autosave') == '1':
+        config.dump_user_config(tabs['settings_tab'].get_value('config_path'), tabs, ignore=['settings_tab'])
     config.dump_system_config()
     root.destroy()
 
@@ -157,25 +157,25 @@ cp.grid(column=0 ,row=0, sticky='news')
 cp_notebook = ttk.Notebook(cp)
 cp_notebook.grid(column=0, row=0, sticky='news')
 
-# insert detector options tab into control panel
+# insert detector_tab options tab into control panel
 #need to check user defined mode
-tabs['detector'] = detector.load(cp)
-cp_notebook.add(tabs['detector'], text='Detector')
+tabs['detector_tab'] = detector_tab.load(cp)
+cp_notebook.add(tabs['detector_tab'], text='Detector')
 
 #insert sweep tab
-tabs['sweep'] = sweep.load(cp)
+tabs['sweep_tab'] = sweep_tab.load(cp)
 
-# insert navigation tab into control panel
-tabs['navigation'] = navigation.load(cp)
-cp_notebook.add(tabs['navigation'], text='Navigation')
+# insert navigation_tab tab into control panel
+tabs['navigation_tab'] = navigation_tab.load(cp)
+cp_notebook.add(tabs['navigation_tab'], text='Navigation')
 
-# insert style options tab into control panel
-tabs['style'] = style.load(cp)
-cp_notebook.add(tabs['style'], text='Style')
+# insert style_tab options tab into control panel
+tabs['style_tab'] = style_tab.load(cp)
+cp_notebook.add(tabs['style_tab'], text='Style')
 
-# insert settings option tab into control panel
-cp.settings_tab = setting.load(cp)
-cp_notebook.add(cp.settings_tab, text='Settings')
+# insert setting option tab into control panel
+tabs['settings_tab'] = setting_tab.load(cp)
+cp_notebook.add(tabs['settings_tab'], text='Setting')
 
 # set up font adjustment bar
 fb = font_bar.load(left)
