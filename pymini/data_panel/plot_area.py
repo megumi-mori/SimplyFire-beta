@@ -1,11 +1,12 @@
 import tkinter as Tk
 from config import config
-
+import matplotlib as mpl
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from utils import trace
 import matplotlib.colors
 import pymini
+import os
 import time
 
 
@@ -97,6 +98,10 @@ class InteractivePlot():
 
     def open_trace(self, filename):
         self.trace = trace.Trace(filename)
+        #set the default save path for images
+        if pymini.get_value('file_autodir'):
+            mpl.rcParams['savefig.directory'] = os.path.split(filename)[0]
+
         if pymini.get_value('force_channel') == '1':
             try:
                 self.trace.set_channel(
@@ -160,7 +165,7 @@ class InteractivePlot():
 
     def _choose_channel(self, num):
         self.trace.set_channel(num)
-        pymini.set_value('channel_option', "{}: {}".format(self.trace.channel, self.trace.y_label))
+        pymini.set_value('channel_option', "{}: {}".format((self.trace.channel+1), self.trace.y_label))
 
         xlim = self.ax.get_xlim()
         self._clear()

@@ -7,6 +7,10 @@ def load(parent):
     ##################################################
     #                    Methods                     #
     ##################################################
+
+    def _apply_detector():
+        pymini.plot_area.focus()
+
     def _apply_column():
         pymini.table_panel.show_columns()
 
@@ -115,14 +119,30 @@ def load(parent):
         default=config.default_update_events,
     )
     frame.insert_button(
-        text='Default Paramters',
+        text='Apply',
+        command=pymini.plot_area.focus
+    )
+    frame.insert_button(
+        text='Default paramters',
         command=frame.default
     )
+    frame.insert_button(
+        text='Find all',
+        command=None # link this later
+    )
+    frame.insert_button(
+        text='Delete all',
+        command=None # link this later
+    )
+    frame.insert_button(
+        text='Find in window',
+        command=None #link this later
+    )
 
-    frame.insert_button(text='hello, world!')
-    frame.insert_button(text='hello, world!')
-    frame.isolate_button()
-    frame.insert_button(text='hello, world!')
+    frame.insert_button(
+        text='Delete in window',
+        command=None #link this later
+    )
 
     ##################################################
     #                  Data Export                   #

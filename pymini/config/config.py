@@ -3,7 +3,6 @@ import os
 import inspect
 import pymini
 from tkinter import font, filedialog
-from control_panel import detector
 
 import time
 
@@ -20,7 +19,6 @@ def convert_to_path(paths):
     return os.path.join(*p)
 
 
-version = "b0.1.0"
 
 # Constants
 global DIR
@@ -87,7 +85,7 @@ def set_fontsize(fontsize):
         def_font.configure(size=fontsize)
 
 
-def dump_user_config(path, tabs):
+def dump_user_config(path, tabs, ignore=None):
     print('Writing out configuration variables....')
     with open(path, 'w') as f:
         f.write("#################################################################\n")
@@ -96,8 +94,9 @@ def dump_user_config(path, tabs):
         f.write("\n")
         pymini.pb.initiate()
         for i, t in enumerate(tabs):
-            f.write(tabs[t].safe_dump_vars())
-            pymini.pb.progress((i + 1) / len(tabs.keys()))
+            if t not in ignore:
+                f.write(tabs[t].safe_dump_vars())
+                pymini.pb.progress((i + 1) / (len(tabs.keys()) - len(ignore)))
         pymini.pb.clear()
 
         # f.write(yaml.safe_dump(user_vars))
@@ -111,7 +110,7 @@ def dump_system_config():
         f.write("#################################################################\n")
         f.write("\n")
 
-        f.write(pymini.cp.settings_tab.safe_dump_vars())
+        f.write(pymini.tabs['settings_tab'].safe_dump_vars())
     print('Completed')
 
 

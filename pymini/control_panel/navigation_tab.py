@@ -119,10 +119,6 @@ def load(parent):
         default=config.default_apply_axis_limit
     )
     optionframe.insert_button(
-        text='Show all trace',
-        command=pymini.plot_area.show_all_plot
-    )
-    optionframe.insert_button(
         text='Apply axes limits',
         command=apply_axes_limits
     )
@@ -130,6 +126,12 @@ def load(parent):
         text='Get default parameters',
         command=default_axis_parameters
     )
+    optionframe.insert_button(
+        text='Show all trace',
+        command=pymini.plot_area.show_all_plot
+    )
+
+
     optionframe.insert_button(
         text='Get current axes limits',
         command=get_current_axes

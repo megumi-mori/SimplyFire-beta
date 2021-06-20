@@ -43,17 +43,21 @@ def load(parent):
     ##################################################
     #               Parameter Options                #
     ##################################################
+    frame.insert_title(
+        name='config_settings',
+        text='Config Auto-save/load'
+    )
     frame.insert_label_checkbox(
         name='config_autoload',
         label='Automatically load configurations at the beginning of the next session',
         value=config.config_autoload,
-        default=0
+        default=config.system_default_config_autoload
     )
     frame.insert_label_checkbox(
         name='config_autosave',
         label='Automatically save configurations at the end of this session',
         value=config.config_autosave,
-        default=0
+        default=config.system_default_config_autosave
     )
 
     # auto_load directory panel
@@ -91,6 +95,20 @@ def load(parent):
         text='Reset to default parameters',
         command=frame.default
     )
+
+    frame.insert_title(
+        name='misc',
+        text='Misc'
+    )
+    frame.insert_label_checkbox(
+        name='file_autodir',
+        label='Use trace file directory as default export directory (figures, data)',
+        value=config.file_autodir,
+        default=config.system_default_file_autodir,
+        onvalue="1",
+        offvalue=""
+    )
+
 
     return frame
 

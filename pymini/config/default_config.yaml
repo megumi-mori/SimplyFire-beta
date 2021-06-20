@@ -11,6 +11,9 @@
 # as the default variable name, without hte 'default_' tag
 #################################################################
 
+# version
+version : 'b0.1.0'
+
 #aesthetics
 default_geometry :
   - 900
@@ -84,6 +87,7 @@ system_default_system_path :
   - 'pymini_config.yaml'
 system_default_config_autoload : 0
 system_default_config_autosave : 0
+system_default_file_autodir : 1
 
 # channel
 default_channel_choice : ""
