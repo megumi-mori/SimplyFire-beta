@@ -125,6 +125,46 @@ def load(parent):
         text='Default parameters',
         command=default_style_parameters
     )
+    ##################################################
+    #                 Marker display                 #
+    ##################################################
+
+    optionframe.insert_title(
+        name='event_markers',
+        text='Event Markers'
+    )
+    optionframe.insert_label_checkbox(
+        name='show_peak',
+        label='Peak',
+        value=config.show_peak,
+        default=config.default_show_peak,
+        onvalue="1",
+        offvalue=""
+    )
+    optionframe.insert_label_checkbox(
+        name='show_decay_constant',
+        label='Decay Constant',
+        value=config.show_decay_constant,
+        default=config.default_show_decay_constant,
+        onvalue="1",
+        offvalue=""
+    )
+    optionframe.insert_label_checkbox(
+        name='show_start',
+        label='Event Start',
+        value=config.show_start,
+        default=config.default_show_start,
+        onvalue="1",
+        offvalue=""
+    )
+    optionframe.insert_label_checkbox(
+        name='show_end',
+        label='Event End',
+        value=config.show_end,
+        default=config.default_show_end,
+        onvalue="1",
+        offvalue=""
+    )
 
     # ##################################################
     # #                  Display Mode                  #

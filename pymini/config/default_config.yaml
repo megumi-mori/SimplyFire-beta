@@ -57,7 +57,8 @@ default_data_display_amp_unit : 1
 default_data_display_decay : 1
 default_data_display_decay_time : 1
 default_data_display_rise : 1
-default_data_display_baseline : 1
+default_data_display_start : 1
+default_data_display_end : 1
 default_data_display_channel : 1
 
 #style
@@ -75,6 +76,11 @@ default_baseline_color : 'red'
 default_decay_color : 'blue'
 default_highlight_color: 'red'
 default_trace_highlight_color : 'red'
+
+default_show_peak : "1"
+default_show_decay_constant : "1"
+default_show_start : "1"
+default_show_end : ""
 
 #system
 system_default_config_path :
