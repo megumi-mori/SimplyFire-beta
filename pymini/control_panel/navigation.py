@@ -133,8 +133,8 @@ def load(parent):
     ##################################################
 
     optionframe.insert_title(
-        name='Scroll/Zoom',
-        text='Axes'
+        name='scroll_zoom',
+        text='Scroll/Zoom'
     )
     optionframe.insert_label_entry(
         name='nav_fps',
