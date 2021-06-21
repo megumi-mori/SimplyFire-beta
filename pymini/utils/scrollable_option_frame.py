@@ -89,7 +89,7 @@ class ScrollableOptionFrame(Tk.Frame):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
 
     def _unbind_mousewheel(self, event):
-        self.canvas.unbind_all('<MouseWheel')
+        self.canvas.unbind_all('<MouseWheel>')
 
     def _on_mousewheel(self, event):
         if self.frame.winfo_height() > self.canvas.winfo_height():
