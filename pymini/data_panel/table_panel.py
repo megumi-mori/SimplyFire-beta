@@ -101,7 +101,7 @@ class InteractiveTable(ttk.Treeview):
     ##################################################
     #                      Data                      #
     ##################################################
-    def add_event(self, data, iid=None):
+    def add_event(self, data):
         """
         adds data to the dataframe and the table
         :param data: dict of data obtained from analysis
@@ -117,12 +117,12 @@ class InteractiveTable(ttk.Treeview):
             except:
                 data[col] = None
         new_row = None
-        self.data = self.data.append(pd.Series(data=data, name=iid), ignore_index=False)
+        self.data = self.data.append(pd.Series(data=data, name=data['t']), ignore_index=False)
         self.data.sort_values(by=['t'], inplace=True, ascending=True)
 
         self.insert("", 'end',
                     values=[data[i] for i in self.columns],
-                    iid=iid)
+                    iid=data['t'])
 
 
     ##################################################

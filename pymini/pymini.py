@@ -20,13 +20,13 @@ from utils import widget
 def test():
     data_table.add_event({
             't':0.001,
-    }, iid=0.001)
+    })
     data_table.add_event({
         't':0.25,
-    }, iid=0.25)
+    })
     data_table.add_event({
         't':0.02
-    }, iid=0.02)
+    })
 
     print(data_table.data)
 def _on_close():
@@ -47,7 +47,7 @@ def _on_close():
     root.destroy()
 
 def open_trace():
-    f = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf")])
+    f = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files','*.*')])
     if f:
         plot_area.open_trace(f)
 

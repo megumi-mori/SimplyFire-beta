@@ -3,12 +3,33 @@ from config import config
 import matplotlib as mpl
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from utils import trace
+from utils import trace, analysis
 import matplotlib.colors
 import pymini
 import os
+import gc
 import time
+import numpy as np
 
+
+def search_index(x, l, rate):
+    print("{} : {}".format(x, l[0]))
+    est = int((x - l[0]) * rate)
+    if est >= len(l):
+        return len(l)  # out of bounds
+    elif l[est] == x:
+        return est
+    elif l[est] > x:  # overshot
+        while est >= 0:
+            if l[est] < x:
+                return est + 1
+            est -= 1
+    elif l[est] < x:  # need to go higher
+        while est < len(l):
+            if l[est] > x:
+                return est
+            est += 1
+    return est  # out of bounds
 
 class InteractivePlot():
     def __init__(self, parent):
@@ -31,6 +52,73 @@ class InteractivePlot():
         self.ax.set_ylabel(self.labels['y'])
         self.default_xlim = self.ax.get_xlim()
         self.default_ylim = self.ax.get_ylim()
+
+        #initialize cid
+        self.canvas.mpl_connect('key_press_event', self._on_key)
+        self.canvas.mpl_connect('button_press_event', self._on_mouse_press)
+        self.canvas.mpl_connect('motion_notify_event', self._on_mouse_move)
+        self.canvas.mpl_connect('button_release_event', self._on_mouse_release)
+
+    ##################################################
+    #                 User Interface                 #
+    ##################################################
+
+    def _on_key(self, e):
+        """
+        Keyboard key press event
+        :param e:
+        :return:
+        """
+        print(e)
+
+    def _on_mouse_press(self, e):
+        self.focus()
+        self.press = True
+        if self.canvas.toolbar.mode == "":
+            # pymini.data_table.add_event({
+            #     't':e.xdata
+            # })
+            pass
+
+    def _on_mouse_release(self, e):
+        self.press = False
+        if pymini.get_value('trace_mode') == 'continuous':
+            try:
+                if self.drag:
+                    return None
+            except:
+                pass
+            self._find_event(e.xdata)
+    def _on_mouse_move(self, e):
+        try:
+            if self.press:
+                self.drag = True
+        except:
+            pass
+
+    ##################################################
+    #                    Analysis                    #
+    ##################################################
+
+    def _find_event(self, x):
+        xs = np.array(self.ax.lines[0].get_xdata())
+        ys = np.array(self.ax.lines[0].get_ydata())
+        x_idx = search_index(x, xs, self.trace.sampling_rate)  # should be the only line on the plot
+        start_idx = x_idx - int(pymini.get_value('detector_points_search'))
+        end_idx = x_idx + int(pymini.get_value('detector_points_search'))
+
+        if pymini.get_value('detector_direction') == "negative":
+            ys = ys * -1 # now can look at either versions with the same algorithm
+
+        peak_y = max(ys[start:end])
+        peak_idx = np.where(ys[start:end]==y)[0] +start #take the earliest time point
+        
+
+        try:
+            pass
+        except:
+            pass
+
 
 
 
@@ -97,7 +185,10 @@ class InteractivePlot():
         """
 
     def open_trace(self, filename):
-        self.trace = trace.Trace(filename)
+        try:
+            self.trace = trace.Trace(filename)
+        except:
+            return None
         #set the default save path for images
         if pymini.get_value('file_autodir'):
             mpl.rcParams['savefig.directory'] = os.path.split(filename)[0]
@@ -110,6 +201,7 @@ class InteractivePlot():
             except:
                 pass
         self._clear()
+        gc.collect()
 
         pymini.change_label(
             'trace_info',
@@ -218,14 +310,12 @@ class InteractivePlot():
         self.draw()
 
     def _clear(self):
-        # for l in self.ax.lines:
-        #     l.remove()
-        # print(self.ax.lines)
         for l in self.ax.lines:
             self.ax.lines.remove(l)
         for c in self.ax.collections:
             self.ax.collections.remove(i)
         self.ax.clear()
+        gc.collect()
         self.draw()
 
     def draw(self):

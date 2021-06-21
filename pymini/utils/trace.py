@@ -106,6 +106,7 @@ class Trace():
                     xs = np.concatenate((xs, self.x_data[i] + xs[-1] + self.x_interval))
                 except:
                     pass
+            # self.x_data_c = xs
             return xs
         else:
             return self.x_data[sweep]
@@ -113,6 +114,43 @@ class Trace():
     def forget(self):
         self.y_data = None
         self.x_data = None
+
+    def find_index(self, x, sweep=None, mode='continuous'):
+        """
+        Used to estimate the index of the x value in the dataset.
+        Use only if there is a chance that x may not be an exact match in the data
+        :param x: x that may not be in the actual data
+        :return:
+        """
+        if mode == 'continuous':
+            return self._search_index(x, self.x_data_c, self.sampling_rate)
+
+        if mode == 'sweep':
+            if sweep is None:
+                return -1 #cannot determine which sweep
+            return self._search_index(x, self.x_data[self.channel][sweep], self.sampling_rate)
+
+    def _search_index(self, x, l, rate):
+        print("{} : {}".format(x, l[0]))
+        est = int((x - l[0]) * rate)
+        if est >= len(l):
+            return len(l)  # out of bounds
+        elif l[est] == x:
+            return est
+        elif l[est] > x:  # overshot
+            while est >= 0:
+                if l[est] < x:
+                    return est + 1
+                est -= 1
+        elif l[est] < x:  # need to go higher
+            while est < len(l):
+                if l[est] > x:
+                    return est
+                est += 1
+        return est  # out of bounds
+
+
+
 
 
 
