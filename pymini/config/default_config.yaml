@@ -38,17 +38,17 @@ default_mirror_x_scroll : 1
 
 
 #detector parameters
-default_direction : 'positive'
-default_min_amp : 0.3
-default_points_baseline : 100
-default_points_search : 300
-default_min_decay : 0
-default_max_points_baseline : 1000
-default_max_points_decay : 40000
-default_manual_pixel_offset : 0
-default_update_events : 0
-default_save_detector_preferences : 0
-default_min_auc : 0
+default_detector_direction : 'positive'
+default_detector_min_amp : 0.3
+default_detector_points_baseline : 100
+default_detector_points_search : 300
+default_detector_min_decay : 0
+default_detector_max_points_baseline : 1000
+default_detector_max_points_decay : 40000
+default_detector_manual_pixel_offset : 0
+default_detector_update_events : 0
+default_detector_save_detector_preferences : 0
+default_detector_min_auc : 0
 
 default_data_export_all : 1
 default_data_display_time : 1

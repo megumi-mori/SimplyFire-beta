@@ -54,73 +54,73 @@ def load(parent):
         text='Detector Parameters'
     )
     frame.insert_label_optionmenu(
-        name='direction',
+        name='detector_direction',
         label='Direction',
-        value=config.direction,
-        default=config.default_direction,
+        value=config.detector_direction,
+        default=config.default_detector_direction,
         options=['positive', 'negative']
     )
     frame.insert_label_entry(
-        name='min_amp',
+        name='detector_min_amp',
         label='Minimum amplitude (nA):',
-        value=config.min_amp,
-        default=config.default_min_amp,
+        value=config.detector_min_amp,
+        default=config.default_detector_min_amp,
         validate_type='float'
     )
     frame.insert_label_entry(
-        name='points_baseline',
+        name='detector_points_baseline',
         label='Number of data points to average for baseline:',
-        value=config.points_baseline,
-        default=config.default_points_baseline,
+        value=config.detector_points_baseline,
+        default=config.default_detector_points_baseline,
         validate_type='int'
     )
     frame.insert_label_entry(
-        name='points_search',
+        name='detector_points_search',
         label='Number of data points to search for a peak',
-        value=config.points_search,
-        default=config.default_points_search,
+        value=config.detector_points_search,
+        default=config.default_detector_points_search,
         validate_type='int'
     )
     frame.insert_label_entry(
-        name='min_decay',
+        name='detector_min_decay',
         label='Minimum decay constant (tau) (ms)',
-        value=config.min_decay,
-        default=config.default_min_decay,
+        value=config.detector_min_decay,
+        default=config.default_detector_min_decay,
         validate_type='float'
     )
     frame.insert_label_entry(
-        name='min_auc',
+        name='detector_min_auc',
         label='Minimum area under the curve',
-        value=config.min_auc,
-        default=config.default_min_auc,
+        value=config.detector_min_auc,
+        default=config.default_detector_min_auc,
         validate_type='float'
     )
     frame.insert_label_entry(
-        name='max_points_baseline',
+        name='detector_max_points_baseline',
         label='Maximum data points to consider before peak to find the baseline',
-        value=config.max_points_baseline,
-        default=config.default_max_points_baseline,
+        value=config.detector_max_points_baseline,
+        default=config.default_detector_max_points_baseline,
         validate_type='int'
     )
     frame.insert_label_entry(
-        name='max_points_decay',
+        name='detector_max_points_decay',
         label='Maximum data points after peak to consider for decay',
-        value=config.max_points_decay,
-        default=config.default_max_points_decay,
+        value=config.detector_max_points_decay,
+        default=config.default_detector_max_points_decay,
         validate_type='int'
     )
     frame.insert_label_entry(
-        name='manual_pixel_offset',
+        name='detector_manual_pixel_offset',
         label='Pixel offset for manually picking events',
-        value=config.manual_pixel_offset,
-        default=config.default_manual_pixel_offset,
+        value=config.detector_manual_pixel_offset,
+        default=config.default_detector_manual_pixel_offset,
         validate_type='int'
     )
     frame.insert_label_checkbox(
-        name='update_events',
+        name='detector_update_events',
         label='Update graph after each event detection (will slow down search)',
-        value=config.update_events,
-        default=config.default_update_events,
+        value=config.detector_update_events,
+        default=config.default_detector_update_events,
     )
     frame.insert_button(
         text='Apply',
