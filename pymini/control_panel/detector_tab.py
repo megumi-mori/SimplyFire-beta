@@ -69,7 +69,7 @@ def load(parent):
     )
     frame.insert_label_entry(
         name='detector_points_baseline',
-        label='Number of data points to average for baseline:',
+        label='Number of data points averaged to find the start/end of an event:',
         value=config.detector_points_baseline,
         default=config.default_detector_points_baseline,
         validate_type='int'
