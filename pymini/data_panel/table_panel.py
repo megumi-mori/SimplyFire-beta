@@ -108,8 +108,6 @@ class InteractiveTable(ttk.Treeview):
         :return:
         """
         # self.data.append(data, ignore_index=True)
-
-
         # print(pd.DataFrame(list(data.items()), columns=self.columns))
         for col in self.columns:
             try:
@@ -117,12 +115,16 @@ class InteractiveTable(ttk.Treeview):
             except:
                 data[col] = None
         new_row = None
-        self.data = self.data.append(pd.Series(data=data, name=data['t']), ignore_index=False)
-        self.data.sort_values(by=['t'], inplace=True, ascending=True)
+        try:
+            self.insert("", 'end',
+                        values=[data[i] for i in self.columns],
+                        iid=data['t']) # should have error if already exists
+            self.data = self.data.append(pd.Series(data=data, name=data['t']), ignore_index=False)
+            self.data.sort_values(by=['t'], inplace=True, ascending=True)
+            return True
+        except:
+            return False
 
-        self.insert("", 'end',
-                    values=[data[i] for i in self.columns],
-                    iid=data['t'])
 
 
     ##################################################

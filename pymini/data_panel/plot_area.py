@@ -59,6 +59,8 @@ class InteractivePlot():
         self.canvas.mpl_connect('motion_notify_event', self._on_mouse_move)
         self.canvas.mpl_connect('button_release_event', self._on_mouse_release)
 
+        self.trace = None # take this off later once the event finding is completed and can be handled in try/except
+
     ##################################################
     #                 User Interface                 #
     ##################################################
@@ -82,13 +84,15 @@ class InteractivePlot():
 
     def _on_mouse_release(self, e):
         self.press = False
-        if pymini.get_value('trace_mode') == 'continuous':
+        if pymini.get_value('trace_mode') == 'continuous' and self.trace is not None: # remove the None case later, when the finder is completed
             try:
                 if self.drag:
+                    self.drag = False
                     return None
             except:
                 pass
-            self._find_event(e.xdata)
+            print('click!')
+            self._find_event_manual(e.xdata)
     def _on_mouse_move(self, e):
         try:
             if self.press:
@@ -99,27 +103,65 @@ class InteractivePlot():
     ##################################################
     #                    Analysis                    #
     ##################################################
-
-    def _find_event(self, x):
+    def _find_event_manual(self, x):
+        print('find event manual')
         xs = np.array(self.ax.lines[0].get_xdata())
         ys = np.array(self.ax.lines[0].get_ydata())
         x_idx = search_index(x, xs, self.trace.sampling_rate)  # should be the only line on the plot
-        start_idx = x_idx - int(pymini.get_value('detector_points_search'))
-        end_idx = x_idx + int(pymini.get_value('detector_points_search'))
-
         if pymini.get_value('detector_direction') == "negative":
             ys = ys * -1 # now can look at either versions with the same algorithm
+        # switcher implementation:
+        # switch = {
+        #     'positive': np.array(self.ax.lines[0].get_ydata())
+        #     'negative': np.array(self.ax.lines[0].get_ydata)) * -1
+        # }
+        # ys = switch.get(pymini.get_value('detector_points_search', None))
 
-        peak_y = max(ys[start:end])
-        peak_idx = np.where(ys[start:end]==y)[0] +start #take the earliest time point
-        
+        start_idx = x_idx - int(int(pymini.get_value('detector_points_search'))/2)
+        end_idx = x_idx + int(int(pymini.get_value('detector_points_search'))/2)
+        lag = int(pymini.get_value('detector_points_baseline'))
+        max_pt_baseline = int(pymini.get_value('detector_max_points_baseline'))
+        data = self._find_event(x_idx, xs, ys, start_idx, end_idx, lag, max_pt_baseline)
+        pymini.data_table.add_event(data)
 
+
+
+
+    def _find_event(self, x_idx, xs, ys, start_idx, end_idx, lag, max_pt_baseline):
+        print('find event')
+        data = {}
         try:
-            pass
-        except:
-            pass
+            peak_y = max(ys[start_idx:end_idx])
+            peak_idx = np.where(ys[start_idx:end_idx]==peak_y)[0][0] + start_idx #take the earliest time point
+        except Exception as e:
+            print('find event, find index of max: {}'.format(e)) #erase this if no errors are expected
+            return None
+        FUDGE = 10 #adjust this if needed
 
+        if peak_idx <= start_idx + FUDGE or peak_idx > end_idx - FUDGE:
+            return None # the peak is likely at the very edge - no need to try to expand the search space
 
+        data['t'] = xs[peak_idx] # for the table
+        data['peak_coord'] = (xs[peak_idx], ys[peak_idx]) # for the plot
+
+        base_idx = peak_idx - 1
+        y_avg = np.mean(ys[base_idx - lag+1:base_idx+1]) # should include the base_idx in the calculation, also, why was it base_idx+2?
+
+        while base_idx > max(start_idx - max_pt_baseline + lag, lag):
+            y_avg = (y_avg * (lag) + ys[base_idx - lag] - ys[base_idx])/(lag) # equivalent to np.mean(ys[base_idx - lag: base_idx]))
+            if y_avg > ys[base_idx]:
+                break
+            base_idx -= 1
+        else:
+            return None #could not find start
+
+        data['start_coord'] = (xs[base_idx], ys[base_idx])
+
+        data['baseline'] = ys[base_idx]
+        data['baseline_unit'] = self.trace.y_unit # make sure channel in trace cannot change unexpectedly
+        data['t_start'] = xs[base_idx]
+
+        return data
 
 
     def scroll(self, axis, dir=1, percent=0):
