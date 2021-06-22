@@ -1,6 +1,7 @@
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 import pymini
+from utils import widget
 
 
 def load(parent):
@@ -31,8 +32,9 @@ def load(parent):
         frame.set_value(partner, '')
         _apply_column()
 
-
-
+    def _link_partner(wname, partner):
+        frame.set_value(partner, frame.get_value(wname))
+        _apply_column()
 
     # frame = ScrollableOptionFrame(parent)
 
@@ -50,7 +52,7 @@ def load(parent):
     #              Detector parameters               #
     ##################################################
     frame.insert_title(
-        name = 'detector',
+        name='detector',
         text='Detector Parameters'
     )
     frame.insert_label_optionmenu(
@@ -132,20 +134,20 @@ def load(parent):
     )
     frame.insert_button(
         text='Find all',
-        command=None # link this later
+        command=None  # link this later
     )
     frame.insert_button(
         text='Delete all',
-        command=None # link this later
+        command=None  # link this later
     )
     frame.insert_button(
         text='Find in window',
-        command=None #link this later
+        command=None  # link this later
     )
 
     frame.insert_button(
         text='Delete in window',
-        command=None #link this later
+        command=None  # link this later
     )
 
     ##################################################
@@ -173,7 +175,6 @@ def load(parent):
         text='Data Table Display'
     )
 
-
     frame.insert_label_checkbox(
         name='data_display_time',
         label='Peak time',
@@ -188,34 +189,28 @@ def load(parent):
         label='Amplitude',
         value=config.data_display_amplitude,
         default=config.default_data_display_amplitude,
-        command=lambda p='data_display_amp_unit':_hide_partner(p),
+        command=lambda w='data_display_amplitude',
+                       p='data_display_amp_unit': _link_partner(w, p),
         onvalue="1",
         offvalue=""
     )
-    frame.insert_label_checkbox(
-        name='data_display_amp_unit',
-        label='Amplitude unit',
+    frame.widgets['data_display_amp_unit'] = widget.VarWidget(
         value=config.data_display_amp_unit,
-        command=_apply_column,
-        onvalue='1',
-        offvalue=""
+        default=config.default_data_display_amp_unit,
     )
     frame.insert_label_checkbox(
         name='data_display_decay_constant',
         label='Decay constant',
         value=config.data_display_decay_constant,
-        command=lambda p='data_display_decay_unit': _hide_partner(p),
+        default=config.default_data_display_decay_constant,
+        command=lambda w='data_display_decay_constant',
+                       p='data_display_decay_unit': _link_partner(w, p),
         onvalue="1",
         offvalue=""
     )
-    frame.insert_label_checkbox(
-        name='data_display_decay_unit',
-        label='Decay unit',
+    frame.widgets['data_display_decay_unit'] = widget.VarWidget(
         value=config.data_display_decay_unit,
         default=config.default_data_display_decay_unit,
-        command=_apply_column,
-        onvalue="1",
-        offvalue=""
     )
     frame.insert_label_checkbox(
         name='data_display_decay_time',
@@ -230,33 +225,48 @@ def load(parent):
         name='data_display_rise_constant',
         label='Rise duration',
         value=config.data_display_rise_constant,
-        command=lambda p='data_display_rise_unit': _hide_partner(p),
+        command=lambda w='data_display_rise_constant',
+                       p='data_display_rise_unit': _link_partner(w, p),
         onvalue="1",
         offvalue=""
     )
-    frame.insert_label_checkbox(
-        name='data_display_rise_unit',
-        label='Rise unit',
+    frame.widgets['data_display_rise_unit'] = widget.VarWidget(
         value=config.data_display_rise_unit,
         default=config.default_data_display_rise_unit,
-        command=_apply_column,
+    )
+    frame.insert_label_checkbox(
+        name='data_display_halfwidth',
+        label='Rise unit',
+        value=config.data_display_halfwidth,
+        default=config.default_data_display_halfwidth,
+        command=lambda w='data_display_halfwidth',
+                       p='data_display_halfwidth_unit': _link_partner(w, p),
         onvalue="1",
         offvalue=""
+    )
+    frame.widgets['data_display_halfwidth_unit'] = widget.VarWidget(
+        value=config.data_display_halfwidth_unit,
+        default=config.default_data_display_halfwidth_unit,
     )
     frame.insert_label_checkbox(
         name='data_display_baseline',
         label='Baseline',
         value=config.data_display_baseline,
         default=config.default_data_display_baseline,
-        command=lambda p='data_display_baseline_unit': _hide_partner(p),
+        command=lambda w='data_display_baseline',
+                       p='data_display_baseline_unit': _link_partner(w, p),
         onvalue="1",
         offvalue=""
     )
-    frame.insert_label_checkbox(
-        name='data_display_baseline_unit',
-        label='Baseline unit',
+    frame.widgets['data_display_baseline_unit'] = widget.VarWidget(
         value=config.data_display_baseline_unit,
         default=config.default_data_display_baseline_unit,
+    )
+    frame.insert_label_checkbox(
+        name='data_display_end',
+        label='Start time',
+        value=config.data_display_end,
+        default=config.default_data_display_end,
         command=_apply_column,
         onvalue="1",
         offvalue=""
@@ -270,16 +280,6 @@ def load(parent):
         onvalue="1",
         offvalue=""
     )
-    frame.insert_label_checkbox(
-        name='data_display_end',
-        label='Start time',
-        value=config.data_display_end,
-        default=config.default_data_display_end,
-        command=_apply_column,
-        onvalue="1",
-        offvalue=""
-    )
-
     frame.insert_label_checkbox(
         name='data_display_channel',
         label='Channel',
@@ -303,5 +303,3 @@ def load(parent):
     )
 
     return frame
-
-

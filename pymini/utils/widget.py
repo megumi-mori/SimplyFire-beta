@@ -8,7 +8,7 @@ import yaml
 class VarWidget():
     def __init__(
             self,
-            parent,
+            parent=None,
             value="",
             default=""
     ):

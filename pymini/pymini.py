@@ -210,6 +210,8 @@ pw.paneconfig(left, width=int(config.cp_width))
 plot_area.focus()
 
 data_table.show_columns()
+root.update()
+data_table.fit_columns()
 
 
 

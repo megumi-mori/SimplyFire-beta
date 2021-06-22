@@ -59,6 +59,8 @@ default_data_display_decay_unit : 1
 default_data_display_decay_time : 1
 default_data_display_rise_constant : 1
 default_data_display_rise_unit : 1
+default_data_display_halfwidth : 1
+default_data_display_halfwidth_unit : 1
 default_data_display_baseline : 1
 default_data_display_baseline_unit : 1
 default_data_display_start : 1

@@ -54,6 +54,8 @@ def load(parent):
         'decay_t',
         'rise_const',  #
         'rise_unit',  #
+        'halfwidth',
+        'halfwidth_unit',
         'baseline',  #
         'baseline_unit',  #
         't_start',  #
