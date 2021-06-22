@@ -14,15 +14,7 @@ def load(parent):
         pass
 
     def default_style_parameters():
-        optionframe.default([
-            'line_color',
-            'line_width',
-            'event_color',
-            'highlight_color',
-            'baseline_color',
-            'decay_color',
-            'trace_highlight_color'
-        ])
+        optionframe.default([i for i in optionframe.widgets.keys() if 'color' in i or 'trace' in i])
     def _change_display_mode(e):
         print(e)
 
@@ -41,26 +33,26 @@ def load(parent):
         text='Graph Style'
     )
     optionframe.insert_label_entry(
-        name='line_width',
+        name='trace_line_width',
         label='Trace line width:',
-        value=config.line_width,
-        default=config.default_line_width,
+        value=config.trace_line_width,
+        default=config.default_trace_line_width,
         validate_type='color'
     )
-    optionframe.get_widget('line_width').bind(
+    optionframe.get_widget('trace_line_width').bind(
         '<Return>',
-        lambda e, k='line_width': apply_style(k)
+        lambda e, k='trace_line_width': apply_style(k)
     )
     optionframe.insert_label_entry(
-        name='line_color',
+        name='trace_line_color',
         label='Trace line color:',
-        value=config.line_color,
-        default=config.default_line_color,
+        value=config.trace_line_color,
+        default=config.default_trace_line_color,
         validate_type='color'
     )
-    optionframe.get_widget('line_color').bind(
+    optionframe.get_widget('trace_line_color').bind(
         '<Return>',
-        lambda e, k='line_color': apply_style(k)
+        lambda e, k='trace_line_color': apply_style(k)
     )
     optionframe.insert_label_entry(
         name='event_color_peak',

@@ -30,6 +30,11 @@ default_gp_height : 450
 default_pw_handlesize : 15
 
 # navigation
+default_min_x : 'auto'
+default_max_x : 'auto'
+default_min_y : 'auto'
+default_max_y : 'auto'
+default_apply_axis_limit : 0
 default_scroll_percent : 3
 default_nav_fps : 12
 default_zoom_percent : 10
@@ -68,13 +73,8 @@ default_data_display_end : 1
 default_data_display_channel : 1
 
 #style
-default_min_x : 'auto'
-default_max_x : 'auto'
-default_min_y : 'auto'
-default_max_y : 'auto'
-default_apply_axis_limit : 0
-default_line_color : 'black'
-default_line_width : 0.25
+default_trace_line_color : 'black'
+default_trace_line_width : 0.25
 default_major_tick : 'auto'
 default_minor_tick : 'auto'
 default_event_color_peak : 'yellow'

@@ -441,8 +441,8 @@ class InteractivePlot():
         self.ax.plot(
             xs,
             ys,
-            linewidth=pymini.get_value('line_width'),
-            c=pymini.get_value('line_color')
+            linewidth=pymini.get_value('trace_line_width'),
+            c=pymini.get_value('trace_line_color')
         )
         self.default_xlim = self.ax.get_xlim()
         self.default_ylim = self.ax.get_ylim()
@@ -496,6 +496,8 @@ class InteractivePlot():
             self.markers[key].remove()
         for t in self.temp:
             t.remove()
+        for c in self.ax.collections: # take care of the rest
+            self.ax.collections.remove(c)
         self.temp=[]
 
     def _clear(self):
@@ -588,19 +590,19 @@ class InteractivePlot():
     def apply_all_style(self):
         # markers should be in collections, not lines, so this shouldn't affect peaks, baselines, etc
         for l in self.ax.lines:
-            l.set_color(pymini.get_value('line_color'))
-            l.set_linewidth(float(pymini.get_value('line_width')))
+            l.set_color(pymini.get_value('trace_line_color'))
+            l.set_linewidth(float(pymini.get_value('trace_line_width')))
 
         self.draw()
 
     def apply_style(self, key):
         try:
-            if key == 'line_width':
+            if key == 'trace_line_width':
                 for l in self.ax.lines:
-                    l.set_linewidth(float(pymini.get_value('line_width')))
-            elif key == 'line_color':
+                    l.set_linewidth(float(pymini.get_value('trace_line_width')))
+            elif key == 'trace_line_color':
                 for l in self.ax.lines:
-                    l.set_color(pymini.get_value('line_color'))
+                    l.set_color(pymini.get_value('trace_line_color'))
             self.draw()
             return True
         except:
