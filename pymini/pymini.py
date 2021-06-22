@@ -46,10 +46,7 @@ def _on_close():
     config.dump_system_config()
     root.destroy()
 
-def open_trace():
-    f = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files','*.*')])
-    if f:
-        plot_area.open_trace(f)
+
 
 def get_value(key, tab=None):
     try:

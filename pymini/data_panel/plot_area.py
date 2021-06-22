@@ -120,9 +120,48 @@ class InteractivePlot():
         #     'negative': np.array(self.ax.lines[0].get_ydata)) * -1
         # }
         # ys = switch.get(pymini.get_value('detector_points_search', None))
+        # need to limit per window
+        xlim = self.ax.get_xlim()
+        xlim_idx = (
+            search_index(xlim[0], xs, self.trace.sampling_rate),
+            search_index(xlim[1], xs, self.trace.sampling_rate)
+        )
 
-        start_idx = x_idx - int(int(pymini.get_value('detector_points_search'))/2)
-        end_idx = x_idx + int(int(pymini.get_value('detector_points_search'))/2)
+        #narrow range by xlim
+        start_idx = max(x_idx - int(int(pymini.get_value('detector_points_search'))/2), xlim_idx[0])
+        end_idx = min(x_idx + int(int(pymini.get_value('detector_points_search'))/2), xlim_idx[1])
+
+        # narrow range by ylim
+        ylim = self.ax.get_ylim()
+        print(ys[xlim_idx[0]:xlim_idx[1]] > ylim[1])
+        print(ys[xlim_idx[0]:xlim_idx[1] < ylim[0]])
+
+        a = ys[xlim_idx[0]:xlim_idx[1]] > ylim[1]
+        b = ys[xlim_idx[0]:xlim_idx[1]] < ylim[0]
+
+        print(a | b)
+        ylim_idx = np.where(a|b)[0] + xlim_idx[0]
+        ylim_lower, ylim_higher = None, None
+
+        if len(ylim_idx) > 0:
+            for i, y_idx in enumerate(ylim_idx):
+                ylim_lower = y_idx
+                if y_idx > x_idx: # surpassed x
+                    ylim_higher = y_idx
+                    ylim_lower = ylim_idx[i - 1] # if there was one before, that is on the left of x
+                    if ylim_lower > ylim_higher:
+                        ylim_lower = None
+                    break
+            if ylim_higher is None:
+                ylim_lower = ylim_idx[-1]
+
+        if ylim_lower:
+            start_idx = max(start_idx, ylim_lower)
+        if ylim_higher:
+            end_idx = min(end_idx, ylim_higher)
+        print((ylim_lower, ylim_higher))
+        print((start_idx, end_idx))
+
         lag = int(pymini.get_value('detector_points_baseline'))
         max_pt_baseline = int(pymini.get_value('detector_max_points_baseline'))
         threshold = float(pymini.get_value('detector_min_amp'))
@@ -143,7 +182,7 @@ class InteractivePlot():
 
     def _find_event(self, x_idx, dir, xs, ys, start_idx, end_idx, lag, max_pt_baseline, threshold):
         print('find event')
-        # self.ax.scatter(xs[start_idx:end_idx], ys[start_idx:end_idx])
+
         #### FIND PEAK ####
         data = {}
         try:
@@ -155,10 +194,16 @@ class InteractivePlot():
             return None
         FUDGE = 10 #adjust this if needed
 
-        if peak_idx <= start_idx + FUDGE or peak_idx > end_idx - FUDGE:
-            print('peak is at the edge')
-            return None # the peak is likely at the very edge - no need to try to expand the search space
+        # check if the peak is only a cut-off of a slope:
+        # recursively narrow the search area and look for another local extremum
+        if peak_idx <= start_idx + FUDGE:
+            # slope going to the left edge of the search area
+            return self._find_event(x_idx, dir, xs, ys, start_idx + FUDGE, end_idx, lag, max_pt_baseline, threshold)
 
+        if peak_idx > end_idx - FUDGE:
+            return self._find_event(x_idx, dir, xs, ys, start_idx, end_idx - FUDGE, lag, max_pt_baseline, threshold)
+            return None
+        self.ax.scatter(xs[start_idx:end_idx], ys[start_idx:end_idx])
         data['t'] = xs[peak_idx] # for the table
         data['peak_coord_x'] = xs[peak_idx]
         data['peak_coord_y'] = ys[peak_idx] # for the plot
@@ -188,7 +233,8 @@ class InteractivePlot():
         data['amp'] = (ys[peak_idx] - ys[base_idx]) # implement decay extrapolation later
 
         if data['amp'] * dir < threshold:
-            print('event was too small')
+            print('event was too small: {} '.format(data['amp']))
+            self.ax.scatter(xs[base_idx], ys[base_idx], marker='x', color='black')
             return None # event was too small
 
         data['amp_unit'] = self.trace.y_unit
@@ -199,6 +245,7 @@ class InteractivePlot():
         y_avg = np.mean(ys[end_idx: end_idx + lag]) * dir
         while end_idx < min(end_idx + max_pt_baseline - lag, len(ys) - lag):
             y_avg = (y_avg * (lag) + (ys[end_idx + lag] - ys[end_idx]) * dir) / (lag) # equivalent to np.mean(ys[end_idx + 1: end_idx + lag + 1])
+            # self.ax.scatter(xs[end_idx], y_avg, c='orange')
             if y_avg > ys[end_idx] * dir:
                 break
             end_idx += 1
@@ -209,8 +256,6 @@ class InteractivePlot():
         data['end_coord_x'] = xs[end_idx]
         data['end_coord_y'] = ys[end_idx]
 
-        if (ys[peak_idx] - ys[end_idx]) * dir < threshold: #
-            return None
         data['t_end'] = xs[end_idx]
 
         #### CALCULATE RISE ####
@@ -300,6 +345,7 @@ class InteractivePlot():
             except:
                 pass
         self._clear()
+        pymini.data_table.clear()
         gc.collect()
 
         pymini.change_label(
@@ -456,7 +502,11 @@ class InteractivePlot():
         for l in self.ax.lines:
             self.ax.lines.remove(l)
         for c in self.ax.collections:
-            self.ax.collections.remove(i)
+            self.ax.collections.remove(c)
+        for t in self.temp:
+            t.remove()
+        self.markers = {}
+        self.temp = []
         self.ax.clear()
         gc.collect()
         self.draw()

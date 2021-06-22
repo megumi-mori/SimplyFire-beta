@@ -158,6 +158,22 @@ class InteractiveTable(ttk.Treeview):
             self.move(k, '', index)
         self.heading(col, command=lambda _col=col: self._sort(_col, not reverse))
 
+    def delete(self, *items):
+        super().delete(*items)
+        self.data.drop([float(*items)], axis=0)
+
+    def clear(self):
+        for i in self.selection():
+            self.selection_remove(i)
+
+        try:
+            for i in self.get_children():
+                self.delete(i)
+        except Exception as e:
+            print('clear in table panel: {}'.format(e))
+            pass
+        self.data=self.data[0:0]
+
 
 
 

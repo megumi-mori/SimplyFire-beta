@@ -1,5 +1,5 @@
 import tkinter as Tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 from config import config
 import pymini
 
@@ -13,13 +13,18 @@ def _setting_window(event=None):
     notebook = ttk.Notebook(frame)
     notebook.grid(column=0, row=0, sticky='news')
 
+def open_trace():
+    f = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files','*.*')])
+    if f:
+        pymini.plot_area.open_trace(f)
+
 def load_menubar(parent):
     menubar = Tk.Menu(parent)
     # FILE
     file_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='File', menu=file_menu)
 
-    file_menu.add_command(label="Open", command=pymini.open_trace)
+    file_menu.add_command(label="Open", command=open_trace)
     # file_menu.add_command(label='Close', command=pymini.plot_area.close)
 
     # options_menu = Tk.Menu(menubar, tearoff=0)
