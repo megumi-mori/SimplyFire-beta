@@ -63,59 +63,70 @@ def load(parent):
         lambda e, k='line_color': apply_style(k)
     )
     optionframe.insert_label_entry(
-        name='event_color',
+        name='event_color_peak',
         label='Event peak color:',
-        value=config.event_color,
-        default=config.default_event_color,
+        value=config.event_color_peak,
+        default=config.default_event_color_peak,
         validate_type='color'
     )
-    optionframe.get_widget('event_color').bind(
+    optionframe.get_widget('event_color_peak').bind(
         '<Return>',
-        lambda e, k='event_color': apply_style
+        lambda e, k='event_color_peak': apply_style
     )
     optionframe.insert_label_entry(
-        name='baseline_color',
+        name='event_color_start',
+        label='Event start color:',
+        value=config.event_color_start,
+        default=config.default_event_color_start,
+        validate_type='color'
+    )
+    optionframe.get_widget('event_color_start').bind(
+        '<Return>',
+        lambda e, k='event_color_start': apply_style
+    )
+    optionframe.insert_label_entry(
+        name='event_color_end',
         label='Event baseline color:',
-        value=config.baseline_color,
-        default=config.default_baseline_color,
+        value=config.event_color_end,
+        default=config.default_event_color_end,
         validate_type='color'
     )
-    optionframe.get_widget('baseline_color').bind(
+    optionframe.get_widget('event_color_end').bind(
         '<Return>',
-        lambda e, k='baseline_color': apply_style
+        lambda e, k='event_color_end': apply_style
     )
     optionframe.insert_label_entry(
-        name='decay_color',
+        name='event_color_decay',
         label='Event decay (tau) color:',
-        value=config.decay_color,
-        default=config.default_decay_color,
+        value=config.event_color_decay,
+        default=config.event_color_decay,
         validate_type='color'
     )
-    optionframe.get_widget('decay_color').bind(
+    optionframe.get_widget('event_color_decay').bind(
         '<Return>',
-        lambda e, k='decay_color': apply_style
+        lambda e, k='event_color_decayr': apply_style
     )
     optionframe.insert_label_entry(
-        name='highlight_color',
+        name='event_color_highlight',
         label='Event highlight color:',
-        value=config.highlight_color,
-        default=config.default_highlight_color,
+        value=config.event_color_highlight,
+        default=config.default_event_color_highlight,
         validate_type='color'
     )
-    optionframe.get_widget('highlight_color').bind(
+    optionframe.get_widget('event_color_highlight').bind(
         '<Return>',
-        lambda e, k='highlight_color': apply_style
+        lambda e, k='event_color_highlight': apply_style
     )
     optionframe.insert_label_entry(
         name='trace_highlight_color',
         label='Trace highlight color:',
         value=config.trace_highlight_color,
-        default=config.default_highlight_color,
+        default=config.default_trace_highlight_color,
         validate_type='color'
     )
-    optionframe.get_widget('highlight_color').bind(
+    optionframe.get_widget('trace_highlight_color').bind(
         '<Return>',
-        lambda e, k='highlight_color': apply_style
+        lambda e, k='trace_highlight_color': apply_style
     )
     optionframe.insert_button(
         text='Apply',

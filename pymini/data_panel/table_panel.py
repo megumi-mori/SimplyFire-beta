@@ -46,27 +46,32 @@ def load(parent):
 
     columns = [
         # panel -- make sure this matches with the config2header dict
-        't',
-        'amp',
-        'amp_unit',
+        't',  #
+        'amp',  #
+        'amp_unit',  #
         'decay_const',
         'decay_unit',
         'decay_t',
-        'rise_const',
-        'rise_unit',
-        'baseline',
-        'baseline_unit',
-        't_start',
-        't_end',
-        'channel',
+        'rise_const',  #
+        'rise_unit',  #
+        'baseline',  #
+        'baseline_unit',  #
+        't_start',  #
+        't_end',  #
+        'channel',  #
         # plot
-        'peak_coord',  # (x,y)
-        'decay_coord',
-        'start_coord',
-        'end_coord'
+        'peak_coord_x',  # (x,y) #
+        'peak_coord_y',  #
+        'decay_coord_x',
+        'decay_coord_y',
+        'start_coord_x',  #
+        'start_coord_y',  #
+        'end_coord_x',  #
+        'end_coord_y'  #
     ]
 
     table.config(columns=columns, show='headings')
+    table.set_id('t')
 
     return frame
 
@@ -86,6 +91,9 @@ class InteractiveTable(ttk.Treeview):
                 self.heading(i, text=col, command=lambda _col=col: self._sort(_col, False))
                 self.column(i, width=80, stretch=Tk.NO)
             self.columns = kwargs['columns']
+
+    def set_id(self, id):
+        self.id = id # use this to identify which column is the name value
 
     def fit_columns(self):
         cols = pymini.tabs['detector_tab'].get_value_dict(filter='data_display_')
@@ -118,14 +126,17 @@ class InteractiveTable(ttk.Treeview):
         try:
             self.insert("", 'end',
                         values=[data[i] for i in self.columns],
-                        iid=data['t']) # should have error if already exists
-            self.data = self.data.append(pd.Series(data=data, name=data['t']), ignore_index=False)
+                        iid=data[self.id]) # should have error if already exists
+            self.data = self.data.append(pd.Series(data=data, name=data[self.id]), ignore_index=False)
             self.data.sort_values(by=['t'], inplace=True, ascending=True)
             return True
         except:
             return False
 
-
+    def get_column(self, colname, channel):
+        xs = self.data.index.where(self.data['channel']==channel).dropna()
+        print(xs)
+        return self.data.loc[xs][colname].dropna(axis=0)
 
     ##################################################
     #                Sortable Columns                #

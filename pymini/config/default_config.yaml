@@ -75,10 +75,11 @@ default_line_color : 'black'
 default_line_width : 0.25
 default_major_tick : 'auto'
 default_minor_tick : 'auto'
-default_event_color : 'yellow'
-default_baseline_color : 'red'
-default_decay_color : 'blue'
-default_highlight_color: 'red'
+default_event_color_peak : 'yellow'
+default_event_color_start : 'red'
+default_event_color_end : 'purple'
+default_event_color_decay : 'blue'
+default_event_color_highlight: 'red'
 default_trace_highlight_color : 'red'
 
 default_show_peak : "1"

@@ -61,6 +61,9 @@ class InteractivePlot():
 
         self.trace = None # take this off later once the event finding is completed and can be handled in try/except
 
+        self.markers = {}
+        self.temp = []
+
     ##################################################
     #                 User Interface                 #
     ##################################################
@@ -108,8 +111,9 @@ class InteractivePlot():
         xs = np.array(self.ax.lines[0].get_xdata())
         ys = np.array(self.ax.lines[0].get_ydata())
         x_idx = search_index(x, xs, self.trace.sampling_rate)  # should be the only line on the plot
+        dir = 1
         if pymini.get_value('detector_direction') == "negative":
-            ys = ys * -1 # now can look at either versions with the same algorithm
+            dir = -1
         # switcher implementation:
         # switch = {
         #     'positive': np.array(self.ax.lines[0].get_ydata())
@@ -121,46 +125,99 @@ class InteractivePlot():
         end_idx = x_idx + int(int(pymini.get_value('detector_points_search'))/2)
         lag = int(pymini.get_value('detector_points_baseline'))
         max_pt_baseline = int(pymini.get_value('detector_max_points_baseline'))
-        data = self._find_event(x_idx, xs, ys, start_idx, end_idx, lag, max_pt_baseline)
-        pymini.data_table.add_event(data)
+        threshold = float(pymini.get_value('detector_min_amp'))
+        data = self._find_event(x_idx, dir, xs, ys, start_idx, end_idx, lag, max_pt_baseline, threshold)
+        try:
+            pymini.data_table.add_event(data)
+
+            self._plot_markers()
+
+            #plot successful event
+        except Exception as e:
+            print('_find_event_manual: {}'.format(e))
+            #cannot be added
+            None
 
 
 
 
-    def _find_event(self, x_idx, xs, ys, start_idx, end_idx, lag, max_pt_baseline):
+    def _find_event(self, x_idx, dir, xs, ys, start_idx, end_idx, lag, max_pt_baseline, threshold):
         print('find event')
+        # self.ax.scatter(xs[start_idx:end_idx], ys[start_idx:end_idx])
+        #### FIND PEAK ####
         data = {}
         try:
-            peak_y = max(ys[start_idx:end_idx])
-            peak_idx = np.where(ys[start_idx:end_idx]==peak_y)[0][0] + start_idx #take the earliest time point
+            peak_y = max(ys[start_idx:end_idx] * dir)
+            peaks = np.where(ys[start_idx:end_idx] * dir ==peak_y)[0] + start_idx #list of all matches
+            peak_idx = peaks[0] #take the earliest time point
         except Exception as e:
             print('find event, find index of max: {}'.format(e)) #erase this if no errors are expected
             return None
         FUDGE = 10 #adjust this if needed
 
         if peak_idx <= start_idx + FUDGE or peak_idx > end_idx - FUDGE:
+            print('peak is at the edge')
             return None # the peak is likely at the very edge - no need to try to expand the search space
 
         data['t'] = xs[peak_idx] # for the table
-        data['peak_coord'] = (xs[peak_idx], ys[peak_idx]) # for the plot
+        data['peak_coord_x'] = xs[peak_idx]
+        data['peak_coord_y'] = ys[peak_idx] # for the plot
 
+
+        #### FIND START OF EVENT ####
         base_idx = peak_idx - 1
-        y_avg = np.mean(ys[base_idx - lag+1:base_idx+1]) # should include the base_idx in the calculation, also, why was it base_idx+2?
+        y_avg = np.mean(ys[base_idx - lag+1:base_idx+1] * dir) # should include the base_idx in the calculation, also, why was it base_idx+2?
 
         while base_idx > max(start_idx - max_pt_baseline + lag, lag):
-            y_avg = (y_avg * (lag) + ys[base_idx - lag] - ys[base_idx])/(lag) # equivalent to np.mean(ys[base_idx - lag: base_idx]))
-            if y_avg > ys[base_idx]:
+            y_avg = (y_avg * (lag) + (ys[base_idx - lag] - ys[base_idx]) * dir)/(lag) # equivalent to np.mean(ys[base_idx - lag: base_idx]))
+            if y_avg > ys[base_idx] * dir:
                 break
             base_idx -= 1
         else:
+            print('could not find start')
             return None #could not find start
 
-        data['start_coord'] = (xs[base_idx], ys[base_idx])
+        data['start_coord_x'] = xs[base_idx]
+        data['start_coord_y'] = ys[base_idx]
 
-        data['baseline'] = ys[base_idx]
+        data['baseline'] = y_avg #instead of the coord right at the interception
         data['baseline_unit'] = self.trace.y_unit # make sure channel in trace cannot change unexpectedly
         data['t_start'] = xs[base_idx]
 
+        #### DETERMINE AMPLITUDE ####
+        data['amp'] = (ys[peak_idx] - ys[base_idx]) # implement decay extrapolation later
+
+        if data['amp'] * dir < threshold:
+            print('event was too small')
+            return None # event was too small
+
+        data['amp_unit'] = self.trace.y_unit
+
+        #### FIND END OF EVENT ####
+
+        end_idx = peaks[-1]
+        y_avg = np.mean(ys[end_idx: end_idx + lag]) * dir
+        while end_idx < min(end_idx + max_pt_baseline - lag, len(ys) - lag):
+            y_avg = (y_avg * (lag) + (ys[end_idx + lag] - ys[end_idx]) * dir) / (lag) # equivalent to np.mean(ys[end_idx + 1: end_idx + lag + 1])
+            if y_avg > ys[end_idx] * dir:
+                break
+            end_idx += 1
+        else:
+            print('could not find end')
+            return None #end could not be found
+
+        data['end_coord_x'] = xs[end_idx]
+        data['end_coord_y'] = ys[end_idx]
+
+        if (ys[peak_idx] - ys[end_idx]) * dir < threshold: #
+            return None
+        data['t_end'] = xs[end_idx]
+
+        #### CALCULATE RISE ####
+
+        data['rise_const'] = (xs[peak_idx] - xs[start_idx])*1000
+        data['rise_unit'] = 'ms' if self.trace.x_unit in ['s', 'seconds', 'second', 'sec'] else '{}/1000'.format(self.trace.x_unit)
+        data['channel'] = self.trace.channel + 1 # 1-indexing
         return data
 
 
@@ -309,6 +366,10 @@ class InteractivePlot():
 
         pass
 
+    ##################################################
+    #                      Plot                      #
+    ##################################################
+
     def plot(self, trace, xlim=None, ylim=None):
         """
         plots data from the trace
@@ -350,6 +411,46 @@ class InteractivePlot():
             pass
 
         self.draw()
+
+    def _plot_marker_temp(self, x, y, marker, c):
+        self.temp.append(self.scatter(x, y, marker, c))
+
+    def _plot_markers(self):
+        self._clear_markers()
+        if pymini.get_value('show_peak'):
+            self.markers['peak'] = self.ax.scatter(
+                x=pymini.data_table.get_column('peak_coord_x', self.trace.channel + 1),
+                y=pymini.data_table.get_column('peak_coord_y', self.trace.channel + 1),
+                marker='o',
+                alpha=0.5,
+                c=pymini.get_value('event_color_peak')
+
+            )
+        if pymini.get_value('show_start'):
+            self.markers['start'] = self.ax.scatter(
+                x=pymini.data_table.get_column('start_coord_x', self.trace.channel + 1),
+                y=pymini.data_table.get_column('start_coord_y', self.trace.channel + 1),
+                marker='x',
+                alpha=0.5,
+                c=pymini.get_value('event_color_start')
+            )
+        if pymini.get_value('show_end'):
+            self.markers['start'] = self.ax.scatter(
+                x=pymini.data_table.get_column('end_coord_x', self.trace.channel + 1),
+                y=pymini.data_table.get_column('end_coord_y', self.trace.channel + 1),
+                marker='x',
+                alpha=0.5,
+                c=pymini.get_value('event_color_end')
+            )
+        self.draw()
+
+
+    def _clear_markers(self):
+        for key in self.markers:
+            self.markers[key].remove()
+        for t in self.temp:
+            t.remove()
+        self.temp=[]
 
     def _clear(self):
         for l in self.ax.lines:
