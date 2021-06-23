@@ -14,7 +14,11 @@ def load(parent):
     ##################################################
     #                    Methods                     #
     ##################################################
-
+    def force_channel(event=None):
+        if pymini.get_value('force_channel') == '1':
+            pymini.get_widget('force_channel_id').config(state='normal')
+        else:
+            pymini.get_widget('force_channel_id').config(state='disabled')
     def scroll_plot(axis, dir):
         scroll_plot_repeat(
             axis,
@@ -43,11 +47,7 @@ def load(parent):
     def _choose_channel(event):
         pass
 
-    def force_channel(event=None):
-        if frame.get_value('force_channel') == '1':
-            frame.get_widget('force_channel_id').config(state='normal')
-        else:
-            frame.get_widget('force_channel_id').config(state='disabled')
+
 
     frame = ScrollableOptionFrame(parent, False)
     frame.grid_columnconfigure(0, weight=1)
@@ -146,8 +146,8 @@ def load(parent):
     navigation_toolbar.grid(column=0, row=0, sticky='news')
 
 
-    frame.labels['trace_info'] = widget.VarLabel(toolbar_frame, text='no file open')
-    frame.labels['trace_info'].grid(column=0, row=1, sticky='news')
+    pymini.widgets['trace_info'] = widget.VarLabel(toolbar_frame, text='no file open')
+    pymini.widgets['trace_info'].grid(column=0, row=1, sticky='news')
 
     channel_frame = ScrollableOptionFrame(upper_frame, scrollbar = False)
     channel_frame.grid(column=1, row=0, sticky='ews')
@@ -155,7 +155,7 @@ def load(parent):
     channel_frame.grid_rowconfigure(1, weight=1)
     channel_frame.grid_columnconfigure(0, weight=1)
 
-    channel_frame.insert_label_optionmenu(
+    pymini.widgets['channel_option'] = channel_frame.insert_label_optionmenu(
         name='channel_option',
         label='channel',
         value='',
@@ -163,30 +163,24 @@ def load(parent):
         options=['']
     )
 
-    channel_frame.insert_label_checkbox(
+    pymini.widgets['force_channel'] = channel_frame.insert_label_checkbox(
         name='force_channel',
         label='Always open the same channel:',
-        value=config.force_channel,
-        default=config.default_force_channel,
+        onvalue=1,
+        offvalue=-1,
         command=force_channel
     )
 
-    frame.widgets['channel_option'] = channel_frame.widgets['channel_option']
-    frame.labels['channel_option'] = channel_frame.labels['channel_option']
-
-    frame.widgets['force_channel'] = channel_frame.widgets['force_channel']
-    frame.labels['force_channel'] = channel_frame.labels['force_channel']
 
 
-    frame.widgets['force_channel_id'] = widget.VarEntry(
+    pymini.widgets['force_channel_id'] = widget.VarEntry(
         parent=channel_frame.widgets['force_channel']._nametowidget(channel_frame.widgets['force_channel'].winfo_parent()),
-        value=config.force_channel_id,
-        default=config.default_force_channel_id,
+        name='force_channel_id',
         validate_type='int'
     )
-    frame.widgets['force_channel_id'].grid(column=2,row=0,sticky='ews')
-    if frame.get_widget('force_channel').get() == "0":
-        frame.get_widget('force_channel_id').config(state='disabled')
+    force_channel()
+    pymini.widgets['force_channel_id'].grid(column=2,row=0,sticky='ews')
+
     x_zoom_frame = Tk.Frame(frame, bg='orange')
     x_zoom_frame.grid_rowconfigure(0, weight=1)
     x_zoom_frame.grid_columnconfigure(3, weight=1)

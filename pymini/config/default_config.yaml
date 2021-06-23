@@ -58,11 +58,11 @@ default_detector_min_auc : 0
 default_data_export_all : 1
 default_data_display_time : 1
 default_data_display_amplitude : 1
-default_data_display_amp_unit : 1
-default_data_display_decay_constant : 1
+default_data_display_amplitude_unit : 1
+default_data_display_decay : 1
 default_data_display_decay_unit : 1
 default_data_display_decay_time : 1
-default_data_display_rise_constant : 1
+default_data_display_rise : 1
 default_data_display_rise_unit : 1
 default_data_display_halfwidth : 1
 default_data_display_halfwidth_unit : 1
@@ -73,16 +73,16 @@ default_data_display_end : 1
 default_data_display_channel : 1
 
 #style
-default_trace_line_color : 'black'
-default_trace_line_width : 0.25
+default_style_trace_line_color : 'black'
+default_style_trace_line_width : 0.25
 default_major_tick : 'auto'
 default_minor_tick : 'auto'
-default_event_color_peak : 'yellow'
-default_event_color_start : 'red'
-default_event_color_end : 'purple'
-default_event_color_decay : 'blue'
-default_event_color_highlight: 'red'
-default_trace_highlight_color : 'red'
+default_style_event_color_peak : 'yellow'
+default_style_event_color_start : 'red'
+default_style_event_color_end : 'purple'
+default_style_event_color_decay : 'blue'
+default_style_event_color_highlight: 'red'
+default_style_trace_highlight_color : 'red'
 
 default_show_peak : "1"
 default_show_decay_constant : "1"
@@ -90,22 +90,23 @@ default_show_start : "1"
 default_show_end : ""
 
 #system
-system_default_config_path :
+default_config_user_path :
   - 'DIR'
   - 'config'
   - "user_config.yaml"
-system_default_system_path :
+default_config_system_path :
   - 'DIR'
   - 'config'
   - 'pymini_config.yaml'
-system_default_config_autoload : 0
-system_default_config_autosave : 0
-system_default_file_autodir : 1
+default_config_autoload : 1
+default_config_autosave : 1
+default_config_file_autodir : 1
 
 # channel
-default_channel_choice : ""
+default_channel_option : ""
 default_force_channel : 0
 default_force_channel_id: 0
+
 
 # sweep
 default_export_sweep : 1

@@ -9,20 +9,6 @@ import textwrap
 
 from functools import wraps
 
-
-def make_label(
-        parent,
-        name,
-        label
-):
-
-    wrapped_label = textwrap.wrap(label, width=config.default_label_length)
-    text = '\n'.join(wrapped_label)
-    label = ttk.Label(parent, text=text)
-
-    return label
-
-
 class ScrollableOptionFrame(Tk.Frame):
     def __init__(self, parent, scrollbar=True):
         super().__init__(parent)
@@ -103,8 +89,8 @@ class ScrollableOptionFrame(Tk.Frame):
                 self,
                 name,
                 label="",
-                value="",
-                default="",
+                value=None,
+                default=None,
                 **kwargs
         ):
             panel = self.make_panel(separator=config.default_separator)
@@ -116,14 +102,16 @@ class ScrollableOptionFrame(Tk.Frame):
             self.labels[name] = ttk.Label(frame, text=text)
             self.labels[name].grid(column=0, row=0, sticky='news')
             frame.grid(column=0,row=0, sticky='news')
-            w = func(self, parent=frame, value=value, default=default, **kwargs)
+            w = func(self, parent=frame, name = name, value=value, default=default, **kwargs)
             self.widgets[name] = w
+            return w
         return call
     #
     @insert_label_widget
     def insert_label_entry(
             self,
             parent,
+            name,
             value,
             default,
             validate_type=None,
@@ -132,6 +120,7 @@ class ScrollableOptionFrame(Tk.Frame):
     ):
         w = widget.VarEntry(
             parent=parent,
+            name=name,
             value=value,
             default=default,
             validate_type=validate_type
@@ -144,14 +133,16 @@ class ScrollableOptionFrame(Tk.Frame):
     def insert_label_optionmenu(
             self,
             parent,
+            name=None,
             value=None,
-            default='',
+            default=None,
             options=None,
             command=None,
             **kwargs
     ):
         w = widget.VarOptionmenu(
             parent=parent,
+            name=name,
             value=value,
             default=default,
             options=options,
@@ -166,6 +157,7 @@ class ScrollableOptionFrame(Tk.Frame):
     def insert_label_checkbox(
             self,
             parent,
+            name=None,
             value=None,
             default=None,
             command=None,
@@ -173,6 +165,7 @@ class ScrollableOptionFrame(Tk.Frame):
     ):
         w = widget.VarCheckbutton(
             parent=parent,
+            name=name,
             value=value,
             default=default,
             command=command,
@@ -191,11 +184,6 @@ class ScrollableOptionFrame(Tk.Frame):
         label = Tk.Label(panel, text=text, justify=Tk.CENTER)
         self.titles[name] = label
         label.grid(column=0, row=0, sticky='news')
-
-
-
-
-
 
     def make_panel(
             self,
@@ -264,9 +252,14 @@ class ScrollableOptionFrame(Tk.Frame):
         width = self.canvas.winfo_width()
         button.config(width=int(width/2), wraplength= int(width / 2) - 4)
 
-    def default(self, keys=None):
+    def default(self, keys=None, filter=None):
         if keys is None:
             keys = self.widgets.keys()
+        if filter is not None:
+            for key in keys:
+                if filter in key:
+                    self.widgets[key].set_to_default()
+            return
         for key in keys:
             self.widgets[key].set_to_default()
 
@@ -276,8 +269,16 @@ class ScrollableOptionFrame(Tk.Frame):
     def set_value(self, key, value):
         self.widgets[key].set(value)
 
-    def change_label(self, key, value):
-        self.labels[key].set(value)
+    def set_all(self, value, keys=None, filter=None):
+        if keys is None:
+            keys = self.widgets.keys()
+        if filter is not None:
+            for key in keys:
+                if filter in key:
+                    self.widgets[key].set(value)
+            return
+        for key in keys:
+            self.widgets[key].set(value)
 
     def safe_dump_vars(self):
         vars = [(key, self.widgets[key].get()) for key in self.widgets]

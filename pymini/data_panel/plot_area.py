@@ -348,15 +348,13 @@ class InteractivePlot():
         pymini.data_table.clear()
         gc.collect()
 
-        pymini.change_label(
-            'trace_info',
+        pymini.widgets['trace_info'].set(
             '{} : {}Hz : {} channel{}'.format(
                 self.trace.fname,
                 self.trace.sampling_rate,
                 self.trace.channel_count,
                 's' if self.trace.channel_count > 1 else ""
-            ),
-            tab='graph_panel'
+            )
         )
 
         xlim = None
@@ -391,7 +389,7 @@ class InteractivePlot():
         self._clear()
         pymini.get_widget('channel_option').clear_options()
         pymini.set_value('channel_option', '', 'graph_panel')
-        pymini.change_label('trace_info', "", 'graph_panel')
+        pymini.widgets['trace_info'].set("")
         try:
             self.trace.forget()
             self.trace = None
@@ -441,8 +439,8 @@ class InteractivePlot():
         self.ax.plot(
             xs,
             ys,
-            linewidth=pymini.get_value('trace_line_width'),
-            c=pymini.get_value('trace_line_color')
+            linewidth=pymini.get_value('style_trace_line_width'),
+            c=pymini.get_value('style_trace_line_color')
         )
         self.default_xlim = self.ax.get_xlim()
         self.default_ylim = self.ax.get_ylim()
@@ -469,7 +467,7 @@ class InteractivePlot():
                 y=pymini.data_table.get_column('peak_coord_y', self.trace.channel + 1),
                 marker='o',
                 alpha=0.5,
-                c=pymini.get_value('event_color_peak')
+                c=pymini.get_value('style_event_color_peak')
 
             )
         if pymini.get_value('show_start'):
@@ -478,7 +476,7 @@ class InteractivePlot():
                 y=pymini.data_table.get_column('start_coord_y', self.trace.channel + 1),
                 marker='x',
                 alpha=0.5,
-                c=pymini.get_value('event_color_start')
+                c=pymini.get_value('style_event_color_start')
             )
         if pymini.get_value('show_end'):
             self.markers['start'] = self.ax.scatter(
@@ -486,7 +484,7 @@ class InteractivePlot():
                 y=pymini.data_table.get_column('end_coord_y', self.trace.channel + 1),
                 marker='x',
                 alpha=0.5,
-                c=pymini.get_value('event_color_end')
+                c=pymini.get_value('style_event_color_end')
             )
         self.draw()
 
@@ -590,19 +588,19 @@ class InteractivePlot():
     def apply_all_style(self):
         # markers should be in collections, not lines, so this shouldn't affect peaks, baselines, etc
         for l in self.ax.lines:
-            l.set_color(pymini.get_value('trace_line_color'))
-            l.set_linewidth(float(pymini.get_value('trace_line_width')))
+            l.set_color(pymini.get_value('style_trace_line_color'))
+            l.set_linewidth(float(pymini.get_value('style_trace_line_width')))
 
         self.draw()
 
     def apply_style(self, key):
         try:
-            if key == 'trace_line_width':
+            if key == 'style_trace_line_width':
                 for l in self.ax.lines:
-                    l.set_linewidth(float(pymini.get_value('trace_line_width')))
-            elif key == 'trace_line_color':
+                    l.set_linewidth(float(pymini.get_value('style_trace_line_width')))
+            elif key == 'style_trace_line_color':
                 for l in self.ax.lines:
-                    l.set_color(pymini.get_value('trace_line_color'))
+                    l.set_color(pymini.get_value('style_trace_line_color'))
             self.draw()
             return True
         except:

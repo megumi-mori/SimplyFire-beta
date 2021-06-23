@@ -27,8 +27,6 @@ def test():
     data_table.add_event({
         't':0.02
     })
-
-    print(data_table.data)
 def _on_close():
     """
     The function is called when the program is closing (pressing X)
@@ -41,14 +39,19 @@ def _on_close():
     #     tabs.append(cp.detector_tab_tab)
     # if cp.style_tab_tab.get_value('save_style_tab_preferences') == '1':
     #     tabs.append(cp.style_tab_tab)
-    if tabs['settings_tab'].get_value('config_autosave') == '1':
-        config.dump_user_config(tabs['settings_tab'].get_value('config_path'), tabs, ignore=['settings_tab'])
+    if widgets['config_autosave'].get():
+        config.dump_user_config(widgets['config_user_path'].get(), ignore=['config'])
     config.dump_system_config()
     root.destroy()
 
 
 
 def get_value(key, tab=None):
+    try:
+        v = widgets[key].get()
+        return v
+    except:
+        pass
     try:
         return tabs[tab].get_value(key)
     except:
@@ -61,6 +64,10 @@ def get_value(key, tab=None):
 
 def get_widget(key, tab=None):
     try:
+        return widgets[key]
+    except:
+        pass
+    try:
         return tabs[tab].get_widget(key)
     except:
         for t in tabs:
@@ -71,19 +78,26 @@ def get_widget(key, tab=None):
     return None
 
 def set_value(key, value, tab=None):
+    widgets[key].set(value)
     try:
-        tabs[tab].set_value(key, value)
-        print(tabs[tab].get_value(key))
-        return True
+        widgets[key].set(value)
+        return
     except:
-        for t in tabs:
-            try:
-                tabs[t].set_value(key, value)
-                return True
-            except Exception as e:
-                print(e)
-                pass
-    return False
+        raise
+        None
+    # try:
+    #     tabs[tab].set_value(key, value)
+    #     return True
+    # except:
+    #     for t in tabs:
+    #         try:
+    #             tabs[t].set_value(key, value)
+    #             return True
+    #         except Exception as e:
+    #             raise
+    #             print('{}, {}'.format(key, e))
+    #             pass
+    # return False
 
 def change_label(key, value, tab=None):
     try:
@@ -104,6 +118,8 @@ root.geometry('{}x{}'.format(config.geometry[0], config.geometry[1]))
 
 root.grid_rowconfigure(0, weight=1)
 root.grid_columnconfigure(0, weight=1)
+
+widgets = {}
 
 pw = Tk.PanedWindow(
     root,
@@ -211,7 +227,7 @@ plot_area.focus()
 
 data_table.show_columns()
 root.update()
-data_table.fit_columns()
+# data_table.fit_columns()
 
 
 

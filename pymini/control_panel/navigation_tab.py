@@ -148,38 +148,30 @@ def load(parent):
     optionframe.insert_label_entry(
         name='nav_fps',
         label='Smooth navigation speed (fps):',
-        value=config.nav_fps,
-        default=config.default_nav_fps,
         validate_type='int'
     )
     optionframe.insert_label_entry(
         name='scroll_percent',
         label='Scroll speed (percent axis):',
-        value=config.scroll_percent,
-        default=config.default_scroll_percent,
         validate_type='float'
     )
     optionframe.insert_label_entry(
         name='zoom_percent',
         label='Zoom speed (percent axis):',
-        value=config.zoom_percent,
-        default=config.default_zoom_percent,
         validate_type='float'
     )
     optionframe.insert_label_checkbox(
         name='mirror_y_scroll',
         label='Mirror y-axis scroll button directions',
-        value=config.mirror_y_scroll,
-        default=config.default_mirror_y_scroll
+        onvalue=-1,
+        offvalue=1
     )
-    optionframe.widgets['mirror_y_scroll'].config(onvalue=-1, offvalue=1)
     optionframe.insert_label_checkbox(
         name='mirror_x_scroll',
         label='Mirror x-axis scroll button directions',
-        value=config.mirror_x_scroll,
-        default=config.default_mirror_x_scroll
+        onvalue=-1,
+        offvalue=1
     )
-    optionframe.widgets['mirror_x_scroll'].config(onvalue=-1, offvalue=1)
     optionframe.insert_button(
         text='Apply',
         command=pymini.plot_area.focus

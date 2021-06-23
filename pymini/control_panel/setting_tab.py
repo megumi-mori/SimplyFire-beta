@@ -17,8 +17,7 @@ def load(parent):
         Calls the config module's dump_user_config function with the current config path
         :return:
         """
-        path = frame.widgets['config_path'].get()
-        config.dump_user_config(path)
+        config.dump_user_config(frame.widgets['config_path'].get())
         pass
 
     def _ask_dirname(e=None):
@@ -47,17 +46,17 @@ def load(parent):
         name='config_settings',
         text='Config Auto-save/load'
     )
-    frame.insert_label_checkbox(
+    pymini.widgets['config_autoload'] = frame.insert_label_checkbox(
         name='config_autoload',
         label='Automatically load configurations at the beginning of the next session',
-        value=config.config_autoload,
-        default=config.system_default_config_autoload
+        onvalue='1',
+        offvalue=""
     )
-    frame.insert_label_checkbox(
+    pymini.widgets['config_autosave'] = frame.insert_label_checkbox(
         name='config_autosave',
         label='Automatically save configurations at the end of this session',
-        value=config.config_autosave,
-        default=config.system_default_config_autosave
+        onvalue='1',
+        offvalue=""
     )
 
     # auto_load directory panel
@@ -71,13 +70,13 @@ def load(parent):
 
     dir_entry = widget.VarText(
         parent=dir_frame,
-        name='config_path',
-        value=config.convert_to_path(config.config_path),
-        default=config.convert_to_path(config.system_default_config_path)
+        name='config_user_path',
+        value=config.convert_to_path(config.config_user_path),
+        default=config.convert_to_path(config.default_config_user_path)
     )
     dir_entry.configure(state='disabled', height=2)
     dir_entry.grid(column=0,row=1,sticky='news')
-    frame.widgets['config_path'] = dir_entry
+    pymini.widgets['config_user_path'] = dir_entry
 
     Tk.Button(
         master=dir_frame,
@@ -85,7 +84,9 @@ def load(parent):
         command=_ask_dirname
     ).grid(column=1, row=1, sticky='news')
 
-    frame.insert_button("Save current config now", command= _save_config)
+    frame.insert_button("Save current config now",
+                        command= lambda e=pymini.widgets['config_user_path'].get():
+                            config.dump_user_config(e))
 
     frame.insert_button("Save current config As...", command=_save_config_as)
 
@@ -100,11 +101,9 @@ def load(parent):
         name='misc',
         text='Misc'
     )
-    frame.insert_label_checkbox(
-        name='file_autodir',
+    pymini.widgets['config_file_autodir'] = frame.insert_label_checkbox(
+        name='config_file_autodir',
         label='Use trace file directory as default export directory (figures, data)',
-        value=config.file_autodir,
-        default=config.system_default_file_autodir,
         onvalue="1",
         offvalue=""
     )

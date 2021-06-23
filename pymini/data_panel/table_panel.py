@@ -9,18 +9,22 @@ from collections import OrderedDict #Python 3.7+ can use dict
 header2config = OrderedDict([
         ('t', 'data_display_time'),
         ('amp', 'data_display_amplitude'),
-        ('amp_unit', 'data_display_amp_unit'),
-        ('decay_const', 'data_display_decay_constant'),
+        ('amp_unit', 'data_display_amplitude_unit'),
+        ('decay_const', 'data_display_decay'),
         ('decay_unit', 'data_display_decay_unit'),
         ('decay_t', 'data_display_decay_time'),
-        ('rise_const', 'data_display_rise_constant'),
+        ('rise_const', 'data_display_rise'),
         ('rise_unit', 'data_display_rise_unit'),
+    ('halfwidth', 'data_display_halfwidth'),
+('halfwidth_unit', 'data_display_halfwidth_unit'),
         ('baseline', 'data_display_baseline'),
         ('baseline_unit', 'data_display_baseline_unit'),
         ('t_start', 'data_display_start'),
         ('t_end', 'data_display_end'),
         ('channel', 'data_display_channel', )
     ])
+
+config2header = OrderedDict([(header2config[key], key) for key in header2config.keys()])
 
 
 
@@ -98,15 +102,18 @@ class InteractiveTable(ttk.Treeview):
         self.id = id # use this to identify which column is the name value
 
     def fit_columns(self):
-        cols = pymini.tabs['detector_tab'].get_value_dict(filter='data_display_')
-        indices = [i for i, e in enumerate(header2config) if cols[header2config[e]]]
+        indices = [config2header[e] for e in config2header if pymini.get_value(e) or pymini.get_value(e[:-5])]
         w = int(self.winfo_width() / len(indices))
         for i in indices:
             self.column(i, width=w)
 
     def show_columns(self):
-        cols = pymini.tabs['detector_tab'].get_value_dict(filter='data_display_')
-        self.config(displaycolumns=tuple([i for i, e in enumerate(header2config) if cols[header2config[e]]]))
+        self.config(
+            displaycolumns=tuple(
+                [config2header[e] for e in config2header
+                 if pymini.get_value(e) or pymini.get_value(e[:-5])] #will also display 'unit' headers
+            )
+        )
 
     ##################################################
     #                      Data                      #
@@ -137,7 +144,6 @@ class InteractiveTable(ttk.Treeview):
 
     def get_column(self, colname, channel):
         xs = self.data.index.where(self.data['channel']==channel).dropna()
-        print(xs)
         return self.data.loc[xs][colname].dropna(axis=0)
 
     ##################################################

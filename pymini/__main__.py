@@ -10,5 +10,5 @@ if __name__ == '__main__':
 
     # root = pymini.load()
     root=pymini.root
-    pymini.plot_area.open_trace('D:\\megum\\Documents\\GitHub\\PyMini\\test_recordings\\20112011-EJC test.abf')
+    # pymini.plot_area.open_trace('D:\\megum\\Documents\\GitHub\\PyMini\\test_recordings\\20112011-EJC test.abf')
     root.mainloop()

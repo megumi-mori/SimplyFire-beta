@@ -5,7 +5,8 @@ valid_types = [
     "float",
     "int",
     "auto",
-    "dir"
+    "dir",
+    "None"
 ]
 
 
@@ -33,6 +34,9 @@ def validate(validate_type, value):
             return True
         elif type == "dir":
             if os.path.isdir(value):
+                return True
+        elif type == "None":
+            if value == "":
                 return True
         else:
             pass

@@ -9,12 +9,25 @@ class VarWidget():
     def __init__(
             self,
             parent=None,
-            value="",
-            default=""
+            name="",
+            value=None,
+            default=None
     ):
-        self.var = Tk.StringVar(parent)
-        self.var.set(value)
-        self.default=default
+        self.name = name
+        self.var = Tk.StringVar()
+        if value is not None and default is not None:
+            try:
+                self.var.set(value)
+                self.default=default
+                return
+            except:
+                pass
+        try:
+            self.var.set(config.user_vars[name])
+            self.default = config.default_vars['default_{}'.format(name)]
+        except:
+            self.var.set(config.system_vars[name])
+            self.default = config.default_vars['system_default_{}'.format(name)]
 
     def get(self):
         return self.var.get()
@@ -35,14 +48,16 @@ class VarEntry(VarWidget, Tk.Entry):
     def __init__(
             self,
             parent,
-            value="",
-            default="",
+            name=None,
+            value=None,
+            default=None,
             validate_type=None
     ):
         self.prev = value
         VarWidget.__init__(
             self,
             parent=parent,
+            name=name,
             value=value,
             default=default
         )
@@ -94,6 +109,7 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
     def __init__(
             self,
             parent,
+            name=None,
             value=None,
             default="",
             options=None,
@@ -103,6 +119,7 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
         VarWidget.__init__(
             self,
             parent=parent,
+            name=name,
             value=value,
             default=default
         )
@@ -141,6 +158,7 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
     def __init__(
             self,
             parent,
+            name=None,
             value=None,
             default=None,
             command=None,
@@ -148,6 +166,7 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
     ):
         VarWidget.__init__(
             self,
+            name=name,
             parent=parent,
             value=value,
             default=default
@@ -166,12 +185,13 @@ class VarText(VarWidget, Tk.Text):
             self,
             parent,
             name="",
-            value="",
-            default=""
+            value=None,
+            default=None
     ):
         VarWidget.__init__(
             self,
             parent=parent,
+            name=name,
             value=value,
             default=default
         )
@@ -179,6 +199,7 @@ class VarText(VarWidget, Tk.Text):
             self,
             master=parent,
         )
+        # print(self.get())
         self.set(value)
 
     def set(self, value):
