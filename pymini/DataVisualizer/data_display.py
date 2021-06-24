@@ -10,16 +10,17 @@ def load(parent, root):
     frame.grid_rowconfigure(0, weight=1)
     frame.grid_columnconfigure(0, weight=1)
 
-    pymini.data_table = InteractiveTable(frame)
-    pymini.data_table.grid(column=0, row=0, sticky='news')
+    global table
+    table = ttk.Treeview
+    table.grid(column=0, row=0, sticky='news')
 
-    vsb = ttk.Scrollbar(frame, orient=Tk.VERTICAL, command=pymini.data_table.yview)
+    vsb = ttk.Scrollbar(frame, orient=Tk.VERTICAL, command=table.yview)
     vsb.grid(column=1, row=0, sticky='ns')
-    pymini.data_table.configure(yscrollcommand=vsb.set)
+    table.configure(yscrollcommand=vsb.set)
 
-    hsb = ttk.Scrollbar(frame, orient=Tk.HORIZONTAL, command=pymini.data_table.xview)
+    hsb = ttk.Scrollbar(frame, orient=Tk.HORIZONTAL, command=table.xview)
     hsb.grid(column=0, row=1, sticky='ew')
-    pymini.data_table.configure(xscrollcommand=hsb.set)
+    table.configure(xscrollcommand=hsb.set)
 
     columns = [
         # panel -- make sure this matches with the config2header dict
@@ -49,8 +50,8 @@ def load(parent, root):
         'end_coord_y'  #
     ]
 
-    pymini.data_table.config(columns=columns, show='headings')
-    pymini.data_table.set_id('t')
+    table.config(columns=columns, show='headings')
+    table.set_id('t')
 
     return frame
 
