@@ -66,7 +66,7 @@ def load(parent):
     )
     frame.insert_button(
         text='Apply',
-        command=pymini.plot_area.focus
+        command=pymini.plot.focus
     )
     frame.insert_button(
         text='Default paramters',
