@@ -95,17 +95,6 @@ def dump_user_config(path, ignore=None):
         f.write("#################################################################\n")
         f.write("\n")
         pymini.pb.initiate()
-        # for i, t in enumerate(tabs):
-        #     if t not in ignore:
-        #         try:
-        #             f.write(tabs[t].safe_dump_vars())
-        #         except:
-        #             pass
-        #         pymini.pb.progress((i + 1) / (len(tabs.keys()) - len(ignore)))
-
-        # vars = [(key, self.widgets[key].get()) for key in self.widgets]
-        # d = dict(vars)
-        # return yaml.safe_dump(d)
         d = {}
         for key in pymini.widgets.keys():
             try:
@@ -143,12 +132,11 @@ def load_config(e=None):
         return None
     configs = yaml.safe_load(f)
     for c, v in configs.items():
-        for t in pymini.tabs:
-            try:
-                tabs[t].widgets[c].set(v)
-                break
-            except:
-                pass
+        try:
+            pymini.widgets[c] = v
+        except:
+            pass
+
 
 
 
