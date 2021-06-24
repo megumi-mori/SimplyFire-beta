@@ -33,16 +33,13 @@ def search_index(x, l, rate):
 
 class InteractivePlot():
     def __init__(self, parent):
-        self.frame = Tk.Frame(parent)
-        # self.frame.grid_columnconfigure(0, weight=1)
-        # self.frame.grid_rowconfigure(0 ,weight=1) #I guess this doesn't matter?
 
         self.fig = Figure()
         self.fig.set_tight_layout(True)
 
         self.ax = self.fig.add_subplot(111)
         self.fig.subplots_adjust(right=1, top=1)
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=parent)
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
         self.ax.plot()
 
