@@ -1,14 +1,9 @@
-from tkinter import ttk, filedialog
+from tkinter import ttk
 import tkinter as Tk
 
 from config import config
-from control_panel import font_bar
 
-from menubar import menubar
-
-from control_panel import detector_tab, style_tab, progress_bar, setting_tab, navigation_tab, sweep_tab
-
-from data_panel import graph_panel, table_panel
+from Layout import font_bar, menubar, detector_tab, style_tab, progress_bar, setting_tab, navigation_tab, sweep_tab, table_panel, graph_panel
 
 from utils import widget
 
@@ -34,11 +29,7 @@ def _on_close():
     :return: None
     """
     print('closing')
-    plot_area.focus()
-    # if cp.detector_tab_tab.get_value('save_detector_tab_preferences') == '1':
-    #     tabs.append(cp.detector_tab_tab)
-    # if cp.style_tab_tab.get_value('save_style_tab_preferences') == '1':
-    #     tabs.append(cp.style_tab_tab)
+    plot.focus()
     if widgets['config_autosave'].get():
         config.dump_user_config(widgets['config_user_path'].get(), ignore=['config'])
     config.dump_system_config()
@@ -52,30 +43,13 @@ def get_value(key, tab=None):
         return v
     except:
         pass
-    try:
-        return tabs[tab].get_value(key)
-    except:
-        for t in tabs:
-            try:
-                return tabs[t].get_value(key)
-            except:
-                pass
-    return None
 
 def get_widget(key, tab=None):
     try:
         return widgets[key]
     except:
         pass
-    try:
-        return tabs[tab].get_widget(key)
-    except:
-        for t in tabs:
-            try:
-                return tabs[t].get_widget(key)
-            except:
-                pass
-    return None
+
 
 def set_value(key, value, tab=None):
     widgets[key].set(value)
@@ -85,19 +59,7 @@ def set_value(key, value, tab=None):
     except:
         raise
         None
-    # try:
-    #     tabs[tab].set_value(key, value)
-    #     return True
-    # except:
-    #     for t in tabs:
-    #         try:
-    #             tabs[t].set_value(key, value)
-    #             return True
-    #         except Exception as e:
-    #             raise
-    #             print('{}, {}'.format(key, e))
-    #             pass
-    # return False
+
 
 def change_label(key, value, tab=None):
     try:
@@ -154,12 +116,12 @@ tabs['graph_panel'] = graph_panel.load(pw_2)
 tabs['graph_panel'].grid(column=0, row=0, sticky='news')
 pw_2.add(tabs['graph_panel'])
 
-plot_area = tabs['graph_panel'].plot
+plot = tabs['graph_panel'].plot
 
-tabs['table_panel'] = table_panel.load(pw_2)
+tabs['table_panel'] = table_panel.load(pw_2, root)
 pw_2.add(tabs['table_panel'])
 
-data_table = tabs['table_panel'].table
+# data_table = tabs['table_panel'].table
 
 pw_2.grid(column=0, row=0, sticky='news')
 pw_2.paneconfig(tabs['graph_panel'], height=config.gp_height)
@@ -192,7 +154,7 @@ cp_notebook.add(tabs['detector_tab'], text='Detector')
 tabs['sweep_tab'] = sweep_tab.load(cp)
 
 # insert navigation_tab tab into control panel
-tabs['navigation_tab'] = navigation_tab.load(cp)
+tabs['navigation_tab'] = navigation_tab.load(cp, root)
 cp_notebook.add(tabs['navigation_tab'], text='Navigation')
 
 # insert style_tab options tab into control panel
@@ -223,7 +185,7 @@ pw.paneconfig(left, width=int(config.cp_width))
 
 
 # focus on plot
-plot_area.focus()
+plot.focus()
 
 data_table.show_columns()
 root.update()
@@ -238,7 +200,6 @@ root.update()
 ##################################################
 
 # set up menubar
-tabs['menu'] = widget.PseudoFrame()
 menubar = menubar.load_menubar(root)
 root.config(menu=menubar)
 
