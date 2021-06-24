@@ -11,6 +11,8 @@ import gc
 import time
 import numpy as np
 
+from DataVisualizer import data_display
+
 def load(parent):
     frame = Tk.Frame(parent)
     fig = Figure()
@@ -346,7 +348,7 @@ class InteractivePlot():
             except:
                 pass
         self._clear()
-        pymini.data_table.clear()
+        data_display.clear()
         gc.collect()
 
         pymini.widgets['trace_info'].set(
