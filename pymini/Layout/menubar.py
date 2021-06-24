@@ -2,6 +2,8 @@ import tkinter as Tk
 from tkinter import ttk, filedialog
 from config import config
 import pymini
+from utils.widget import VarWidget
+from Backend import interface
 
 def _setting_window(event=None):
     window = Tk.Toplevel()
@@ -13,18 +15,13 @@ def _setting_window(event=None):
     notebook = ttk.Notebook(frame)
     notebook.grid(column=0, row=0, sticky='news')
 
-def open_trace():
-    f = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files','*.*')])
-    if f:
-        pymini.plot_area.open_trace(f)
-
 def load_menubar(parent):
     menubar = Tk.Menu(parent)
     # FILE
     file_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='File', menu=file_menu)
 
-    file_menu.add_command(label="Open", command=open_trace)
+    file_menu.add_command(label="Open", command=interface.open_trace)
     # file_menu.add_command(label='Close', command=pymini.plot_area.close)
 
     # options_menu = Tk.Menu(menubar, tearoff=0)
@@ -34,15 +31,16 @@ def load_menubar(parent):
 
     view_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='View', menu=view_menu)
-
+    pymini.widgets['trace_mode'] = VarWidget(name='trace_mode')
     view_menu.add_radiobutton(label='Continous', command=_continuous_mode)
     view_menu.add_radiobutton(label='Overlay', command=_overlay_mode)
     view_menu.invoke({'continuous':0,'overlay':1}[config.trace_mode])
 
+
     return menubar
 
 def _continuous_mode():
-    pymini.tabs['menu'].set_value('trace_mode', 'continuous')
+    pymini.widgets['trace_mode'].set('continuous')
     try:
         cur_id = pymini.cp_notebook.index(pymini.cp_notebook.select())
         tab_id=pymini.cp_notebook.index(pymini.tabs['sweep'])
@@ -53,7 +51,7 @@ def _continuous_mode():
         pass
 
 def _overlay_mode(e=None):
-    pymini.tabs['menu'].set_value('trace_mode', 'overlay')
+    pymini.widgets['trace_mode'].set('overlay')
     try:
         cur_id = pymini.cp_notebook.index(pymini.cp_notebook.select())
         tab_id = pymini.cp_notebook.index(pymini.tabs['detector'])

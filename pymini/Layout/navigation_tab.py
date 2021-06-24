@@ -3,13 +3,13 @@ from utils.scrollable_option_frame import ScrollableOptionFrame
 import pymini
 
 
-def load(parent):
+def load(parent, root):
     ##################################################
     #                    Methods                     #
     ##################################################
     def apply_axes_limits():
-        pymini.plot_area.focus()
-        pymini.plot_area.set_axis_limits(
+        pymini.plot.focus()
+        pymini.plot.set_axis_limits(
             {
                 'x': (
                     optionframe.get_value('min_x'),
@@ -40,14 +40,14 @@ def load(parent):
 
     def apply_axis_limit(name, axis, idx):
         print((name, axis, idx))
-        pymini.plot_area.set_single_axis_limit(axis, idx, optionframe.get_value(name))
+        pymini.plot.set_single_axis_limit(axis, idx, optionframe.get_value(name))
 
 
     def get_current_axes():
-        xlim = pymini.plot_area.get_axis_limits('x')
+        xlim = pymini.plot.get_axis_limits('x')
         optionframe.set_value('min_x', xlim[0])
         optionframe.set_value('max_x', xlim[1])
-        ylim = pymini.plot_area.get_axis_limits('y')
+        ylim = pymini.plot.get_axis_limits('y')
         optionframe.set_value('min_y', ylim[0])
         optionframe.set_value('max_y', ylim[1])
 
@@ -64,47 +64,39 @@ def load(parent):
         name='axis',
         text='Axes'
     )
-    optionframe.insert_label_entry(
+    pymini.widgets['min_x'] = optionframe.insert_label_entry(
         name='min_x',
         label='Min x-axis:',
-        value=config.min_x,
-        default=config.default_min_x,
         validate_type='auto/float'
     )
-    optionframe.get_widget('min_x').bind(
+    pymini.widgets['min_x'].bind(
         '<Return>',
         lambda e, n='min_x', a='x', i=0: apply_axis_limit(n, a, i),
         add="+"
     )
-    optionframe.insert_label_entry(
+    pymini.widgets['max_x'] = optionframe.insert_label_entry(
         name='max_x',
         label='Max x-axis:',
-        value=config.max_x,
-        default=config.default_max_x,
         validate_type='auto/float'
     )
-    optionframe.get_widget('max_x').bind(
+    pymini.widgets['max_x'].bind(
         '<Return>',
         lambda e, n='max_x', a='x', i=1: apply_axis_limit(n, a, i),
         add="+"
     )
-    optionframe.insert_label_entry(
+    pymini.widgets['min_y'] = optionframe.insert_label_entry(
         name='min_y',
         label='Min y-axis:',
-        value=config.min_y,
-        default=config.default_min_y,
         validate_type='auto/float'
     )
-    optionframe.get_widget('min_y').bind(
+    pymini.widgets['min_y'].bind(
         '<Return>',
         lambda e, n='min_y', a='y', i=0: apply_axis_limit(n, a, i),
         add="+"
     )
-    optionframe.insert_label_entry(
+    pymini.widgets['max_y'] = optionframe.insert_label_entry(
         name='max_y',
         label='Max y-axis:',
-        value=config.max_y,
-        default=config.default_max_y,
         validate_type='auto/float'
     )
     optionframe.get_widget('max_y').bind(
@@ -112,11 +104,10 @@ def load(parent):
         lambda e, n='max_y', a='y', i=1: apply_axis_limit(n, a, i),
         add="+"
     )
-    optionframe.insert_label_checkbox(
+
+    pymini.widgets['apply_axis_limit'] = optionframe.insert_label_checkbox(
         name='apply_axis_limit',
         label='Force axes limits on a new trace',
-        value=config.apply_axis_limit,
-        default=config.default_apply_axis_limit
     )
     optionframe.insert_button(
         text='Apply axes limits',
@@ -128,10 +119,8 @@ def load(parent):
     )
     optionframe.insert_button(
         text='Show all trace',
-        command=pymini.plot_area.show_all_plot
+        command=pymini.plot.show_all_plot
     )
-
-
     optionframe.insert_button(
         text='Get current axes limits',
         command=get_current_axes
@@ -145,36 +134,33 @@ def load(parent):
         name='scroll_zoom',
         text='Scroll/Zoom'
     )
-    optionframe.insert_label_entry(
-        name='nav_fps',
-        label='Smooth navigation speed (fps):',
-        validate_type='int'
-    )
-    optionframe.insert_label_entry(
-        name='scroll_percent',
-        label='Scroll speed (percent axis):',
-        validate_type='float'
-    )
-    optionframe.insert_label_entry(
-        name='zoom_percent',
-        label='Zoom speed (percent axis):',
-        validate_type='float'
-    )
-    optionframe.insert_label_checkbox(
-        name='mirror_y_scroll',
-        label='Mirror y-axis scroll button directions',
-        onvalue=-1,
-        offvalue=1
-    )
-    optionframe.insert_label_checkbox(
-        name='mirror_x_scroll',
-        label='Mirror x-axis scroll button directions',
-        onvalue=-1,
-        offvalue=1
-    )
+    entries = [
+        ('nav_fps', 'Smooth navigation speed (fps):', 'int'), #name, label, validatetype
+        ('scroll_percent','Scroll speed (percent axis):', 'float'),
+        ('zoom_percent', 'Zoom speed (percent axis):', 'float')
+    ]
+    for e in entries:
+        pymini.widgets[e[0]] = optionframe.insert_label_entry(
+            name=e[0],
+            label=e[1],
+            validate_type=e[2]
+        )
+
+    boxes = [
+       ('mirror_y_scroll', 'Mirror y-axis scroll button directions'), #name, label
+       ('mirror_x_scroll', 'Mirror x-axis scroll button directions')
+    ]
+
+    for b in boxes:
+       pymini.widgets[b[0]] = optionframe.insert_label_checkbox(
+           name=b[0],
+           label=b[1],
+           onvalue=-1,
+           offvalue=1
+       )
     optionframe.insert_button(
         text='Apply',
-        command=pymini.plot_area.focus
+        command=pymini.plot.focus
     )
     optionframe.insert_button(
         text='Default parameters',

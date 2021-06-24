@@ -37,12 +37,12 @@ def load(parent):
         )
         pymini.widgets[i[0]].bind(
             '<Return>',
-            lambda e, k=i[0]: pymini.plot_area.apply_style(k)
+            lambda e, k=i[0]: pymini.plot.apply_style(k)
         )
 
     optionframe.insert_button(
         text='Apply',
-        command=pymini.plot_area.apply_all_style
+        command=pymini.plot.apply_all_style
     )
     optionframe.insert_button(
         text='Default parameters',
