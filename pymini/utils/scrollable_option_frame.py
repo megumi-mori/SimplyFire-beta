@@ -1,4 +1,4 @@
-from utils.scrollable_frame import ScrollableFrame
+# from utils.scrollable_frame import ScrollableFrame
 import tkinter as Tk
 from tkinter import ttk
 from utils import widget
