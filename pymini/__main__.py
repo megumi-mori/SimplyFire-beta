@@ -1,10 +1,9 @@
 import pymini
 from config import config
 
-import control_panel
+import Layout
 import utils
-import menubar
-import data_panel
+import DataVisualizer
 
 if __name__ == '__main__':
 
