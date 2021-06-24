@@ -1,6 +1,7 @@
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 import pymini
+from DataVisualizer import data_display
 from utils import widget
 
 
@@ -11,12 +12,12 @@ def load(parent):
     def _show_all():
         for key in frame.get_keys(filter='data_display_'):
             frame.widgets[key].set(1)
-        pymini.data_table.show_columns()
+        data_display.table.show_columns()
 
     def _hide_all():
         for key in frame.get_keys(filter='data_display_'):
             frame.widgets[key].set('')
-        pymini.data_table.show_columns()
+        data_display.table.show_columns()
 
     # frame = ScrollableOptionFrame(parent)
 
@@ -64,9 +65,10 @@ def load(parent):
         name='detector_update_events',
         label='Update graph after each event detection (will slow down search)',
     )
+    print(pymini.widgets['detector_update_events'])
     frame.insert_button(
         text='Apply',
-        command=pymini.plot.focus
+        # command=pymini.plot.focus
     )
     frame.insert_button(
         text='Default paramters',
@@ -131,7 +133,7 @@ def load(parent):
         pymini.widgets[i[0]] = frame.insert_label_checkbox(
             name=i[0],
             label=i[1],
-            command=pymini.data_table.show_columns,
+            command=data_display.table.show_columns,
             onvalue='1',
             offvalue=''
         )
@@ -146,7 +148,7 @@ def load(parent):
     )
     frame.insert_button(
         text='Fit columns',
-        command=pymini.data_table.fit_columns
+        command=data_display.table.fit_columns
     )
 
     return frame

@@ -8,19 +8,20 @@ def load(parent, root):
     #                    Methods                     #
     ##################################################
     def apply_axes_limits():
-        pymini.plot.focus()
-        pymini.plot.set_axis_limits(
-            {
-                'x': (
-                    optionframe.get_value('min_x'),
-                    optionframe.get_value('max_x')
-                ),
-                'y': (
-                    optionframe.get_value('min_y'),
-                    optionframe.get_value('max_y')
-                )
-            }
-        )
+        # pymini.plot.focus()
+        # pymini.plot.set_axis_limits(
+        #     {
+        #         'x': (
+        #             optionframe.get_value('min_x'),
+        #             optionframe.get_value('max_x')
+        #         ),
+        #         'y': (
+        #             optionframe.get_value('min_y'),
+        #             optionframe.get_value('max_y')
+        #         )
+        #     }
+        # )
+        pass
 
     def default_axis_parameters():
         optionframe.set_value('min_x', 'auto')
@@ -40,16 +41,17 @@ def load(parent, root):
 
     def apply_axis_limit(name, axis, idx):
         print((name, axis, idx))
-        pymini.plot.set_single_axis_limit(axis, idx, optionframe.get_value(name))
+        # pymini.plot.set_single_axis_limit(axis, idx, optionframe.get_value(name))
 
 
     def get_current_axes():
-        xlim = pymini.plot.get_axis_limits('x')
-        optionframe.set_value('min_x', xlim[0])
-        optionframe.set_value('max_x', xlim[1])
-        ylim = pymini.plot.get_axis_limits('y')
-        optionframe.set_value('min_y', ylim[0])
-        optionframe.set_value('max_y', ylim[1])
+        # xlim = pymini.plot.get_axis_limits('x')
+        # optionframe.set_value('min_x', xlim[0])
+        # optionframe.set_value('max_x', xlim[1])
+        # ylim = pymini.plot.get_axis_limits('y')
+        # optionframe.set_value('min_y', ylim[0])
+        # optionframe.set_value('max_y', ylim[1])
+        pass
 
     ##################################################
     #                    Populate                    #
@@ -119,7 +121,7 @@ def load(parent, root):
     )
     optionframe.insert_button(
         text='Show all trace',
-        command=pymini.plot.show_all_plot
+        # command=pymini.plot.show_all_plot
     )
     optionframe.insert_button(
         text='Get current axes limits',
@@ -160,7 +162,7 @@ def load(parent, root):
        )
     optionframe.insert_button(
         text='Apply',
-        command=pymini.plot.focus
+        # command=pymini.plot.focus
     )
     optionframe.insert_button(
         text='Default parameters',

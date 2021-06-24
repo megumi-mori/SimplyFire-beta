@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 from utils import widget
 from utils.scrollable_option_frame import ScrollableOptionFrame
 from config import config
-
+from DataVisualizer import plot
 from DataVisualizer.plot import InteractivePlot
 import pymini
 import os
@@ -124,12 +124,8 @@ def load(parent):
     frame.widgets['y_scrollbar'].config(state='disabled')  # disabled until a trace is loaded
     frame.widgets['y_scrollbar'].set(50)
 
-    graph_frame = Tk.Frame(big_frame)
+    graph_frame = plot.load(big_frame) # can be replaced with any other plotting module  - must return a frame that can be gridded
     graph_frame.grid(column=1, row=1, sticky='news')
-
-    plot = InteractivePlot(graph_frame) # can be replaced with any other plotting module
-
-    frame.plot = plot
 
     upper_frame = Tk.Frame(big_frame)
     upper_frame.grid_columnconfigure(0, weight=1)

@@ -12,8 +12,8 @@ header2config = OrderedDict([
         ('decay_t', 'data_display_decay_time'),
         ('rise_const', 'data_display_rise'),
         ('rise_unit', 'data_display_rise_unit'),
-    ('halfwidth', 'data_display_halfwidth'),
-('halfwidth_unit', 'data_display_halfwidth_unit'),
+        ('halfwidth', 'data_display_halfwidth'),
+        ('halfwidth_unit', 'data_display_halfwidth_unit'),
         ('baseline', 'data_display_baseline'),
         ('baseline_unit', 'data_display_baseline_unit'),
         ('t_start', 'data_display_start'),
@@ -23,6 +23,11 @@ header2config = OrderedDict([
 
 config2header = OrderedDict([(header2config[key], key) for key in header2config.keys()])
 
+def load(parent):
+    global table
+    table = ttk.Treeview(parent)
+
+    return table
 class InteractiveTable(ttk.Treeview):
     def __init__(
             self,

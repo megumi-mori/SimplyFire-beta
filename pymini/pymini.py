@@ -3,7 +3,8 @@ import tkinter as Tk
 
 from config import config
 
-from Layout import font_bar, menubar, detector_tab, style_tab, progress_bar, setting_tab, navigation_tab, sweep_tab, table_panel, graph_panel
+from Layout import font_bar, menubar, detector_tab, style_tab, progress_bar, setting_tab, navigation_tab, sweep_tab, graph_panel
+from DataVisualizer import data_display
 
 from utils import widget
 
@@ -29,7 +30,7 @@ def _on_close():
     :return: None
     """
     print('closing')
-    plot.focus()
+    # plot.focus()
     if widgets['config_autosave'].get():
         config.dump_user_config(widgets['config_user_path'].get(), ignore=['config'])
     config.dump_system_config()
@@ -41,7 +42,7 @@ def get_value(key, tab=None):
     try:
         v = widgets[key].get()
         return v
-    except:
+    except Exception as e:
         pass
 
 def get_widget(key, tab=None):
@@ -112,19 +113,16 @@ pw_2 = Tk.PanedWindow(
 )
 
 
-tabs['graph_panel'] = graph_panel.load(pw_2)
-tabs['graph_panel'].grid(column=0, row=0, sticky='news')
-pw_2.add(tabs['graph_panel'])
-
-plot = tabs['graph_panel'].plot
-
-tabs['table_panel'] = table_panel.load(pw_2, root)
-pw_2.add(tabs['table_panel'])
-
-# data_table = tabs['table_panel'].table
-
+# must set up a graph object that can 'refresh' and 'plot' etc
+panel = graph_panel.load(pw_2)
+panel.grid(column=0, row=0, sticky='news')
+pw_2.add(panel)
+pw_2.paneconfig(panel, height=config.gp_height)
+print(widgets.keys())
+panel = data_display.load(pw_2, root)
+pw_2.add(panel)
 pw_2.grid(column=0, row=0, sticky='news')
-pw_2.paneconfig(tabs['graph_panel'], height=config.gp_height)
+
 
 ##################################################
 #                 CONTROL PANEL                  #
@@ -149,22 +147,22 @@ cp_notebook.grid(column=0, row=0, sticky='news')
 #need to check user defined mode
 tabs['detector_tab'] = detector_tab.load(cp)
 cp_notebook.add(tabs['detector_tab'], text='Detector')
-
+print(widgets.keys())
 #insert sweep tab
 tabs['sweep_tab'] = sweep_tab.load(cp)
-
+print(widgets.keys())
 # insert navigation_tab tab into control panel
 tabs['navigation_tab'] = navigation_tab.load(cp, root)
 cp_notebook.add(tabs['navigation_tab'], text='Navigation')
-
+print(widgets.keys())
 # insert style_tab options tab into control panel
 tabs['style_tab'] = style_tab.load(cp)
 cp_notebook.add(tabs['style_tab'], text='Style')
-
+print(widgets.keys())
 # insert setting option tab into control panel
 tabs['settings_tab'] = setting_tab.load(cp)
 cp_notebook.add(tabs['settings_tab'], text='Setting')
-
+print(widgets.keys())
 # set up font adjustment bar
 fb = font_bar.load(left)
 fb.grid(column=0, row=1, sticky='news')
@@ -185,9 +183,10 @@ pw.paneconfig(left, width=int(config.cp_width))
 
 
 # focus on plot
-plot.focus()
-
-data_table.show_columns()
+# plot.focus()
+print(widgets['data_display_time'].get())
+print(get_value('data_display_time'))
+data_display.table.show_columns()
 root.update()
 # data_table.fit_columns()
 
@@ -206,7 +205,7 @@ root.config(menu=menubar)
 # set up closing sequence
 root.protocol('WM_DELETE_WINDOW', _on_close)
 
-test()
+# test()
 
 def load():
     return root

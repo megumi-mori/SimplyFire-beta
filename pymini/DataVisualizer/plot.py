@@ -16,19 +16,23 @@ def load(parent):
     fig = Figure()
     fig.set_tight_layout(True)
 
+    global ax
     ax = fig.add_subplot(111)
-    fig.suplots_adjust(right=1, top=1)
-    canvas = FigureCanvasTkAgg(fig, master=frame)
+    fig.subplots_adjust(right=1, top=1)
 
-    canvas.get_tk.widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
+    global canvas
+    canvas = FigureCanvasTkAgg(fig, master=frame)
+    canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
     ax.plot()
 
     ax.set_xlabel('Time (n/a)')
-    ax.set_ylable('y (n/a)')
+    ax.set_ylabel('y (n/a)')
 
     #connect
 
-    
+    return frame
+
+
 
 class InteractivePlot():
     def __init__(self, parent):

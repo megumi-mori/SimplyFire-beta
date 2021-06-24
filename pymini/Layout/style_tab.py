@@ -35,14 +35,14 @@ def load(parent):
             label=i[1],
             validate_type=i[2]
         )
-        pymini.widgets[i[0]].bind(
-            '<Return>',
-            lambda e, k=i[0]: pymini.plot.apply_style(k)
-        )
+        # pymini.widgets[i[0]].bind(
+        #     '<Return>',
+        #     lambda e, k=i[0]: pymini.plot.apply_style(k)
+        # )
 
     optionframe.insert_button(
         text='Apply',
-        command=pymini.plot.apply_all_style
+        # command=pymini.plot.apply_all_style
     )
     optionframe.insert_button(
         text='Default parameters',
