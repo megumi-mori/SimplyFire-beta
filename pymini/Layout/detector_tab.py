@@ -12,12 +12,12 @@ def load(parent):
     def _show_all():
         for key in frame.get_keys(filter='data_display_'):
             frame.widgets[key].set(1)
-        data_display.table.show_columns()
+        data_display.show_columns()
 
     def _hide_all():
         for key in frame.get_keys(filter='data_display_'):
             frame.widgets[key].set('')
-        data_display.table.show_columns()
+        data_display.show_columns()
 
     # frame = ScrollableOptionFrame(parent)
 
@@ -65,7 +65,6 @@ def load(parent):
         name='detector_update_events',
         label='Update graph after each event detection (will slow down search)',
     )
-    print(pymini.widgets['detector_update_events'])
     frame.insert_button(
         text='Apply',
         # command=pymini.plot.focus
@@ -133,7 +132,7 @@ def load(parent):
         pymini.widgets[i[0]] = frame.insert_label_checkbox(
             name=i[0],
             label=i[1],
-            command=data_display.table.show_columns,
+            command=data_display.show_columns,
             onvalue='1',
             offvalue=''
         )

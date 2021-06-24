@@ -1,6 +1,7 @@
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 import pymini
+from DataVisualizer import trace_display
 
 
 def load(parent, root):
@@ -8,19 +9,19 @@ def load(parent, root):
     #                    Methods                     #
     ##################################################
     def apply_axes_limits():
-        # pymini.plot.focus()
-        # pymini.plot.set_axis_limits(
-        #     {
-        #         'x': (
-        #             optionframe.get_value('min_x'),
-        #             optionframe.get_value('max_x')
-        #         ),
-        #         'y': (
-        #             optionframe.get_value('min_y'),
-        #             optionframe.get_value('max_y')
-        #         )
-        #     }
-        # )
+        # trace_display.focus()
+        trace_display.set_axis_limits(
+            {
+                'x': (
+                    optionframe.get_value('min_x'),
+                    optionframe.get_value('max_x')
+                ),
+                'y': (
+                    optionframe.get_value('min_y'),
+                    optionframe.get_value('max_y')
+                )
+            }
+        )
         pass
 
     def default_axis_parameters():
@@ -110,6 +111,7 @@ def load(parent, root):
     pymini.widgets['apply_axis_limit'] = optionframe.insert_label_checkbox(
         name='apply_axis_limit',
         label='Force axes limits on a new trace',
+        command=apply_axes_limits
     )
     optionframe.insert_button(
         text='Apply axes limits',

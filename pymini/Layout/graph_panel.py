@@ -4,8 +4,8 @@ from PIL import Image, ImageTk
 from utils import widget
 from utils.scrollable_option_frame import ScrollableOptionFrame
 from config import config
-from DataVisualizer import plot
-from DataVisualizer.plot import InteractivePlot
+from DataVisualizer import trace_display
+# from DataVisualizer.plot import InteractivePlot
 import pymini
 import os
 import time
@@ -19,19 +19,25 @@ def load(parent):
             pymini.get_widget('force_channel_id').config(state='normal')
         else:
             pymini.get_widget('force_channel_id').config(state='disabled')
-    def scroll_plot(axis, dir):
-        scroll_plot_repeat(
-            axis,
-            dir * int(pymini.get_value('mirror_{}_scroll'.format(axis), 'plot_area')),
-            int(pymini.get_value('nav_fps')),
-            float(pymini.get_value('scroll_percent'))
-        )
-        return None
+    # def scroll_plot(axis, dir):
+    #     scroll_plot_repeat(
+    #         axis,
+    #         dir * int(pymini.get_value('mirror_{}_scroll'.format(axis), 'plot_area')),
+    #         int(pymini.get_value('nav_fps')),
+    #         float(pymini.get_value('scroll_percent'))
+    #     )
+    #     return None
 
+    scroll_plot = lambda axis, dir: scroll_plot_repeat(
+        axis,
+        dir * int(pymini.get_value('mirror_{}_scroll'.format(axis), 'plot_area')),
+        int(pymini.get_value('nav_fps')),
+        float(pymini.get_value('scroll_percent'))
+    )
     def scroll_plot_repeat(axis, dir, fps, percent):
         global jobid
         jobid = pymini.root.after(int(1000 / fps), scroll_plot_repeat, axis, dir, fps, percent)
-        plot.scroll(axis, dir, percent)
+        trace_display.scroll(axis, dir, percent)
         return None
 
     def zoom_plot(axis, dir):
@@ -41,7 +47,7 @@ def load(parent):
     def zoom_plot_repeat(axis, dir, fps, percent):
         global jobid
         jobid = pymini.root.after(int(1000 / fps), zoom_plot_repeat, axis, dir, fps, percent)
-        plot.zoom(axis, dir, percent)
+        trace_display.zoom(axis, dir, percent)
         return None
 
     def _choose_channel(event):
@@ -124,7 +130,7 @@ def load(parent):
     frame.widgets['y_scrollbar'].config(state='disabled')  # disabled until a trace is loaded
     frame.widgets['y_scrollbar'].set(50)
 
-    graph_frame = plot.load(big_frame) # can be replaced with any other plotting module  - must return a frame that can be gridded
+    graph_frame = trace_display.load(big_frame) # can be replaced with any other plotting module  - must return a frame that can be gridded
     graph_frame.grid(column=1, row=1, sticky='news')
 
     upper_frame = Tk.Frame(big_frame)
@@ -136,7 +142,7 @@ def load(parent):
     toolbar_frame = Tk.Frame(upper_frame)
     toolbar_frame.grid_columnconfigure(0, weight=1)
     toolbar_frame.grid(column=0, row=0, sticky='news')
-    navigation_toolbar = widget.NavigationToolbar(plot.canvas, toolbar_frame)
+    navigation_toolbar = widget.NavigationToolbar(trace_display.canvas, toolbar_frame)
     navigation_toolbar.grid(column=0, row=0, sticky='news')
 
 
@@ -164,8 +170,6 @@ def load(parent):
         offvalue=-1,
         command=force_channel
     )
-
-
 
     pymini.widgets['force_channel_id'] = widget.VarEntry(
         parent=channel_frame.widgets['force_channel']._nametowidget(channel_frame.widgets['force_channel'].winfo_parent()),
