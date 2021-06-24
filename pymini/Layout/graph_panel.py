@@ -5,7 +5,7 @@ from utils import widget
 from utils.scrollable_option_frame import ScrollableOptionFrame
 from config import config
 
-from data_panel.plot_area import InteractivePlot
+from DataVisualizer.plot import InteractivePlot
 import pymini
 import os
 import time
@@ -126,12 +126,10 @@ def load(parent):
 
     graph_frame = Tk.Frame(big_frame)
     graph_frame.grid(column=1, row=1, sticky='news')
-    graph_frame.grid_columnconfigure(0, weight=1)
-    graph_frame.grid_rowconfigure(0, weight=1)
 
-    plot = InteractivePlot(graph_frame)
+    plot = InteractivePlot(graph_frame) # can be replaced with any other plotting module
+
     frame.plot = plot
-    plot.frame.grid(column=0, row=0, sticky='news')
 
     upper_frame = Tk.Frame(big_frame)
     upper_frame.grid_columnconfigure(0, weight=1)

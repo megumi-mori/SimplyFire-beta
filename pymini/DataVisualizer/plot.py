@@ -11,25 +11,24 @@ import gc
 import time
 import numpy as np
 
+def load(parent):
+    frame = Tk.Frame(parent)
+    fig = Figure()
+    fig.set_tight_layout(True)
 
-def search_index(x, l, rate):
-    print("{} : {}".format(x, l[0]))
-    est = int((x - l[0]) * rate)
-    if est >= len(l):
-        return len(l)  # out of bounds
-    elif l[est] == x:
-        return est
-    elif l[est] > x:  # overshot
-        while est >= 0:
-            if l[est] < x:
-                return est + 1
-            est -= 1
-    elif l[est] < x:  # need to go higher
-        while est < len(l):
-            if l[est] > x:
-                return est
-            est += 1
-    return est  # out of bounds
+    ax = fig.add_subplot(111)
+    fig.suplots_adjust(right=1, top=1)
+    canvas = FigureCanvasTkAgg(fig, master=frame)
+
+    canvas.get_tk.widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
+    ax.plot()
+
+    ax.set_xlabel('Time (n/a)')
+    ax.set_ylable('y (n/a)')
+
+    #connect
+
+    
 
 class InteractivePlot():
     def __init__(self, parent):
@@ -74,6 +73,7 @@ class InteractivePlot():
         print(e)
 
     def _on_mouse_press(self, e):
+        print('click')
         self.focus()
         self.press = True
         if self.canvas.toolbar.mode == "":
@@ -105,74 +105,74 @@ class InteractivePlot():
     ##################################################
     def _find_event_manual(self, x):
         print('find event manual')
-        xs = np.array(self.ax.lines[0].get_xdata())
-        ys = np.array(self.ax.lines[0].get_ydata())
-        x_idx = search_index(x, xs, self.trace.sampling_rate)  # should be the only line on the plot
-        dir = 1
-        if pymini.get_value('detector_direction') == "negative":
-            dir = -1
-        # switcher implementation:
-        # switch = {
-        #     'positive': np.array(self.ax.lines[0].get_ydata())
-        #     'negative': np.array(self.ax.lines[0].get_ydata)) * -1
-        # }
-        # ys = switch.get(pymini.get_value('detector_points_search', None))
-        # need to limit per window
-        xlim = self.ax.get_xlim()
-        xlim_idx = (
-            search_index(xlim[0], xs, self.trace.sampling_rate),
-            search_index(xlim[1], xs, self.trace.sampling_rate)
-        )
-
-        #narrow range by xlim
-        start_idx = max(x_idx - int(int(pymini.get_value('detector_points_search'))/2), xlim_idx[0])
-        end_idx = min(x_idx + int(int(pymini.get_value('detector_points_search'))/2), xlim_idx[1])
-
-        # narrow range by ylim
-        ylim = self.ax.get_ylim()
-        print(ys[xlim_idx[0]:xlim_idx[1]] > ylim[1])
-        print(ys[xlim_idx[0]:xlim_idx[1] < ylim[0]])
-
-        a = ys[xlim_idx[0]:xlim_idx[1]] > ylim[1]
-        b = ys[xlim_idx[0]:xlim_idx[1]] < ylim[0]
-
-        print(a | b)
-        ylim_idx = np.where(a|b)[0] + xlim_idx[0]
-        ylim_lower, ylim_higher = None, None
-
-        if len(ylim_idx) > 0:
-            for i, y_idx in enumerate(ylim_idx):
-                ylim_lower = y_idx
-                if y_idx > x_idx: # surpassed x
-                    ylim_higher = y_idx
-                    ylim_lower = ylim_idx[i - 1] # if there was one before, that is on the left of x
-                    if ylim_lower > ylim_higher:
-                        ylim_lower = None
-                    break
-            if ylim_higher is None:
-                ylim_lower = ylim_idx[-1]
-
-        if ylim_lower:
-            start_idx = max(start_idx, ylim_lower)
-        if ylim_higher:
-            end_idx = min(end_idx, ylim_higher)
-        print((ylim_lower, ylim_higher))
-        print((start_idx, end_idx))
-
-        lag = int(pymini.get_value('detector_points_baseline'))
-        max_pt_baseline = int(pymini.get_value('detector_max_points_baseline'))
-        threshold = float(pymini.get_value('detector_min_amp'))
-        data = self._find_event(x_idx, dir, xs, ys, start_idx, end_idx, lag, max_pt_baseline, threshold)
-        try:
-            pymini.data_table.add_event(data)
-
-            self._plot_markers()
-
-            #plot successful event
-        except Exception as e:
-            print('_find_event_manual: {}'.format(e))
-            #cannot be added
-            None
+        # xs = np.array(self.ax.lines[0].get_xdata())
+        # ys = np.array(self.ax.lines[0].get_ydata())
+        # x_idx = search_index(x, xs, self.trace.sampling_rate)  # should be the only line on the plot
+        # dir = 1
+        # if pymini.get_value('detector_direction') == "negative":
+        #     dir = -1
+        # # switcher implementation:
+        # # switch = {
+        # #     'positive': np.array(self.ax.lines[0].get_ydata())
+        # #     'negative': np.array(self.ax.lines[0].get_ydata)) * -1
+        # # }
+        # # ys = switch.get(pymini.get_value('detector_points_search', None))
+        # # need to limit per window
+        # xlim = self.ax.get_xlim()
+        # xlim_idx = (
+        #     search_index(xlim[0], xs, self.trace.sampling_rate),
+        #     search_index(xlim[1], xs, self.trace.sampling_rate)
+        # )
+        #
+        # #narrow range by xlim
+        # start_idx = max(x_idx - int(int(pymini.get_value('detector_points_search'))/2), xlim_idx[0])
+        # end_idx = min(x_idx + int(int(pymini.get_value('detector_points_search'))/2), xlim_idx[1])
+        #
+        # # narrow range by ylim
+        # ylim = self.ax.get_ylim()
+        # print(ys[xlim_idx[0]:xlim_idx[1]] > ylim[1])
+        # print(ys[xlim_idx[0]:xlim_idx[1] < ylim[0]])
+        #
+        # a = ys[xlim_idx[0]:xlim_idx[1]] > ylim[1]
+        # b = ys[xlim_idx[0]:xlim_idx[1]] < ylim[0]
+        #
+        # print(a | b)
+        # ylim_idx = np.where(a|b)[0] + xlim_idx[0]
+        # ylim_lower, ylim_higher = None, None
+        #
+        # if len(ylim_idx) > 0:
+        #     for i, y_idx in enumerate(ylim_idx):
+        #         ylim_lower = y_idx
+        #         if y_idx > x_idx: # surpassed x
+        #             ylim_higher = y_idx
+        #             ylim_lower = ylim_idx[i - 1] # if there was one before, that is on the left of x
+        #             if ylim_lower > ylim_higher:
+        #                 ylim_lower = None
+        #             break
+        #     if ylim_higher is None:
+        #         ylim_lower = ylim_idx[-1]
+        #
+        # if ylim_lower:
+        #     start_idx = max(start_idx, ylim_lower)
+        # if ylim_higher:
+        #     end_idx = min(end_idx, ylim_higher)
+        # print((ylim_lower, ylim_higher))
+        # print((start_idx, end_idx))
+        #
+        # lag = int(pymini.get_value('detector_points_baseline'))
+        # max_pt_baseline = int(pymini.get_value('detector_max_points_baseline'))
+        # threshold = float(pymini.get_value('detector_min_amp'))
+        # data = self._find_event(x_idx, dir, xs, ys, start_idx, end_idx, lag, max_pt_baseline, threshold)
+        # try:
+        #     pymini.data_table.add_event(data)
+        #
+        #     self._plot_markers()
+        #
+        #     #plot successful event
+        # except Exception as e:
+        #     print('_find_event_manual: {}'.format(e))
+        #     #cannot be added
+        #     None
 
 
 
