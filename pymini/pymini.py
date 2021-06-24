@@ -14,15 +14,14 @@ from utils import widget
 #                    Methods                     #
 ##################################################
 def test():
-    data_table.add_event({
-            't':0.001,
-    })
-    data_table.add_event({
-        't':0.25,
-    })
-    data_table.add_event({
-        't':0.02
-    })
+    data_display.table.insert("", 'end', values=[{'t':0.0001}.get(i, None) for i in data_display.columns], iid='0.0001')
+    data_display.add({'amp':'123'})
+    # data_table.add_event({
+    #     't':0.25,
+    # })
+    # data_table.add_event({
+    #     't':0.02
+    # })
 def _on_close():
     """
     The function is called when the program is closing (pressing X)
@@ -35,8 +34,6 @@ def _on_close():
         config.dump_user_config(widgets['config_user_path'].get(), ignore=['config'])
     config.dump_system_config()
     root.destroy()
-
-
 
 def get_value(key, tab=None):
     try:
@@ -118,8 +115,8 @@ panel = graph_panel.load(pw_2)
 panel.grid(column=0, row=0, sticky='news')
 pw_2.add(panel)
 pw_2.paneconfig(panel, height=config.gp_height)
-print(widgets.keys())
-panel = data_display.load(pw_2, root)
+
+panel = data_display.load(pw_2)
 pw_2.add(panel)
 pw_2.grid(column=0, row=0, sticky='news')
 
@@ -147,22 +144,22 @@ cp_notebook.grid(column=0, row=0, sticky='news')
 #need to check user defined mode
 tabs['detector_tab'] = detector_tab.load(cp)
 cp_notebook.add(tabs['detector_tab'], text='Detector')
-print(widgets.keys())
+
 #insert sweep tab
 tabs['sweep_tab'] = sweep_tab.load(cp)
-print(widgets.keys())
+
 # insert navigation_tab tab into control panel
 tabs['navigation_tab'] = navigation_tab.load(cp, root)
 cp_notebook.add(tabs['navigation_tab'], text='Navigation')
-print(widgets.keys())
+
 # insert style_tab options tab into control panel
 tabs['style_tab'] = style_tab.load(cp)
 cp_notebook.add(tabs['style_tab'], text='Style')
-print(widgets.keys())
+
 # insert setting option tab into control panel
 tabs['settings_tab'] = setting_tab.load(cp)
 cp_notebook.add(tabs['settings_tab'], text='Setting')
-print(widgets.keys())
+
 # set up font adjustment bar
 fb = font_bar.load(left)
 fb.grid(column=0, row=1, sticky='news')
@@ -184,11 +181,10 @@ pw.paneconfig(left, width=int(config.cp_width))
 
 # focus on plot
 # plot.focus()
-print(widgets['data_display_time'].get())
-print(get_value('data_display_time'))
+
 data_display.table.show_columns()
 root.update()
-# data_table.fit_columns()
+data_display.fit_columns()
 
 
 
@@ -205,7 +201,7 @@ root.config(menu=menubar)
 # set up closing sequence
 root.protocol('WM_DELETE_WINDOW', _on_close)
 
-# test()
+test()
 
 def load():
     return root
