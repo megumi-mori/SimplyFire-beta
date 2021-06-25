@@ -10,18 +10,21 @@ def load(parent, root):
     ##################################################
     def apply_axes_limits():
         # trace_display.focus()
-        trace_display.set_axis_limits(
-            {
-                'x': (
-                    optionframe.get_value('min_x'),
-                    optionframe.get_value('max_x')
-                ),
-                'y': (
-                    optionframe.get_value('min_y'),
-                    optionframe.get_value('max_y')
-                )
-            }
+        trace_display.set_axis_limit(
+            axis='x',
+            lim=(
+                optionframe.get_value('min_x'),
+                optionframe.get_value('max_x')
+            )
         )
+        trace_display.set_axis_limit(
+            axis='y',
+            lim=(
+                optionframe.get_value('min_y'),
+                optionframe.get_value('max_y')
+            )
+        )
+        trace_display.canvas.draw()
         pass
 
     def default_axis_parameters():
@@ -46,12 +49,12 @@ def load(parent, root):
 
 
     def get_current_axes():
-        # xlim = pymini.plot.get_axis_limits('x')
-        # optionframe.set_value('min_x', xlim[0])
-        # optionframe.set_value('max_x', xlim[1])
-        # ylim = pymini.plot.get_axis_limits('y')
-        # optionframe.set_value('min_y', ylim[0])
-        # optionframe.set_value('max_y', ylim[1])
+        xlim = trace_display.get_axis_limits('x')
+        optionframe.set_value('min_x', xlim[0])
+        optionframe.set_value('max_x', xlim[1])
+        ylim = trace_display.get_axis_limits('y')
+        optionframe.set_value('min_y', ylim[0])
+        optionframe.set_value('max_y', ylim[1])
         pass
 
     ##################################################
