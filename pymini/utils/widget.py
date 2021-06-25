@@ -51,7 +51,8 @@ class VarEntry(VarWidget, Tk.Entry):
             name=None,
             value=None,
             default=None,
-            validate_type=None
+            validate_type=None,
+            **kwargs
     ):
         self.prev = value
         VarWidget.__init__(
@@ -66,7 +67,7 @@ class VarEntry(VarWidget, Tk.Entry):
             master=parent,
             textvariable=self.var,
             width=config.entry_width,
-            justify=Tk.RIGHT
+            justify=Tk.RIGHT,
         )
         self.validate_type=validate_type
         self.prev = value
@@ -213,6 +214,15 @@ class VarText(VarWidget, Tk.Text):
         if disable:
             self.config(state='disabled')
 
+    def insert(self, *args, **kwargs):
+        disable = False
+        if self['state'] == 'disabled':
+            disable = True
+            self.config(state='normal')
+        super().insert(*args, **kwargs)
+        if disable:
+            self.config(state='disabled')
+
 class VarScale(VarWidget, ttk.Scale):
     def __init__(
             self,
@@ -269,6 +279,29 @@ class NavigationToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas, parent):
         self.toolitems = [t for t in self.toolitems if t[0] in ('Pan', 'Zoom', 'Save')]
         NavigationToolbar2Tk.__init__(self, canvas, parent)
+
+        # self.add_toolitem(name='test', position=-1, image='img/arrow.png')
+
+        self.test_button = self._custom_button('test', command=self.test)
+
+    def _custom_button(self, text, command, **kwargs):
+        button = Tk.Button(master=self, text=text, padx=2, pady=2, command=command, **kwargs)
+        button.pack(side = Tk.LEFT, fill='y')
+        return button
+
+    def test(self, e=None):
+        if self.mode == 'test':
+            self.mode = None
+        else:
+            self.mode = 'test'
+
+        self._update_buttons_checked() ################ this is what you need to update the checked buttons in toolbar
+        print(self.mode)
+        # self.test_button.config(relief='sunken')
+
+        self.canvas.widgetlock(self)
+
+
 
 class PseudoFrame():
     """
