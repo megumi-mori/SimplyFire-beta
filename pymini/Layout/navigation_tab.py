@@ -35,13 +35,7 @@ def load(parent, root):
         pass
 
     def default_nav_parameters():
-        optionframe.default([
-            'nav_fps',
-            'scroll_percent',
-            'zoom_percent',
-            'mirror_y_scroll',
-            'mirror_x_scroll'
-        ])
+        optionframe.default(filter='navigation')
 
     def apply_axis_limit(name, axis, idx):
         print((name, axis, idx))
@@ -142,9 +136,9 @@ def load(parent, root):
         text='Scroll/Zoom'
     )
     entries = [
-        ('nav_fps', 'Smooth navigation speed (fps):', 'int'), #name, label, validatetype
-        ('scroll_percent','Scroll speed (percent axis):', 'float'),
-        ('zoom_percent', 'Zoom speed (percent axis):', 'float')
+        ('navigation_fps', 'Smooth navigation speed (fps):', 'int'), #name, label, validatetype
+        ('navigation_scroll_percent','Scroll speed (percent axis):', 'float'),
+        ('navigation_zoom_percent', 'Zoom speed (percent axis):', 'float')
     ]
     for e in entries:
         pymini.widgets[e[0]] = optionframe.insert_label_entry(
@@ -154,8 +148,8 @@ def load(parent, root):
         )
 
     boxes = [
-       ('mirror_y_scroll', 'Mirror y-axis scroll button directions'), #name, label
-       ('mirror_x_scroll', 'Mirror x-axis scroll button directions')
+       ('navigation_mirror_y_scroll', 'Mirror y-axis scroll button directions'), #name, label
+       ('navigation_mirror_x_scroll', 'Mirror x-axis scroll button directions')
     ]
 
     for b in boxes:

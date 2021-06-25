@@ -20,14 +20,20 @@ default_geometry :
   - 600
 
 default_relative_cp_width : 0.25
-default_cp_width : 250
+default_cp_width : 270
 default_font_size : 9
 default_separator : true
-default_label_length: 25
+default_label_length: 30
 default_entry_width : 10
 default_progress_bar_color : 'blue'
 default_gp_height : 450
 default_pw_handlesize : 15
+
+# semantics
+validation_na :
+  - 'None'
+  - 'n/a'
+  - 'na'
 
 # navigation
 default_min_x : 'auto'
@@ -35,11 +41,12 @@ default_max_x : 'auto'
 default_min_y : 'auto'
 default_max_y : 'auto'
 default_apply_axis_limit : 0
-default_scroll_percent : 3
-default_nav_fps : 12
-default_zoom_percent : 10
-default_mirror_y_scroll : 1
-default_mirror_x_scroll : 1
+
+default_navigation_scroll_percent : 3
+default_navigation_fps : 12
+default_navigation_zoom_percent : 10
+default_navigation_mirror_y_scroll : 1
+default_navigation_mirror_x_scroll : 1
 
 
 #detector parameters
@@ -48,9 +55,12 @@ default_detector_min_amp : 0.3
 default_detector_points_baseline : 100
 default_detector_points_search : 300
 default_detector_min_decay : 0
+default_detector_max_decay : 'none'
 default_detector_min_auc : 0
 default_detector_min_hw : 0
+default_detector_max_hw : 'None'
 default_detector_min_rise : 0
+default_detector_max_rise : 'None'
 default_detector_max_points_baseline : 1000
 default_detector_max_points_decay : 40000
 default_detector_manual_pixel_offset : 0
@@ -108,7 +118,6 @@ default_config_file_autodir : 1
 default_channel_option : ""
 default_force_channel : 0
 default_force_channel_id: 0
-
 
 # sweep
 default_export_sweep : 1

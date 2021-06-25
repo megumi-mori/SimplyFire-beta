@@ -30,9 +30,9 @@ def load(parent):
 
     scroll_plot = lambda axis, dir: scroll_plot_repeat(
         axis,
-        dir * int(pymini.get_value('mirror_{}_scroll'.format(axis), 'plot_area')),
-        int(pymini.get_value('nav_fps')),
-        float(pymini.get_value('scroll_percent'))
+        dir * int(pymini.get_value('navigation_mirror_{}_scroll'.format(axis), 'plot_area')),
+        int(pymini.get_value('navigation_fps')),
+        float(pymini.get_value('navigation_scroll_percent'))
     )
     def scroll_plot_repeat(axis, dir, fps, percent):
         global jobid
@@ -41,7 +41,7 @@ def load(parent):
         return None
 
     def zoom_plot(axis, dir):
-        zoom_plot_repeat(axis, dir, int(pymini.get_value('nav_fps')), float(pymini.get_value('zoom_percent')))
+        zoom_plot_repeat(axis, dir, int(pymini.get_value('navigation_fps')), float(pymini.get_value('navigation_zoom_percent')))
         return None
 
     def zoom_plot_repeat(axis, dir, fps, percent):
