@@ -74,18 +74,6 @@ if config_autoload == 1 or config_autoload == '1':
 
 
 
-def set_fontsize(fontsize):
-    fonts = [
-        "TkDefaultFont",
-        "TkTextFont",
-        "TkMenuFont",
-        "TkHeadingFont"
-    ]
-    for f in fonts:
-        def_font = font.nametofont(f)
-        def_font.configure(size=fontsize)
-
-
 def dump_user_config(path, ignore=None):
     print('Writing out configuration variables....')
     with open(path, 'w') as f:

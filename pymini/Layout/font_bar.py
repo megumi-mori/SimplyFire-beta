@@ -1,5 +1,5 @@
 import tkinter as Tk
-from tkinter import ttk
+from tkinter import ttk, font
 from config import config
 
 def load(parent):
@@ -11,10 +11,21 @@ def load(parent):
         frame,
         from_=9,
         to_=20,
-        command=lambda e: config.set_fontsize(int(float(e))))
+        command=lambda e: set_fontsize(int(float(e))))
     w.grid(column=0, row=1, sticky='news')
     # config.change_fontsize(e))
     return frame
+
+def set_fontsize(fontsize):
+    fonts = [
+        "TkDefaultFont",
+        "TkTextFont",
+        "TkMenuFont",
+        "TkHeadingFont"
+    ]
+    for f in fonts:
+        def_font = font.nametofont(f)
+        def_font.configure(size=fontsize)
 
 
 
