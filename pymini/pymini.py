@@ -31,7 +31,7 @@ def _on_close():
     print('closing')
     # plot.focus()
     if widgets['config_autosave'].get():
-        config.dump_user_config(widgets['config_user_path'].get(), ignore=['config'])
+        config.dump_user_config(widgets['config_user_path'].get(), ignore=['config_', '_log'])
     config.dump_system_config()
     root.destroy()
 
