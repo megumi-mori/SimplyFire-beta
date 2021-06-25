@@ -94,7 +94,7 @@ def load():
     )
 
     pw.grid(column=0, row=0, sticky='news')
-    tabs = {}
+
 
     ##################################################
     #                   DATA PANEL                   #
@@ -152,11 +152,14 @@ def load():
     # cp.grid_rowconfigure(0, weight=1)
     # cp.grid(column=0 ,row=0, sticky='news')
 
+    global cp_notebook
     cp_notebook = ttk.Notebook(left)
     cp_notebook.grid(column=0, row=0, sticky='news')
 
     # insert detector_tab options tab into control panel
     #need to check user defined mode
+    global tabs
+    tabs = {}
     tabs['detector_tab'] = detector_tab.load(left)
     cp_notebook.add(tabs['detector_tab'], text='Detector')
 
