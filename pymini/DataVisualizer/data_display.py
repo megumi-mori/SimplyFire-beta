@@ -27,6 +27,7 @@ header2config = OrderedDict([
     ('halfwidth_unit', 'data_display_halfwidth'),
     ('baseline', 'data_display_baseline'),
     ('baseline_unit', 'data_display_baseline'),
+    ('auc', 'data_display_auc'),
     ('t_start', 'data_display_start'),
     ('t_end', 'data_display_end'),
     ('channel', 'data_display_channel',)
@@ -45,6 +46,7 @@ columns = [
     'halfwidth_unit',
     'baseline',  #
     'baseline_unit',  #
+    'auc',
     't_start',  #
     't_end',  #
     'channel',  #
