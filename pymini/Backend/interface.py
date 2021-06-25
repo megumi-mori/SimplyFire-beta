@@ -89,6 +89,7 @@ def _change_channel(num):
     trace_display.ax.set_xlim(xlim)
     trace_display.canvas.draw()
 
+
 def plot_continuous():
     trace_display.plot_trace(analyzer.trace.get_xs(mode='continuous'),
                              analyzer.trace.get_ys(mode='continuous'))
@@ -108,4 +109,30 @@ def configure(key, value):
 
 
 def search_event_from_click(x):
+    pass
+
+
+#######################################
+
+def point_click(x):
+    dir = 1
+    if pymini.widgets['detector_direction'].get() == 'negative':
+        dir = -1
+
+    xlim = trace_display.ax.get_xlim()
+
+    ylim = trace_display.ax.get_ylim()
+
+    lag = int(pymini.widgets['detector_points_baseline'].get())
+    points_search = int(pymini.widgets['detector_points_search'])
+    max_points_baseline = int(pymini.widgets['detector_max_points_basleine'].get())
+    max_points_decay = int(pymini.widgets['detector_max_points_decay'].get())
+    min_amp = float(pymini.widgets['detector_min_amp'].get())
+    min_decay = float(pymini.widgets['detector_min_decay'].get())
+    min_hw = float(pymini.widgets['detector_min_hw'].get())
+    min_rise = float(pymini.widgets['detector_min_rise'].get())
+
+    data = analyzer.find_single_event(x, xlim, ylim, dir, lag, points_search, max_points_baseline, max_points_decay,
+                                      min_amp, min_decay, min_hw, min_rise)
+
     pass

@@ -1,6 +1,7 @@
 # specific maths for event detection
 # most likely won't require a class
 from utils import recording
+from config import config
 
 ### this module does all the calculations for event detection and modeling
 ### this module should be able to function on its own
@@ -28,4 +29,23 @@ def search_index(x, l, rate):
 def open_trace(filename, channel=0):
     global trace
     trace = recording.Trace(filename, channel=channel)
+
+def find_single_event(
+        x,
+        xlim=None,
+        ylim=None,
+        dir=1,
+        lag=config.detector_points_baseline,
+        points_search=config.detector_points_search,
+        max_points_baseline=config.detector_max_points_baseline,
+        max_points_decay=config.detector_max_points_decay,
+        min_amp=config.detector_min_amp,
+        min_decay=config.detector_min_decay,
+        min_hw=config.detector_min_hw,
+        min_rise=config.detector_min_rise):
+    d = {}
+
+
+    return d
+    pass
 
