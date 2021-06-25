@@ -2,6 +2,8 @@ import tkinter as Tk
 from tkinter import ttk
 from utils import widget
 import pymini
+import datetime
+
 
 
 def load(parent):
@@ -38,10 +40,11 @@ def load(parent):
     insert_frame.grid(column=0, row=1, sticky='news')
 
     Tk.Label(insert_frame, text='Insert log:').grid(column=0, row=0, sticky='news')
-    pymini.widgets['custom_log'] = widget.VarEntry(parent=insert_frame, name='custom_log', value='', default='')
-    pymini.widgets['custom_log'].grid(column=1, row=0, sticky='news')
-    pymini.widgets['custom_log'].configure(justify=Tk.LEFT)
-    pymini.widgets['custom_log'].bind('<Return>', user_update)
+    global log_entry
+    log_entry = widget.VarEntry(parent=insert_frame, name='custom_log', value='', default='')
+    log_entry.grid(column=1, row=0, sticky='news')
+    log_entry.configure(justify=Tk.LEFT)
+    log_entry.bind('<Return>', user_update)
 
     test_button = Tk.Button(insert_frame, text='test')
     test_button.bind('<ButtonPress-1>', user_update)
@@ -53,6 +56,9 @@ def load(parent):
     copy_button = Tk.Button(button_frame, text='Copy', command=copy)
     copy_button.grid(column=0, row=0, stick='nws')
 
+    log_text.insert(Tk.END, '{}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S')))
+
+
 
     return frame
 
@@ -63,11 +69,22 @@ def copy():
     pymini.root.update()
 
 def user_update(e=None):
-    log_text.insert(Tk.END, '@user: ')
-    log_text.insert(Tk.END, '{}\n'.format(pymini.widgets['custom_log'].get()))
-    pymini.widgets['custom_log'].set("")
+    log_text.insert(Tk.END, '{} @user: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), log_entry.get()))
+    log_entry.set("")
+    log_text.see(Tk.END)
 
-system_update = lambda msg: log_text.insert(Tk.END, '@system:  {}\n'.format(msg))
-open_update = lambda fname: log_text.insert(Tk.END, '@open: {}\n'.format(fname))
+def system_update(msg):
+    log_text.insert(Tk.END, '{} @system:  {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.see(Tk.END)
+
+def open_update(filename):
+    log_text.insert(Tk.END, '{} @open: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), filename))
+    log_text.see(Tk.END)
+
+def search_update(msg):
+    log_text.insert(Tk.END, '{} @search: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.see(Tk.END)
+
+
 
 

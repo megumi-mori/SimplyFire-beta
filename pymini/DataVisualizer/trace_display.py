@@ -59,6 +59,7 @@ def load(parent):
 def _on_mouse_press(event):
     if canvas.toolbar.mode == "":
         state.press = True
+        state.press_coord = (event.x, event.y)
     # print('click! {}'.format(event))
     pass
 
@@ -66,15 +67,22 @@ def _on_mouse_release(event):
     state.press = False
     if state.move:
         state.move = False
+        state.release_coord = (event.x, event.y)
         print('release! {}'.format(event))
-    else:
-        print('click!')
-        interface.point_click(event.xdata)
+        return None
+
+    print('click!')
+    if event.xdata:
+        interface.point_click(state.press_coord[0])
+        state.press=False
+        state.move=False
+        state.release_coord = (None, None)
+        state.press_coord = (None, None)
 
     pass
 
 def _on_mouse_move(event):
-    if state.press:
+    if state.press and event.button == 3:
         state.press = False
         state.move = True
         pass
@@ -222,6 +230,9 @@ class State():
     def __init__(self):
         self.press = False
         self.release = False
+        self.move = False
+        self.press_coord = (None, None)
+        self.release_coord = (None, None)
     ####
 
 

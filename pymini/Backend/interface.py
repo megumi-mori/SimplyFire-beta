@@ -124,8 +124,8 @@ def point_click(x):
     ylim = trace_display.ax.get_ylim()
 
     lag = int(pymini.widgets['detector_points_baseline'].get())
-    points_search = int(pymini.widgets['detector_points_search'])
-    max_points_baseline = int(pymini.widgets['detector_max_points_basleine'].get())
+    points_search = int(pymini.widgets['detector_points_search'].get())
+    max_points_baseline = int(pymini.widgets['detector_max_points_baseline'].get())
     max_points_decay = int(pymini.widgets['detector_max_points_decay'].get())
     min_amp = float(pymini.widgets['detector_min_amp'].get())
     min_decay = float(pymini.widgets['detector_min_decay'].get())
@@ -134,5 +134,9 @@ def point_click(x):
 
     data = analyzer.find_single_event(x, xlim, ylim, dir, lag, points_search, max_points_baseline, max_points_decay,
                                       min_amp, min_decay, min_hw, min_rise)
+    log_display.search_update('manual search centered on x:{}. Parameters: {}'.format(
+        x,
+        [(i, pymini.widgets[i].get()) for i in pymini.widgets.keys() if 'detector_' in i]
+    ))
 
     pass

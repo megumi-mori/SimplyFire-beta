@@ -47,7 +47,7 @@ def load(parent):
     entries = [
         ('detector_min_amp', 'Minimum amplitude (y-axis unit):', 'float'),# (config param name, Label text, validation type)
         ('detector_points_baseline', 'Number of data points averaged to find the start/end of an event:', 'int'),
-        ('detector_points_search', 'Number of data points to search for a peak', 'int'),
+        ('detector_points_search', 'Search radius in number of data points', 'int'),
         ('detector_min_decay', 'Minimum decay constant (tau) (ms)', 'float'),
         ('detector_min_auc', 'Minimum area under the curve', 'float'),
         ('detector_min_hw', 'Minimum halfwidth (ms)', 'float'),
