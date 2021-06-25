@@ -12,6 +12,8 @@ import time
 import datetime
 import numpy as np
 
+from Backend import interface
+
 from DataVisualizer import data_display
 
 temp = []
@@ -43,6 +45,8 @@ def load(parent):
 
     global state
     state = State()
+    state.press = False
+    state.move = False
 
     # connect user events:
     canvas.mpl_connect('key_presss_event', None)
@@ -59,13 +63,20 @@ def _on_mouse_press(event):
     pass
 
 def _on_mouse_release(event):
-    if state.press == True:
-        state.press = False
+    state.press = False
+    if state.move:
+        state.move = False
         print('release! {}'.format(event))
+    else:
+        print('click!')
+        interface.point_click(event.xdata)
+
     pass
 
 def _on_mouse_move(event):
     if state.press:
+        state.press = False
+        state.move = True
         pass
         # print('brrrrooom! {}'.format(event))
     pass
