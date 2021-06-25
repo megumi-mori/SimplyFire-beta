@@ -291,7 +291,7 @@ class NavigationToolbar(NavigationToolbar2Tk):
 
         # self.add_toolitem(name='test', position=-1, image='img/arrow.png')
 
-        self.test_button = self._custom_button('test', command=self.test)
+        # self.test_button = self._custom_button('test', command=self.test)
 
     def _custom_button(self, text, command, **kwargs):
         button = Tk.Button(master=self, text=text, padx=2, pady=2, command=command, **kwargs)
