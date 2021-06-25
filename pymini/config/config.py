@@ -72,15 +72,11 @@ if config_autoload == 1 or config_autoload == '1':
     except:
         pass
 
-
-
-
 def dump_user_config(ignore=None):
     print('Writing out configuration variables....')
     config_user_path = pymini.widgets['config_user_path'].get()
-    print(config_user_path)
     with open(config_user_path, 'w') as f:
-        print('writeing dump user config {}'.format(config_user_path))
+        print('writing dump user config {}'.format(config_user_path))
         f.write("#################################################################\n")
         f.write("# PyMini user configurations\n")
         f.write("#################################################################\n")
