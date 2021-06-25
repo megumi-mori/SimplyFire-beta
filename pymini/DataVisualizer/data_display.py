@@ -56,7 +56,10 @@ columns = [
     'start_coord_x',  #
     'start_coord_y',  #
     'end_coord_x',  #
-    'end_coord_y'  #
+    'end_coord_y',  #
+
+    # data
+    'datetime'  #
 ]
 config2header = OrderedDict([(header2config[key], key) for key in header2config.keys()])
 

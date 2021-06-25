@@ -9,6 +9,7 @@ import pymini
 import os
 import gc
 import time
+import datetime
 import numpy as np
 
 from DataVisualizer import data_display
@@ -101,28 +102,22 @@ def zoom(axis, dir=1, percent=0, event=None):
     """
     need to link this to the scrollbar once a trace is opened
     """
-def get_axis_limits(axis='x'):
-    if axis == 'x':
-        return ax.get_xlim()
-    elif axis == 'y':
-        return ax.get_ylim()
-    return None
+# def get_axis_limits(axis='x'):
+#     if axis == 'x':
+#         return ax.get_xlim()
+#     elif axis == 'y':
+#         return ax.get_ylim()
+#     return None
 
-def set_axis_limits(axis):
-    """
+get_axis_limits = lambda axis:getattr(ax, 'get_{}lim'.format(axis))()
 
-    :param axis: dict of axis parameters, should be given as:
-    {'x': (min_x, max_x),
-    'y': (min_y, max_y)}
-    min and max values can be float, 'auto', or None
-    :return:
-    """
-    for a in axis:
-        getattr(ax, 'set_{}lim'.format(a))([
-            float(e) if e != 'auto' else globals()['default_{}lim'.format(a)[i]]
-            for i, e in enumerate(axis[a])
-            ])
-    canvas.draw()
+
+set_axis_limit = lambda axis, lim:getattr(ax, 'set_{}lim'.format(axis))([
+        float(e) if e!= 'auto' else globals()['default_{}lim',format(axis)][i]
+        for i, e in enumerate(lim)
+    ])
+
+
 
 class InteractivePlot():
     def __init__(self, parent):
@@ -354,6 +349,8 @@ class InteractivePlot():
         data['rise_const'] = (xs[peak_idx] - xs[start_idx])*1000
         data['rise_unit'] = 'ms' if self.trace.x_unit in ['s', 'seconds', 'second', 'sec'] else '{}/1000'.format(self.trace.x_unit)
         data['channel'] = self.trace.channel + 1 # 1-indexing
+
+        data['datetime'] = datetime.datetime.now()
         return data
 
 
@@ -414,19 +411,6 @@ class InteractivePlot():
                 command=lambda c=i:self._choose_channel(c)
             )
         pymini.set_value('channel_option', "{}: {}".format(self.trace.channel + 1, self.trace.y_label))
-        self.draw()
-
-    def close(self):
-        self._clear()
-        pymini.get_widget('channel_option').clear_options()
-        pymini.set_value('channel_option', '', 'graph_panel')
-        pymini.widgets['trace_info'].set("")
-        try:
-            self.trace.forget()
-            self.trace = None
-        except:
-            pass
-
         self.draw()
 
     def _choose_channel(self, num):
