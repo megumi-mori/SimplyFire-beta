@@ -226,9 +226,11 @@ class VarText(VarWidget, Tk.Text):
         if self['state'] == 'disabled':
             disable = True
             self.config(state='normal')
-        super().insert(*args, **kwargs)
+        Tk.Text.insert(self, *args, **kwargs)
+        self.var.set(Tk.Text.get(self,1.0, Tk.END))
         if disable:
             self.config(state='disabled')
+
 
 class VarScale(VarWidget, ttk.Scale):
     def __init__(
