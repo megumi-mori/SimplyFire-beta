@@ -187,7 +187,9 @@ class VarText(VarWidget, Tk.Text):
             parent,
             name="",
             value=None,
-            default=None
+            default=None,
+            lock=False,
+            **kwargs
     ):
         VarWidget.__init__(
             self,
@@ -199,11 +201,16 @@ class VarText(VarWidget, Tk.Text):
         Tk.Text.__init__(
             self,
             master=parent,
+            **kwargs
         )
         # print(self.get())
+        self.lock = lock
         self.set(value)
 
+
     def set(self, value):
+        if self.lock:
+            return None
         disable = False
         if self['state'] == 'disabled':
             disable = True
