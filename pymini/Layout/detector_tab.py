@@ -50,9 +50,11 @@ def load(parent):
         ('detector_points_search', 'Number of data points to search for a peak', 'int'),
         ('detector_min_decay', 'Minimum decay constant (tau) (ms)', 'float'),
         ('detector_min_auc', 'Minimum area under the curve', 'float'),
+        ('detector_min_hw', 'Minimum halfwidth (ms)', 'float'),
+        ('detector_min_rise', 'Minimum rise constant (ms)', 'float'),
         ('detector_max_points_baseline', 'Maximum data points to consider before peak to find the baseline', 'int'),
         ('detector_max_points_decay', 'Maximum data points after peak to consider for decay', 'int'),
-        ('detector_manual_pixel_offset', 'Pixel offset for manuall picking events', 'int')
+        ('detector_manual_pixel_offset', 'Pixel offset for manually selecting event markers', 'int')
     ]
     for i in entries:
         pymini.widgets[i[0]] = frame.insert_label_entry(
