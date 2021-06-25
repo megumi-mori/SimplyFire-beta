@@ -47,8 +47,7 @@ def _continuous_mode():
         pymini.cp_notebook.forget(pymini.cp_notebook.index(pymini.tabs['sweep_tab']))
         pymini.cp_notebook.insert(tab_id, pymini.tabs['detector_tab'], text='Detector')
         pymini.cp_notebook.select(cur_id)
-    except Exception as e:
-        print('continuous mode {}'.format(e))
+    except:
         pass
 
 def _overlay_mode(e=None):
@@ -59,8 +58,7 @@ def _overlay_mode(e=None):
         pymini.cp_notebook.forget(pymini.cp_notebook.index(pymini.tabs['detector_tab']))
         pymini.cp_notebook.insert(tab_id, pymini.tabs['sweep_tab'], text='Sweep')
         pymini.cp_notebook.select(cur_id)
-    except Exception as e:
-        print('overlay mode {}'.format(e))
+    except:
         pass
 
 
