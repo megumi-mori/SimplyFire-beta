@@ -10,6 +10,7 @@ def load(parent, root):
     ##################################################
     def apply_axes_limits():
         # trace_display.focus()
+        print(apply_axes_limits)
         trace_display.set_axis_limit(
             axis='x',
             lim=(
@@ -37,10 +38,6 @@ def load(parent, root):
     def default_nav_parameters():
         optionframe.default(filter='navigation')
 
-    def apply_axis_limit(name, axis, idx):
-        print((name, axis, idx))
-        # pymini.plot.set_single_axis_limit(axis, idx, optionframe.get_value(name))
-
 
     def get_current_axes():
         xlim = trace_display.get_axis_limits('x')
@@ -64,46 +61,59 @@ def load(parent, root):
         name='axis',
         text='Axes'
     )
-    pymini.widgets['min_x'] = optionframe.insert_label_entry(
-        name='min_x',
-        label='Min x-axis:',
-        validate_type='auto/float'
-    )
-    pymini.widgets['min_x'].bind(
-        '<Return>',
-        lambda e, n='min_x', a='x', i=0: apply_axis_limit(n, a, i),
-        add="+"
-    )
-    pymini.widgets['max_x'] = optionframe.insert_label_entry(
-        name='max_x',
-        label='Max x-axis:',
-        validate_type='auto/float'
-    )
-    pymini.widgets['max_x'].bind(
-        '<Return>',
-        lambda e, n='max_x', a='x', i=1: apply_axis_limit(n, a, i),
-        add="+"
-    )
-    pymini.widgets['min_y'] = optionframe.insert_label_entry(
-        name='min_y',
-        label='Min y-axis:',
-        validate_type='auto/float'
-    )
-    pymini.widgets['min_y'].bind(
-        '<Return>',
-        lambda e, n='min_y', a='y', i=0: apply_axis_limit(n, a, i),
-        add="+"
-    )
-    pymini.widgets['max_y'] = optionframe.insert_label_entry(
-        name='max_y',
-        label='Max y-axis:',
-        validate_type='auto/float'
-    )
-    optionframe.get_widget('max_y').bind(
-        '<Return>',
-        lambda e, n='max_y', a='y', i=1: apply_axis_limit(n, a, i),
-        add="+"
-    )
+    entries = [
+        ('min_x', 'Left x-axis', '[auto]/float'),  # config name, label text, validate_type
+        ('max_x', 'Right x-axis', '[auto]/float'),
+        ('max_y', 'Top y-axis', '[auto]/float'),
+        ('min_y', 'Botton y-axis', '[auto]/float')
+    ]
+    for e in entries:
+        pymini.widgets[e[0]] = optionframe.insert_label_entry(
+            name=e[0],
+            label=e[1],
+            validate_type=e[2]
+        )
+        pymini.widgets[e[0]].bind('<Return>', lambda e:apply_axes_limits())
+    # pymini.widgets['min_x'] = optionframe.insert_label_entry(
+    #     name='min_x',
+    #     label='Min x-axis:',
+    #     validate_type='auto/float'
+    # )
+    # pymini.widgets['min_x'].bind(
+    #     '<Return>',
+    #     lambda e, n='min_x', a='x', i=0: apply_axis_limit(n, a, i),
+    #     add="+"
+    # )
+    # pymini.widgets['max_x'] = optionframe.insert_label_entry(
+    #     name='max_x',
+    #     label='Max x-axis:',
+    #     validate_type='auto/float'
+    # )
+    # pymini.widgets['max_x'].bind(
+    #     '<Return>',
+    #     lambda e, n='max_x', a='x', i=1: apply_axis_limit(n, a, i),
+    #     add="+"
+    # )
+    # pymini.widgets['min_y'] = optionframe.insert_label_entry(
+    #     name='min_y',
+    #     label='Min y-axis:',
+    #     validate_type='auto/float'
+    # )
+    # pymini.widgets['min_y'].bind(
+    #     '<Return>',
+    #     lambda e, n='min_y', a='y', i=0: apply_axis_limit(n, a, i),
+    #     add="+"
+    # )
+    # pymini.widgets['max_y'] = optionframe.insert_label_entry(
+    #     name='max_y',
+    #     label='Max y-axis:',
+    #     validate_type='auto/float'
+    # )
+    # optionframe.get_widget('max_y').bind(
+    #     '<Return>',
+    #     lambda e, n='max_y', a='y', i=1: apply_axis_limit(n, a, i),
+    #     add="+"
+    # )
 
     pymini.widgets['apply_axis_limit'] = optionframe.insert_label_checkbox(
         name='apply_axis_limit',
@@ -120,7 +130,7 @@ def load(parent, root):
     )
     optionframe.insert_button(
         text='Show all trace',
-        # command=pymini.plot.show_all_plot
+        command=trace_display.show_all_plot
     )
     optionframe.insert_button(
         text='Get current axes limits',

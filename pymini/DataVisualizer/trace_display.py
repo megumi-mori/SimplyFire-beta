@@ -57,36 +57,36 @@ def load(parent):
     return frame
 
 def _on_mouse_press(event):
-    if canvas.toolbar.mode == "":
-        state.press = True
+    if canvas.toolbar.mode == "" and event.button == 3:
         state.press_coord = (event.x, event.y)
     # print('click! {}'.format(event))
     pass
 
 def _on_mouse_release(event):
-    state.press = False
     if state.move:
         state.move = False
         state.release_coord = (event.x, event.y)
         print('release! {}'.format(event))
+
+        # do something
+        state.release_coord = None
+        state.press_coord = None
         return None
 
     print('click!')
-    if event.xdata:
-        interface.point_click(state.press_coord[0])
-        state.press=False
-        state.move=False
+    if canvas.toolbar.mode =="" and event.xdata:
+        interface.point_click(event.xdata)
+        state.move = False
         state.release_coord = (None, None)
         state.press_coord = (None, None)
 
     pass
 
 def _on_mouse_move(event):
-    if state.press and event.button == 3:
-        state.press = False
+    if event.button == 3:
         state.move = True
         pass
-        # print('brrrrooom! {}'.format(event))
+
     pass
 
 
@@ -169,54 +169,32 @@ def clear():
     gc.collect()
     canvas.draw()
 
-def plot_trace(xs, ys):
-    ax.autoscale(enable=True, axis='both', tight=True)
+def plot_trace(xs, ys, draw=True, relim=True):
     sweeps['sweep{}'.format(len(sweeps))], = ax.plot(xs, ys,
                                                     linewidth=pymini.widgets['style_trace_line_width'].get(),
                                                     c=pymini.widgets['style_trace_line_color'].get())
+    if relim:
+        ax.autoscale(enable=True, axis='both', tight=True)
+        ax.relim()
+        canvas.draw()
+        global default_xlim
+        default_xlim = ax.get_xlim()
+
+        global default_ylim
+        default_ylim = ax.get_ylim()
+    if draw:
+        canvas.draw()
+
+
+def show_all_plot():
     ax.autoscale(enable=True, axis='both', tight=True)
     ax.relim()
     canvas.draw()
 
-
-# """
-# plots data from the trace
-# will first plot everything with autoscale, and save the limits as defaults.
-# To avoid this behavior, make a separate function
-# :param trace: Trace object
-# :param xlim: desired xlim
-# :param ylim: desired ylim
-# :return:
-# """
-# # print('trace channel = {}'.format(trace.channel))
-#
-#
-# self.ax.autoscale(enable=True, axis='x', tight=True)
-# self.ax.autoscale(enable=True, axis='y', tight=True)
-#
-# self.ax.plot(
-#     xs,
-#     ys,
-#     linewidth=pymini.get_value('style_trace_line_width'),
-#     c=pymini.get_value('style_trace_line_color')
-# )
-# self.default_xlim = self.ax.get_xlim()
-# self.default_ylim = self.ax.get_ylim()
-#
-# try:
-#     self.ax.set_xlim(xlim)
-# except:
-#     pass
-# try:
-#     self.ax.set_ylim(ylim)
-# except:
-#     pass
-#
-# self.draw()
-
 get_axis_limits = lambda axis:getattr(ax, 'get_{}lim'.format(axis))()
 
 def set_axis_limit(axis, lim):
+    print('set axis limit on trace_display')
     if axis=='x':
         l = [float(e) if e != 'auto' else default_xlim[i] for i,e in enumerate(lim)]
         ax.set_xlim(l)
