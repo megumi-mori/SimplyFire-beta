@@ -5,12 +5,10 @@ import time
 import pymini
 
 class Trace():
-    def __init__(self, filename):
+    def __init__(self, filename, channel=0):
         self.filename = filename
         self._open_file(filename)
-        self.set_channel(0)
-
-
+        self.set_channel(channel)
 
     def _open_file(self, filename):
         self.filetype = os.path.splitext(self.filename)[1]

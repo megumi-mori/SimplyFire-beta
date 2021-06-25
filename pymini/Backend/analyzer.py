@@ -1,5 +1,10 @@
 # specific maths for event detection
 # most likely won't require a class
+from utils import recording
+
+### this module does all the calculations for event detection and modeling
+### this module should be able to function on its own
+
 
 def search_index(x, l, rate):
     print("{} : {}".format(x, l[0]))
@@ -19,3 +24,8 @@ def search_index(x, l, rate):
                 return est
             est += 1
     return est  # out of bounds
+
+def open_trace(filename, channel=0):
+    global trace
+    trace = recording.Trace(filename, channel=channel)
+

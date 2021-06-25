@@ -3,7 +3,7 @@ from config import config
 import matplotlib as mpl
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from utils import trace, analysis
+from utils import recording, analysis
 import matplotlib.colors
 import pymini
 import os
@@ -13,6 +13,10 @@ import datetime
 import numpy as np
 
 from DataVisualizer import data_display
+
+temp = []
+markers = {}
+sweeps = {}
 
 def load(parent):
     frame = Tk.Frame(parent)
@@ -102,15 +106,66 @@ def zoom(axis, dir=1, percent=0, event=None):
     """
     need to link this to the scrollbar once a trace is opened
     """
-# def get_axis_limits(axis='x'):
-#     if axis == 'x':
-#         return ax.get_xlim()
-#     elif axis == 'y':
-#         return ax.get_ylim()
-#     return None
+
+def clear():
+    for l in ax.lines:
+        l.remove()
+        ax.lines.remove(l)
+    for c in ax.collections:
+        c.remove()
+        ax.collections.remove(c)
+    for t in temp:
+        temp[t].remove()
+        temp.pop(t)
+    for m in markers:
+        markers[m].remove()
+        markers.pop(m)
+    for s in sweeps:
+        sweeps[s].remove()
+        sweeps.pop(s)
+    gc.collect()
+    canvas.draw()
+
+def plot(xs, ys):
+    pass
+
+
+# """
+# plots data from the trace
+# will first plot everything with autoscale, and save the limits as defaults.
+# To avoid this behavior, make a separate function
+# :param trace: Trace object
+# :param xlim: desired xlim
+# :param ylim: desired ylim
+# :return:
+# """
+# # print('trace channel = {}'.format(trace.channel))
+#
+#
+# self.ax.autoscale(enable=True, axis='x', tight=True)
+# self.ax.autoscale(enable=True, axis='y', tight=True)
+#
+# self.ax.plot(
+#     xs,
+#     ys,
+#     linewidth=pymini.get_value('style_trace_line_width'),
+#     c=pymini.get_value('style_trace_line_color')
+# )
+# self.default_xlim = self.ax.get_xlim()
+# self.default_ylim = self.ax.get_ylim()
+#
+# try:
+#     self.ax.set_xlim(xlim)
+# except:
+#     pass
+# try:
+#     self.ax.set_ylim(ylim)
+# except:
+#     pass
+#
+# self.draw()
 
 get_axis_limits = lambda axis:getattr(ax, 'get_{}lim'.format(axis))()
-
 
 set_axis_limit = lambda axis, lim:getattr(ax, 'set_{}lim'.format(axis))([
         float(e) if e!= 'auto' else globals()['default_{}lim',format(axis)][i]
