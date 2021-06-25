@@ -41,9 +41,35 @@ def load(parent):
     global default_ylim
     default_ylim = ax.get_ylim()
 
-    #connect
+    global state
+    state = State()
+
+    # connect user events:
+    canvas.mpl_connect('key_presss_event', None)
+    canvas.mpl_connect('button_press_event', _on_mouse_press)
+    canvas.mpl_connect('motion_notify_event', _on_mouse_move)
+    canvas.mpl_connect('button_release_event', _on_mouse_release)
 
     return frame
+
+def _on_mouse_press(event):
+    if canvas.toolbar.mode == "":
+        state.press = True
+    # print('click! {}'.format(event))
+    pass
+
+def _on_mouse_release(event):
+    if state.press == True:
+        state.press = False
+        print('release! {}'.format(event))
+    pass
+
+def _on_mouse_move(event):
+    if state.press:
+        pass
+        # print('brrrrooom! {}'.format(event))
+    pass
+
 
 def scroll(axis, dir=1, percent=0):
     if axis == "x":
@@ -108,26 +134,30 @@ def zoom(axis, dir=1, percent=0, event=None):
     """
 
 def clear():
-    for l in ax.lines:
-        l.remove()
-        ax.lines.remove(l)
-    for c in ax.collections:
-        c.remove()
-        ax.collections.remove(c)
     for t in temp:
         temp[t].remove()
-        temp.pop(t)
-    for m in markers:
+    temp.clear()
+    for m in markers.keys():
         markers[m].remove()
-        markers.pop(m)
-    for s in sweeps:
+    markers.clear()
+    for s in sweeps.keys():
         sweeps[s].remove()
-        sweeps.pop(s)
+    sweeps.clear()
+    for l in ax.lines:
+        l.remove()
+    for c in ax.collections:
+        c.remove()
     gc.collect()
     canvas.draw()
 
-def plot(xs, ys):
-    pass
+def plot_trace(xs, ys):
+    ax.autoscale(enable=True, axis='both', tight=True)
+    sweeps['sweep{}'.format(len(sweeps))], = ax.plot(xs, ys,
+                                                    linewidth=pymini.widgets['style_trace_line_width'].get(),
+                                                    c=pymini.widgets['style_trace_line_color'].get())
+    ax.autoscale(enable=True, axis='both', tight=True)
+    ax.relim()
+    canvas.draw()
 
 
 # """
@@ -167,11 +197,21 @@ def plot(xs, ys):
 
 get_axis_limits = lambda axis:getattr(ax, 'get_{}lim'.format(axis))()
 
-set_axis_limit = lambda axis, lim:getattr(ax, 'set_{}lim'.format(axis))([
-        float(e) if e!= 'auto' else globals()['default_{}lim',format(axis)][i]
-        for i, e in enumerate(lim)
-    ])
+def set_axis_limit(axis, lim):
+    if axis=='x':
+        l = [float(e) if e != 'auto' else default_xlim[i] for i,e in enumerate(lim)]
+        ax.set_xlim(l)
+    if axis=='y':
+        l = [float(e) if e != 'auto' else default_ylim[i] for i,e in enumerate(lim)]
+        ax.set_ylim(l)
+    canvas.draw()
 
+
+class State():
+    def __init__(self):
+        self.press = False
+        self.release = False
+    ####
 
 
 class InteractivePlot():

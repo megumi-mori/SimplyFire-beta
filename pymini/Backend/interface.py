@@ -6,22 +6,24 @@ import os
 from utils import recording
 import matplotlib as mpl
 from Backend import analyzer
+import gc
 
 
 ### this module connects the analyzer and the gui
 
 def ask_open_trace():
+    gc.collect()
     fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files', '*.*')])
     if fname:
         pymini.trace_filename = fname
     else:
         return None
-    data_display.clear()
+
     open_trace(fname)
 
-def open_trace(fname):
 
-    #trace stored in analyzer
+def open_trace(fname):
+    # trace stored in analyzer
     analyzer.open_trace(fname)
 
     log_display.open_update(fname)
@@ -33,21 +35,77 @@ def open_trace(fname):
     # check if channel number is specified by user:
     if pymini.widgets['force_channel'].get() == '1':
         try:
-            analyzer.trace.set_channel(int(pymini.widgets['force_channel_id'].get()) - 1) #1 indexing
+            analyzer.trace.set_channel(int(pymini.widgets['force_channel_id'].get()) - 1)  # 1 indexing
         except Exception as e:
             print(e)
             pass
 
     trace_display.clear()
+    data_display.clear()
+
     trace_display.ax.set_xlabel(analyzer.trace.x_label)
     trace_display.ax.set_ylabel(analyzer.trace.y_label)
+
+    pymini.widgets['trace_info'].set(
+        '{}: {}Hz : {} channel{}'.format(
+            analyzer.trace.fname,
+            analyzer.trace.sampling_rate,
+            analyzer.trace.channel_count,
+            's' if analyzer.trace.channel_count > 1 else ""
+        )
+    )
+    trace_display.ax.autoscale(enable=True, axis='both', tight=True)
+
+    if pymini.widgets['trace_mode'].get() == 'continuous':
+        plot_continuous()
+    else:
+        plot_overlay()
+
+    if pymini.widgets['apply_axis_limit'].get() == '1':
+        trace_display.set_axis_limit('x', (pymini.widgets['min_x'].get(), pymini.widgets['max_x'].get()))
+        trace_display.set_axis_limit('y', (pymini.widgets['min_y'].get(), pymini.widgets['max_y'].get()))
+
+    pymini.widgets['channel_option'].clear_options()
+
+    for i in range(analyzer.trace.channel_count):
+        pymini.widgets['channel_option'].add_option(
+            label='{}: {}'.format(i+1, analyzer.trace.channel_labels[i]),
+            command=lambda c=i:_change_channel(c)
+        )
+    # starting channel was set earlier in the code
+    pymini.widgets['channel_option'].set('{}: {}'.format(analyzer.trace.channel + 1, analyzer.trace.y_label))
+
     trace_display.canvas.draw()
+
+def _change_channel(num):
+    analyzer.trace.set_channel(num)
+    pymini.widgets['channel_option'].set('{}: {}'.format(analyzer.trace.channel + 1, analyzer.trace.y_label))
+    xlim = trace_display.ax.get_xlim()
+    trace_display.clear()
+    trace_display.plot_trace(analyzer.trace.get_xs(mode='continuous'),
+                          analyzer.trace.get_ys(mode='continuous'))
+    trace_display.default_xlim = trace_display.ax.get_xlim()
+    trace_display.default_ylim = trace_display.ax.get_ylim()
+    trace_display.ax.set_xlim(xlim)
+    trace_display.canvas.draw()
+
+def plot_continuous():
+    trace_display.plot_trace(analyzer.trace.get_xs(mode='continuous'),
+                             analyzer.trace.get_ys(mode='continuous'))
+    trace_display.ax.relim()
+    trace_display.default_xlim = trace_display.ax.get_xlim()
+    trace_display.default_ylim = trace_display.ax.get_ylim()
+    pass
+
+
+def plot_overlay():
+    print('overlay currently not supported')
+    pass
+
 
 def configure(key, value):
     globals()[key] = value
 
+
 def search_event_from_click(x):
-
     pass
-
-
