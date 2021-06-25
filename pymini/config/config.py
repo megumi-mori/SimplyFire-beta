@@ -14,9 +14,10 @@ def convert_to_path(paths):
     :return:
     """
     if isinstance(paths, str):
-        return paths
+        return paths.strip()
     p = [i if i != "DIR" else DIR for i in paths]
     return os.path.join(*p)
+
 
 
 
@@ -74,10 +75,12 @@ if config_autoload == 1 or config_autoload == '1':
 
 
 
-def dump_user_config(path, ignore=None):
+def dump_user_config(ignore=None):
     print('Writing out configuration variables....')
-    with open(path, 'w') as f:
-        print('writeing dump user config {}'.format(path))
+    config_user_path = pymini.widgets['config_user_path'].get()
+    print(config_user_path)
+    with open(config_user_path, 'w') as f:
+        print('writeing dump user config {}'.format(config_user_path))
         f.write("#################################################################\n")
         f.write("# PyMini user configurations\n")
         f.write("#################################################################\n")
