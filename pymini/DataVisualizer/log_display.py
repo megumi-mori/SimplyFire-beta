@@ -25,8 +25,6 @@ def load(parent):
         default='',
         lock=True
     )
-
-    log_text.configure(state='disabled')
     log_text.grid(column=0, row=0, sticky='news')
 
     vsb = ttk.Scrollbar(log_frame, orient=Tk.VERTICAL, command=log_text.yview)
@@ -83,6 +81,10 @@ def open_update(filename):
 
 def search_update(msg):
     log_text.insert(Tk.END, '{} @search: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.see(Tk.END)
+
+def param_update(msg):
+    log_text.insert(Tk.END, '{} @param: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     log_text.see(Tk.END)
 
 

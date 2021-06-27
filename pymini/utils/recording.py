@@ -8,6 +8,7 @@ class Trace():
     def __init__(self, filename, channel=0):
         self.filename = filename
         self._open_file(filename)
+        self.channel = 0
         self.set_channel(channel)
 
     def _open_file(self, filename):
@@ -70,12 +71,14 @@ class Trace():
             # print(self.y_data[0])
 
     def set_channel(self, num):
-        if num > self.channel_count:
+        if num >= self.channel_count:
+
             raise Exception('specified channel does not exist')
         else:
             self.channel = num
             self.y_label = self.channel_labels[num]
             self.y_unit = self.channel_units[num]
+
 
     def get_ys(self, mode='continuous', sweep=0):
         """

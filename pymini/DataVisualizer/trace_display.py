@@ -73,9 +73,9 @@ def _on_mouse_release(event):
         state.press_coord = None
         return None
 
-    print('click!')
-    if canvas.toolbar.mode =="" and event.xdata:
-        interface.point_click(event.xdata)
+    if canvas.toolbar.mode =="" and event.xdata and event.button == 1 and pymini.widgets['trace_mode'].get() == 'continuous':
+        print('click!')
+        interface.pick_event_manual(event.xdata)
         state.move = False
         state.release_coord = (None, None)
         state.press_coord = (None, None)
@@ -83,7 +83,7 @@ def _on_mouse_release(event):
     pass
 
 def _on_mouse_move(event):
-    if event.button == 3:
+    if canvas.toolbar.mode == '' and event.button == 3:
         state.move = True
         pass
 
@@ -166,6 +166,7 @@ def clear():
         l.remove()
     for c in ax.collections:
         c.remove()
+    ax.clear()
     gc.collect()
     canvas.draw()
 
@@ -185,6 +186,12 @@ def plot_trace(xs, ys, draw=True, relim=True):
     if draw:
         canvas.draw()
 
+def plot_peaks():
+    try:
+        markers['peak'].remove()
+    except:
+        pass
+
 
 def show_all_plot():
     ax.autoscale(enable=True, axis='both', tight=True)
@@ -194,11 +201,11 @@ def show_all_plot():
 get_axis_limits = lambda axis:getattr(ax, 'get_{}lim'.format(axis))()
 
 def set_axis_limit(axis, lim):
-    print('set axis limit on trace_display')
     if axis=='x':
         l = [float(e) if e != 'auto' else default_xlim[i] for i,e in enumerate(lim)]
         ax.set_xlim(l)
     if axis=='y':
+
         l = [float(e) if e != 'auto' else default_ylim[i] for i,e in enumerate(lim)]
         ax.set_ylim(l)
     canvas.draw()

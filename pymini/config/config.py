@@ -25,7 +25,7 @@ def convert_to_path(paths):
 global DIR
 DIR = os.path.dirname(os.path.realpath(inspect.getfile(pymini)))
 
-print(DIR)
+print('reading default config...{}'.format(DIR))
 
 # Load defaults
 default_vars = {}
@@ -43,7 +43,6 @@ with open(default_config_path) as f:
         # if c[0:15] == 'system_default_':
         #     globals()[c[15:]] = v
         #     system_vars[c[15:]] = v
-
 # Load user configurations
 
 config_system_path = os.path.join(DIR, "config", "pymini_config.yaml")

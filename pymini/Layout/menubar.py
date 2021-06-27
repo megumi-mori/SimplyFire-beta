@@ -4,6 +4,7 @@ from config import config
 import pymini
 from utils.widget import VarWidget
 from Backend import interface
+from DataVisualizer import param_guide
 
 def _setting_window(event=None):
     window = Tk.Toplevel()
@@ -14,6 +15,18 @@ def _setting_window(event=None):
 
     notebook = ttk.Notebook(frame)
     notebook.grid(column=0, row=0, sticky='news')
+
+def _show_param_guide(event=None):
+    try:
+        if pymini.widgets['window_param_guide'].get() == '1':
+            pass
+        else:
+            pymini.widgets['window_param_guide'].set('1')
+            param_guide.load()
+    except:
+        param_guide.load()
+
+
 
 def load_menubar(parent):
     menubar = Tk.Menu(parent)
@@ -35,6 +48,12 @@ def load_menubar(parent):
     view_menu.add_radiobutton(label='Continous', command=_continuous_mode)
     view_menu.add_radiobutton(label='Overlay', command=_overlay_mode)
     view_menu.invoke({'continuous':0,'overlay':1}[config.trace_mode])
+    view_menu.add_separator()
+    pymini.widgets['window_param_guide'] = VarWidget(name='window_param_guide')
+    view_menu.add_command(label='Show parameter-guide', command=_show_param_guide)
+    if pymini.widgets['window_param_guide'].get() == '1':
+        param_guide.load()
+
 
 
     return menubar

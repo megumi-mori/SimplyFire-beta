@@ -20,45 +20,49 @@ header2config = OrderedDict([
     ('amp_unit', 'data_display_amplitude'),
     ('decay_const', 'data_display_decay'),
     ('decay_unit', 'data_display_decay'),
-    ('decay_t', 'data_display_decay_time'),
+    # ('decay_t', 'data_display_decay_time'),
     ('rise_const', 'data_display_rise'),
     ('rise_unit', 'data_display_rise'),
     ('halfwidth', 'data_display_halfwidth'),
     ('halfwidth_unit', 'data_display_halfwidth'),
     ('baseline', 'data_display_baseline'),
     ('baseline_unit', 'data_display_baseline'),
-    ('auc', 'data_display_auc'),
+#    ('auc', 'data_display_auc'),#
     ('t_start', 'data_display_start'),
     ('t_end', 'data_display_end'),
     ('channel', 'data_display_channel',)
 ])
 columns = [
     # panel -- make sure this matches with the config2header dict
+    # = analyzer generates the data
     't',  #
     'amp',  #
     'amp_unit',  #
-    'decay_const',
-    'decay_unit',
-    'decay_t',
+    'decay_const', #
+    'decay_unit', #
     'rise_const',  #
     'rise_unit',  #
-    'halfwidth',
-    'halfwidth_unit',
+    'halfwidth', #
+    'halfwidth_unit', #
     'baseline',  #
     'baseline_unit',  #
-    'auc',
+            #'auc',
     't_start',  #
     't_end',  #
     'channel',  #
     # plot
+    'peak_idx', #
     'peak_coord_x',  # (x,y) #
     'peak_coord_y',  #
     'decay_coord_x',
     'decay_coord_y',
     'start_coord_x',  #
     'start_coord_y',  #
+    'start_idx',  #
     'end_coord_x',  #
     'end_coord_y',  #
+    'end_idx',  #
+    'decay_fit', #
 
     # data
     'datetime'  #

@@ -15,13 +15,16 @@ class VarWidget():
     ):
         self.name = name
         self.var = Tk.StringVar()
-        if value is not None and default is not None:
+        if value is not None:
             try:
                 self.var.set(value)
-                self.default=default
-                return
             except:
                 pass
+            if default is not None:
+                self.default=default
+            else:
+                self.default = config.default_vars['default_{}'.format(name)]
+            return
         try:
             self.var.set(config.user_vars[name])
             self.default = config.default_vars['default_{}'.format(name)]
@@ -106,8 +109,8 @@ class VarEntry(VarWidget, Tk.Entry):
             return False
 
     def get(self):
-        if validation.is_na(self.var.get()):
-            return None
+        # if validation.is_na(self.var.get()):
+        #     return None
         return self.var.get()
 
 
@@ -210,6 +213,8 @@ class VarText(VarWidget, Tk.Text):
         )
         # print(self.get())
         self.lock = lock
+        if lock:
+            Tk.Text.configure(self, state='disabled')
         self.set(value)
 
 
@@ -223,6 +228,18 @@ class VarText(VarWidget, Tk.Text):
         self.delete(1.0, Tk.END)
         self.insert(1.0, value)
         self.var.set(value)
+        if disable:
+            self.config(state='disabled')
+
+    def clear(self):
+        if self.lock:
+            return None
+        disable = False
+        if self['state'] == 'disabled':
+            disable=True
+            self.config(state='normal')
+        self.delete(1.0, Tk.END)
+        self.var.set("")
         if disable:
             self.config(state='disabled')
 

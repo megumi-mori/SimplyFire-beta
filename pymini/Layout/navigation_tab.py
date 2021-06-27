@@ -10,7 +10,6 @@ def load(parent, root):
     ##################################################
     def apply_axes_limits():
         # trace_display.focus()
-        print(apply_axes_limits)
         trace_display.set_axis_limit(
             axis='x',
             lim=(
@@ -65,7 +64,7 @@ def load(parent, root):
         ('min_x', 'Left x-axis', '[auto]/float'),  # config name, label text, validate_type
         ('max_x', 'Right x-axis', '[auto]/float'),
         ('max_y', 'Top y-axis', '[auto]/float'),
-        ('min_y', 'Botton y-axis', '[auto]/float')
+        ('min_y', 'Bottom y-axis', '[auto]/float')
     ]
     for e in entries:
         pymini.widgets[e[0]] = optionframe.insert_label_entry(
@@ -115,10 +114,9 @@ def load(parent, root):
     #     add="+"
     # )
 
-    pymini.widgets['apply_axis_limit'] = optionframe.insert_label_checkbox(
-        name='apply_axis_limit',
-        label='Force axes limits on a new trace',
-        command=apply_axes_limits
+    pymini.widgets['force_axis_limit'] = optionframe.insert_label_checkbox(
+        name='force_axis_limit',
+        label='Force axes limits on a new trace'
     )
     optionframe.insert_button(
         text='Apply axes limits',
