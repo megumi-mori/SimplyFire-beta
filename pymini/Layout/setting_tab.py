@@ -21,17 +21,17 @@ def load(parent):
         pass
 
     def _ask_dirname(e=None):
-        dir = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
+        d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
                                            defaultextension='.yaml')
-        if dir:
+        if d:
             frame.widgets['config_path'].widget.config(state="normal")
-            frame.widgets['config_path'].set(dir)
+            frame.widgets['config_path'].set(d)
             frame.widgets['config_path'].widget.config(state='disabled')
 
     def _save_config_as():
-        dir = filedialog.asksaveasfilename(filetypes=[('yaml file', '*yaml')], defaultextension='.yaml')
-        if dir:
-            config.dump_user_config(dir)
+        d = filedialog.asksaveasfilename(filetypes=[('yaml file', '*.yaml')], defaultextension='.yaml')
+        if d:
+            config.dump_user_config(d)
 
 
     ##################################################

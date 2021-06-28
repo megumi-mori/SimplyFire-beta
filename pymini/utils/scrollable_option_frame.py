@@ -231,7 +231,6 @@ class ScrollableOptionFrame(Tk.Frame):
             panel,
             text=text,
             command=command,
-            # wraplength=85
         )
         b.configure()
         b.bind('<Configure>', lambda e, c = b:self.adjust_button_width(c))
@@ -246,7 +245,8 @@ class ScrollableOptionFrame(Tk.Frame):
             panel.grid(column=0, row=row, sticky='news')
             self.num_row += 1
             self.col_button += 1
-        pass
+        return b
+
 
     def adjust_button_width(self, button):
         width = self.canvas.winfo_width()

@@ -8,13 +8,13 @@ from DataVisualizer import data_display, log_display
 
 from utils import widget
 
-
+event_filename = None
 
 ##################################################
 #                    Methods                     #
 ##################################################
 def test():
-    data_display.table.insert("", 'end', values=[{'t':0.0001}.get(i, None) for i in data_display.columns], iid='0.0001')
+    data_display.table.insert("", 'end', values=[{'t':0.0001}.get(i, None) for i in data_display.header2config], iid='0.0001')
     data_display.add({'amp':'123'})
     # data_table.add_event({
     #     't':0.25,
@@ -71,13 +71,17 @@ def change_label(key, value, tab=None):
             except:
                 pass
     return False
-
+def key(e=None):
+    # print(e)
+    pass
 def load():
 
     global root
     root = Tk.Tk()
     root.title('PyMini v{}'.format(config.version))
     root.geometry('{}x{}'.format(config.geometry[0], config.geometry[1]))
+
+    root.bind('<KeyPress>', key)
 
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)

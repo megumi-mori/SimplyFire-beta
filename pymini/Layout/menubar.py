@@ -5,6 +5,7 @@ import pymini
 from utils.widget import VarWidget
 from Backend import interface
 from DataVisualizer import param_guide
+import gc
 
 def _setting_window(event=None):
     window = Tk.Toplevel()
@@ -26,7 +27,42 @@ def _show_param_guide(event=None):
     except:
         param_guide.load()
 
+def ask_open_trace():
+    gc.collect()
+    fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files', '*.*')])
+    if fname:
+        pymini.trace_filename = fname
+    else:
+        return None
 
+    interface.open_trace(fname)
+
+def save_events():
+    if not pymini.event_filename:
+        save_events_as()
+        return
+    interface.save_events(pymini.event_filename)
+
+def save_events_as():
+    filename = filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.csv')
+    if filename:
+        interface.save_events(filename)
+        return
+    return
+
+def open_events():
+    filename = filedialog.askopenfilename(filetypes=[('event files', '*.event'), ("All files", '*.*')])
+    if filename:
+        interface.open_events(filename)
+        return
+    return
+
+def export_events():
+    filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('All files', "*.*")])
+    if filename:
+        interface.export_events(filename)
+        return
+    return
 
 def load_menubar(parent):
     menubar = Tk.Menu(parent)
@@ -34,7 +70,13 @@ def load_menubar(parent):
     file_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='File', menu=file_menu)
 
-    file_menu.add_command(label="Open", command=interface.ask_open_trace)
+    file_menu.add_command(label="Open trace", command=ask_open_trace)
+    file_menu.add_separator()
+    file_menu.add_command(label='Open event file', command=open_events)
+    file_menu.add_command(label='Save event file', command=save_events)
+    file_menu.add_command(label='Save event file as...', command=save_events_as)
+    file_menu.add_separator()
+    file_menu.add_command(label='Export events', command=export_events)
     # file_menu.add_command(label='Close', command=pymini.plot_area.close)
 
     # options_menu = Tk.Menu(menubar, tearoff=0)

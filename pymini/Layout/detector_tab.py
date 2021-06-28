@@ -1,13 +1,14 @@
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 import pymini
-from DataVisualizer import data_display
+from DataVisualizer import data_display, trace_display
 from utils import widget
 import tkinter as Tk
 from tkinter import ttk
 import pandas as pd
 changed = True
-data = pd.DataFrame()
+changes = {}
+parameters = {}
 
 def load(parent):
     ##################################################
@@ -23,9 +24,12 @@ def load(parent):
             frame.widgets[key].set('')
         data_display.show_columns()
     def apply_parameters(e=None):
-        print('apply_parameters')
         global changed
-        changed = True
+        for i in parameters:
+            if parameters[i] != pymini.widgets[i].get():
+                changes[i] = pymini.widgets[i].get()
+                changed = True
+
     # frame = ScrollableOptionFrame(parent)
 
     ##################################################
@@ -52,7 +56,8 @@ def load(parent):
         options=['positive', 'negative']
     )
     entries = [
-        ('detector_min_amp', 'Minimum amplitude (y-axis unit):', 'float'),# (config param name, Label text, validation type)
+        ('detector_search_radius', 'Search radius in % of visible x-axis', 'float'),
+        ('detector_min_amp', 'Minimum amplitude (absolute value) (y-axis unit):', 'float'),# (config param name, Label text, validation type)
         ('detector_min_decay', 'Minimum decay constant (tau) (ms)', 'float'),
         ('detector_max_decay','Maximum decay constant (tau) (ms)', 'float/None'),
         # ('detector_min_auc', 'Minimum area under the curve', 'float'),
@@ -60,12 +65,10 @@ def load(parent):
         ('detector_max_hw', 'Maximum halfwidth (ms)', 'float/None'),
         ('detector_min_rise', 'Minimum rise constant (ms)', 'float'),
         ('detector_max_rise', 'Maximum rise constant (ms)', 'float/None'),
-        ('detector_points_baseline', 'Number of data points averaged to find the start/end of an event:', 'int'),
-        ('detector_points_search', 'Search radius in number of data points', 'int'),
+        ('detector_points_baseline', 'Number of data points averaged to find the start of an event:', 'int'),
         ('detector_max_points_baseline', 'Maximum data points to consider before peak to find the baseline', 'int'),
         ('detector_max_points_decay', 'Maximum data points after peak to consider for decay', 'int'),
-        ('detector_manual_pixel_offset', 'Pixel offset for manually selecting event markers', 'int'),
-        ('detector_decay_fit_percent', 'Relative error desired for the sum of squares', 'float')
+        ('detector_decay_fit_ftol', 'Tolerance for termination by the change of the cost function in Scipy Curvefit', 'float')
     ]
     for i in entries:
         pymini.widgets[i[0]] = frame.insert_label_entry(
@@ -73,8 +76,11 @@ def load(parent):
             label=i[1],
             validate_type=i[2]
         )
-        pymini.widgets[i[0]].bind('<Return>', apply_parameters)
-        pymini.widgets[i[0]].bind('<FocusOut>', apply_parameters)
+        pymini.widgets[i[0]].bind('<Return>', apply_parameters, add='+')
+        pymini.widgets[i[0]].bind('<Return>', lambda e:trace_display.canvas.get_tk_widget().focus_set(), add="+")
+        pymini.widgets[i[0]].bind('<FocusOut>', apply_parameters, add='+')
+        parameters[i[0]] = pymini.widgets[i[0]].get()
+        changes[i[0]] = pymini.widgets[i[0]].get()
 
     panel = frame.make_panel()
     Tk.Label(panel, text='Fit decay functions using:').grid(column=0, row=0, sticky='news')
@@ -106,7 +112,7 @@ def load(parent):
     )
     frame.insert_button(
         text='Apply',
-        # command=pymini.plot.focus
+        command=trace_display.canvas.get_tk_widget().focus_set
     )
     frame.insert_button(
         text='Default paramters',
@@ -159,7 +165,7 @@ def load(parent):
         ('data_display_time', 'Peak time'),
         ('data_display_amplitude', 'Amplitude'),
         ('data_display_decay', 'Decay constant'),
-        ('data_display_decay_time', 'Decay time point'),
+        ('data_display_decay_func', 'Decay function'),
         ('data_display_rise', 'Rise duration'),
         ('data_display_halfwidth', 'Halfwidth'),
         ('data_display_baseline', 'Baseline'),

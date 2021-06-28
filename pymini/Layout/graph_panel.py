@@ -10,6 +10,9 @@ import pymini
 import os
 import time
 
+
+
+
 def load(parent):
     ##################################################
     #                    Methods                     #
@@ -19,40 +22,50 @@ def load(parent):
             pymini.get_widget('force_channel_id').config(state='normal')
         else:
             pymini.get_widget('force_channel_id').config(state='disabled')
-    # def scroll_plot(axis, dir):
-    #     scroll_plot_repeat(
-    #         axis,
-    #         dir * int(pymini.get_value('mirror_{}_scroll'.format(axis), 'plot_area')),
-    #         int(pymini.get_value('nav_fps')),
-    #         float(pymini.get_value('scroll_percent'))
-    #     )
-    #     return None
 
-    scroll_plot = lambda axis, dir: scroll_plot_repeat(
-        axis,
-        dir * int(pymini.get_value('navigation_mirror_{}_scroll'.format(axis), 'plot_area')),
-        int(pymini.get_value('navigation_fps')),
-        float(pymini.get_value('navigation_scroll_percent'))
-    )
-    def scroll_plot_repeat(axis, dir, fps, percent):
+    def scroll_plot(axis, dir):
+        if axis == 'x':
+            scroll_x_repeat(
+                dir * int(pymini.widgets['navigation_mirror_x_scroll'].get()),
+                int(pymini.widgets['navigation_fps'].get()),
+                float(pymini.widgets['navigation_scroll_percent'].get())
+            )
+        else:
+            scroll_y_repeat(
+                dir * int(pymini.widgets['navigation_mirror_y_scroll'].get()),
+                int(pymini.widgets['navigation_fps'].get()),
+                float(pymini.widgets['navigation_scroll_percent'].get())
+            )
+    def scroll_x_repeat(dir, fps, percent):
         global jobid
-        jobid = pymini.root.after(int(1000 / fps), scroll_plot_repeat, axis, dir, fps, percent)
-        trace_display.scroll(axis, dir, percent)
-        return None
-
-    def zoom_plot(axis, dir):
-        zoom_plot_repeat(axis, dir, int(pymini.get_value('navigation_fps')), float(pymini.get_value('navigation_zoom_percent')))
-        return None
-
-    def zoom_plot_repeat(axis, dir, fps, percent):
-        global jobid
-        jobid = pymini.root.after(int(1000 / fps), zoom_plot_repeat, axis, dir, fps, percent)
-        trace_display.zoom(axis, dir, percent)
-        return None
-
-    def _choose_channel(event):
+        jobid = pymini.root.after(int(1000 / fps), scroll_x_repeat, dir, fps, percent)
+        trace_display.scroll_x_by(dir, percent)
         pass
 
+    def scroll_y_repeat(dir, fps, percent):
+        global jobid
+        jobid = pymini.root.after(int(1000 / fps), scroll_y_repeat, dir, fps, percent)
+        trace_display.scroll_y_by(dir, percent)
+        pass
+
+    def zoom_plot(axis, dir):
+        if axis =='x':
+            zoom_x_repeat(dir, int(pymini.widgets['navigation_fps'].get()), float(pymini.widgets['navigation_zoom_percent'].get()))
+        else:
+            zoom_y_repeat(dir, int(pymini.get_value('navigation_fps')), float(pymini.widgets['navigation_zoom_percent'].get()))
+        return None
+
+    def zoom_x_repeat(dir, fps, percent):
+        global jobid
+        jobid = pymini.root.after(int(1000 / fps), zoom_x_repeat, dir, fps, percent)
+        trace_display.zoom_x_by(dir, percent)
+        return None
+
+    def zoom_y_repeat(dir, fps, percent):
+        global jobid
+        jobid = pymini.root.after(int(1000 / fps), zoom_y_repeat, dir, fps, percent)
+        trace_display.zoom_y_by(dir, percent)
+        return None
 
 
     frame = ScrollableOptionFrame(parent, False)
@@ -120,15 +133,16 @@ def load(parent):
     pan_down.bind('<ButtonPress-1>', lambda e, c='y', d=-1: scroll_plot(c, d))
     pan_down.bind('<ButtonRelease-1>', stop)
 
-    frame.widgets['y_scrollbar'] = widget.VarScale(parent=yscrollbar_frame,
+    global y_scrollbar
+    y_scrollbar = widget.VarScale(parent=yscrollbar_frame,
                                                       name='y_scrollbar',
                                                       from_=0,
                                                       to=100,
                                                       orient=Tk.VERTICAL,
-                                                      command=None)
-    frame.widgets['y_scrollbar'].grid(column=0, row=1, sticky='news')
-    frame.widgets['y_scrollbar'].config(state='disabled')  # disabled until a trace is loaded
-    frame.widgets['y_scrollbar'].set(50)
+                                                      command=lambda e:trace_display.scroll_y_to(e))
+    y_scrollbar.grid(column=0, row=1, sticky='news')
+    y_scrollbar.config(state='disabled')  # disabled until a trace is loaded
+    y_scrollbar.set(50)
 
     graph_frame = trace_display.load(big_frame) # can be replaced with any other plotting module  - must return a frame that can be gridded
     graph_frame.grid(column=1, row=1, sticky='news')
@@ -211,25 +225,23 @@ def load(parent):
     pan_right.bind('<ButtonPress-1>', lambda e, c='x', d=1: scroll_plot(c, d))
     pan_right.bind('<ButtonRelease-1>', stop)
 
-    frame.widgets['x_scrollbar'] = widget.VarScale(parent=x_zoom_frame,
-                                                      name='y_scrollbar',
-                                                      from_=0,
-                                                      to=100,
-                                                      orient=Tk.HORIZONTAL,
-                                                      command=None)
-    frame.widgets['x_scrollbar'].grid(column=3, row=0, sticky='news')
-    frame.widgets['x_scrollbar'].config(state='disabled')  # disabled until a trace is loaded
-    frame.widgets['x_scrollbar'].set(50)
+    global x_scrollbar
+    x_scrollbar = widget.VarScale(parent=x_zoom_frame,
+                                  name='y_scrollbar',
+                                  from_=0,
+                                  to=100,
+                                  orient=Tk.HORIZONTAL,
+                                  command=lambda e:trace_display.scroll_x_to(e)
+                                  )
+    x_scrollbar.grid(column=3, row=0, sticky='news')
+    x_scrollbar.config(state='disabled')  # disabled until a trace is loaded
+    x_scrollbar.set(50)
+    x_scrollbar.bind('<ButtonRelease-1>', lambda e:trace_display.update_y_scrollbar)
 
     return frame
 
 
-
-
-
-
-
-
-
 def stop(e=None):
     pymini.root.after_cancel(jobid)
+    trace_display.update_x_scrollbar()
+    trace_display.update_y_scrollbar()

@@ -51,7 +51,7 @@ def find_peak_at(
         y_unit="",
         xlim=None,
         ylim=None,
-        dir=1,
+        direction=1,
         lag=config.detector_points_baseline,
         points_search=config.detector_points_search,
         max_points_baseline=config.detector_max_points_baseline,
@@ -65,7 +65,8 @@ def find_peak_at(
         max_rise=config.detector_max_rise,
         decay_func_type=config.detector_decay_func_type,
         decay_func_constant=config.detector_decay_func_constant,
-        decay_fit_percent=config.detector_decay_fit_percent
+        decay_fit_ftol=config.detector_decay_fit_ftol,
+        prev=None
 ):
     """
     searches for a synaptic event centered around x using the parameters given
@@ -75,7 +76,7 @@ def find_peak_at(
     :param x: central x-coordinate used for the search. float. must be within the y-data of the trace
     :param xlim: x-axis search limit. tuple(min_x, max_x)
     :param ylim: y-axis search limit. tuple (min_y, max_y)
-    :param dir: expected direction of the synaptic event. int 1 = positive, -1 = negative
+    :param direction: expected direction of the synaptic event. int 1 = positive, -1 = negative
     :param xs: x data, given as a 1D numpy array
     :param ys: y data, given as a 1D numpy array
     :param lag: number of points to average to find start/end (baseline) of the event. int > 10
@@ -148,7 +149,7 @@ def find_peak_at(
         ys=ys,
         x_unit=x_unit,
         y_unit=y_unit,
-        dir=dir,
+        direction=direction,
         lag=lag,
         max_points_baseline=max_points_baseline,
         max_points_decay=max_points_decay,
@@ -161,7 +162,8 @@ def find_peak_at(
         max_rise=max_rise,
         decay_func_type=decay_func_type,
         decay_func_constant=decay_func_constant,
-        decay_fit_percent=decay_fit_percent
+        decay_fit_ftol=decay_fit_ftol,
+        prev=prev
     )
 
     return data
@@ -175,7 +177,7 @@ def find_peak_recursive(
         ys,
         x_unit=None,
         y_unit=None,
-        dir=1,
+        direction=1,
         lag=config.detector_points_baseline,
         max_points_baseline=config.detector_max_points_baseline,
         max_points_decay=config.detector_max_points_decay,
@@ -188,28 +190,30 @@ def find_peak_recursive(
         max_rise=config.detector_max_rise,
         decay_func_type=config.detector_decay_func_type,
         decay_func_constant=config.detector_decay_func_constant,
-        decay_fit_percent=config.detector_decay_fit_percent
+        decay_fit_ftol=config.detector_decay_fit_ftol,
+        prev=None
 ):
     data = {}
     data['start_idx'] = start_idx
     data['end_idx'] = end_idx
 
     ######## search candidate peak ##########
-    peak_y = max(ys[start_idx:end_idx] * dir)
-    peaks = np.where(ys[start_idx:end_idx] * dir == peak_y)[0] + start_idx  # list of indices where ys is at peak
+    peak_y = max(ys[start_idx:end_idx] * direction)
+    peaks = np.where(ys[start_idx:end_idx] * direction == peak_y)[0] + start_idx  # list of indices where ys is at peak
     peak_idx = peaks[0]  # take the earliest time point as candidate
 
     FUDGE = 10  # adjust if needed
 
     if end_idx - start_idx < FUDGE * 2:
-        data['error'] = 'extremum_not_found'
+        data['msg'] = 'extremum_not_found'
+        data['success'] = False
         return data
 
     # check if the peak is only a cut-off of a slope:
     # recursively narrow the search area and look for another local extremum within the range
 
     if peak_idx < start_idx + FUDGE:  # peak is too close to the left end of search range
-        return find_peak_recursive(start_idx + FUDGE, end_idx, xs, ys, x_unit, y_unit, dir=dir, lag=lag,
+        return find_peak_recursive(start_idx + FUDGE, end_idx, xs, ys, x_unit, y_unit, direction=direction, lag=lag,
                                    max_points_baseline=max_points_baseline,
                                    max_points_decay=max_points_decay,
                                    min_amp=min_amp,
@@ -221,10 +225,11 @@ def find_peak_recursive(
                                    max_rise=max_rise,
                                    decay_func_type=decay_func_type,
                                    decay_func_constant=decay_func_constant,
-                                   decay_fit_percent=decay_fit_percent
+                                   decay_fit_ftol=decay_fit_ftol,
+                                   prev=prev
                                    )
     if peak_idx > end_idx - FUDGE:  # peak is too close to the right end of search range
-        return find_peak_recursive(start_idx, end_idx - FUDGE, xs, ys, x_unit, y_unit, dir=dir, lag=lag,
+        return find_peak_recursive(start_idx, end_idx - FUDGE, xs, ys, x_unit, y_unit, direction=direction, lag=lag,
                                    max_points_baseline=max_points_baseline,
                                    max_points_decay=max_points_decay,
                                    min_amp=min_amp,
@@ -236,10 +241,19 @@ def find_peak_recursive(
                                    max_rise=max_rise,
                                    decay_func_type=decay_func_type,
                                    decay_func_constant=decay_func_constant,
-                                   decay_fit_percent=decay_fit_percent
+                                   decay_fit_ftol=decay_fit_ftol,
+                                   prev=prev
                                    )
 
+    for i in ['direction',
+        'lag', 'max_points_baseline', 'max_points_decay', 'min_amp', 'min_decay',
+        'min_hw', 'max_hw', 'min_rise', 'max_rise', 'decay_fit_ftol'
+    ]:
+        data[i] = locals()[i]
+
+
     data['t'] = xs[peak_idx]
+    data['t_unit'] = x_unit
     data['datetime'] = datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S')
     data['peak_coord_x'] = xs[peak_idx]
     data['peak_coord_y'] = ys[peak_idx]
@@ -250,62 +264,62 @@ def find_peak_recursive(
     base_idx = peak_idx - 1
 
     # y_avg is always going to be a positive peak
-    y_avg = np.mean(ys[base_idx - lag + 1:base_idx + 1] * dir)
+    y_avg = np.mean(ys[base_idx - lag + 1:base_idx + 1] * direction)
     # should include the base_idx in the calculation, also, why was it base_idx+2?
-    baseline_x = [xs[base_idx]]
-    baseline_y = [y_avg]
+    # baseline_x = [xs[base_idx]]
+    # baseline_y = [y_avg]
     base_idx -= 1
 
-    while base_idx > max(start_idx - max_points_baseline + lag, lag):
-        y_avg = (y_avg * (lag) + (ys[base_idx - lag] - ys[base_idx]) * dir) / (lag)
+    while base_idx > max(peak_idx - max_points_baseline + lag, lag):
+        y_avg = (y_avg * (lag) + (ys[base_idx - lag] - ys[base_idx]) * direction) / (lag)
         # equivalent to np.mean(ys[base_idx - lag: base_idx]))
-        baseline_x.append(xs[base_idx])
-        baseline_y.append(y_avg)
-        if y_avg >= ys[base_idx] * dir:
+        # baseline_x.append(xs[base_idx])
+        # baseline_y.append(y_avg)
+        if y_avg >= ys[base_idx] * direction:
             break
         base_idx -= 1
     else:
-        data['error'] = 'start_of_event_not_found'
+        data['msg'] = 'start_of_event_not_found'
         # return results
+        data['success'] = False
         return data  # could not find start
     data['start_coord_x'] = xs[base_idx]
-    data['start_coord_y'] = y_avg * dir  # the point may not be on the trace itself
+    data['start_coord_y'] = y_avg * direction  # the point may not be on the trace itself
 
-    data['baseline'] = y_avg * dir  # instead of the coord right at the interception (can be different from start_coord_x
+    data['baseline'] = y_avg * direction  # instead of the coord right at the interception (can be different from start_coord_x
     data['baseline_unit'] = y_unit
     data['t_start'] = xs[base_idx]
     data['start_idx'] = base_idx  # use this to map back to data present in the trace
-    data['baseline_plot'] = (baseline_x, baseline_y)
+    # data['baseline_plot'] = (baseline_x, baseline_y)
 
     ###### determine amplitude ########
-    data['amp'] = (ys[peak_idx] - y_avg * dir)  # implement decay extrapolation later
+    data['amp'] = (ys[peak_idx] - y_avg * direction)  # implement decay extrapolation later
     data['amp_unit'] = y_unit
-    if data['peak_coord_y'] * dir < data['baseline']:
-        data['error'] = 'baseline_unreliable'
+    if data['peak_coord_y'] * direction < data['baseline']:
+        data['msg'] = 'baseline_unreliable'
+        data['success'] = False
         return data
-    if data['amp'] * dir < min_amp:
-        data['error'] = 'minimum_amplitude_unmet'
+    if data['amp'] * direction < min_amp:
+        data['msg'] = 'minimum_amplitude_unmet'
+        data['success'] = False
         return data
 
     end_idx = peak_idx
-    hw_right_estimate = None
-    y_avg = np.mean(ys[end_idx: end_idx + lag]) * dir
-    baseline_end_x = [xs[end_idx]]
-    baseline_end_y = [y_avg]
+    y_avg = np.mean(ys[end_idx: end_idx + lag]) * direction
+    # baseline_end_x = [xs[end_idx]]
+    # baseline_end_y = [y_avg]
     end_idx += 1
     while end_idx < len(ys) - lag:
-        y_avg = (y_avg * (lag) + (ys[end_idx + lag] - ys[end_idx]) * dir) / (
+        y_avg = (y_avg * (lag) + (ys[end_idx + lag] - ys[end_idx]) * direction) / (
             lag)  # equivalent to np.mean(ys[end_idx + 1: end_idx + lag + 1])
-        baseline_end_x.append(xs[end_idx])
-        baseline_end_y.append(y_avg)
-        if y_avg > ys[end_idx] * dir:
+        # baseline_end_x.append(xs[end_idx])
+        # baseline_end_y.append(y_avg)
+        if y_avg > ys[end_idx] * direction:
             data['end_coord_x'] = xs[end_idx]
             data['end_coord_y'] = y_avg  # the point may not be on the trace itself
             data['t_end'] = xs[end_idx]
             data['end_idx'] = end_idx  # use this to map to trace data
             break
-        if ys[end_idx] < data['baseline'] * dir + data['amp'] * dir / 2 and hw_right_estimate is None:
-            hw_right_estimate = end_idx
 
         end_idx += 1
     else:
@@ -313,7 +327,7 @@ def find_peak_recursive(
         data['end_coord_y'] = None
         data['t_end'] = None
 
-    data['baseline_end_plot'] = (baseline_end_x, baseline_end_y)
+    # data['baseline_end_plot'] = (baseline_end_x, baseline_end_y)
 
         # might not necessarily be a bad thing - the peak is still picked out.
 
@@ -322,40 +336,43 @@ def find_peak_recursive(
     data['rise_unit'] = 'ms' if x_unit in ['s', 'seconds', 'second', 'sec'] else '{} E-3'.format(
         x_unit)
     if data['rise_const'] < min_rise:
-        data['error'] = 'minimum_rise_unmet'
+        data['msg'] = 'minimum_rise_unmet'
+        data['success'] = False
         return data
     try:
         if data['rise_const'] > max_rise:
-            data['error'] = 'maximum_rise_surpassed'
+            data['msg'] = 'maximum_rise_surpassed'
+            data['success'] = False
             return data
     except:
         pass
 
     ###### calculate halfwidth #####
+    hw_idx_left = base_idx
+    while ys[hw_idx_left] * direction < (data['baseline'] + data['amp']/2) * direction and hw_idx_left < len(xs):
+        hw_idx_left+= 1
 
-    left_hw = np.where(ys[base_idx:peak_idx] * dir <= data['baseline'] * dir + (data['amp'] * dir / 2))[0] + base_idx
-    if data['end_idx'] is not None:
-        right_hw = np.where(ys[peak_idx:data['end_idx']] * dir <= data['baseline'] * dir + (data['amp'] * dir / 2))[
-                       0] + peak_idx
-    elif hw_right_estimate is not None:
-        right_hw = [hw_right_estimate]
-    else:
-        data['error'] = 'halfwidth_could_not_be_calculated'
-        return data
+    hw_idx_right = peak_idx
+    while ys[hw_idx_right] * direction > (data['baseline'] + data['amp']/2) * direction and hw_idx_right < len(xs):
+        hw_idx_right += 1
+
     try:
-        data['halfwidth'] = (xs[right_hw[0]] - xs[left_hw[-1]]) * 1000
+        data['halfwidth'] = (xs[hw_idx_right] - xs[hw_idx_left]) * 1000
         data['halfwidth_unit'] = 'ms' if x_unit in ['s', 'seconds', 'second', 'sec'] else '{} E-3'.format(
             x_unit)
-        data['halfwidth_idx'] = (left_hw[-1], right_hw[0])
+        data['halfwidth_idx'] = (hw_idx_left, hw_idx_right)
     except:
-        data['error'] = 'halfwidth_could_not_be_calculated'
+        data['msg'] = 'halfwidth_could_not_be_calculated'
+        data['success'] = False
         return data
     if data['halfwidth'] < min_hw:
-        data['error'] = 'minimum_halfwidth_unmet'
+        data['msg'] = 'minimum_halfwidth_unmet'
+        data['success'] = False
         return data
     try:
         if data['halfwidth'] > max_hw:
-            data['error'] = 'maximum_halfwidth_surpassed'
+            data['msg'] = 'maximum_halfwidth_surpassed'
+            data['success'] = False
             return data
     except:
         pass
@@ -364,7 +381,7 @@ def find_peak_recursive(
     # scipy curve_fit: need to define a function
     # Zero xs and ys using the peak t and baseline Vm
     # def rise_decay(x, t_2, t_1):
-    #     return data['amp'] * dir * 2 * (1 - np.exp(-x / t_1)) * (np.exp(-(x) / t_2))
+    #     return data['amp'] * direction * 2 * (1 - np.exp(-x / t_1)) * (np.exp(-(x) / t_2))
 
     def single_exponent_constant(x, a, t, d):
         return a * np.exp(-(x) / t) + d
@@ -378,6 +395,9 @@ def find_peak_recursive(
     def double_exponent(x, a_1, t_1, a_2, t_2):
         return a_1 * np.exp(-(x) / t_1) + a_2 * np.exp(-(x) / t_2)
 
+    # def triple_exponent_constant(x, t_1, t_2, t_3, c):
+    #     a = data['amp'] * direction
+    #     return a * direction * np.exp(-(x) / t_1) + a * np.exp(-(x) / t_2) + a * np.exp(-(x) / t_3) + c
     def triple_exponent_constant(x, a_1, t_1, a_2, t_2, a_3, t_3, c):
         return a_1 * np.exp(-(x) / t_1) + a_2 * np.exp(-(x) / t_2) + a_3 * np.exp(-(x) / t_3) + c
 
@@ -385,7 +405,7 @@ def find_peak_recursive(
         return a_1 * np.exp(-(x) / t_1) + a_2 * np.exp(-(x) / t_2) + a_3 * np.exp(-(x) / t_3)
 
     x_data = (xs[peak_idx:min(peak_idx + max_points_decay, len(xs))] - xs[peak_idx]) * 1000
-    y_data = (ys[peak_idx:min(peak_idx + max_points_decay, len(xs))] - data['baseline']) * dir
+    y_data = (ys[peak_idx:min(peak_idx + max_points_decay, len(xs))] - data['baseline']) * direction
 
     fmap = {(1, ""): single_exponent,
             (1, '1'): single_exponent_constant,
@@ -395,39 +415,45 @@ def find_peak_recursive(
             (3, "1"): triple_exponent_constant
             }
     decay_func = fmap[(decay_func_type, decay_func_constant)]
-
-    results = optimize.curve_fit(decay_func,
+    try:
+        results = optimize.curve_fit(decay_func,
                                  x_data,
                                  y_data,
-                                 ftol=decay_fit_percent,
+                                 ftol=decay_fit_ftol,
                                  maxfev=15000)
-
+    except Exception as e:
+        data['msg'] = 'decay fit unsuccessful \n {}'.format(e)
+        data['success'] = False
+        return data
     y_data = np.array(decay_func(x_data, *results[0]))
-    e = np.where(y_data < data['amp'] * dir * np.exp(-1))[0][0]
+    e = np.where(y_data < data['amp'] * direction * np.exp(-1))[0][0]
     data['decay_const'] = x_data[e]
     data['decay_coord_x'] = xs[peak_idx] + data['decay_const'] / 1000
-    data['decay_coord_y'] = data['baseline'] + y_data[e] * dir
+    data['decay_coord_y'] = data['baseline'] + y_data[e] * direction
     data['decay_fit'] = results[0]
     data['decay_func'] = decay_func.__name__
     data['decay_unit'] = 'ms' if x_unit in ['s', 'seconds', 'second', 'sec'] else '{} E-3'.format(
         x_unit)
     if data['decay_const'] < min_decay:
-        data['error'] = 'minimum_decay_constant_unmet'
+        data['msg'] = 'minimum_decay_constant_unmet'
+        data['success'] = False
         return data
     try:
         if data['decay_const'] > max_decay:
-            data['error'] = 'maximum_decay_exceeded'
+            data['msg'] = 'maximum_decay_exceeded'
+            data['success'] = False
             return data
     except:
         pass
-    data['error'] = 'success!'
+    data['msg'] = 'success!'
+    data['success'] = True
 
     return data
     #### other fitting functions:
 
     # if decay_func_type == '4' or decay_func_type == 4:
     #     # x_data = (xs[start_idx:end_idx] - xs[start_idx]) * 1000
-    #     # y_data = (ys[start_idx:end_idx] - data['baseline']) * dir
+    #     # y_data = (ys[start_idx:end_idx] - data['baseline']) * direction
     #     # decay_func = rise_decay
     #     # p0=[3, 0.5]
     #     # results = optimize.curve_fit(decay_func,
@@ -439,9 +465,9 @@ def find_peak_recursive(
     #     pass # not supported
     # else:
     #     x_data = (xs[peak_idx:min(peak_idx + max_points_decay, len(xs))] - xs[peak_idx]) * 1000
-    #     y_data = (ys[peak_idx:min(peak_idx + max_points_decay, len(xs))] - data['baseline']) * dir
+    #     y_data = (ys[peak_idx:min(peak_idx + max_points_decay, len(xs))] - data['baseline']) * direction
     #     # x_data = (xs[peak_idx:end_idx] - xs[peak_idx]) * 1000
-    #     # y_data = (ys[peak_idx:end_idx] - data['baseline']) * dir
+    #     # y_data = (ys[peak_idx:end_idx] - data['baseline']) * direction
     #
     #
     #     if decay_func_type == '1' or decay_func_type == 1:
@@ -484,6 +510,8 @@ def double_exponent(x, a_1, t_1, a_2, t_2):
 
 def triple_exponent_constant(x, a_1, t_1, a_2, t_2, a_3, t_3, c):
     return a_1 * np.exp(-(x ) / t_1) + a_2 * np.exp(-(x ) / t_2) + a_3 * np.exp(-(x ) / t_3) + c
+# def triple_exponent_constant(x, a, t_1,t_2, t_3, c):
+#     return a * np.exp(-(x ) / t_1) + a * np.exp(-(x ) / t_2) + a * np.exp(-(x ) / t_3) + c
 
 
 def triple_exponent(x, a_1, t_1, a_2, t_2, a_3, t_3):

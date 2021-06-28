@@ -4,6 +4,7 @@ from DataVisualizer.table import InteractiveTable
 # from data_panel.event_dataframe import EventDataFrame
 from collections import OrderedDict  # Python 3.7+ can use dict
 import pymini
+from Backend import interface
 
 # just use this to add something:
 # try:
@@ -13,13 +14,14 @@ import pymini
 # use this to remove something(s)
 # def delete(self, *items):
 #     super().delete(*items)
-
+saved = True
 header2config = OrderedDict([
     ('t', 'data_display_time'),
     ('amp', 'data_display_amplitude'),
     ('amp_unit', 'data_display_amplitude'),
     ('decay_const', 'data_display_decay'),
     ('decay_unit', 'data_display_decay'),
+    ('decay_func', 'data_display_decay_func'),
     # ('decay_t', 'data_display_decay_time'),
     ('rise_const', 'data_display_rise'),
     ('rise_unit', 'data_display_rise'),
@@ -32,41 +34,7 @@ header2config = OrderedDict([
     ('t_end', 'data_display_end'),
     ('channel', 'data_display_channel',)
 ])
-columns = [
-    # panel -- make sure this matches with the config2header dict
-    # = analyzer generates the data
-    't',  #
-    'amp',  #
-    'amp_unit',  #
-    'decay_const', #
-    'decay_unit', #
-    'rise_const',  #
-    'rise_unit',  #
-    'halfwidth', #
-    'halfwidth_unit', #
-    'baseline',  #
-    'baseline_unit',  #
-            #'auc',
-    't_start',  #
-    't_end',  #
-    'channel',  #
-    # plot
-    'peak_idx', #
-    'peak_coord_x',  # (x,y) #
-    'peak_coord_y',  #
-    'decay_coord_x',
-    'decay_coord_y',
-    'start_coord_x',  #
-    'start_coord_y',  #
-    'start_idx',  #
-    'end_coord_x',  #
-    'end_coord_y',  #
-    'end_idx',  #
-    'decay_fit', #
 
-    # data
-    'datetime'  #
-]
 config2header = OrderedDict([(header2config[key], key) for key in header2config.keys()])
 
 
@@ -75,14 +43,25 @@ def load(parent):
     frame.grid_rowconfigure(0, weight=1)
     frame.grid_columnconfigure(0, weight=1)
 
+
+
     global table
     table = ttk.Treeview(frame)
     table.grid(column=0, row=0, sticky='news')
+    table.bind('<<TreeviewSelect>>', select)
 
-    table.config(columns=columns, show='headings')
-    for i, col in enumerate(columns):
+    table.config(columns=[col for col in header2config], show='headings')
+    for i, col in enumerate(header2config):
         table.heading(i, text=col, command=lambda _col=col: _sort(table, _col, False))
         table.column(i, width=80, stretch=Tk.NO)
+
+    table.bind('<Escape>', unselect)
+    table.bind('<Delete>', delete)
+    table.bind('<BackSpace>', delete)
+    table.bind('<Control-a>', select_all)
+
+    global selected
+    selected = table.selection()
 
     table.show_columns = show_columns
     table.fit_columns = fit_columns
@@ -97,13 +76,15 @@ def load(parent):
     return frame
 
 
-add = lambda x: table.insert("", 'end', iid=x.get('t', None), values=[x.get(i, None) for i in columns])
+def add(data):
+    table.insert("", 'end', iid=data.get('t', None), values=[data.get(i, None) for i in header2config])
+    unselect()
 
 
 def show_columns():
     table.config(displaycolumns=tuple([
         i for i in header2config
-        if pymini.get_value(header2config[i])
+        if pymini.widgets[header2config[i]].get()
     ]))
 
 
@@ -123,8 +104,45 @@ def _sort(tv, col, reverse):
     try:
         l = [(float(tv.set(k, col)), k) for k in tv.get_children('')]
     except:
-        l = [(tv.set(k, col), l) for k in tv.get_chidlren('')]
+        l = [(tv.set(k, col), k) for k in tv.get_children('')]
     l.sort(reverse=reverse)
     for index, (val, k) in enumerate(l):
         tv.move(k, '', index)
-    tv.heading(col, command=lambda _col=col: _sort(_col, not reverse))
+    tv.heading(col, command=lambda _col=col: _sort(tv, _col, not reverse))
+    tv.see(tv.selection()[0])
+
+def select(e=None):
+    global selected
+    temp = table.selection()
+    if len(temp) > 0 and selected == temp:
+        selected = ()
+        table.selection_toggle(*temp)
+        pass
+    selected = table.selection()
+    if len(selected) == 1:
+        interface.select_single(float(selected[0]))
+    interface.highlight_selected([float(i) for i in selected])
+
+
+def _on_key(e=None):
+    if e.keysym == 'Escape':
+        unselect()
+
+def unselect(e=None):
+    global selected
+    table.selection_remove(*table.selection())
+
+def select_all(e=None):
+    global selected
+    table.selection_set(table.get_children())
+
+def select_one(iid):
+    table.selection_set(str(iid))
+    table.see(str(iid))
+
+def delete(e=None):
+    sel = table.selection()
+    interface.delete_event([i for i in sel])
+    table.selection_remove(*sel)
+    table.delete(*sel)
+

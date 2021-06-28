@@ -1,8 +1,10 @@
 import tkinter as Tk
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
 from utils import widget
 import pymini
 import datetime
+import os
+
 
 
 
@@ -52,7 +54,10 @@ def load(parent):
     button_frame.grid(column=0, row=2, sticky='news')
 
     copy_button = Tk.Button(button_frame, text='Copy', command=copy)
-    copy_button.grid(column=0, row=0, stick='nws')
+    copy_button.grid(column=0, row=0, sticky='nws')
+
+    save_button = Tk.Button(button_frame, text='Save log as...', command=save)
+    save_button.grid(column=1, row=0, sticky='news')
 
     log_text.insert(Tk.END, '{}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S')))
 
@@ -87,6 +92,19 @@ def param_update(msg):
     log_text.insert(Tk.END, '{} @param: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     log_text.see(Tk.END)
 
-
+def save_update(msg):
+    log_text.insert(Tk.END, '{} @saved: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.see(Tk.END)
+def save():
+    d = filedialog.asksaveasfilename(filetypes=[('log file', '*.log')], defaultextension='.log')
+    if d:
+        try:
+            with open(d, 'x') as f:
+                f.write(log_text.get())
+            save_update(d)
+        except:
+            messagebox.showerror('Cannot overwrite file', 'A file with the filename already exists. Please choose a different filename.')
+            save()
+            return
 
 

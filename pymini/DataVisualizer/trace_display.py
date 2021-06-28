@@ -12,13 +12,16 @@ import time
 import datetime
 import numpy as np
 
-from Backend import interface
+from Backend import interface, analyzer
+from Layout import graph_panel
 
 from DataVisualizer import data_display
 
 temp = []
 markers = {}
 sweeps = {}
+
+event_pick = False
 
 def load(parent):
     frame = Tk.Frame(parent)
@@ -49,14 +52,30 @@ def load(parent):
     state.move = False
 
     # connect user events:
-    canvas.mpl_connect('key_presss_event', None)
+    canvas.mpl_connect('pick_event', _on_event_pick)
     canvas.mpl_connect('button_press_event', _on_mouse_press)
     canvas.mpl_connect('motion_notify_event', _on_mouse_move)
     canvas.mpl_connect('button_release_event', _on_mouse_release)
 
+    canvas.get_tk_widget().bind('<Control-a>', data_display.select_all)
+    canvas.get_tk_widget().bind('<BackSpace>', data_display.delete)
+    canvas.get_tk_widget().bind('<Delete>', data_display.delete)
+    canvas.get_tk_widget().bind('<Escape>', data_display.unselect)
+
     return frame
+def _on_event_pick(event):
+    global event_pick
+    event_pick = True
+    xdata, ydata = event.artist.get_offsets()[event.ind][0]
+    data_display.select_one(str(xdata))
 
 def _on_mouse_press(event):
+    canvas.get_tk_widget().focus_set()
+    global event_pick
+    if event_pick:
+        event_pick = False
+        return
+
     if canvas.toolbar.mode == "" and event.button == 3:
         state.press_coord = (event.x, event.y)
     # print('click! {}'.format(event))
@@ -90,7 +109,9 @@ def _on_mouse_move(event):
     pass
 
 
-def scroll(axis, dir=1, percent=0):
+################# Navigation ####################
+
+def scroll_by(axis, dir=1, percent=0):
     if axis == "x":
         win_lim = ax.get_xlim()
     elif axis == "y":
@@ -101,18 +122,170 @@ def scroll(axis, dir=1, percent=0):
     width = win_lim[1] - win_lim[0]
     delta = width * percent / 100
     new_lim = (win_lim[0] + delta * dir, win_lim[1] + delta * dir)
-
     if axis == "x":
+        if new_lim[0] < default_xlim[0]:
+            delta = default_xlim[0] - new_lim[0]
+            new_lim = (new_lim[0]+delta, new_lim[1]+delta)
+        elif new_lim[1] > default_xlim[1]:
+            delta = new_lim[1] - default_xlim[1]
+            new_lim = (new_lim[0]-delta, new_lim[1]-delta)
         ax.set_xlim(new_lim)
+        # update_x_scrollbar(new_lim)
+        # update_y_scrollbar(xlim=new_lim)
     else:
         ax.set_ylim(new_lim)
+        # update_y_scrollbar(ylim=new_lim)
+    canvas.draw()
+    # due to slow processing, will not connect to scrollbar - updates when the movement stops
+
+def scroll_x_by(dir=1, percent=0):
+    xlim = ax.get_xlim()
+    width = xlim[1] - xlim[0]
+    delta = width*percent/100
+    new_lim=(xlim[0] + delta*dir, xlim[1] + delta*dir)
+
+    if new_lim[0] < default_xlim[0]:
+        delta = default_xlim[0] - new_lim[0]
+        new_lim = (new_lim[0] + delta, new_lim[1] + delta)
+    elif new_lim[1] > default_xlim[1]:
+        delta = new_lim[1] - default_xlim[1]
+        new_lim = (new_lim[0] - delta, new_lim[1] - delta)
+    ax.set_xlim(new_lim)
+    update_x_scrollbar(new_lim)
     canvas.draw()
 
-    """
-    need to link this to the scrollbar once the trace is opened
-    """
+def scroll_y_by(dir=1, percent=0):
+    ylim = ax.get_ylim()
+    height = ylim[1] - ylim[0]
+    delta = height * percent/100
+    new_lim=(ylim[0] + delta * dir, ylim[1] + delta * dir)
 
-def zoom(axis, dir=1, percent=0, event=None):
+    ax.set_ylim(new_lim)
+    # update_y_scrollbar(ylim=new_lim)
+    canvas.draw()
+
+def scroll_x_to(num):
+    xlim = ax.get_xlim()
+    if xlim[1] == default_xlim[1] and xlim[0] == default_xlim[0]:
+        graph_panel.x_scrollbar.set(50)
+        return None
+    start = (default_xlim[1] - default_xlim[0] - (xlim[1] - xlim[0])) * float(num)/100 + default_xlim[0]
+    end = start + xlim[1] - xlim[0]
+
+    ax.set_xlim((start,end))
+    canvas.draw()
+    pass
+
+def scroll_y_to(num):
+    ylim = ax.get_ylim()
+    height = ylim[1] - ylim[0]
+    xlim = ax.get_xlim()
+    ys = ax.lines[0].get_ydata()
+    y = ys[analyzer.search_index(xlim[0], ax.lines[0].get_xdata())]
+    y1 = float(num) / 100 * (height) + y
+    ax.set_ylim((y1-height, y1))
+    canvas.draw()
+
+
+
+
+def center_plot_on(x, y):
+    xlim = ax.get_xlim()
+    ylim=ax.get_ylim()
+
+    new_xlim = xlim
+    new_ylim =ylim
+
+    if xlim[0] < x < xlim[1] and ylim[0] < y < ylim[1]:
+        return None
+    if xlim[0] > x or xlim[1] < x:
+        xlim_width = xlim[1] - xlim[0]
+        new_xlim_left = x - xlim_width / 2
+        new_xlim_right = x + xlim_width / 2
+
+        adjust = max(0, default_xlim[0] - new_xlim_left)
+        new_xlim_right += adjust
+        adjust = min(0, default_xlim[1] - new_xlim_right)
+        new_xlim_left += adjust
+
+        new_xlim_left = max(default_xlim[0], new_xlim_left)
+        new_xlim_right = min(default_xlim[1], new_xlim_right)
+
+        ax.set_xlim(new_xlim_left, new_xlim_right)
+        update_x_scrollbar((new_xlim_left, new_xlim_right))
+        new_xlim = (new_xlim_left, new_xlim_right)
+
+    if ylim[0] > y or ylim[1] < y:
+        ylim_width = ylim[1] - ylim[0]
+        new_ylim_bottom = y - ylim_width / 2
+        new_ylim_top = y + ylim_width / 2
+        ax.set_ylim(new_ylim_bottom, new_ylim_top)
+        new_ylim = (new_ylim_bottom, new_ylim_top)
+    update_y_scrollbar(xlim=new_xlim, ylim=new_ylim)
+    canvas.draw()
+
+def center_plot_area(x1, x2, y1, y2):
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    pad = 0.05
+    if x2-x1 < xlim[1] - xlim[0]: # current x-axis zoom will fit the desired range
+        delta = ((xlim[1]-xlim[0])/2 + xlim[0]) - ((x2 - x1)/2 + x1)
+        new_xlim_left = xlim[0] - delta
+        new_xlim_right = xlim[1] - delta
+    else:
+
+        padx = (x2-x1) * pad
+
+        new_xlim_left = max(min(xlim[0], x1-padx), default_xlim[0])
+        new_xlim_right = min(max(xlim[1], x2+padx), default_xlim[1])
+
+    pady = (y2-y1)*pad
+
+    new_ylim_bottom = min(ylim[0], y1-pady)
+    new_ylim_top = max(ylim[1], y2+pady)
+
+    ax.set_xlim(new_xlim_left, new_xlim_right)
+    update_x_scrollbar((new_xlim_left, new_xlim_right))
+    ax.set_ylim(new_ylim_bottom, new_ylim_top)
+    update_y_scrollbar(xlim=(new_xlim_left, new_xlim_right),ylim=(new_ylim_bottom, new_ylim_top))
+
+    canvas.draw()
+
+def zoom_x_by(dir=1, percent=0, event=None):
+    win_lim = ax.get_xlim()
+    delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
+    center_pos = 0.5
+    try:
+        center_pos = (event.xdata - win_lim[0]) / (win_lim[1] - win_lim[0])
+    except:
+        pass
+    new_lim = (win_lim[0] + (1 - center_pos) * delta, win_lim[1] - (center_pos) * delta)
+
+    if new_lim[0] < default_xlim[0]:
+        width = new_lim[1] - new_lim[0]
+        new_lim = (default_xlim[0], min(new_lim[0] + width, default_xlim[1]))
+    elif new_lim[1] > default_xlim[1]:
+        width = new_lim[1] - new_lim[0]
+        new_lim = (max(new_lim[1] - width, default_xlim[0]), default_xlim[1])
+
+    ax.set_xlim(new_lim)
+    update_x_scrollbar(new_lim)
+    canvas.draw()
+
+def zoom_y_by(dir=1, percent=0, event=None):
+    win_lim = ax.get_ylim()
+    delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
+    center_pos = 0.5
+    try:
+        center_pos = (event.ydata - win_lim[0]) / (win_lim[1] - win_lim[0])
+    except:
+        pass
+    new_lim = (win_lim[0] + (1 - center_pos) * delta, win_lim[1] - (center_pos) * delta)
+    ax.set_ylim(new_lim)
+    canvas.draw()
+
+
+def zoom_by(axis, dir=1, percent=0, event=None):
     """
     zooms in/out of the axes by percentage specified in config
     :param axis: 'x' for x-axis, 'y' for y-axis. currently does not support both
@@ -140,24 +313,62 @@ def zoom(axis, dir=1, percent=0, event=None):
     new_lim = (win_lim[0] + (1 - center_pos) * delta, win_lim[1] - (center_pos) * delta)
 
     if axis == 'x':
+        if new_lim[0] < default_xlim[0]:
+            width = new_lim[1] - new_lim[0]
+            new_lim = (default_xlim[0], min(new_lim[0] + width, default_xlim[1]))
+        elif new_lim[1] > default_xlim[1]:
+            width = new_lim[1] - new_lim[0]
+            new_lim = (max(new_lim[1] - width, default_xlim[0]), default_xlim[1])
+
         ax.set_xlim(new_lim)
+        update_x_scrollbar(new_lim)
+        # update_y_scrollbar(xlim=new_lim)
         """
         need to compare against plot area (xlim of trace) once trace is loaded
         """
     else:
         ax.set_ylim(new_lim)
+        # update_y_scrollbar(ylim=new_lim)
     canvas.draw()
 
     """
     need to link this to the scrollbar once a trace is opened
     """
 
+################## Navigation by Scrollbar ###################
+
+def update_x_scrollbar(xlim=None):
+    if xlim is None:
+        xlim = ax.get_xlim()
+    if abs(xlim[0] - default_xlim[0]) < 0.001 and abs(xlim[1] - default_xlim[1]) < 0.001:
+        graph_panel.x_scrollbar.set(50)
+        return
+    pos = xlim[0] - default_xlim[0]
+    percent = pos / (default_xlim[1] - default_xlim[0] - (xlim[1] - xlim[0])) * 100
+    graph_panel.x_scrollbar.set(percent)
+    return
+
+def update_y_scrollbar(ylim=None, xlim=None):
+    if ylim is None:
+        ylim = ax.get_ylim()
+    if xlim is None:
+        xlim = ax.get_xlim()
+    idx = analyzer.search_index(xlim[0], ax.lines[0].get_xdata())
+    y = ax.lines[0].get_ydata()[idx]
+
+    percent = (ylim[1] - y)/(ylim[1]-ylim[0])*100
+    graph_panel.y_scrollbar.set(percent)
+
+
 def clear():
     for t in temp:
         temp[t].remove()
     temp.clear()
     for m in markers.keys():
-        markers[m].remove()
+        try:
+            markers[m].remove()
+        except:
+            pass
     markers.clear()
     for s in sweeps.keys():
         sweeps[s].remove()
@@ -168,6 +379,24 @@ def clear():
         c.remove()
     ax.clear()
     gc.collect()
+    canvas.draw()
+
+def clear_markers(key=None):
+    for t in temp:
+        temp[t].remove()
+    temp.clear()
+    if key:
+        try:
+            markers[key].remove()
+        except:
+            pass
+        markers[key] = None
+    else:
+        for m in markers.keys():
+            markers[m].remove()
+        markers.clear()
+        for c in ax.collections:
+            c.remove()
     canvas.draw()
 
 def plot_trace(xs, ys, draw=True, relim=True):
@@ -186,12 +415,92 @@ def plot_trace(xs, ys, draw=True, relim=True):
     if draw:
         canvas.draw()
 
-def plot_peaks():
+def plot_highlight(xs, ys):
+    try:
+        markers['highlight'].remove()
+    except:
+        pass
+    try:
+        markers['highlight'] = ax.scatter(xs, ys, marker='o', c=pymini.widgets['style_event_color_highlight'].get(), alpha=0.5)
+        canvas.draw()
+    except:
+        pass
+
+def plot_peak(xs, ys):
+    global markers
     try:
         markers['peak'].remove()
     except:
         pass
+    try:
+        markers['peak']=ax.scatter(xs, ys, marker='o', c=pymini.widgets['style_event_color_peak'].get(), picker=True,
+                                   pickradius=int(pymini.widgets['style_event_pick_offset'].get()))
+        canvas.draw()
+    except Exception as e:
+        print(e)
+        pass
 
+def plot_start(xs, ys):
+    global markers
+    try:
+        markers['start'].remove()
+    except:
+        pass
+    try:
+        markers['start'] = ax.scatter(xs, ys, marker='x', c=pymini.widgets['style_event_color_start'].get())
+        canvas.draw()
+    except:
+        pass
+
+def plot_decay(xs, ys):
+    global markers
+    try:
+        markers['decay'].remove()
+    except:
+        pass
+    try:
+        markers['decay'] = ax.scatter(xs, ys, marker='x', c=pymini.widgets['style_event_color_decay'].get())
+        canvas.draw()
+    except:
+        pass
+
+def plot_end(xs, ys):
+    global markers
+    try:
+        markers['end'].remove()
+    except:
+        pass
+    try:
+        markers['end'] = ax.scatter(xs, ys, marker='x', c=pymini.widgets['style_event_color_end'].get())
+        canvas.draw()
+    except:
+        pass
+
+def apply_styles(keys):
+    styles = ['style_trace_line_width', 'style_trace_line_color', 'style_event_color_peak', 'style_event_color_start',
+     'style_event_color_end', 'style_event_color_decay', 'style_event_color_highlight', 'style_trace_highlight_color']
+    for k in keys:
+        try:
+            if k == 'style_trace_line_width':
+                for l in ax.lines:
+                    l.set_linewidth(float(pymini.widgets[k].get()))
+            if k == 'style_trace_line_color':
+                for l in ax.lines:
+                    l.set_color(pymini.widgets[k].get())
+            if k == 'style_event_color_peak':
+                markers['peak'].set_color(pymini.widgets[k].get())
+            if k == 'style_event_color_start':
+                markers['start'].set_color(pymini.widgets[k].get())
+            if k == 'style_event_color_decay':
+                markers['decay'].set_color(pymini.widgets[k].get())
+            if k == 'style_event_color_highlight':
+                markers['highlight'].set_color(pymini.widgets[k].get())
+            if k == 'style_event_pick_offset':
+                markers['peak'].set_picker(True)
+                markers['peak'].set_pickradius(int(pymini.widgets[k].get()))
+        except:
+            pass
+    canvas.draw()
 
 def show_all_plot():
     ax.autoscale(enable=True, axis='both', tight=True)

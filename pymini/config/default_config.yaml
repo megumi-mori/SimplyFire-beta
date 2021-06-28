@@ -58,6 +58,7 @@ default_navigation_mirror_x_scroll : 1
 
 
 #detector parameters
+default_detector_search_radius : 5.0
 default_detector_direction : 'positive'
 default_detector_min_amp : 0.3
 default_detector_points_baseline : 100
@@ -71,11 +72,10 @@ default_detector_min_rise : 0
 default_detector_max_rise : 'None'
 default_detector_max_points_baseline : 1000
 default_detector_max_points_decay : 40000
-default_detector_manual_pixel_offset : 0
 default_detector_update_events : 0
 default_detector_decay_func_type : '1'
 default_detector_decay_func_constant : "1"
-default_detector_decay_fit_percent : 0
+default_detector_decay_fit_ftol : 1e-08
 default_detector_show_fit : '1'
 
 default_data_export_all : 1
@@ -84,6 +84,7 @@ default_data_display_amplitude : 1
 default_data_display_amplitude_unit : 1
 default_data_display_decay : 1
 default_data_display_decay_unit : 1
+default_data_display_decay_func : 1
 default_data_display_decay_time : 1
 default_data_display_rise : 1
 default_data_display_rise_unit : 1
@@ -107,9 +108,10 @@ default_style_event_color_end : 'purple'
 default_style_event_color_decay : 'blue'
 default_style_event_color_highlight: 'red'
 default_style_trace_highlight_color : 'red'
+default_style_event_pick_offset : 0
 
 default_show_peak : "1"
-default_show_decay_constant : "1"
+default_show_decay : "1"
 default_show_start : "1"
 default_show_end : ""
 
