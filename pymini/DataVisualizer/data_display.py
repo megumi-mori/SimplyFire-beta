@@ -1,10 +1,11 @@
 import tkinter as Tk
 from tkinter import ttk
-from DataVisualizer.table import InteractiveTable
+from DataVisualizer import trace_display
 # from data_panel.event_dataframe import EventDataFrame
 from collections import OrderedDict  # Python 3.7+ can use dict
 import pymini
 from Backend import interface
+
 
 # just use this to add something:
 # try:
@@ -57,9 +58,26 @@ def load(parent):
         table.column(i, width=80, stretch=Tk.NO)
 
     table.bind('<Escape>', unselect)
+    table.bind('q', unselect)
+    table.bind('o', unselect)
     table.bind('<Delete>', delete)
     table.bind('<BackSpace>', delete)
+    table.bind('e', delete)
+    table.bind('u', delete)
     table.bind('<Control-a>', select_all)
+
+    # focus is almost always on data_display - navigation keys for trace_display
+    table.bind('<KeyRelease-a>', lambda e, d=-1, p=100:trace_display.scroll_x_by(d, p))
+    table.bind('<KeyRelease-j>', lambda e, d=-1, p=100: trace_display.scroll_x_by(d, p))
+    table.bind('<KeyRelease-d>', lambda e, d=1, p=100: trace_display.scroll_x_by(d, p))
+    table.bind('<KeyRelease-l>', lambda e, d=1, p=100: trace_display.scroll_x_by(d, p))
+    table.bind('<KeyRelease-w>', lambda e, d=1, p=10: trace_display.scroll_y_by(d, p))
+    table.bind('<KeyRelease-i>', lambda e, d=1, p=10: trace_display.scroll_y_by(d, p))
+    table.bind('<KeyRelease-s>', lambda e, d=-1, p=10: trace_display.scroll_y_by(d, p))
+    table.bind('<KeyRelease-k>', lambda e, d=-1, p=10: trace_display.scroll_y_by(d, p))
+
+    table.bind('<KeyRelease>', lambda e: trace_display.update_y_scrollbar(), add='+')
+
 
     global selected
     selected = table.selection()
@@ -76,6 +94,9 @@ def load(parent):
     table.configure(xscrollcommand=hsb.set)
     return frame
 
+def navigate_list(idx):
+    if len(table.selection()) == 0:
+        select_one(table.get_children()[idx])
 
 def add(data):
     table.insert("", 'end', iid=data.get('t', None), values=[data.get(i, None) for i in header2config])
@@ -152,6 +173,10 @@ def select_one(iid):
         return
     table.selection_set(str(iid))
 
+def select_one_by_index(idx):
+    select_one(table.get_children()[idx])
+
+
 def toggle_one(iid):
     table.selection_set(iid)
     table.see(str(iid))
@@ -166,15 +191,13 @@ def delete_one(iid):
 
 def delete(e=None):
     sel = table.selection()
-    min = table.index(sel[0])
-    interface.delete_event([i for i in sel])
     table.selection_remove(*sel)
-    table.delete(*sel)
+    interface.delete_event([i for i in sel])
     table.update()
-    children = table.get_children()
-    for c in children:
-        if table.index(c) == min:
-            table.selection_set(c)
-            break
+    try:
+        table.selection_set(table.next(sel[-1]))
+    except:
+        pass
+    table.delete(*sel)
 
 

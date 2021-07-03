@@ -80,7 +80,6 @@ def load(parent):
             validate_type=i[2]
         )
         pymini.widgets[i[0]].bind('<Return>', apply_parameters, add='+')
-        pymini.widgets[i[0]].bind('<Return>', lambda e:trace_display.canvas.get_tk_widget().focus_set(), add="+")
         pymini.widgets[i[0]].bind('<FocusOut>', apply_parameters, add='+')
         parameters[i[0]] = pymini.widgets[i[0]].get()
         changes[i[0]] = pymini.widgets[i[0]].get()

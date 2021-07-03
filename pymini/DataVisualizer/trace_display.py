@@ -57,11 +57,6 @@ def load(parent):
     canvas.mpl_connect('motion_notify_event', _on_mouse_move)
     canvas.mpl_connect('button_release_event', _on_mouse_release)
 
-    canvas.get_tk_widget().bind('<Control-a>', data_display.select_all)
-    canvas.get_tk_widget().bind('<BackSpace>', data_display.delete)
-    canvas.get_tk_widget().bind('<Delete>', data_display.delete)
-    canvas.get_tk_widget().bind('<Escape>', data_display.unselect)
-
     return frame
 def _on_event_pick(event):
     global event_pick
@@ -78,6 +73,7 @@ def _on_mouse_press(event):
 
 def _on_mouse_release(event):
     global event_pick
+    data_display.table.focus_set()
     if canvas.toolbar.mode == 'pan/zoom':
         scroll_x_by(percent=0)
         zoom_x_by(percent=0)
@@ -142,6 +138,7 @@ def scroll_by(axis, dir=1, percent=0):
     # due to slow processing, will not connect to scrollbar - updates when the movement stops
 
 def scroll_x_by(dir=1, percent=0):
+    dir = dir
     xlim = ax.get_xlim()
     width = xlim[1] - xlim[0]
     delta = width*percent/100
@@ -158,6 +155,7 @@ def scroll_x_by(dir=1, percent=0):
     canvas.draw()
 
 def scroll_y_by(dir=1, percent=0):
+    dir = dir
     ylim = ax.get_ylim()
     height = ylim[1] - ylim[0]
     delta = height * percent/100
