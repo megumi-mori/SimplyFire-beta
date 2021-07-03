@@ -2,14 +2,16 @@ from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 import pymini
 from DataVisualizer import data_display, trace_display
-from utils import widget
-import tkinter as Tk
-from tkinter import ttk
-import pandas as pd
+from Backend import interface
 changed = True
 changes = {}
 parameters = {}
 
+def find_all():
+    interface.find_mini_in_range(trace_display.default_xlim, trace_display.default_ylim)
+
+def find_in_window():
+    interface.find_mini_in_range(trace_display.ax.get_xlim(), trace_display.ax.get_ylim())
 def load(parent):
     ##################################################
     #                    Methods                     #
@@ -56,7 +58,8 @@ def load(parent):
         options=['positive', 'negative']
     )
     entries = [
-        ('detector_search_radius', 'Search radius in % of visible x-axis', 'float'),
+        ('detector_search_radius', 'Search radius in % of visible x-axis (Manual)', 'float'),
+        ('detector_auto_radius', 'Search radius in number of points (Auto)', 'int'),
         ('detector_min_amp', 'Minimum amplitude (absolute value) (y-axis unit):', 'float'),# (config param name, Label text, validation type)
         ('detector_min_decay', 'Minimum decay constant (tau) (ms)', 'float'),
         ('detector_max_decay','Maximum decay constant (tau) (ms)', 'float/None'),
@@ -66,9 +69,9 @@ def load(parent):
         ('detector_min_rise', 'Minimum rise constant (ms)', 'float'),
         ('detector_max_rise', 'Maximum rise constant (ms)', 'float/None'),
         ('detector_points_baseline', 'Number of data points averaged to find the start of an event:', 'int'),
-        ('detector_max_points_baseline', 'Maximum data points to consider before peak to find the baseline', 'int'),
+        # ('detector_max_points_baseline', 'Maximum data points to consider before peak to find the baseline', 'int'),
         ('detector_max_points_decay', 'Maximum data points after peak to consider for decay', 'int'),
-        ('detector_decay_fit_ftol', 'Tolerance for termination by the change of the cost function in Scipy Curvefit', 'float')
+        # ('detector_decay_fit_ftol', 'Tolerance for termination by the change of the cost function in Scipy Curvefit', 'float')
     ]
     for i in entries:
         pymini.widgets[i[0]] = frame.insert_label_entry(
@@ -82,33 +85,33 @@ def load(parent):
         parameters[i[0]] = pymini.widgets[i[0]].get()
         changes[i[0]] = pymini.widgets[i[0]].get()
 
-    panel = frame.make_panel()
-    Tk.Label(panel, text='Fit decay functions using:').grid(column=0, row=0, sticky='news')
-    pymini.widgets['detector_decay_func_type'] = widget.VarWidget(name='detector_decay_func_type')
-
-    op_frame = Tk.Frame(panel)
-    op_frame.grid(column=0, row=1, sticky='news')
-    op_frame.grid_rowconfigure(0, weight=1)
-    for i in range(3):
-        op_frame.grid_columnconfigure(i, weight=1)
-    buttons = [
-        ('Single', '1'),
-        ('Double', '2'),
-        ('Triple', '3'),
-        # ('Rise-decay', '4') NOT SUPPORTED
-    ]
-    for i, b in enumerate(buttons):
-        ttk.Radiobutton(op_frame, text=b[0], variable=pymini.widgets['detector_decay_func_type'].var,
-                       value=b[1], command=apply_parameters).grid(column=i, row=0, sticky='news')
-
-    pymini.widgets['detector_decay_func_constant'] = frame.insert_label_checkbox(name='detector_decay_func_constant',
-                                                                                 label='Add a constant',
-                                                                                 onvalue='1',
-                                                                                 offvalue="",
-                                                                                 command=apply_parameters)
+    # panel = frame.make_panel()
+    # Tk.Label(panel, text='Fit decay functions using:').grid(column=0, row=0, sticky='news')
+    # pymini.widgets['detector_decay_func_type'] = widget.VarWidget(name='detector_decay_func_type')
+    #
+    # op_frame = Tk.Frame(panel)
+    # op_frame.grid(column=0, row=1, sticky='news')
+    # op_frame.grid_rowconfigure(0, weight=1)
+    # for i in range(3):
+    #     op_frame.grid_columnconfigure(i, weight=1)
+    # buttons = [
+    #     ('Single', '1'),
+    #     ('Double', '2'),
+    #     ('Triple', '3'),
+    #     # ('Rise-decay', '4') NOT SUPPORTED
+    # ]
+    # for i, b in enumerate(buttons):
+    #     ttk.Radiobutton(op_frame, text=b[0], variable=pymini.widgets['detector_decay_func_type'].var,
+    #                    value=b[1], command=apply_parameters).grid(column=i, row=0, sticky='news')
+    #
+    # pymini.widgets['detector_decay_func_constant'] = frame.insert_label_checkbox(name='detector_decay_func_constant',
+    #                                                                              label='Add a constant',
+    #                                                                              onvalue='1',
+    #                                                                              offvalue="",
+    #                                                                              command=apply_parameters)
     pymini.widgets['detector_update_events'] = frame.insert_label_checkbox(
         name='detector_update_events',
-        label='Update graph after each event detection (will slow down search)',
+        label='Update graph after each event detection during automated search (will slow down search)',
     )
     frame.insert_button(
         text='Apply',
@@ -120,7 +123,7 @@ def load(parent):
     )
     frame.insert_button(
         text='Find all',
-        command=None  # link this later
+        command= find_all# link this later
     )
     frame.insert_button(
         text='Delete all',
@@ -128,7 +131,7 @@ def load(parent):
     )
     frame.insert_button(
         text='Find in window',
-        command=None  # link this later
+        command=find_in_window  # link this later
     )
 
     frame.insert_button(
@@ -169,9 +172,10 @@ def load(parent):
         ('data_display_rise', 'Rise duration'),
         ('data_display_halfwidth', 'Halfwidth'),
         ('data_display_baseline', 'Baseline'),
-        ('data_display_start', 'Start time'),
-        ('data_display_end', 'End time'),
-        ('data_display_channel', 'Channel')
+        # ('data_display_start', 'Start time'),
+        # ('data_display_end', 'End time'),
+        ('data_display_channel', 'Channel'),
+        ('data_display_direction', 'Direction'),
     ]
     for i in boxes:
         pymini.widgets[i[0]] = frame.insert_label_checkbox(
