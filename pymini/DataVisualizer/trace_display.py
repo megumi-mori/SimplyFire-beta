@@ -67,21 +67,25 @@ def _on_event_pick(event):
     global event_pick
     event_pick = True
     xdata, ydata = event.artist.get_offsets()[event.ind][0]
-    data_display.select_one(str(xdata))
+    data_display.toggle_one(str(xdata))
 
 def _on_mouse_press(event):
     canvas.get_tk_widget().focus_set()
-    global event_pick
-    if event_pick:
-        event_pick = False
-        return
-
     if canvas.toolbar.mode == "" and event.button == 3:
         state.press_coord = (event.x, event.y)
     # print('click! {}'.format(event))
     pass
 
 def _on_mouse_release(event):
+    global event_pick
+    if canvas.toolbar.mode == 'pan/zoom':
+        scroll_x_by(percent=0)
+        zoom_x_by(percent=0)
+
+    if event_pick:
+        event_pick = False
+        return
+
     if state.move:
         state.move = False
         state.release_coord = (event.x, event.y)
@@ -110,7 +114,6 @@ def _on_mouse_move(event):
 
 
 ################# Navigation ####################
-
 def scroll_by(axis, dir=1, percent=0):
     if axis == "x":
         win_lim = ax.get_xlim()
@@ -353,11 +356,14 @@ def update_y_scrollbar(ylim=None, xlim=None):
         ylim = ax.get_ylim()
     if xlim is None:
         xlim = ax.get_xlim()
-    idx = analyzer.search_index(xlim[0], ax.lines[0].get_xdata())
-    y = ax.lines[0].get_ydata()[idx]
+    try:
+        idx = analyzer.search_index(xlim[0], ax.lines[0].get_xdata())
+        y = ax.lines[0].get_ydata()[idx]
 
-    percent = (ylim[1] - y)/(ylim[1]-ylim[0])*100
-    graph_panel.y_scrollbar.set(percent)
+        percent = (ylim[1] - y)/(ylim[1]-ylim[0])*100
+        graph_panel.y_scrollbar.set(percent)
+    except:
+        pass
 
 
 def clear():
@@ -422,7 +428,7 @@ def plot_highlight(xs, ys):
         pass
     try:
         markers['highlight'] = ax.scatter(xs, ys, marker='o', c=pymini.widgets['style_event_color_highlight'].get(), alpha=0.5)
-        canvas.draw()
+        # canvas.draw()
     except:
         pass
 
@@ -435,7 +441,7 @@ def plot_peak(xs, ys):
     try:
         markers['peak']=ax.scatter(xs, ys, marker='o', c=pymini.widgets['style_event_color_peak'].get(), picker=True,
                                    pickradius=int(pymini.widgets['style_event_pick_offset'].get()))
-        canvas.draw()
+        # canvas.draw()
     except Exception as e:
         print(e)
         pass
@@ -448,7 +454,7 @@ def plot_start(xs, ys):
         pass
     try:
         markers['start'] = ax.scatter(xs, ys, marker='x', c=pymini.widgets['style_event_color_start'].get())
-        canvas.draw()
+        # canvas.draw()
     except:
         pass
 
@@ -460,7 +466,7 @@ def plot_decay(xs, ys):
         pass
     try:
         markers['decay'] = ax.scatter(xs, ys, marker='x', c=pymini.widgets['style_event_color_decay'].get())
-        canvas.draw()
+        # canvas.draw()
     except:
         pass
 
@@ -472,7 +478,7 @@ def plot_end(xs, ys):
         pass
     try:
         markers['end'] = ax.scatter(xs, ys, marker='x', c=pymini.widgets['style_event_color_end'].get())
-        canvas.draw()
+        # canvas.draw()
     except:
         pass
 
