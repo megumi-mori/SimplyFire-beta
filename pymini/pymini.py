@@ -71,9 +71,7 @@ def change_label(key, value, tab=None):
             except:
                 pass
     return False
-def key(e=None):
-    # print(e)
-    pass
+
 def load():
 
     global root
@@ -81,7 +79,7 @@ def load():
     root.title('PyMini v{}'.format(config.version))
     root.geometry('{}x{}'.format(config.geometry[0], config.geometry[1]))
 
-    root.bind('<KeyPress>', key)
+    # root.bind('<KeyPress>', key)
 
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)
@@ -181,6 +179,17 @@ def load():
     # insert setting option tab into control panel
     tabs['settings_tab'] = setting_tab.load(left)
     cp_notebook.add(tabs['settings_tab'], text='Setting')
+
+    # set focus rules
+    for key in widgets:
+        print(type(widgets[key]))
+        if type(widgets[key]) == widget.VarEntry:
+            widgets[key].bind('<Return>', lambda e: data_display.table.focus_set(), add='+')
+        if type(widgets[key]) == widget.VarCheckbutton:
+            widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
+        if type(widgets[key]) == widget.VarOptionmenu:
+            widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
+
 
     # set up font adjustment bar
     fb = font_bar.load(left)
