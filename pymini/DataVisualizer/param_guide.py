@@ -66,6 +66,36 @@ def create_window():
     msg_frame.grid_columnconfigure(0, weight=1)
     msg_frame.grid_rowconfigure(0, weight=1)
 
+    button_frame = Tk.Frame(msg_frame)
+    button_frame.grid_rowconfigure(0, weight=1)
+    button_frame.grid_columnconfigure(0, weight=1)
+    button_frame.grid_columnconfigure(1, weight=1)
+    button_frame.grid_columnconfigure(2, weight=1)
+    button_frame.grid_columnconfigure(3, weight=1)
+    button_frame.grid(column=0, row=1, sticky='news')
+
+    global accept_button
+    accept_button = ttk.Button(button_frame, text='Remove restrictions')
+    accept_button.grid(column=0, row=0, sticky='news')
+    accept_button.config(state='disabled')
+
+    global reanalyze_button
+    reanalyze_button = ttk.Button(button_frame, text='Reanalyze')
+    reanalyze_button.grid(column=1, row=0, sticky='news')
+    reanalyze_button.config(state='disabled')
+
+    global reject_button
+    reject_button = ttk.Button(button_frame, text='Reject')
+    reject_button.grid(column=2, row=0, sticky='news')
+    reject_button.config(state='disabled')
+
+    global goto_button
+    goto_button = ttk.Button(button_frame, text='Select')
+    goto_button.grid(column=3, row=0, sticky='news')
+    goto_button.config(state='disabled')
+
+
+
     pw.add(msg_frame)
 
 
@@ -95,6 +125,10 @@ def update():
         pass
 
 def clear():
+    accept_button.config(state='disabled')
+    reanalyze_button.config(state='disabled')
+    reject_button.config(state='disabled')
+    goto_button.config(state='disabled')
     try:
         msg_label.clear()
         for l in ax.lines:
@@ -112,7 +146,7 @@ def plot_trace(xs, ys):
                                                     c=pymini.widgets['style_trace_line_color'].get())
         ax.autoscale(enable=True, axis='both', tight=True)
         ax.relim()
-        canvas.draw()
+        # canvas.draw()
     except Exception as e:
         print('plot_trace error {}'.format(e))
         pass
@@ -121,21 +155,22 @@ def plot_baseline_calculation(xs, ys):
     try:
         ax.plot(xs, ys, linewidth=pymini.widgets['style_trace_line_width'].get(),
                 c=pymini.widgets['style_event_color_start'].get())
-        canvas.draw()
+        # canvas.draw()
     except:
         pass
 
 def plot_start(x, y):
     try:
         ax.scatter(x, y, marker='x', c=pymini.widgets['style_event_color_start'].get())
-        canvas.draw()
+        # canvas.draw()
     except:
         pass
 
 def plot_peak(x, y):
     try:
-        ax.scatter(x,y, marker='o', c=pymini.widgets['style_event_color_peak'].get())
-        canvas.draw()
+        global peak
+        peak = ax.scatter(x,y, marker='o', c=pymini.widgets['style_event_color_peak'].get())
+        # canvas.draw()
     except Exception as e:
         print(e)
         pass
@@ -143,23 +178,23 @@ def plot_peak(x, y):
 def plot_ruler(coord1, coord2):
     try:
         ax.plot([coord1[0], coord2[0]], [coord1[1], coord2[1]], linewidth = float(pymini.widgets['style_trace_line_width'].get()), c='black')
-        canvas.draw()
+        # canvas.draw()
     except Exception as e:
         print(e)
         pass
 
 def plot_decay_fit(xs, ys):
-    try:
-        ax.plot(xs, ys, linewidth=float(pymini.widgets['style_trace_line_width'].get()),
-                c=pymini.widgets['style_event_color_decay'].get())
-        canvas.draw()
-    except:
-        pass
+    # try:
+    ax.plot(xs, ys, linewidth=float(pymini.widgets['style_trace_line_width'].get()),
+            c=pymini.widgets['style_event_color_decay'].get())
+    # canvas.draw()
+    # except:
+    #     pass
 
 
 def plot_decay(x, y):
     try:
         ax.scatter(x, y, marker='x', c=pymini.widgets['style_event_color_decay'].get())
-        canvas.draw()
+        # canvas.draw()
     except:
         pass

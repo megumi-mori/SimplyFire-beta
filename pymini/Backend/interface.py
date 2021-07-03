@@ -208,26 +208,25 @@ def search_event_from_click(x):
     pass
 
 
+def accept_data(data, update=True):
+    global df
+    df = df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+    data_display.add(data)
+    if update:
+        update_event_marker()
+
 #######################################
 
 def pick_event_manual(x):
-    # dir = 1
-    direction = {'negative': -1, 'positive': 1}[pymini.widgets['detector_direction'].get()]
-    # if pymini.widgets['detector_direction'].get() == 'negative':
-    #     dir = -1
     try:
-        max_decay = float(pymini.widgets['detector_max_decay'].get())
+        param_guide.accept_button.config(state='disabled')
+        param_guide.reanalyze_button.config(state='disabled')
+        param_guide.reject_button.config(state='disabled')
+        param_guide.goto_button.config(state='disabled')
     except:
-        max_decay = None
-    try:
-        max_hw = float(pymini.widgets['detector_max_hw'].get())
-    except:
-        max_hw = None
-    try:
-        max_rise = float(pymini.widgets['detector_max_rise'].get())
-        print('max rise is: {}'.format(max_rise))
-    except:
-        max_rise = None
+        pass
+    data_display.unselect()
+
     xlim=trace_display.ax.get_xlim()
     xlim = (min(xlim), max(xlim))
     ylim=trace_display.ax.get_ylim()
@@ -235,167 +234,380 @@ def pick_event_manual(x):
 
     #convert % x-axis to points search using sampling rate?
     r = int((xlim[1]-xlim[0]) * float(pymini.widgets['detector_search_radius'].get()) / 100 * analyzer.trace.sampling_rate)
-    print('radius: {}'.format(r))
+    global df
+    xs = trace_display.ax.lines[0].get_xdata()
+    ys = trace_display.ax.lines[0].get_ydata()
+
+    guide = False
+    if pymini.widgets['window_param_guide'].get() == '1':
+        guide = True
+        param_guide.clear()
+
+    ##### get search window ######
+    start_idx, end_idx = analyzer.find_window(x, r, xs, ys, analyzer.trace.sampling_rate, xlim, ylim)
+
+    direction = {'negative': -1, 'positive': 1}[pymini.widgets['detector_direction'].get()]
+    lag = int(pymini.widgets['detector_points_baseline'].get())
+    try:
+        max_decay = float(pymini.widgets['detector_max_decay'].get())
+    except:
+        max_decay = np.inf
+    try:
+        max_hw = float(pymini.widgets['detector_max_hw'].get())
+    except:
+        max_hw = np.inf
+    try:
+        max_rise = float(pymini.widgets['detector_max_rise'].get())
+    except:
+        max_rise = np.inf
 
 
-    if pymini.widgets['trace_mode'].get() == 'continuous':
-        xs = trace_display.ax.lines[0].get_xdata()
-        ys = trace_display.ax.lines[0].get_ydata()
-        # assumptions that can be safely made:
-        # the plot should only have 1 trace (the continuous trace)
-        # the only line plotted is the data of the entire trace
-        # the sampling rate of the plotted trace is the same as the sampling rate of the original trace
-        data = analyzer.find_peak_at(
-            x=x,
-            xs=xs,
-            ys=ys,
-            sampling_rate=analyzer.trace.sampling_rate,
-            x_unit=analyzer.trace.x_unit,
-            y_unit=analyzer.trace.y_unit,
-            xlim=xlim,
-            ylim=ylim,
-            direction=direction,
-            lag=int(pymini.widgets['detector_points_baseline'].get()),
-            # points_search=int(pymini.widgets['detector_points_search'].get()),
-            points_search = r,
-            max_points_baseline=int(pymini.widgets['detector_max_points_baseline'].get()),
-            max_points_decay=int(pymini.widgets['detector_max_points_decay'].get()),
-            min_amp=float(pymini.widgets['detector_min_amp'].get()),
-            min_decay=float(pymini.widgets['detector_min_decay'].get()),
-            max_decay=max_decay,
-            min_hw=float(pymini.widgets['detector_min_hw'].get()),
-            max_hw=max_hw,
-            min_rise=float(pymini.widgets['detector_min_rise'].get()),
-            max_rise=max_rise,
-            decay_func_type=int(pymini.widgets['detector_decay_func_type'].get()),
-            decay_func_constant=pymini.widgets['detector_decay_func_constant'].get(),
-            decay_fit_ftol=float(pymini.widgets['detector_decay_fit_ftol'].get())
-        )
+    data, success = analyzer.filter_mini(
+        start_idx,
+        end_idx,
+        xs,
+        ys,
+        x_unit=analyzer.trace.x_unit,
+        y_unit=analyzer.trace.y_unit,
+        direction=direction,
+        lag=lag,
+        min_amp=float(pymini.widgets['detector_min_amp'].get()),
+        min_rise=float(pymini.widgets['detector_min_rise'].get()),
+        max_rise=max_rise,
+        min_hw=float(pymini.widgets['detector_min_hw'].get()),
+        max_hw=max_hw,
+        min_decay=float(pymini.widgets['detector_min_decay'].get()),
+        max_decay=max_decay,
+        max_points_decay=int(pymini.widgets['detector_max_points_decay'].get()),
+        df=df
+    )
+
+    if guide:
+        report_to_param_guide(xs, ys, data)
+    if success:
         data['channel'] = analyzer.trace.channel
-
-    if detector_tab.changed:
-        log_display.search_update('Manual')
-        # log_display.param_update(dict([(i, pymini.widgets[i].get()) for i in pymini.widgets.keys() if 'detector_' in i]))
-        log_display.param_update(detector_tab.changes)
-        detector_tab.changes = {}
-        detector_tab.changed = False
-    # try:
-    if data['success']:
-        global df
         df = df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
         data_display.add(data)
         update_event_marker()
-            # if pymini.widgets['show_end'].get():
-            #     trace_display.plot_end(get_column('end_coord_x'), get_column('end_coord_y'))
-        try:
-            if pymini.widgets['window_param_guide'].get() == '1':
-                report_to_param_guide(xs, ys, data)
-        except:
-            pass
-    # except:
-    #     print('error!!!!')
-        # param_guide.clear()
-        # param_guide.msg_label.insert('Event at t={} {} was already detected. Please select the event marker to view details.\n'.format(data['t'], data['t_unit']))
-        pass # the event was already in the list
+    if detector_tab.changed:
+        log_display.search_update('Manual')
+        log_display.param_update(detector_tab.changes)
+        detector_tab.changes = {}
+        detector_tab.changed = False
 
-    pass
+
+
+def find_mini_in_range(xlim, ylim):
+    try:
+        param_guide.accept_button.config(state='disabled')
+        param_guide.reanalyze_button.config(state='disabled')
+        param_guide.reject_button.config(state='disabled')
+        param_guide.goto_button.config(state='disabled')
+    except:
+        pass
+    data_display.unselect()
+    lag = int(pymini.widgets['detector_points_baseline'].get())
+    direction = {'negative': -1, 'positive': 1}[pymini.widgets['detector_direction'].get()]
+    search_range = int(pymini.widgets["detector_auto_radius"].get())
+
+    min_amp = float(pymini.widgets['detector_min_amp'].get())
+
+    min_rise = float(pymini.widgets['detector_min_rise'].get())
+    try:
+        max_rise = float(pymini.widgets['detector_max_rise'].get())
+    except:
+        max_rise = np.inf
+
+    min_hw = float(pymini.widgets['detector_min_hw'].get())
+    try:
+        max_hw = float(pymini.widgets['detector_max_hw'].get())
+    except:
+        max_hw = np.inf
+
+    max_points_decay = int(pymini.widgets['detector_max_points_decay'].get())
+
+    min_decay = float(pymini.widgets['detector_min_decay'].get())
+    try:
+        max_decay = float(pymini.widgets['detector_max_decay'].get())
+    except:
+        max_decay = np.inf
+
+    xs = trace_display.ax.lines[0].get_xdata()
+    ys = trace_display.ax.lines[0].get_ydata()
+
+    x_unit = analyzer.trace.x_unit
+    y_unit = analyzer.trace.y_unit
+
+    xlim_idx = (analyzer.search_index(xlim[0], xs), analyzer.search_index(xlim[1], xs))
+    i=max(xlim_idx[0], lag)
+    global df
+    while i < xlim_idx[1]:
+        data, success = analyzer.filter_mini(
+            start_idx=i,
+            end_idx=min(i+search_range*2, xlim_idx[1]),
+            xs=xs,
+            ys=ys,
+            x_unit=x_unit,
+            y_unit=y_unit,
+            direction=direction,
+            lag=lag,
+            min_amp=min_amp,
+            min_rise=min_rise,
+            max_rise=max_rise,
+            min_hw=min_hw,
+            max_hw=max_hw,
+            min_decay=min_decay,
+            max_decay=max_decay,
+            max_points_decay=max_points_decay,
+            df=df
+        )
+        data['channel'] = analyzer.trace.channel
+        if data['peak_idx'] is None:
+            i+= search_range
+        else:
+            i += max(search_range, data['peak_idx'] - i)
+        if success:
+            try:
+                df = df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+            except:
+                pass
+
+
+    update_event_marker()
+    trace_display.canvas.draw()
+    data_display.append(df)
+
+    if detector_tab.changed:
+        log_display.search_update('Manual')
+        log_display.param_update(detector_tab.changes)
+        detector_tab.changes = {}
+        detector_tab.changed = False
+    print('end')
+
 
 def select_single(iid):
     data = df.loc[float(iid)]
     if pymini.widgets['window_param_guide'].get() == '1':
+        report_to_param_guide(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear=True)
+
+def select_in_data_display(iid):
+    print('selecting one: ')
+    data_display.select_one(iid)
+    print('selected one!')
+    data_display.table.update()
+    if len(data_display.selected)<1:
+        print('select again')
+        data_display.select_one(iid)
+
+def reanalyze(xs, ys, data, remove_restrict=False):
+    try:
+        data_display.delete_one(data['t'])
+    except:
+        pass
+
+    try:
+        param_guide.accept_button.config(state='disabled')
+        param_guide.reanalyze_button.config(state='disabled')
+        param_guide.reject_button.config(state='disabled')
+        param_guide.goto_button.config(state='disabled')
+    except:
+        pass
+    direction = {'negative': -1, 'positive': 1}[pymini.widgets['detector_direction'].get()]
+    lag = int(pymini.widgets['detector_points_baseline'].get())
+    if pymini.widgets['window_param_guide'].get():
+        param_guide.clear()
+    if remove_restrict:
+        if pymini.widgets['window_param_guide'].get():
+            param_guide.msg_label.insert('Reanalyzing without restrictions.\n')
+        min_amp = 0,
+        min_rise = 0,
+        max_rise = np.inf,
+        min_hw = 0,
+        max_hw = np.inf,
+        min_decay = 0,
+        max_decay = np.inf,
+    else:
+        min_amp = float(pymini.widgets['detector_min_amp'].get())
+
+        min_rise = float(pymini.widgets['detector_min_rise'].get())
         try:
-            report_to_param_guide(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data)
+            max_rise = float(pymini.widgets['detector_max_rise'].get())
         except:
+            max_rise = np.inf
+
+        min_hw = float(pymini.widgets['detector_min_hw'].get())
+        try:
+            max_hw = float(pymini.widgets['detector_max_hw'].get())
+        except:
+            max_hw = np.inf
+
+        min_decay = float(pymini.widgets['detector_min_decay'].get())
+        try:
+            max_decay = float(pymini.widgets['detector_max_decay'].get())
+        except:
+            max_decay = np.inf
+
+    global df
+    new_data, success = analyzer.filter_mini(
+        start_idx=None,
+        end_idx=None,
+        xs=xs,
+        ys=ys,
+        peak_idx=data['peak_idx'],
+        x_unit=analyzer.trace.x_unit,
+        y_unit=analyzer.trace.y_unit,
+        direction=direction,
+        lag=lag,
+        min_amp=min_amp,
+        min_rise=min_rise,
+        max_rise=max_rise,
+        min_hw=min_hw,
+        max_hw=max_hw,
+        min_decay=min_decay,
+        max_decay=max_decay,
+        max_points_decay=int(pymini.widgets['detector_max_points_decay'].get()),
+        df=df
+    )
+    new_data['channel'] = analyzer.trace.channel
+    new_data['search_xlim'] = data['search_xlim']
+    if success:
+        try:
+            df = df.append(pd.Series(new_data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+            data_display.add(new_data)
+            update_event_marker()
+        except Exception as e:
+            print(e)
             pass
 
+    if pymini.widgets['window_param_guide'].get():
+        report_to_param_guide(xs, ys, new_data)
 
+    if detector_tab.changed:
+        log_display.search_update('Manual')
+        log_display.param_update(detector_tab.changes)
+        detector_tab.changes = {}
+        detector_tab.changed = False
 
-def report_to_param_guide(xs, ys, data):
-    param_guide.clear()
+def report_to_param_guide(xs, ys, data, clear=False):
+    if clear:
+        param_guide.clear()
+
     direction = data['direction']
-    param_guide.msg_label.insert('{}\n'.format(data['msg']))
-    lag = int(data['lag'])
-    max_points_decay = int(data['max_points_decay'])
-    try:
-        param_guide.msg_label.insert(
-            'Candidate peak: {:.3f},{:.3f}\n'.format(data['peak_coord_x'], data['peak_coord_y']))
-        param_guide.plot_peak(data['peak_coord_x'], data['peak_coord_y'])
-    except:
-        param_guide.msg_label.insert('Peak not found.\n')
-        print('peak plot error')
+    if data['peak_idx'] is None:
+        param_guide.msg_label.insert('Could not find peak. Make sure the search radius is wide enough (>40 data '
+                                         'points).\n')
+    elif data['peak_coord_x'] is None:
+        param_guide.msg_label.insert('Event already in table. Please select the event marker to see details.\n')
+        data['peak_coord_x'] = xs[data['peak_idx']]
+        data['peak_coord_y'] = ys[data['peak_idx']]
+        param_guide.goto_button.config(state='normal')
+        param_guide.goto_button.config(command=lambda iid=data['peak_coord_x']:data_display.select_one(iid))
+    elif data['amp'] * direction < data['baseline']:
+        param_guide.msg_label.insert('Peak is within baseline.\n')
+    elif data['amp'] * direction < data['min_amp']:
+        param_guide.msg_label.insert('Amplitude < minimum\n')
+        param_guide.accept_button.config(state='normal')
+        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
+        param_guide.reanalyze_button.config(state='normal')
+        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
+    elif data['base_end_idx'] is None:
+        param_guide.msg_label.insert('End of event not found.\n')
+    elif data['rise_const'] < data['min_rise']:
+        param_guide.msg_label.insert('Rise < minimum\n')
+        param_guide.accept_button.config(state='normal')
+        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
+        param_guide.reanalyze_button.config(state='normal')
+        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
+    elif data['rise_const'] > data['max_rise']:
+        param_guide.msg_label.insert('Rise > maximum\n')
+        param_guide.accept_button.config(state='normal')
+        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
+        param_guide.reanalyze_button.config(state='normal')
+        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
+    elif data['halfwidth'] is None:
+        param_guide.msg_label.insert('Halfwidth unknown\n')
+    elif data['halfwidth'] < data['min_hw']:
+        param_guide.msg_label.insert('Halfwidth < minimum\n')
+        param_guide.accept_button.config(state='normal')
+        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
+        param_guide.reanalyze_button.config(state='normal')
+        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
+    elif data['halfwidth'] > data['max_hw']:
+        param_guide.msg_label.insert('Halfwidth > maximum\n')
+        param_guide.accept_button.config(state='normal')
+        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
+        param_guide.reanalyze_button.config(state='normal')
+        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
+    elif data['decay_fit'] is None:
+        param_guide.msg_label.insert('Decay fit error:\n')
+        param_guide.msg_label.insert('{}\n'.format(data['decay_error']))
+    elif data['decay_const'] < data['min_decay']:
+        param_guide.msg_label.insert('Decay < minimum\n')
+        param_guide.accept_button.config(state='normal')
+        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
+        param_guide.reanalyze_button.config(state='normal')
+        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
+    elif data['decay_const'] > data['max_decay']:
+        param_guide.msg_label.insert('Decay > maximum\n')
+        param_guide.accept_button.config(state='normal')
+        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
+        param_guide.reanalyze_button.config(state='normal')
+        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
+    else:
+        param_guide.msg_label.insert('Success\n')
+        param_guide.reject_button.config(state='normal')
+        param_guide.reject_button.config(command=lambda iid=data['t']:data_display.delete_one(iid))
+        param_guide.reanalyze_button.config(state='normal')
+        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False: reanalyze(xs, ys, data, r))
+        param_guide.goto_button.config(state='normal')
+        param_guide.goto_button.config(command=lambda iid=data['peak_coord_x']: data_display.select_one(iid))
+
     try:
         try:
-            param_guide.plot_trace(xs[max(data['start_idx'] - lag, 0):min(data['end_idx'] + max_points_decay, len(xs))],
-                                   ys[max(data['start_idx'] - lag, 0):min(data['end_idx'] + max_points_decay, len(xs))])
-        except:
-            param_guide.plot_trace(xs[max(data['start_idx'] - lag, 0):min(data['peak_idx'] + lag, len(xs))],
-                                   ys[max(data['start_idx'] - lag, 0):min(data['peak_idx'] + lag, len(xs))])
+            param_guide.plot_trace(xs[int(max(data['base_idx'] - data['lag'], 0)):int(min(data['base_end_idx'] + data['max_points_decay'], len(xs)))],
+                                   ys[int(max(data['base_idx'] - data['lag'], 0)):int(min(data['base_end_idx'] + data['max_points_decay'], len(xs)))])
+        except Exception as e:
+            param_guide.plot_trace(xs[int(max(data['search_xlim'][0] - data['lag'],0)):int(min(data['search_xlim'][1]+data['lag'], len(xs)))],
+                                   ys[int(max(data['search_xlim'][0] - data['lag'],0)):int(min(data['search_xlim'][1]+data['lag'], len(xs)))])
+            print('exception during plot {}'.format(e))
+        param_guide.msg_label.insert(
+            'Peak: {:.3f},{:.3f}\n'.format(data['peak_coord_x'], data['peak_coord_y']))
+        param_guide.plot_peak(data['peak_coord_x'], data['peak_coord_y'])
 
-    except:
-        param_guide.plot_trace(xs[max(data['peak_idx'] - lag, 0):min(data['peak_idx'] + max_points_decay, len(xs))],
-                               ys[max(data['peak_idx'] - lag, 0):min(data['peak_idx'] + max_points_decay, len(xs))])
-
-    try:
         param_guide.plot_start(data['start_coord_x'], data['start_coord_y'])
+
         param_guide.plot_ruler((data['peak_coord_x'], data['peak_coord_y']), (data['peak_coord_x'], data['baseline']))
-        param_guide.plot_ruler((xs[max(data['start_idx'] - lag, 0)], data['baseline']),
-                               (xs[min(data['end_idx'] + lag, len(xs))], data['baseline']))
-    except:
-        param_guide.msg_label.insert(
-            'Baseline was not found. Try adjusting the maximum number of data points considered for baseline, and number of data points used to calculate baseline.\n')
-        return
-    try:
-        param_guide.msg_label.insert('Estimated amplitude : {:.3f}{}\n'.format(data['amp'], data['amp_unit']))
-    except:
-        param_guide.msg_label.insert('Amplitude could not be calculated.\n')
-    try:
-        param_guide.msg_label.insert(
-            'Estimated start of event : {:.3f}, {:.3f}\n'.format(data['start_coord_x'], data['start_coord_y']))
-    except:
-        param_guide.msg_label.insert('Start of the event was not found. Try adjusting the number of data points used to calculate baseline.\n')
+        param_guide.msg_label.insert('Amplitude: {:.3f} {}\n'.format(data['amp'], data['amp_unit']))
 
-    # param_guide.plot_trace(data['baseline_plot'][0], np.array(data['baseline_plot'][1]) * direction)
-    # param_guide.plot_trace(data['baseline_end_plot'][0], np.array(data['baseline_end_plot'][1]) * direction)
+        param_guide.ax.set_xlim((xs[int(max(data['base_idx']-data['lag'],0))], xs[int(min(data['base_end_idx']+data['lag'], len(xs)))]))
 
-    try:
-        param_guide.msg_label.insert(
-        'Estimated end of event : {:.3f}, {:.3f}\n'.format(data['end_coord_x'], data['end_coord_y']))
-    except:
-        pass
-    try:
-        param_guide.msg_label.insert('Estimated rise: {:.3f}{}\n'.format(data['rise_const'], data['rise_unit']))
-    except:
-        param_guide.msg_label.insert('Rise could not be calculated.\n')
-    try:
-        param_guide.msg_label.insert(
-            'Estimated halfwidth : {:.3f}{}\n'.format(data['halfwidth'], data['halfwidth_unit']))
+        param_guide.msg_label.insert('Rise: {:.3f} {}\n'.format(data['rise_const'], data['rise_unit']))
+        param_guide.msg_label.insert('Halfwidth: {:.3f} {}\n'.format(data['halfwidth'], data['halfwidth_unit']))
+
         param_guide.plot_ruler((xs[data['halfwidth_idx'][0]], data['baseline'] + data['amp'] / 2),
-                               (xs[data['halfwidth_idx'][1]], data['baseline'] + data['amp'] / 2))
-    except:
-        param_guide.msg_label.insert('Halfwidth could not be calculated\n')
-    try:
-        max_points_decay = int(pymini.widgets['detector_max_points_decay'].get())
-        x_data = (xs[data['peak_idx']:min(data['peak_idx'] + max_points_decay, len(xs))] - xs[data['peak_idx']]) * 1000
+                                       (xs[data['halfwidth_idx'][1]], data['baseline'] + data['amp'] / 2))
+
+
+        param_guide.plot_ruler((xs[int(max(data['base_idx'] - data['lag'], 0))], data['baseline']),
+                                   (xs[int(min(data['base_end_idx'] + data['lag'], len(xs)))], data['baseline']))
+
+
+        x_data = (xs[int(data['peak_idx']):int(min(data['peak_idx'] + data['max_points_decay'], len(xs)))] - xs[int(data['peak_idx'])]) * 1000
         y_decay = getattr(analyzer, data['decay_func'])(x_data, *data['decay_fit'])
 
-
-        x_data = x_data / 1000 + xs[data['peak_idx']]
-        y_decay = y_decay * direction + data['baseline']
+        x_data = x_data / 1000 + xs[int(data['peak_idx'])]
+        y_decay = y_decay * data['direction']
 
         param_guide.plot_decay_fit(x_data, y_decay)
-        param_guide.plot_decay(data['decay_coord_x'], data['decay_coord_y'])
 
-        param_guide.msg_label.insert(
-            'Estimated decay constant : {:.3f}{}\n'.format(data['decay_const'], data['decay_unit']))
-        param_guide.msg_label.insert('Decay was fitted using {}'.format(data['decay_func']))
+        param_guide.msg_label.insert('Decay: {:.3f} {}\n'.format(data['decay_const'], data['decay_unit']))
+        param_guide.plot_decay(data['decay_coord_x'], data['decay_coord_y'])
+        param_guide.msg_label.insert('Decay was fitted using {}\n'.format(data['decay_func']))
     except:
-        param_guide.msg_label.insert('Decay could not be calculated.\n')
-    try:
         pass
-    except Exception as e:
-        print(e)
-        pass
-    pass
+
+    param_guide.canvas.draw()
+
 
 def get_column(colname, index = None):
     if index:
@@ -413,6 +625,7 @@ def toggle_marker_display(type):
     if pymini.widgets[type].get():
         getattr(trace_display, 'plot_{}'.format(type[5:]))(get_column("{}_coord_x".format(type[5:])),
                                                            get_column('{}_coord_y'.format(type[5:])))
+        trace_display.canvas.draw()
     else:
         trace_display.clear_markers(type[5:])
 
@@ -429,17 +642,22 @@ def highlight_selected(selection):
             trace_display.center_plot_area(min(xs), max(xs), min(ys), max(ys))
     else:
         trace_display.clear_markers('highlight')
+    trace_display.canvas.draw()
 
 def update_event_marker():
+    print('plot!')
     if pymini.widgets['show_peak'].get():
         trace_display.plot_peak(get_column('peak_coord_x'), get_column('peak_coord_y'))
     if pymini.widgets['show_start'].get():
         trace_display.plot_start(get_column('start_coord_x'), get_column('start_coord_y'))
     if pymini.widgets['show_decay'].get():
         trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
+    trace_display.canvas.draw()
 
 def delete_event(selection):
     if len(selection)>0:
         selection=[float(i) for i in selection]
         df.drop(selection, axis=0, inplace=True)
         update_event_marker()
+    if pymini.widgets['window_param_guide'].get():
+        param_guide.clear()
