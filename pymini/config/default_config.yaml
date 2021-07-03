@@ -38,10 +38,10 @@ validation_na :
 # other windows
 default_window_param_guide : 0
 default_geometry_param_guide:
-  - 300
-  - 400
+  - 500
+  - 600
 default_param_guide_height:
-  - 250
+  - 400
 
 # navigation
 default_min_x : 'auto'
@@ -59,6 +59,7 @@ default_navigation_mirror_x_scroll : 1
 
 #detector parameters
 default_detector_search_radius : 5.0
+default_detector_auto_radius : 60
 default_detector_direction : 'positive'
 default_detector_min_amp : 0.3
 default_detector_points_baseline : 100
@@ -92,10 +93,8 @@ default_data_display_halfwidth : 1
 default_data_display_halfwidth_unit : 1
 default_data_display_baseline : 1
 default_data_display_baseline_unit : 1
-default_data_display_auc : 0
-default_data_display_start : 1
-default_data_display_end : 1
 default_data_display_channel : 1
+default_data_display_direction : 1
 
 #style
 default_style_trace_line_color : 'black'
