@@ -23,19 +23,19 @@ def load(parent):
         else:
             pymini.get_widget('force_channel_id').config(state='disabled')
 
-    def scroll_plot(axis, dir):
-        if axis == 'x':
-            scroll_x_repeat(
-                dir * int(pymini.widgets['navigation_mirror_x_scroll'].get()),
-                int(pymini.widgets['navigation_fps'].get()),
-                float(pymini.widgets['navigation_scroll_percent'].get())
-            )
-        else:
-            scroll_y_repeat(
-                dir * int(pymini.widgets['navigation_mirror_y_scroll'].get()),
-                int(pymini.widgets['navigation_fps'].get()),
-                float(pymini.widgets['navigation_scroll_percent'].get())
-            )
+    def scroll_x(dir):
+        scroll_x_repeat(
+            dir * int(pymini.widgets['navigation_mirror_x_scroll'].get()),
+            int(pymini.widgets['navigation_fps'].get()),
+            float(pymini.widgets['navigation_scroll_percent'].get())
+        )
+    def scroll_y(dir):
+        scroll_y_repeat(
+            dir * int(pymini.widgets['navigation_mirror_y_scroll'].get()),
+            int(pymini.widgets['navigation_fps'].get()),
+            float(pymini.widgets['navigation_scroll_percent'].get())
+        )
+
     def scroll_x_repeat(dir, fps, percent):
         global jobid
         jobid = pymini.root.after(int(1000 / fps), scroll_x_repeat, dir, fps, percent)
@@ -48,12 +48,12 @@ def load(parent):
         trace_display.scroll_y_by(dir, percent)
         pass
 
-    def zoom_plot(axis, dir):
-        if axis =='x':
-            zoom_x_repeat(dir, int(pymini.widgets['navigation_fps'].get()), float(pymini.widgets['navigation_zoom_percent'].get()))
-        else:
-            zoom_y_repeat(dir, int(pymini.get_value('navigation_fps')), float(pymini.widgets['navigation_zoom_percent'].get()))
-        return None
+    def zoom_x(dir):
+        zoom_x_repeat(dir, int(pymini.widgets['navigation_fps'].get()),
+                      float(pymini.widgets['navigation_zoom_percent'].get()))
+    def zoom_y(dir):
+        zoom_y_repeat(dir, int(pymini.get_value('navigation_fps')),
+                      float(pymini.widgets['navigation_zoom_percent'].get()))
 
     def zoom_x_repeat(dir, fps, percent):
         global jobid
@@ -104,14 +104,14 @@ def load(parent):
     y_zoom_in.image = Tk.PhotoImage(file=os.path.join(config.DIR, 'img','y_zoom_in.png'))
     y_zoom_in.config(image=y_zoom_in.image)
     y_zoom_in.grid(column=0, row=0, sticky='news')
-    y_zoom_in.bind('<ButtonPress-1>', lambda e, c='y', d=1 : zoom_plot(c, d))
+    y_zoom_in.bind('<ButtonPress-1>', lambda e, d=1: zoom_y(d))
     y_zoom_in.bind('<ButtonRelease-1>', stop)
 
     y_zoom_out = Tk.Button(y_zoom_frame)
     y_zoom_out.image = Tk.PhotoImage(file=os.path.join(config.DIR, 'img', 'y_zoom_out.png'))
     y_zoom_out.config(image=y_zoom_out.image)
     y_zoom_out.grid(column=0, row=1, sticky='news')
-    y_zoom_out.bind('<ButtonPress-1>', lambda e, c='y', d=-1: zoom_plot(c, d))
+    y_zoom_out.bind('<ButtonPress-1>', lambda e, d=-1: zoom_y(d))
     y_zoom_out.bind('<ButtonRelease-1>', stop)
 
     yscrollbar_frame = Tk.Frame(big_frame, bg='lime')
@@ -124,13 +124,13 @@ def load(parent):
     pan_up.image = ImageTk.PhotoImage(arrow)
     pan_up.config(image=pan_up.image)
     pan_up.grid(column=0, row=0, sticky='news')
-    pan_up.bind('<ButtonPress-1>', lambda e, c='y', d=1: scroll_plot(c, d))
+    pan_up.bind('<ButtonPress-1>', lambda e, d=1: scroll_y(d))
     pan_up.bind('<ButtonRelease-1>', stop)
     pan_down = Tk.Button(yscrollbar_frame)
     pan_down.image = ImageTk.PhotoImage(arrow.rotate(180))
     pan_down.config(image=pan_down.image)
     pan_down.grid(column=0, row=2, sticky='news')
-    pan_down.bind('<ButtonPress-1>', lambda e, c='y', d=-1: scroll_plot(c, d))
+    pan_down.bind('<ButtonPress-1>', lambda e, d=-1: scroll_y(d))
     pan_down.bind('<ButtonRelease-1>', stop)
 
     global y_scrollbar
@@ -202,27 +202,27 @@ def load(parent):
     x_zoom_in.image = Tk.PhotoImage(file=os.path.join(config.DIR, 'img', 'x_zoom_in.png'))
     x_zoom_in.config(image=x_zoom_in.image)
     x_zoom_in.grid(column=0, row=0, sticky='news')
-    x_zoom_in.bind('<ButtonPress-1>', lambda e, c='x', d=1 : zoom_plot(c, d))
+    x_zoom_in.bind('<ButtonPress-1>', lambda e, d=1: zoom_x(d))
     x_zoom_in.bind('<ButtonRelease-1>', stop)
     x_zoom_out = Tk.Button(x_zoom_frame)
     x_zoom_out.image = Tk.PhotoImage(file=os.path.join(config.DIR, 'img', 'x_zoom_out.png'))
     x_zoom_out.config(image=x_zoom_out.image)
     x_zoom_out.grid(column=1, row=0, sticky='news')
-    x_zoom_out.bind('<ButtonPress-1>', lambda e, c='x', d=-1: zoom_plot(c, d))
+    x_zoom_out.bind('<ButtonPress-1>', lambda e, d=-1: zoom_x(d))
     x_zoom_out.bind('<ButtonRelease-1>', stop)
 
     pan_left = Tk.Button(x_zoom_frame)
     pan_left.image = ImageTk.PhotoImage(arrow.rotate(90))
     pan_left.config(image=pan_left.image)
     pan_left.grid(column=2, row=0, sticky='news')
-    pan_left.bind('<ButtonPress-1>', lambda e, c='x', d=-1: scroll_plot(c, d))
+    pan_left.bind('<ButtonPress-1>', lambda e, d=-1: scroll_x(d))
     pan_left.bind('<ButtonRelease-1>', stop)
 
     pan_right = Tk.Button(x_zoom_frame)
     pan_right.image = ImageTk.PhotoImage(arrow.rotate(270))
     pan_right.config(image=pan_right.image)
     pan_right.grid(column=4, row=0, sticky='news')
-    pan_right.bind('<ButtonPress-1>', lambda e, c='x', d=1: scroll_plot(c, d))
+    pan_right.bind('<ButtonPress-1>', lambda e, d=1: scroll_x(d))
     pan_right.bind('<ButtonRelease-1>', stop)
 
     global x_scrollbar
