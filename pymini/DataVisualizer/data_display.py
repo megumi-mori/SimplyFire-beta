@@ -30,9 +30,10 @@ header2config = OrderedDict([
     ('baseline', 'data_display_baseline'),
     ('baseline_unit', 'data_display_baseline'),
 #    ('auc', 'data_display_auc'),#
-    ('t_start', 'data_display_start'),
-    ('t_end', 'data_display_end'),
-    ('channel', 'data_display_channel',)
+#     ('t_start', 'data_display_start'),
+#     ('t_end', 'data_display_end'),
+    ('channel', 'data_display_channel'),
+    ('direction', 'data_display_direction')
 ])
 
 config2header = OrderedDict([(header2config[key], key) for key in header2config.keys()])
@@ -80,6 +81,13 @@ def add(data):
     table.insert("", 'end', iid=data.get('t', None), values=[data.get(i, None) for i in header2config])
     unselect()
 
+def append(data):
+    # data is dataframe
+    for i in data.index:
+        try:
+            table.insert("", 'end', iid=i, values=[data.loc[i][k] for k in header2config])
+        except:
+            pass
 
 def show_columns():
     table.config(displaycolumns=tuple([
@@ -109,7 +117,10 @@ def _sort(tv, col, reverse):
     for index, (val, k) in enumerate(l):
         tv.move(k, '', index)
     tv.heading(col, command=lambda _col=col: _sort(tv, _col, not reverse))
-    tv.see(tv.selection()[0])
+    try:
+        tv.see(tv.selection()[0])
+    except:
+        pass
 
 def select(e=None):
     global selected
@@ -117,12 +128,10 @@ def select(e=None):
     if len(temp) > 0 and selected == temp:
         selected = ()
         table.selection_toggle(*temp)
-        pass
     selected = table.selection()
     if len(selected) == 1:
         interface.select_single(float(selected[0]))
     interface.highlight_selected([float(i) for i in selected])
-
 
 def _on_key(e=None):
     if e.keysym == 'Escape':
@@ -137,12 +146,35 @@ def select_all(e=None):
     table.selection_set(table.get_children())
 
 def select_one(iid):
-    table.selection_set(str(iid))
     table.see(str(iid))
+    interface.highlight_selected([float(iid)])
+    if selected == (str(iid),):
+        return
+    table.selection_set(str(iid))
+
+def toggle_one(iid):
+    table.selection_set(iid)
+    table.see(str(iid))
+
+def delete_one(iid):
+    try:
+        table.selection_remove(str(iid))
+    except:
+        pass
+    table.delete(str(iid))
+    interface.delete_event([iid])
 
 def delete(e=None):
     sel = table.selection()
+    min = table.index(sel[0])
     interface.delete_event([i for i in sel])
     table.selection_remove(*sel)
     table.delete(*sel)
+    table.update()
+    children = table.get_children()
+    for c in children:
+        if table.index(c) == min:
+            table.selection_set(c)
+            break
+
 
