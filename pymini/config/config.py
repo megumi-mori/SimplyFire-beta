@@ -80,7 +80,7 @@ def dump_user_config(ignore=None):
         f.write("# PyMini user configurations\n")
         f.write("#################################################################\n")
         f.write("\n")
-        pymini.pb.initiate()
+        # pymini.pb.initiate()
         d = {}
         for key in pymini.widgets.keys():
             try:
