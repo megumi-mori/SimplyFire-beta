@@ -128,11 +128,11 @@ def update():
         pass
 
 def clear():
-    accept_button.config(state='disabled')
-    reanalyze_button.config(state='disabled')
-    reject_button.config(state='disabled')
-    goto_button.config(state='disabled')
     try:
+        accept_button.config(state='disabled')
+        reanalyze_button.config(state='disabled')
+        reject_button.config(state='disabled')
+        goto_button.config(state='disabled')
         msg_label.clear()
         for l in ax.lines:
             l.remove()
