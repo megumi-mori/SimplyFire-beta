@@ -6,7 +6,7 @@ from utils.widget import NavigationToolbar
 from config import config
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from DataVisualizer import trace_display
+from DataVisualizer import trace_display, data_display
 from functools import partial
 import gc
 
@@ -27,6 +27,9 @@ def create_window():
     window.protocol('WM_DELETE_WINDOW', _on_close)
     window.title('Parameter guide')
     window.geometry('{}x{}'.format(config.geometry_param_guide[0], config.geometry_param_guide[1]))
+
+    window.bind(config.key_reset_focus, lambda e: data_display.table.focus_set())
+
 
     window.grid_rowconfigure(0, weight=1)
     window.grid_columnconfigure(0, weight=1)

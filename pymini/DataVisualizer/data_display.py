@@ -131,25 +131,25 @@ def load(parent):
     table.bind('<Shift_R>', do_turbo, add='+')
     table.bind('<KeyRelease-Shift_R>', remove_turbo, add="+")
 
-    for k in config.pan_left:
+    for k in config.key_pan_left:
         table.bind(k, lambda e, d=-1:scroll_x(d))
         table.bind(k.upper(), lambda e, d=-1: scroll_x(d))
         table.bind('<KeyRelease-{}>'.format(k), stop)
         table.bind('<KeyRelease-{}>'.format(k.upper()), stop)
 
-    for k in config.pan_right:
+    for k in config.key_pan_right:
         table.bind(k, lambda e, d=1:scroll_x(d))
         table.bind(k.upper(), lambda e, d=2: scroll_x(d))
         table.bind('<KeyRelease-{}>'.format(k), stop)
         table.bind('<KeyRelease-{}>'.format(k.upper()), stop)
 
-    for k in config.pan_up:
+    for k in config.key_pan_up:
         table.bind(k, lambda e, d=1:scroll_y(d))
         table.bind(k.upper(), lambda e, d=2: scroll_y(d))
         table.bind('<KeyRelease-{}>'.format(k), stop)
         table.bind('<KeyRelease-{}>'.format(k.upper()), stop)
 
-    for k in config.pan_down:
+    for k in config.key_pan_down:
         table.bind(k, lambda e, d=-1:scroll_y(d))
         table.bind(k.upper(), lambda e, d=-2: scroll_y(d))
         table.bind('<KeyRelease-{}>'.format(k), stop)
