@@ -24,14 +24,13 @@ def convert_to_path(paths):
 # Constants
 global DIR
 DIR = os.path.dirname(os.path.realpath(inspect.getfile(pymini)))
-
-print('reading default config...{}'.format(DIR))
+# DIR=""
 
 # Load defaults
 default_vars = {}
 system_vars = {}
 user_vars = {}
-default_config_path = os.path.join(DIR, "config", "default_config.yaml")
+default_config_path = os.path.join("config", "default_config.yaml")
 with open(default_config_path) as f:
     configs = yaml.safe_load(f)
     for c, v in configs.items():
