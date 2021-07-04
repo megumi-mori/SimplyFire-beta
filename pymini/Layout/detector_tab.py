@@ -141,17 +141,17 @@ def load(parent):
     ##################################################
     #                  Data Export                   #
     ##################################################
-    frame.insert_title(
-        name='data_export',
-        text='Data Export'
-    )
-    pymini.widgets['data_export_all'] = frame.insert_label_checkbox(
-        name='data_export_all',
-        label='Export all visible and hidden data?',
-        onvalue=1,
-        offvalue=-1
-        # command=None #Link this to exporting data sets
-    )
+    # frame.insert_title(
+    #     name='data_export',
+    #     text='Data Export'
+    # )
+    # pymini.widgets['data_export_all'] = frame.insert_label_checkbox(
+    #     name='data_export_all',
+    #     label='Export all visible and hidden data?',
+    #     onvalue=1,
+    #     offvalue=-1
+    #     # command=None #Link this to exporting data sets
+    # )
 
     ##################################################
     #                  Data Display                  #
