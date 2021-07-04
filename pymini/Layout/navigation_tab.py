@@ -74,50 +74,11 @@ def load(parent, root):
         )
         pymini.widgets[e[0]].bind('<Return>', lambda e:apply_axes_limits(), add='+')
         pymini.widgets[e[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add='+')
-    # pymini.widgets['min_x'] = optionframe.insert_label_entry(
-    #     name='min_x',
-    #     label='Min x-axis:',
-    #     validate_type='auto/float'
-    # )
-    # pymini.widgets['min_x'].bind(
-    #     '<Return>',
-    #     lambda e, n='min_x', a='x', i=0: apply_axis_limit(n, a, i),
-    #     add="+"
-    # )
-    # pymini.widgets['max_x'] = optionframe.insert_label_entry(
-    #     name='max_x',
-    #     label='Max x-axis:',
-    #     validate_type='auto/float'
-    # )
-    # pymini.widgets['max_x'].bind(
-    #     '<Return>',
-    #     lambda e, n='max_x', a='x', i=1: apply_axis_limit(n, a, i),
-    #     add="+"
-    # )
-    # pymini.widgets['min_y'] = optionframe.insert_label_entry(
-    #     name='min_y',
-    #     label='Min y-axis:',
-    #     validate_type='auto/float'
-    # )
-    # pymini.widgets['min_y'].bind(
-    #     '<Return>',
-    #     lambda e, n='min_y', a='y', i=0: apply_axis_limit(n, a, i),
-    #     add="+"
-    # )
-    # pymini.widgets['max_y'] = optionframe.insert_label_entry(
-    #     name='max_y',
-    #     label='Max y-axis:',
-    #     validate_type='auto/float'
-    # )
-    # optionframe.get_widget('max_y').bind(
-    #     '<Return>',
-    #     lambda e, n='max_y', a='y', i=1: apply_axis_limit(n, a, i),
-    #     add="+"
-    # )
+
 
     pymini.widgets['force_axis_limit'] = optionframe.insert_label_checkbox(
         name='force_axis_limit',
-        label='Force axes limits on a new trace'
+        label="Force axes limits on a new trace (reverts to 'show all' if out of bounds)"
     )
     optionframe.insert_button(
         text='Apply axes limits',
