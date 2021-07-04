@@ -34,6 +34,24 @@ validation_na :
   - 'None'
   - 'n/a'
   - 'na'
+default_pan_left :
+  - 'a'
+  - 'j'
+default_pan_right:
+  - 'd'
+  - 'l'
+default_pan_up:
+  - 'w'
+  - 'i'
+default_pan_down:
+  - 's'
+  - 'k'
+default_escape:
+  - 'q'
+  - 'u'
+default_erase:
+  - 'e'
+  - 'o'
 
 # other windows
 default_window_param_guide : 0
@@ -138,3 +156,4 @@ default_export_sweep : 1
 
 # menu
 default_trace_mode : 'continuous'
+
