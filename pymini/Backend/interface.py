@@ -3,7 +3,7 @@ import pymini
 from tkinter import filedialog, messagebox
 from DataVisualizer import data_display, log_display, trace_display, param_guide
 import os
-from Layout import detector_tab, graph_panel
+from Layout import detector_tab, graph_panel, sweep_tab
 import matplotlib as mpl
 from Backend import analyzer
 import gc
@@ -61,7 +61,7 @@ def open_trace(fname):
     # trace stored in analyzer
     try:
         analyzer.open_trace(fname)
-    except:
+    except Exception as e:
         messagebox.showerror('Read file error', 'The selected file could not be opened.')
         return None
     try:
@@ -99,6 +99,9 @@ def open_trace(fname):
         )
     )
     trace_display.ax.autoscale(enable=True, axis='both', tight=True)
+
+    sweep_tab.populate_list(analyzer.trace.sweep_count)
+
     if pymini.widgets['trace_mode'].get() == 'continuous':
         plot_continuous()
     else:
@@ -145,8 +148,7 @@ def open_events(filename):
         data_display.clear()
         xs = df.index.where(df['channel'] == analyzer.trace.channel)
         xs = xs.dropna()
-        for x in xs:
-            data_display.add(df.loc[x].to_dict())
+        data_display.append(df.loc[xs])
 
         update_event_marker()
     except:
@@ -170,10 +172,20 @@ def _change_channel(num):
     pymini.widgets['channel_option'].set('{}: {}'.format(analyzer.trace.channel + 1, analyzer.trace.y_label))
     xlim = trace_display.ax.get_xlim()
     trace_display.clear()
-    trace_display.plot_trace(analyzer.trace.get_xs(mode='continuous'),
-                          analyzer.trace.get_ys(mode='continuous'),
-                             draw=True,
-                             relim=True)
+    if pymini.widgets['trace_mode'].get() == 'continuous':
+        trace_display.plot_trace(analyzer.trace.get_xs(mode='continuous'),
+                              analyzer.trace.get_ys(mode='continuous'),
+                                 draw=True,
+                                 relim=True)
+    else:
+        for i, var in enumerate(sweep_tab.sweep_vars):
+            if var.get():
+                print('plotting sweep # {}'.format(i))
+                trace_display.plot_trace(analyzer.trace.get_xs(mode='overlay', sweep=i),
+                                         analyzer.trace.get_ys(mode='overlay', sweep=i),
+                                         draw=False,
+                                         relim=False,
+                                         idx=i)
     trace_display.ax.set_xlim(xlim)
     trace_display.canvas.draw()
 
@@ -187,17 +199,45 @@ def _change_channel(num):
     update_event_marker()
 
 
-def plot_continuous():
+def plot_continuous(fix_axis=False):
+    if fix_axis:
+        xlim = trace_display.get_axis_limits('x')
+        ylim = trace_display.get_axis_limits('y')
+    trace_display.clear()
     trace_display.plot_trace(analyzer.trace.get_xs(mode='continuous'),
                              analyzer.trace.get_ys(mode='continuous'),
                              draw=True,
                              relim=True)
-    pass
+    if fix_axis:
+        trace_display.set_axis_limit('x', xlim)
+        trace_display.set_axis_limit('y', ylim)
+
+    xs = df.index.where(df['channel'] == analyzer.trace.channel)
+    xs = xs.dropna()
+    data_display.append(df.loc[xs])
+
+    update_event_marker()
 
 
-def plot_overlay():
-    print('overlay currently not supported')
-    pass
+def plot_overlay(fix_axis=False):
+    if fix_axis:
+        xlim = trace_display.get_axis_limits('x')
+        ylim = trace_display.get_axis_limits('y')
+    trace_display.clear()
+    data_display.clear()
+    for i, var in enumerate(sweep_tab.sweep_vars):
+        if var.get():
+            print('plotting sweep # {}'.format(i))
+            trace_display.plot_trace(analyzer.trace.get_xs(mode='overlay', sweep=i),
+                                     analyzer.trace.get_ys(mode='overlay', sweep=i),
+                                     draw=False,
+                                     relim=False,
+                                     idx=i)
+    trace_display.show_all_plot(update_default=True)
+    if fix_axis:
+        trace_display.set_axis_limit('x', xlim)
+        trace_display.set_axis_limit('y', ylim)
+
 
 
 def configure(key, value):
@@ -215,6 +255,8 @@ def accept_data(data, update=True):
     if update:
         update_event_marker()
 
+#######################################
+# Mini Analysis
 #######################################
 
 def pick_event_manual(x):
@@ -294,7 +336,6 @@ def pick_event_manual(x):
         log_display.param_update(detector_tab.changes)
         detector_tab.changes = {}
         detector_tab.changed = False
-
 
 
 def find_mini_in_range(xlim, ylim):
@@ -385,7 +426,7 @@ def find_mini_in_range(xlim, ylim):
     print('end')
 
 
-def select_single(iid):
+def select_single_mini(iid):
     data = df.loc[float(iid)]
     if pymini.widgets['window_param_guide'].get() == '1':
         report_to_param_guide(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear=True)
@@ -654,7 +695,6 @@ def highlight_selected(selection):
     trace_display.canvas.draw()
 
 def update_event_marker():
-    print('plot!')
     if pymini.widgets['show_peak'].get():
         trace_display.plot_peak(get_column('peak_coord_x'), get_column('peak_coord_y'))
     if pymini.widgets['show_start'].get():
@@ -670,3 +710,22 @@ def delete_event(selection):
         update_event_marker()
     if pymini.widgets['window_param_guide'].get():
         param_guide.clear()
+
+
+#######################################
+# Sweeps
+#######################################
+def toggle_sweep(idx, v, draw=True):
+    if v == 1:
+        trace_display.plot_trace(analyzer.trace.get_xs(mode='overlay', sweep=idx),
+                                 analyzer.trace.get_ys(mode='overlay', sweep=idx),
+                                 draw=draw,
+                                 relim=False,
+                                 idx=idx)
+    else:
+        trace_display.sweeps['sweep{}'.format(idx)].remove()
+        if draw:
+            trace_display.canvas.draw()
+
+
+

@@ -95,8 +95,10 @@ def _on_mouse_release(event):
         state.release_coord = None
         state.press_coord = None
         return None
-
-    if canvas.toolbar.mode =="" and event.xdata and event.button == 1 and pymini.widgets['trace_mode'].get() == 'continuous':
+    if pymini.widgets['trace_mode'].get() == 'overlay':
+        return None
+    if canvas.toolbar.mode =="" and event.xdata and event.button == 1 and \
+            pymini.widgets['analysis_mode'].get() == 'mini':
         print('click!')
         interface.pick_event_manual(event.xdata)
         state.move = False
@@ -408,8 +410,13 @@ def clear_markers(key=None):
             c.remove()
     canvas.draw()
 
-def plot_trace(xs, ys, draw=True, relim=True):
-    sweeps['sweep{}'.format(len(sweeps))], = ax.plot(xs, ys,
+def plot_trace(xs, ys, draw=True, relim=True, idx=0):
+    if 'sweep{}'.format(idx) in sweeps:
+        try:
+            sweeps['sweep{}'.format(idx)].remove()
+        except:
+            pass
+    sweeps['sweep{}'.format(idx)], = ax.plot(xs, ys,
                                                     linewidth=pymini.widgets['style_trace_line_width'].get(),
                                                     c=pymini.widgets['style_trace_line_color'].get(),
                                                      animated=False)
@@ -422,6 +429,9 @@ def plot_trace(xs, ys, draw=True, relim=True):
 
         global default_ylim
         default_ylim = ax.get_ylim()
+
+        print(default_xlim)
+
     if draw:
         canvas.draw()
         # refresh()
@@ -517,10 +527,16 @@ def apply_styles(keys):
             pass
     canvas.draw()
 
-def show_all_plot():
+def show_all_plot(update_default=False):
     ax.autoscale(enable=True, axis='both', tight=True)
     ax.relim()
     canvas.draw()
+    if update_default:
+        global default_xlim
+        default_xlim = ax.get_xlim()
+        global default_ylim
+        default_ylim = ax.get_ylim()
+
 
 get_axis_limits = lambda axis:getattr(ax, 'get_{}lim'.format(axis))()
 
