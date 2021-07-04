@@ -5,7 +5,6 @@ from utils import widget
 from utils.scrollable_option_frame import OptionFrame
 from config import config
 from DataVisualizer import trace_display
-# from DataVisualizer.plot import InteractivePlot
 import pymini
 import os
 import time

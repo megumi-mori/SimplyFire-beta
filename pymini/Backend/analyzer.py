@@ -204,6 +204,7 @@ def find_baseline(peak_idx, ys, lag, direction, max_points_baseline=None):
 
     # y_avg is always going to be a positive peak
 
+
     y_avg = np.mean(ys[base_idx - lag + 1:base_idx + 1] * direction)
     base_idx -= 1
 

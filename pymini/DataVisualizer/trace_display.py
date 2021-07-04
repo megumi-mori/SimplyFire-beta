@@ -1,16 +1,10 @@
 import tkinter as Tk
 from config import config
-import matplotlib as mpl
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from utils import recording, analysis
-import matplotlib.colors
 import pymini
-import os
 import gc
-import time
-import datetime
-import numpy as np
 
 from Backend import interface, analyzer
 from Layout import graph_panel
