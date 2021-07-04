@@ -84,6 +84,8 @@ def load():
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)
 
+    root.bind(config.key_reset_focus, lambda e: data_display.table.focus_set())
+
     global widgets
     widgets = {}
 
@@ -111,6 +113,7 @@ def load():
     dp_notebook = ttk.Notebook(right)
     dp_notebook.grid(column=0, row=0, sticky='news')
 
+    global pw_2
     pw_2 = Tk.PanedWindow(
         right,
         orient=Tk.VERTICAL,
@@ -163,14 +166,15 @@ def load():
     global tabs
     tabs = {}
     tabs['detector_tab'] = detector_tab.load(left)
-    cp_notebook.add(tabs['detector_tab'], text='Detector')
+    cp_notebook.add(tabs['detector_tab'], text='Mini')
 
     #insert sweep tab
     tabs['sweep_tab'] = sweep_tab.load(left)
+    cp_notebook.add(tabs['sweep_tab'], text='Sweeps')
 
     # insert navigation_tab tab into control panel
     tabs['navigation_tab'] = navigation_tab.load(left, root)
-    cp_notebook.add(tabs['navigation_tab'], text='Navigation')
+    cp_notebook.add(tabs['navigation_tab'], text='Navi')
 
     # insert style_tab options tab into control panel
     tabs['style_tab'] = style_tab.load(left)
@@ -196,7 +200,10 @@ def load():
 
     # set up progress bar
     global pb
-    pb = progress_bar.ProgressBar(left)
+    # pb = progress_bar.ProgressBar(left)
+    pb = ttk.Progressbar(left, length=100,
+                         mode='determinate',
+                         orient=Tk.HORIZONTAL)
     pb.grid(column=0, row=2, stick='news')
 
     # finis up the pw setting:
@@ -210,17 +217,6 @@ def load():
     pw.paneconfig(left, width=int(config.cp_width))
 
 
-    # focus on plot
-    # plot.focus()
-
-    data_display.table.show_columns()
-    root.update()
-    data_display.fit_columns()
-
-
-
-
-
     ##################################################
     #                    MENU BAR                    #
     ##################################################
@@ -232,7 +228,10 @@ def load():
     # set up closing sequence
     root.protocol('WM_DELETE_WINDOW', _on_close)
 
-    test()
+    # finalize the data viewer - table
+    data_display.show_columns()
+    root.update()
+    data_display.fit_columns()
 
     return root
 
