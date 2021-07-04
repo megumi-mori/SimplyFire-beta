@@ -631,6 +631,7 @@ def report_to_param_guide(xs, ys, data, clear=False):
         param_guide.plot_start(data['start_coord_x'], data['start_coord_y'])
 
         param_guide.plot_ruler((data['peak_coord_x'], data['peak_coord_y']), (data['peak_coord_x'], data['baseline']))
+        param_guide.msg_label.insert('Baseline: {:.3f} {}\n'.format(data['baseline'], data['baseline_unit']))
         param_guide.msg_label.insert('Amplitude: {:.3f} {}\n'.format(data['amp'], data['amp_unit']))
 
         param_guide.ax.set_xlim((xs[int(max(data['base_idx']-data['lag'],0))], xs[int(min(data['base_end_idx']+data['lag'], len(xs)))]))
