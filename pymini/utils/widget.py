@@ -26,12 +26,17 @@ class VarWidget():
             else:
                 self.default = config.default_vars['default_{}'.format(name)]
             return
+
         try:
             self.var.set(config.user_vars[name])
             self.default = config.default_vars['default_{}'.format(name)]
         except:
-            self.var.set(config.system_vars[name])
-            self.default = config.default_vars['system_default_{}'.format(name)]
+            try:
+                self.var.set(config.system_vars[name])
+                self.default = config.default_vars['system_default_{}'.format(name)]
+            except:
+                self.var.set('')
+                self.default = ''
 
     def get(self):
         return self.var.get()
