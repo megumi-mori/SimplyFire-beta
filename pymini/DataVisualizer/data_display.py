@@ -18,7 +18,7 @@ from Layout import graph_panel
 # def delete(self, *items):
 #     super().delete(*items)
 saved = True
-header2config = OrderedDict([
+mini_header2config = OrderedDict([
     ('t', 'data_display_time'),
     ('amp', 'data_display_amplitude'),
     ('amp_unit', 'data_display_amplitude'),
@@ -39,7 +39,7 @@ header2config = OrderedDict([
     ('direction', 'data_display_direction')
 ])
 
-config2header = OrderedDict([(header2config[key], key) for key in header2config.keys()])
+config2header = OrderedDict([(mini_header2config[key], key) for key in mini_header2config.keys()])
 
 
 def stop(e=None):
@@ -51,6 +51,12 @@ def stop(e=None):
     trace_display.update_x_scrollbar()
     trace_display.update_y_scrollbar()
 
+def define_columns(columns):
+    table.config(columns=columns, show='headings')
+    for i, col in enumerate(mini_header2config):
+        table.heading(i, text=col, command=lambda _col=col: _sort(table, _col, False))
+        table.column(i, width=80, stretch=Tk.NO)
+
 def load(parent):
     frame = Tk.Frame(parent)
     frame.grid_rowconfigure(0, weight=1)
@@ -61,10 +67,11 @@ def load(parent):
     table.grid(column=0, row=0, sticky='news')
     table.bind('<<TreeviewSelect>>', select)
 
-    table.config(columns=[col for col in header2config], show='headings')
-    for i, col in enumerate(header2config):
-        table.heading(i, text=col, command=lambda _col=col: _sort(table, _col, False))
-        table.column(i, width=80, stretch=Tk.NO)
+    # table.config(columns=[col for col in mini_header2config], show='headings')
+    # for i, col in enumerate(mini_header2config):
+    #     table.heading(i, text=col, command=lambda _col=col: _sort(table, _col, False))
+    #     table.column(i, width=80, stretch=Tk.NO)
+    define_columns([col for col in mini_header2config])
 
     table.bind('<Escape>', unselect)
     table.bind('q', unselect)
@@ -154,34 +161,12 @@ def load(parent):
         table.bind(k.upper(), lambda e, d=-2: scroll_y(d))
         table.bind('<KeyRelease-{}>'.format(k), stop)
         table.bind('<KeyRelease-{}>'.format(k.upper()), stop)
-    # for k in config.pan_up:
-    #     table.bind('<Key-{}>'.format(k), lambda e, d=1, p=25: scroll_y_by(d, p))
-    #     table.bind('<Key-{}>'.format(k.upper()), lambda e, d=1, p=100: scroll_y_by(d, p))
-    #     table.bind('<KeyRelease-{}>'.format(k), stop)
-    #     table.bind('<KeyRelease-{}>'.format(k.upper()), stop)
-    #
-    # for k in config.pan_down:
-    #     table.bind('<Key-{}>'.format(k), lambda e, d=-1, p=25: scroll_y_by(d, p))
-    #     table.bind('<Key-{}>'.format(k.upper()), lambda e, d=-1, p=100: scroll_y_by(d, p))
-    #     table.bind('<KeyRelease-{}>'.format(k), stop)
-    #     table.bind('<KeyRelease-{}>'.format(k.upper()), stop)
-
-    # table.bind('<KeyRelease-a>', lambda e, d=-1, p=100:scroll_x_by(d, p))
-    # table.bind('<KeyRelease-j>', lambda e, d=-1, p=100: scroll_x_by(d, p))
-    # table.bind('<KeyRelease-d>', lambda e, d=1, p=100: scroll_x_by(d, p))
-    # table.bind('<KeyRelease-l>', lambda e, d=1, p=100: scroll_x_by(d, p))
-    # table.bind('<KeyRelease-w>', lambda e, d=1, p=10: scroll_y_by(d, p))
-    # table.bind('<KeyRelease-i>', lambda e, d=1, p=10: scroll_y_by(d, p))
-    # table.bind('<KeyRelease-s>', lambda e, d=-1, p=10: scroll_y_by(d, p))
-    # table.bind('<KeyRelease-k>', lambda e, d=-1, p=10: scroll_y_by(d, p))
-
-
 
     global selected
     selected = table.selection()
 
-    table.show_columns = show_columns
-    table.fit_columns = fit_columns
+    # table.show_columns = show_columns
+    # table.fit_columns = fit_columns
 
     vsb = ttk.Scrollbar(frame, orient=Tk.VERTICAL, command=table.yview)
     vsb.grid(column=1, row=0, sticky='ns')
@@ -197,27 +182,28 @@ def navigate_list(idx):
         select_one(table.get_children()[idx])
 
 def add(data):
-    table.insert("", 'end', iid=data.get('t', None), values=[data.get(i, None) for i in header2config])
+    table.insert("", 'end', iid=data.get('t', None), values=[data.get(i, None) for i in mini_header2config])
     unselect()
 
 def append(data):
     # data is dataframe
     for i in data.index:
         try:
-            table.insert("", 'end', iid=i, values=[data.loc[i][k] for k in header2config])
+            table.insert("", 'end', iid=i, values=[data.loc[i][k] for k in mini_header2config])
         except:
             pass
 
 def show_columns():
-    table.config(displaycolumns=tuple([
-        i for i in header2config
-        if pymini.widgets[header2config[i]].get()
-    ]))
+    if pymini.widgets['analysis_mode'].get() == 'mini':
+        table.config(displaycolumns=tuple([
+            i for i in mini_header2config
+            if pymini.widgets[mini_header2config[i]].get()
+        ]))
 
 
 def fit_columns():
-    indices = [i for i in header2config
-               if pymini.get_value(header2config[i])]
+    indices = [i for i in mini_header2config
+               if pymini.get_value(mini_header2config[i])]
     w = int(table.winfo_width() / len(indices))
     for i in indices:
         table.column(i, width=w)
@@ -244,14 +230,12 @@ def _sort(tv, col, reverse):
 def select(e=None):
     global selected
     temp = table.selection()
-    print('selected: {}, temp: {}'.format(selected, temp))
     if len(temp) > 0 and selected == temp:
-        print('toggling')
         selected = ()
         table.selection_toggle(*temp)
     selected = table.selection()
     if len(selected) == 1:
-        interface.select_single(float(selected[0]))
+        interface.select_single_mini(float(selected[0]))
     interface.highlight_selected([float(i) for i in selected])
 
 
