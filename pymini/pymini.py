@@ -183,6 +183,7 @@ def load():
     # insert setting option tab into control panel
     tabs['settings_tab'] = setting_tab.load(left)
     cp_notebook.add(tabs['settings_tab'], text='Setting')
+    print('finished tabs')
 
     # set focus rules
     for key in widgets:
@@ -193,7 +194,7 @@ def load():
         if type(widgets[key]) == widget.VarOptionmenu:
             widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
 
-
+    print('finished set focus')
     # set up font adjustment bar
     fb = font_bar.load(left)
     fb.grid(column=0, row=1, sticky='news')
@@ -215,7 +216,7 @@ def load():
     # adjust frame width
     # root.update()
     pw.paneconfig(left, width=int(config.cp_width))
-
+    print('finished pw')
 
     ##################################################
     #                    MENU BAR                    #
@@ -224,14 +225,20 @@ def load():
     # set up menubar
     menu = menubar.load_menubar(root)
     root.config(menu=menu)
+    print('finished menu')
 
     # set up closing sequence
     root.protocol('WM_DELETE_WINDOW', _on_close)
+    print('finished closing')
 
     # finalize the data viewer - table
     data_display.show_columns()
+    print('finished show columns')
     root.update()
+    print('finished update')
     data_display.fit_columns()
+    print('finished columns')
+    print('display!')
 
     return root
 

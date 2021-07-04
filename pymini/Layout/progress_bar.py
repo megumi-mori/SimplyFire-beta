@@ -7,7 +7,7 @@ class ProgressBar(Tk.Frame):
         super().__init__(parent)
         self.parent = parent
         # self.bar=Tk.Frame(self, bg='white', height=15)
-        self.bar=ttk.Progressbar(self, orient=Tk.HORIZONTAL, mode='determinate')
+        self.bar=ttk.Progressbar(self, orient=Tk.HORIZONTAL, mode='indeterminate')
         self.bar.grid(column=0, row=0, sticky='nws')
 
     def initiate(self):

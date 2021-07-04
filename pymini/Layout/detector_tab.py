@@ -17,13 +17,13 @@ def load(parent):
     #                    Methods                     #
     ##################################################
     def _show_all():
-        for key in frame.get_keys(filter='data_display_'):
-            frame.widgets[key].set(1)
+        for key in optionframe.get_keys(filter='data_display_'):
+            optionframe.widgets[key].set(1)
         data_display.show_columns()
 
     def _hide_all():
-        for key in frame.get_keys(filter='data_display_'):
-            frame.widgets[key].set('')
+        for key in optionframe.get_keys(filter='data_display_'):
+            optionframe.widgets[key].set('')
         data_display.show_columns()
     def apply_parameters(e=None):
         global changed
@@ -43,16 +43,17 @@ def load(parent):
     :return:
     """
     frame = ScrollableOptionFrame(parent)
+    optionframe = frame.frame
 
     ##################################################
     #              Detector parameters               #
     ##################################################
-    frame.insert_title(
+    optionframe.insert_title(
         name='detector',
         text='Detector Parameters'
     )
 
-    pymini.widgets['detector_direction'] = frame.insert_label_optionmenu(
+    pymini.widgets['detector_direction'] = optionframe.insert_label_optionmenu(
         name='detector_direction',
         label='Direction',
         options=['positive', 'negative']
@@ -74,7 +75,7 @@ def load(parent):
         # ('detector_decay_fit_ftol', 'Tolerance for termination by the change of the cost function in Scipy Curvefit', 'float')
     ]
     for i in entries:
-        pymini.widgets[i[0]] = frame.insert_label_entry(
+        pymini.widgets[i[0]] = optionframe.insert_label_entry(
             name=i[0],
             label=i[1],
             validate_type=i[2]
@@ -108,32 +109,32 @@ def load(parent):
     #                                                                              onvalue='1',
     #                                                                              offvalue="",
     #                                                                              command=apply_parameters)
-    pymini.widgets['detector_update_events'] = frame.insert_label_checkbox(
+    pymini.widgets['detector_update_events'] = optionframe.insert_label_checkbox(
         name='detector_update_events',
         label='Update graph after each event detection during automated search (will slow down search)',
     )
-    frame.insert_button(
+    optionframe.insert_button(
         text='Apply',
         command=trace_display.canvas.get_tk_widget().focus_set
     )
-    frame.insert_button(
+    optionframe.insert_button(
         text='Default',
-        command= lambda k='detector_':frame.default(filter=k)
+        command= lambda k='detector_':optionframe.default(filter=k)
     )
-    frame.insert_button(
+    optionframe.insert_button(
         text='Find all',
         command= find_all# link this later
     )
-    frame.insert_button(
+    optionframe.insert_button(
         text='Delete all',
         command=None  # link this later
     )
-    frame.insert_button(
+    optionframe.insert_button(
         text='Find in \nwindow',
         command=find_in_window  # link this later
     )
 
-    frame.insert_button(
+    optionframe.insert_button(
         text='Delete in \nwindow',
         command=None  # link this later
     )
@@ -158,7 +159,7 @@ def load(parent):
     ##################################################
     # all column display options for the data table must start with "data_display_"
 
-    frame.insert_title(
+    optionframe.insert_title(
         name='dataframe',
         text='Data Table Display'
     )
@@ -177,7 +178,7 @@ def load(parent):
         ('data_display_direction', 'Direction'),
     ]
     for i in boxes:
-        pymini.widgets[i[0]] = frame.insert_label_checkbox(
+        pymini.widgets[i[0]] = optionframe.insert_label_checkbox(
             name=i[0],
             label=i[1],
             command=data_display.show_columns,
@@ -185,15 +186,15 @@ def load(parent):
             offvalue=''
         )
 
-    frame.insert_button(
+    optionframe.insert_button(
         text='Show All',
         command=_show_all
     )
-    frame.insert_button(
+    optionframe.insert_button(
         text='Hide All',
         command=_hide_all
     )
-    frame.insert_button(
+    optionframe.insert_button(
         text='Fit columns',
         command=data_display.fit_columns
     )

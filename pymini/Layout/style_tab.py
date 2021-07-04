@@ -6,7 +6,8 @@ from DataVisualizer import trace_display
 
 def load(parent):
 
-    optionframe = ScrollableOptionFrame(parent)
+    frame = ScrollableOptionFrame(parent)
+    optionframe = frame.frame
     ##################################################
     #           Populate style option tab            #
     ##################################################
@@ -91,4 +92,4 @@ def load(parent):
         command=hide_all
     )
 
-    return optionframe
+    return frame

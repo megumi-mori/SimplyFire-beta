@@ -1,13 +1,13 @@
 import tkinter as Tk
 from tkinter import ttk
-from utils.scrollable_option_frame import ScrollableOptionFrame
+from utils.scrollable_option_frame import ScrollableOptionFrame, OptionFrame
 from config import config
 from Backend import interface
 from DataVisualizer import trace_display
 import pymini
 import time
 def load(parent):
-    frame = ScrollableOptionFrame(parent, scrollbar=False)
+    frame = OptionFrame(parent)#, scrollbar=False)
     frame.grid_columnconfigure(0, weight=1)
 
     frame.insert_title(
@@ -36,7 +36,7 @@ def load(parent):
         command=show_all
     )
     global list_frame
-    list_frame = ScrollableOptionFrame(frame, scrollbar=True)
+    list_frame = ScrollableOptionFrame(frame)#, scrollbar=True)
     list_frame.grid(sticky='news')
     frame.insert_panel(list_frame, separator=False)
 

@@ -70,7 +70,8 @@ def load(parent):
         return None
 
 
-    frame = ScrollableOptionFrame(parent, False)
+    # frame = ScrollableOptionFrame(parent)#, False)
+    frame = Tk.Frame(parent)
     frame.grid_columnconfigure(0, weight=1)
     frame.grid_rowconfigure(0, weight=1)
 
@@ -165,11 +166,12 @@ def load(parent):
     pymini.widgets['trace_info'] = widget.VarLabel(toolbar_frame, text='no file open')
     pymini.widgets['trace_info'].grid(column=0, row=1, sticky='news')
 
-    channel_frame = ScrollableOptionFrame(upper_frame, scrollbar = False)
-    channel_frame.grid(column=1, row=0, sticky='ews')
-    channel_frame.grid_rowconfigure(0, weight=1)
-    channel_frame.grid_rowconfigure(1, weight=1)
-    channel_frame.grid_columnconfigure(0, weight=1)
+    channel_scrollframe = ScrollableOptionFrame(upper_frame)#, scrollbar = False)
+    channel_frame = channel_scrollframe.frame
+    channel_scrollframe.grid(column=1, row=0, sticky='ews')
+    channel_scrollframe.grid_rowconfigure(0, weight=1)
+    channel_scrollframe.grid_rowconfigure(1, weight=1)
+    channel_scrollframe.grid_columnconfigure(0, weight=1)
 
     pymini.widgets['channel_option'] = channel_frame.insert_label_optionmenu(
         name='channel_option',

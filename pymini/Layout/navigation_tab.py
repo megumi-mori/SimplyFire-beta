@@ -51,7 +51,8 @@ def load(parent, root):
     #                    Populate                    #
     ##################################################
 
-    optionframe = ScrollableOptionFrame(parent)
+    frame = ScrollableOptionFrame(parent)
+    optionframe = frame.frame
 
     ##################################################
     #                      Axes                      #
@@ -140,5 +141,5 @@ def load(parent, root):
     )
 
 
-    return optionframe
+    return frame
 
