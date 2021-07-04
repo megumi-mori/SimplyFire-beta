@@ -552,6 +552,10 @@ def report_to_param_guide(xs, ys, data, clear=False):
         data['peak_coord_y'] = ys[data['peak_idx']]
         param_guide.goto_button.config(state='normal')
         param_guide.goto_button.config(command=lambda iid=data['peak_coord_x']:data_display.select_one(iid))
+    elif data['baseline'] is None:
+        param_guide.msg_label.insert('Baseline could not be found.')
+        param_guide.reanalyze_button.config(state='normal')
+        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False: reanalyze(xs, ys, data, r))
     elif data['amp'] * direction < data['baseline']:
         param_guide.msg_label.insert('Peak is within baseline.\n')
     elif data['amp'] * direction < data['min_amp']:
