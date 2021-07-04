@@ -1,6 +1,6 @@
 from tkinter import ttk
 import tkinter as Tk
-
+import yaml
 from config import config
 
 from Layout import font_bar, menubar, detector_tab, style_tab, progress_bar, setting_tab, navigation_tab, sweep_tab, graph_panel
@@ -31,8 +31,8 @@ def _on_close():
     print('closing')
     # plot.focus()
     if widgets['config_autosave'].get():
-        config.dump_user_config(ignore=['config_', '_log'])
-    config.dump_system_config()
+        dump_user_config(ignore=['config_', '_log'])
+    dump_system_config()
     root.destroy()
 
 def get_value(key, tab=None):
@@ -237,3 +237,54 @@ def load():
 
 
 
+def dump_user_config(ignore=None):
+    print('Writing out configuration variables....')
+    config_user_path = widgets['config_user_path'].get()
+    with open(config.config_user_path, 'w') as f:
+        print('writing dump user config {}'.format(config_user_path))
+        f.write("#################################################################\n")
+        f.write("# PyMini user configurations\n")
+        f.write("#################################################################\n")
+        f.write("\n")
+        # pymini.pb.initiate()
+        d = {}
+        for key in widgets.keys():
+            try:
+                for ig in ignore:
+                    if ig in key:
+                        break
+                else:
+                    d[key] = widgets[key].get()
+            except:
+                d[key] = widgets[key].get()
+
+
+        f.write(yaml.safe_dump(d))
+        # pymini.pb.clear()
+
+        # f.write(yaml.safe_dump(user_vars))
+    print('Completed')
+
+def dump_system_config():
+    print('Saving config options....')
+    with open(config.config_system_path, 'w') as f:
+        print('dumping system config {}'.format(config.config_system_path))
+        f.write("#################################################################\n")
+        f.write("# PyMini system configurations\n")
+        f.write("#################################################################\n")
+        f.write("\n")
+
+        f.write(yaml.safe_dump(dict([(key, widgets[key].get()) for key in widgets if 'config' in key])))
+    print('Completed')
+
+
+def load_config(e=None):
+    f = filedialog.askopenfile()
+    if not f:
+        return None
+    configs = yaml.safe_load(f)
+    for c, v in configs.items():
+        try:
+            widgets[c].set(v)
+        except:
+            pass

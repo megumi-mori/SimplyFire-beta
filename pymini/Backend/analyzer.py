@@ -16,9 +16,9 @@ from DataVisualizer import param_guide, trace_display  # remove this during depl
 ### this module should be able to function on its own
 
 def open_trace(filename, channel=0):
-    global trace
-    trace = recording.Trace(filename)
-    trace.set_channel(channel)
+    global trace_file
+    trace_file = recording.Trace(filename)
+    trace_file.set_channel(channel)
 
 
 def search_index(x, l, rate=None):
@@ -124,9 +124,9 @@ def find_mini_at(
 def find_window(x, points_search, xs=None, ys=None, sampling_rate=None,
                 xlim=None, ylim=None):
     if xs is None:
-        xs = trace.get_xs(mode='continuous')
+        xs = trace_file.get_xs(mode='continuous')
     if ys is None:
-        ys = trace.get_ys(mode='continuous')
+        ys = trace_file.get_ys(mode='continuous')
 
     x_idx = search_index(x, xs, sampling_rate)
 
@@ -307,9 +307,9 @@ def filter_mini(
         data[i] = locals()[i]
 
     if y_unit is None:
-        y_unit = trace.y_unit
+        y_unit = trace_file.y_unit
     if x_unit is None:
-        x_unit = trace.x_unit
+        x_unit = trace_file.x_unit
 
     data['t_unit'] = x_unit
     data['datetime'] = datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S')

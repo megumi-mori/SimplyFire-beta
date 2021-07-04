@@ -31,7 +31,7 @@ def load(parent):
     def _save_config_as():
         d = filedialog.asksaveasfilename(filetypes=[('yaml file', '*.yaml')], defaultextension='.yaml')
         if d:
-            config.dump_user_config(d)
+            pymini.dump_user_config(d)
 
 
     ##################################################
@@ -88,11 +88,11 @@ def load(parent):
 
     optionframe.insert_button("Save current \nconfig now",
                         command= lambda e=pymini.widgets['config_user_path'].get():
-                            config.dump_user_config(e))
+                            pymini.dump_user_config(e))
 
     optionframe.insert_button("Save current \nconfig As...", command=_save_config_as)
 
-    optionframe.insert_button("Load config \nfrom file...", command=config.load_config)
+    optionframe.insert_button("Load config \nfrom file...", command=pymini.load_config)
 
     optionframe.insert_button(
         text='Reset to default \nparameters',
