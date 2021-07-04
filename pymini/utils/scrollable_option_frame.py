@@ -66,7 +66,7 @@ class ScrollableOptionFrame(Tk.Frame):
         pass
 
     def get_frame(self):
-        if scrollable:
+        if self.scrollbar:
             return self.frame
         else:
             return self
@@ -227,7 +227,7 @@ class ScrollableOptionFrame(Tk.Frame):
             panel.grid_columnconfigure(0, weight=1)
 
             row = self.num_row
-        b = Tk.Button(
+        b = ttk.Button(
             panel,
             text=text,
             command=command,
@@ -249,8 +249,11 @@ class ScrollableOptionFrame(Tk.Frame):
 
 
     def adjust_button_width(self, button):
-        width = self.canvas.winfo_width()
-        button.config(width=int(width/2), wraplength= int(width / 2) - 4)
+        try:
+            width = self.canvas.winfo_width()
+        except:
+            width = self.frame.winfo_width()
+        button.config(width=int(width/2))#, wraplength= int(width / 2) - 4)
 
     def default(self, keys=None, filter=None):
         if keys is None:
