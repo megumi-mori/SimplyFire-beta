@@ -126,7 +126,7 @@ def open_trace(fname):
     # starting channel was set earlier in the code
     pymini.widgets['channel_option'].set('{}: {}'.format(analyzer.trace.channel + 1, analyzer.trace.y_label))
 
-    trace_display.canvas.draw()
+    # trace_display.refresh()
 
 def save_events(filename):
     try:
@@ -400,6 +400,11 @@ def select_in_data_display(iid):
         data_display.select_one(iid)
 
 def reanalyze(xs, ys, data, remove_restrict=False):
+
+    try:
+        selected = data_display.table.selection()[0] == str(data['t'])
+    except:
+        selected = False
     try:
         data_display.delete_one(data['t'])
     except:
@@ -448,6 +453,7 @@ def reanalyze(xs, ys, data, remove_restrict=False):
             max_decay = np.inf
 
     global df
+    print(df)
     new_data, success = analyzer.filter_mini(
         start_idx=None,
         end_idx=None,
@@ -475,6 +481,9 @@ def reanalyze(xs, ys, data, remove_restrict=False):
             df = df.append(pd.Series(new_data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
             data_display.add(new_data)
             update_event_marker()
+            data_display.table.update()
+            if selected:
+                data_display.toggle_one(data['t'])
         except Exception as e:
             print(e)
             pass
