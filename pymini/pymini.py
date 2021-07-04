@@ -182,7 +182,6 @@ def load():
 
     # set focus rules
     for key in widgets:
-        print(type(widgets[key]))
         if type(widgets[key]) == widget.VarEntry:
             widgets[key].bind('<Return>', lambda e: data_display.table.focus_set(), add='+')
         if type(widgets[key]) == widget.VarCheckbutton:
