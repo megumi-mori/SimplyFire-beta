@@ -84,16 +84,16 @@ def load(parent):
         command=_ask_dirname
     ).grid(column=1, row=1, sticky='news')
 
-    frame.insert_button("Save current config now",
+    frame.insert_button("Save current \nconfig now",
                         command= lambda e=pymini.widgets['config_user_path'].get():
                             config.dump_user_config(e))
 
-    frame.insert_button("Save current config As...", command=_save_config_as)
+    frame.insert_button("Save current \nconfig As...", command=_save_config_as)
 
-    frame.insert_button("Load config from file...", command=config.load_config)
+    frame.insert_button("Load config \nfrom file...", command=config.load_config)
 
     frame.insert_button(
-        text='Reset to default parameters',
+        text='Reset to default \nparameters',
         command=frame.default
     )
 

@@ -48,7 +48,7 @@ def load(parent):
         command= lambda e=[i[0] for i in entries]: trace_display.apply_styles(e)
     )
     optionframe.insert_button(
-        text='Default parameters',
+        text='Default',
         command=lambda k='style': optionframe.default(filter=k)
     )
     ##################################################

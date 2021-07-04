@@ -81,19 +81,19 @@ def load(parent, root):
         label="Force axes limits on a new trace (reverts to 'show all' if out of bounds)"
     )
     optionframe.insert_button(
-        text='Apply axes limits',
+        text='Apply',
         command=apply_axes_limits
     )
     optionframe.insert_button(
-        text='Get default parameters',
+        text='Default',
         command=default_axis_parameters
     )
     optionframe.insert_button(
-        text='Show all trace',
+        text='Show all',
         command=trace_display.show_all_plot
     )
     optionframe.insert_button(
-        text='Get current axes limits',
+        text='Current values',
         command=get_current_axes
     )
 
@@ -135,7 +135,7 @@ def load(parent, root):
         # command=pymini.plot.focus
     )
     optionframe.insert_button(
-        text='Default parameters',
+        text='Default',
         command=default_nav_parameters
     )
 

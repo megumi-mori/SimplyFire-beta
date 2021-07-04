@@ -117,7 +117,7 @@ def load(parent):
         command=trace_display.canvas.get_tk_widget().focus_set
     )
     frame.insert_button(
-        text='Default paramters',
+        text='Default',
         command= lambda k='detector_':frame.default(filter=k)
     )
     frame.insert_button(
@@ -129,12 +129,12 @@ def load(parent):
         command=None  # link this later
     )
     frame.insert_button(
-        text='Find in window',
+        text='Find in \nwindow',
         command=find_in_window  # link this later
     )
 
     frame.insert_button(
-        text='Delete in window',
+        text='Delete in \nwindow',
         command=None  # link this later
     )
 
@@ -195,7 +195,7 @@ def load(parent):
     )
     frame.insert_button(
         text='Fit columns',
-        command=data_display.table.fit_columns
+        command=data_display.fit_columns
     )
 
     return frame
