@@ -193,7 +193,7 @@ def load(parent):
         validate_type='int'
     )
     force_channel()
-    pymini.widgets['force_channel_id'].grid(column=2,row=0,sticky='ews')
+    pymini.widgets['force_channel_id'].grid(column=2, row=0, sticky='ews')
 
     x_zoom_frame = Tk.Frame(frame, bg='orange')
     x_zoom_frame.grid_rowconfigure(0, weight=1)

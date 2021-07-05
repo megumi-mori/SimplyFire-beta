@@ -25,13 +25,15 @@ def convert_to_path(paths):
 # Constants
 global DIR
 # DIR = os.path.dirname(os.path.realpath(inspect.getfile(pymini)))
-DIR=""
+DIR=os.getcwd()
+# DIR=os.path.join(DIR, 'pymini')
+print(DIR)
 
 # Load defaults
 default_vars = {}
 system_vars = {}
 user_vars = {}
-default_config_path = os.path.join("config", "default_config.yaml")
+default_config_path = os.path.join(DIR, "config", "default_config.yaml")
 with open(default_config_path) as f:
     configs = yaml.safe_load(f)
     for c, v in configs.items():
@@ -45,11 +47,12 @@ with open(default_config_path) as f:
         #     system_vars[c[15:]] = v
 # Load user configurations
 
-config_system_path = os.path.join("config", "pymini_config.yaml")
+config_system_path = os.path.join(DIR, "config", "pymini_config.yaml")
 try:
     with open(config_system_path) as f:
         configs = yaml.safe_load(f)
         for c, v in configs.items():
+            print(c)
             globals()[c] = v
             # system_vars[c] = v
             user_vars[c] = v

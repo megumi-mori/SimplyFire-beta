@@ -411,9 +411,9 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0):
         except:
             pass
     sweeps['sweep{}'.format(idx)], = ax.plot(xs, ys,
-                                                    linewidth=pymini.widgets['style_trace_line_width'].get(),
-                                                    c=pymini.widgets['style_trace_line_color'].get(),
-                                                     animated=False)
+                                             linewidth=pymini.widgets['style_trace_line_width'].get(),
+                                             c=pymini.widgets['style_trace_line_color'].get(),
+                                             animated=False)
     if relim:
         ax.autoscale(enable=True, axis='both', tight=True)
         ax.relim()

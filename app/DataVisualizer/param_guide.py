@@ -146,7 +146,7 @@ def clear():
 def plot_trace(xs, ys):
     try:
         ax.plot(xs, ys, linewidth=pymini.widgets['style_trace_line_width'].get(),
-                                                    c=pymini.widgets['style_trace_line_color'].get())
+                c=pymini.widgets['style_trace_line_color'].get())
         ax.autoscale(enable=True, axis='both', tight=True)
         ax.relim()
         # canvas.draw()
@@ -172,7 +172,7 @@ def plot_start(x, y):
 def plot_peak(x, y):
     try:
         global peak
-        peak = ax.scatter(x,y, marker='o', c=pymini.widgets['style_event_color_peak'].get())
+        peak = ax.scatter(x, y, marker='o', c=pymini.widgets['style_event_color_peak'].get())
         # canvas.draw()
     except Exception as e:
         print(e)

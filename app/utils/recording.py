@@ -2,7 +2,7 @@ from pyabf import abf
 import os.path
 import numpy as np
 import time
-import pymini
+import app
 
 class Trace():
     def __init__(self, filename, channel=0):

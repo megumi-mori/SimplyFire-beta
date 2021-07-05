@@ -2,7 +2,7 @@ import pandas as pd
 import tkinter as Tk
 from tkinter import ttk
 from collections import OrderedDict
-import pymini
+import app
 header2config = OrderedDict([
         ('t', 'data_display_time'),
         ('amp', 'data_display_amplitude'),
@@ -49,7 +49,7 @@ class InteractiveTable(ttk.Treeview):
         self.id = id # use this to identify which column is the name value
 
     def fit_columns(self):
-        indices = [config2header[e] for e in config2header if pymini.get_value(e) or pymini.get_value(e[:-5])]
+        indices = [config2header[e] for e in config2header if app.get_value(e) or app.get_value(e[:-5])]
         w = int(self.winfo_width() / len(indices))
         for i in indices:
             self.column(i, width=w)
@@ -58,7 +58,7 @@ class InteractiveTable(ttk.Treeview):
         self.config(
             displaycolumns=tuple(
                 [config2header[e] for e in config2header
-                 if pymini.get_value(e) or pymini.get_value(e[:-5])] #will also display 'unit' headers
+                 if app.get_value(e) or app.get_value(e[:-5])] #will also display 'unit' headers
             )
         )
 

@@ -1,7 +1,7 @@
 import tkinter as Tk
 from tkinter import ttk, filedialog, messagebox
 from utils import widget
-import pymini
+import app
 import datetime
 import os
 
@@ -66,10 +66,10 @@ def load(parent):
     return frame
 
 def copy():
-    pymini.root.clipboard_clear()
-    pymini.root.clipboard_append(log_text.get())
+    app.root.clipboard_clear()
+    app.root.clipboard_append(log_text.get())
     print(log_text.get())
-    pymini.root.update()
+    app.root.update()
 
 def user_update(e=None):
     log_text.insert(Tk.END, '{} @user: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), log_entry.get()))

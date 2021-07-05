@@ -117,7 +117,7 @@ def load(parent, root):
             label=e[1],
             validate_type=e[2]
         )
-        pymini.widgets[e[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add = '+')
+        pymini.widgets[e[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add ='+')
 
     boxes = [
        ('navigation_mirror_y_scroll', 'Mirror y-axis scroll button directions'), #name, label

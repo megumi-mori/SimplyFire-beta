@@ -60,6 +60,7 @@ def load(parent):
         onvalue='1',
         offvalue=""
     )
+    print(pymini.widgets['config_autosave'])
 
     # auto_load directory panel
 
@@ -87,7 +88,7 @@ def load(parent):
     ).grid(column=1, row=1, sticky='news')
 
     optionframe.insert_button("Save current \nconfig now",
-                        command= lambda e=pymini.widgets['config_user_path'].get():
+                              command= lambda e=pymini.widgets['config_user_path'].get():
                             pymini.dump_user_config(e))
 
     optionframe.insert_button("Save current \nconfig As...", command=_save_config_as)

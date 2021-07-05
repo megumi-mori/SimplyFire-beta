@@ -1,6 +1,8 @@
 from tkinter import ttk
 import tkinter as Tk
 import yaml
+import Backend
+
 from config import config
 
 from Layout import font_bar, menubar, detector_tab, style_tab, progress_bar, setting_tab, navigation_tab, sweep_tab, graph_panel
@@ -9,7 +11,7 @@ from DataVisualizer import data_display, log_display
 from utils import widget
 
 event_filename = None
-
+widgets = {}
 ##################################################
 #                    Methods                     #
 ##################################################
@@ -29,7 +31,7 @@ def _on_close():
     :return: None
     """
     print('closing')
-    # plot.focus()
+    print([key for key in widgets.keys()])
     if widgets['config_autosave'].get():
         dump_user_config(ignore=['config_', '_log'])
     dump_system_config()
@@ -87,7 +89,6 @@ def load():
     root.bind(config.key_reset_focus, lambda e: data_display.table.focus_set())
 
     global widgets
-    widgets = {}
 
     pw = Tk.PanedWindow(
         root,
@@ -184,6 +185,7 @@ def load():
     tabs['settings_tab'] = setting_tab.load(left)
     cp_notebook.add(tabs['settings_tab'], text='Setting')
 
+    print('after loading tabs: {}'.format([key for key in widgets.keys()]))
     # set focus rules
     for key in widgets:
         if type(widgets[key]) == widget.VarEntry:
@@ -288,3 +290,13 @@ def load_config(e=None):
             widgets[c].set(v)
         except:
             pass
+
+
+if __name__ == '__main__':
+
+    root = load()
+    ### testing purposes:
+    Backend.interface.open_trace('D:\\megum\\Documents\\GitHub\\PyMini\\test_recordings\\20112011-EJC test.abf')
+    # root=pymini.root
+    # pymini.plot_area.open_trace('D:\\megum\\Documents\\GitHub\\PyMini\\test_recordings\\19911002-2.abf')
+    root.mainloop()

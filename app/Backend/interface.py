@@ -81,7 +81,7 @@ def open_trace(fname):
             analyzer.trace_file.set_channel(int(pymini.widgets['force_channel_id'].get()) - 1)  # 1 indexing
         except Exception as e:
             print(analyzer.trace_file.channel)
-            print(e)
+            print('force_channel id error:{}'.format(e))
             pass
 
     trace_display.clear()
@@ -180,7 +180,6 @@ def _change_channel(num):
     else:
         for i, var in enumerate(sweep_tab.sweep_vars):
             if var.get():
-                print('plotting sweep # {}'.format(i))
                 trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=i),
                                          analyzer.trace_file.get_ys(mode='overlay', sweep=i),
                                          draw=False,
@@ -227,7 +226,6 @@ def plot_overlay(fix_axis=False):
     data_display.clear()
     for i, var in enumerate(sweep_tab.sweep_vars):
         if var.get():
-            print('plotting sweep # {}'.format(i))
             trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=i),
                                      analyzer.trace_file.get_ys(mode='overlay', sweep=i),
                                      draw=False,

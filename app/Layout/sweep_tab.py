@@ -90,12 +90,10 @@ def populate_list(num):
             button.grid(column=1, row=i, sticky='es')
             sweep_vars.append(var)
             panels.append(f)
-            print(var.get())
     while num < len(sweep_vars):
         temp = panels.pop(num)
         temp.forget()
         temp.destroy()
-    print([var.get() for var in sweep_vars])
 
 
 
