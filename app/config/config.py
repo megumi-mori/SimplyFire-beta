@@ -27,7 +27,6 @@ global DIR
 # DIR = os.path.dirname(os.path.realpath(inspect.getfile(pymini)))
 DIR=os.getcwd()
 # DIR=os.path.join(DIR, 'pymini')
-print(DIR)
 
 # Load defaults
 default_vars = {}
@@ -52,7 +51,6 @@ try:
     with open(config_system_path) as f:
         configs = yaml.safe_load(f)
         for c, v in configs.items():
-            print(c)
             globals()[c] = v
             # system_vars[c] = v
             user_vars[c] = v

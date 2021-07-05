@@ -25,7 +25,6 @@ default_font_size : 9
 default_separator : true
 default_label_length: 30
 default_entry_width : 10
-default_progress_bar_color : 'blue'
 default_gp_height : 450
 default_pw_handlesize : 15
 
@@ -133,6 +132,7 @@ default_force_channel_id: 0
 
 # sweep
 default_export_sweep : 1
+default_sweep_picker_offset : 20
 
 # menu
 default_trace_mode : 'continuous'
