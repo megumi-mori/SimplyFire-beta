@@ -1,6 +1,7 @@
 # takes input from the Data Visualizers and takes appropriate action
 import pymini
 from tkinter import filedialog, messagebox
+import tkinter as Tk
 from DataVisualizer import data_display, log_display, trace_display, param_guide
 import os
 from Layout import detector_tab, graph_panel, sweep_tab
@@ -14,7 +15,7 @@ from utils import recording
 
 ### this module connects the analyzer and the gui
 
-df = pd.DataFrame(columns = [
+mini_df = pd.DataFrame(columns = [
     # panel -- make sure this matches with the config2header dict
     # = analyzer generates the data
     't',  #
@@ -66,8 +67,8 @@ def open_trace(fname):
         return None
     try:
         log_display.open_update(fname)
-        global df
-        df = df.iloc[0:0]
+        global mini_df
+        mini_df = mini_df.iloc[0:0]
     except:
         return None
 
@@ -102,6 +103,8 @@ def open_trace(fname):
 
     sweep_tab.populate_list(analyzer.trace_file.sweep_count)
 
+    print('after populating list: {}'.format(len(sweep_tab.panels)))
+
     if pymini.widgets['trace_mode'].get() == 'continuous':
         plot_continuous()
     else:
@@ -133,7 +136,7 @@ def open_trace(fname):
 
 def save_events(filename):
     try:
-        df.to_csv(filename)
+        mini_df.to_csv(filename)
         pymini.event_filename = filename
 
     except:
@@ -141,14 +144,13 @@ def save_events(filename):
 
 def open_events(filename):
     try:
-        global df
-        df = pd.read_csv(filename, index_col=0)
+        global mini_df
+        mini_df = pd.read_csv(filename, index_col=0)
         pymini.event_filename = filename
-        print(df)
         data_display.clear()
-        xs = df.index.where(df['channel'] == analyzer.trace_file.channel)
+        xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
         xs = xs.dropna()
-        data_display.append(df.loc[xs])
+        data_display.append(mini_df.loc[xs])
 
         update_event_marker()
     except:
@@ -191,10 +193,10 @@ def _change_channel(num):
     data_display.clear()
 
 
-    xs = df.index.where(df['channel'] == analyzer.trace_file.channel)
+    xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
     xs = xs.dropna()
     for x in xs:
-        data_display.add(df.loc[x].to_dict())
+        data_display.add(mini_df.loc[x].to_dict())
     update_event_marker()
 
 
@@ -211,30 +213,13 @@ def plot_continuous(fix_axis=False):
         trace_display.set_axis_limit('x', xlim)
         trace_display.set_axis_limit('y', ylim)
 
-    xs = df.index.where(df['channel'] == analyzer.trace_file.channel)
+    xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
     xs = xs.dropna()
-    data_display.append(df.loc[xs])
+    data_display.append(mini_df.loc[xs])
 
     update_event_marker()
 
 
-def plot_overlay(fix_axis=False):
-    if fix_axis:
-        xlim = trace_display.get_axis_limits('x')
-        ylim = trace_display.get_axis_limits('y')
-    trace_display.clear()
-    data_display.clear()
-    for i, var in enumerate(sweep_tab.sweep_vars):
-        if var.get():
-            trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=i),
-                                     analyzer.trace_file.get_ys(mode='overlay', sweep=i),
-                                     draw=False,
-                                     relim=False,
-                                     idx=i)
-    trace_display.show_all_plot(update_default=True)
-    if fix_axis:
-        trace_display.set_axis_limit('x', xlim)
-        trace_display.set_axis_limit('y', ylim)
 
 
 
@@ -247,8 +232,8 @@ def search_event_from_click(x):
 
 
 def accept_data(data, update=True):
-    global df
-    df = df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+    global mini_df
+    mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
     data_display.add(data)
     if update:
         update_event_marker()
@@ -274,7 +259,7 @@ def pick_event_manual(x):
 
     #convert % x-axis to points search using sampling rate?
     r = int((xlim[1]-xlim[0]) * float(pymini.widgets['detector_search_radius'].get()) / 100 * analyzer.trace_file.sampling_rate)
-    global df
+    global mini_df
     xs = trace_display.ax.lines[0].get_xdata()
     ys = trace_display.ax.lines[0].get_ydata()
 
@@ -319,14 +304,14 @@ def pick_event_manual(x):
         min_decay=float(pymini.widgets['detector_min_decay'].get()),
         max_decay=max_decay,
         max_points_decay=int(pymini.widgets['detector_max_points_decay'].get()),
-        df=df
+        df=mini_df
     )
 
     if guide:
         report_to_param_guide(xs, ys, data)
     if success:
         data['channel'] = analyzer.trace_file.channel
-        df = df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+        mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
         data_display.add(data)
         update_event_marker()
     if detector_tab.changed:
@@ -379,7 +364,7 @@ def find_mini_in_range(xlim, ylim):
 
     xlim_idx = (analyzer.search_index(xlim[0], xs), analyzer.search_index(xlim[1], xs))
     i=max(xlim_idx[0], lag)
-    global df
+    global mini_df
     while i < xlim_idx[1]:
         data, success = analyzer.filter_mini(
             start_idx=i,
@@ -398,7 +383,7 @@ def find_mini_in_range(xlim, ylim):
             min_decay=min_decay,
             max_decay=max_decay,
             max_points_decay=max_points_decay,
-            df=df
+            df=mini_df
         )
         data['channel'] = analyzer.trace_file.channel
         if data['peak_idx'] is None:
@@ -407,14 +392,14 @@ def find_mini_in_range(xlim, ylim):
             i += max(search_range, data['peak_idx'] - i)
         if success:
             try:
-                df = df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+                mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
             except:
                 pass
 
 
     update_event_marker()
     trace_display.canvas.draw()
-    data_display.append(df)
+    data_display.append(mini_df)
 
     if detector_tab.changed:
         log_display.search_update('Manual')
@@ -425,7 +410,7 @@ def find_mini_in_range(xlim, ylim):
 
 
 def select_single_mini(iid):
-    data = df.loc[float(iid)]
+    data = mini_df.loc[float(iid)]
     if pymini.widgets['window_param_guide'].get() == '1':
         report_to_param_guide(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear=True)
 
@@ -491,8 +476,7 @@ def reanalyze(xs, ys, data, remove_restrict=False):
         except:
             max_decay = np.inf
 
-    global df
-    print(df)
+    global mini_df
     new_data, success = analyzer.filter_mini(
         start_idx=None,
         end_idx=None,
@@ -511,13 +495,13 @@ def reanalyze(xs, ys, data, remove_restrict=False):
         min_decay=min_decay,
         max_decay=max_decay,
         max_points_decay=int(pymini.widgets['detector_max_points_decay'].get()),
-        df=df
+        df=mini_df
     )
     new_data['channel'] = analyzer.trace_file.channel
     new_data['search_xlim'] = data['search_xlim']
     if success:
         try:
-            df = df.append(pd.Series(new_data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+            mini_df = mini_df.append(pd.Series(new_data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
             data_display.add(new_data)
             update_event_marker()
             data_display.table.update()
@@ -665,13 +649,13 @@ def report_to_param_guide(xs, ys, data, clear=False):
 def get_column(colname, index = None):
     if index:
         try:
-            return list(df.loc[index][colname])
+            return list(mini_df.loc[index][colname])
         except:
-            return df.loc[index][colname]
+            return mini_df.loc[index][colname]
     else:
-        xs = df.index.where(df['channel'] == analyzer.trace_file.channel)
+        xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
         xs = xs.dropna()
-        return list(df.loc[xs][colname])
+        return list(mini_df.loc[xs][colname])
 
 
 def toggle_marker_display(type):
@@ -692,6 +676,7 @@ def highlight_selected(selection):
         else:
             xs = get_column('peak_coord_x', selection)
             ys = get_column('peak_coord_y', selection)
+            print('selection xs and ys: {} {}'.format(xs, ys))
             trace_display.center_plot_area(min(xs), max(xs), min(ys), max(ys))
     else:
         trace_display.clear_markers('highlight')
@@ -709,7 +694,7 @@ def update_event_marker():
 def delete_event(selection):
     if len(selection)>0:
         selection=[float(i) for i in selection]
-        df.drop(selection, axis=0, inplace=True)
+        mini_df.drop(selection, axis=0, inplace=True)
         update_event_marker()
     if pymini.widgets['window_param_guide'].get():
         param_guide.clear()
@@ -718,6 +703,25 @@ def delete_event(selection):
 #######################################
 # Sweeps
 #######################################
+
+def plot_overlay(fix_axis=False):
+    if fix_axis:
+        xlim = trace_display.get_axis_limits('x')
+        ylim = trace_display.get_axis_limits('y')
+    trace_display.clear()
+    data_display.clear()
+    for i, var in enumerate(sweep_tab.sweep_vars):
+        if var.get():
+            trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=i),
+                                     analyzer.trace_file.get_ys(mode='overlay', sweep=i),
+                                     draw=False,
+                                     relim=False,
+                                     idx=i)
+    trace_display.show_all_plot(update_default=True)
+    if fix_axis:
+        trace_display.set_axis_limit('x', xlim)
+        trace_display.set_axis_limit('y', ylim)
+
 def toggle_sweep(idx, v, draw=True):
     if v == 1:
         trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=idx),
@@ -726,9 +730,75 @@ def toggle_sweep(idx, v, draw=True):
                                  relim=False,
                                  idx=idx)
     else:
-        trace_display.sweeps['sweep{}'.format(idx)].remove()
+        trace_display.get_sweep(idx).remove()
         if draw:
             trace_display.canvas.draw()
+
+def select_trace_from_plot(x, y):
+    #called by trace_display during mouse click near trace
+    min_d = np.inf
+    pick = None
+    offset = int(pymini.widgets['sweep_picker_offset'].get())
+    xlim = trace_display.ax.get_xlim()
+    radius = int(abs(xlim[1] - xlim[0]) * offset/100 * analyzer.trace_file.sampling_rate)
+    ylim = trace_display.ax.get_ylim()
+    x2y = (xlim[1] - xlim[0])/(ylim[1] - ylim[0])
+    for i, var in enumerate(sweep_tab.sweep_vars):
+        if var.get():
+            line = trace_display.get_sweep(i)
+            d, idx = analyzer.point_line_min_distance(x, y, offset=radius, xs=line.get_xdata(), ys=line.get_ydata(),
+                                             x2y=x2y, rate=analyzer.trace_file.sampling_rate)
+            if d < min_d:
+                min_d = d
+                pick = i
+    if pick is None:
+        return None
+    trace_display.toggle_sweep_highlight(pick, not data_display.shift_pressed)
+
+def hide_highlighted_sweep():
+    print(trace_display.highlighted_sweep)
+    for idx in trace_display.highlighted_sweep:
+        sweep_tab.checkbuttons[idx].invoke()
+        print(idx)
+    pass
+
+def highlight_all_sweeps():
+    for i in range(len(sweep_tab.sweep_vars)):
+        if sweep_tab.sweep_vars[i].get():
+            trace_display.highlight_sweep(i, draw=False)
+    trace_display.canvas.draw()
+    return
+def delete_hidden(delete):
+    if len(delete) == analyzer.trace_file.sweep_count:
+        messagebox.showerror(message='Must have at least 1 visible trace')
+        return None
+    if len(mini_df.index) > 0:
+        selection = messagebox.askokcancel(message='You have more than 1 mini data. Deleting sweeps may cause the events to misalign.\n'+
+                               'Continue?', icon=messagebox.WARNING)
+        if not selection:
+            return None
+    count = 0
+    for idx in delete:
+        analyzer.trace_file.delete_sweep(idx - count)
+        count += 1
+
+    sweep_tab.populate_list(analyzer.trace_file.sweep_count)
+    # should only be called during 'overlay' mode
+    plot_overlay(fix_axis=True)
+
+
+
+######################################
+# Save Trace
+######################################
+def save_trace_as(fname):
+    c = analyzer.trace_file.channel
+    for i in range(analyzer.trace_file.sweep_count):
+        try:
+            ys = trace_display.get_sweep(i).get_ydata()
+            analyzer.trace_file.update_datea(channel=c, sweep=i, data=ys)
+        except:
+            pass
 
 
 

@@ -16,6 +16,7 @@ class Trace():
         _, self.fname = os.path.split(self.filename)
         if self.filetype == ".abf":
             data = abf.ABF(filename)
+            self.data=data
             self.sampling_rate = data.dataRate
             self.sampling_rate_sigdig = len(str(self.sampling_rate)) - 1
             self.x_interval = 1 / self.sampling_rate
@@ -28,7 +29,7 @@ class Trace():
             self.x_label = data.sweepLabelX # in the form of Label (Units)
 
             self.sweep_count = data.sweepCount
-            self.x_data = [0]*self.sweep_count
+            self.x_data = [[] for _ in range(self.sweep_count)]
             self.y_data = [[[] for _ in range(self.sweep_count)] for _ in range(self.channel_count)]
 
             total = self.sweep_count * (self.channel_count + 1)
@@ -70,6 +71,17 @@ class Trace():
             # print(start - end)
             # print(self.y_data[0])
 
+    def update_data(self, channel=-1, sweep=0, data=None):
+        if channel <0:
+            channel = self.channel
+        if data is None:
+            return None
+        self.data[channel][sweep] = np.array(data)
+    def delete_sweep(self, num):
+        for c in range(self.channel_count):
+            self.y_data[c].pop(num)
+        self.x_data.pop(num)
+        self.sweep_count = len(self.x_data)
     def set_channel(self, num):
         if num >= self.channel_count:
 

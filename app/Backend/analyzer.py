@@ -6,6 +6,7 @@ import numpy as np
 import datetime
 from scipy import optimize
 import time
+import math
 
 import matplotlib.pyplot as plt
 
@@ -204,7 +205,8 @@ def find_baseline(peak_idx, ys, lag, direction, max_points_baseline=None):
 
     # y_avg is always going to be a positive peak
 
-
+    if base_idx < lag:
+        return None, None
     y_avg = np.mean(ys[base_idx - lag + 1:base_idx + 1] * direction)
     base_idx -= 1
 
@@ -461,3 +463,21 @@ def rise_decay(x, a, t_2, t_1):
 #     #b = baseline
 #     #d = adjust at the end
 #     return V * np.exp(-(x-s)/t) + b + d
+
+from DataVisualizer import trace_display
+def point_line_min_distance(x, y, offset, xs, ys, x2y=1, rate=None):
+    # finds the minimum square difference between a point and a line.
+    idx = search_index(x, xs, rate)
+    min_d = np.inf
+    min_i = None
+    for i in range(max(idx-offset, 0), min(idx+offset, len(xs))):
+        d = distance((x,y), (xs[i], ys[i]), x2y)
+        if d < min_d:
+            min_d = d
+            min_i = i
+    return min_d, min_i
+
+def distance(coord1, coord2, x2y=1): #(x1,y1), (x2, y2)
+    # return math.sqrt(sum([(coord1[i] - coord2[i])**2 for i in range(len(coord1))]))
+
+    return math.hypot((coord2[0] - coord1[0])/x2y, coord2[1] - coord1[1])

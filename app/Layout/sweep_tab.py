@@ -14,19 +14,10 @@ def load(parent):
         name='sweep_title',
         text='Overlay Configurations'
     )
-    # frame.insert_label_checkbox(
-    #     name='export_sweep',
-    #     label='Export sweep numbers when exporting image?',
-    #     value=config.export_sweep,
-    #     default=config.default_export_sweep
-    # )
-
     frame.insert_title(
         name='sweep_select',
         text='Select Sweeps'
     )
-    frame.grid_rowconfigure(3, weight=1)
-
     frame.insert_button(
         text='Hide All',
         command=hide_all
@@ -35,19 +26,32 @@ def load(parent):
         text='Show All',
         command=show_all
     )
+    frame.grid_rowconfigure(3, weight=1)
     global list_frame
     list_frame = ScrollableOptionFrame(frame)#, scrollbar=True)
     list_frame.grid(sticky='news')
     frame.insert_panel(list_frame, separator=False)
 
+    pymini.widgets['sweep_picker_offset'] = frame.insert_label_entry(
+        name='sweep_picker_offset',
+        label='Sweep picker search radius (% of x-axis)', #might change to us
+        validate_type=('float')
+    )
+    frame.insert_button(
+        text='Delete hidden',
+        command=delete_hidden
+    )
+
     global sweep_vars
     sweep_vars = []
     global panels
     panels = []
+    global checkbuttons
+    checkbuttons = []
     return frame
 
-def show_all():
 
+def show_all():
     for i, var in enumerate(sweep_vars):
         if var.get() == 0:
             var.set(1)
@@ -59,7 +63,6 @@ def show_all():
 
 
 def hide_all():
-    length = pymini.pb.winfo_width()
     for i, var in enumerate(sweep_vars):
         if var.get() == 1:
             var.set(0)
@@ -69,12 +72,15 @@ def hide_all():
     trace_display.canvas.draw()
     pymini.pb['value'] = 0
 
+def delete_hidden():
+    delete = [i for i, var in enumerate(sweep_vars) if not var.get()]
+    interface.delete_hidden(delete)
+
 def populate_list(num):
-    print('populating sweep list: {}'.format(num))
     frame = list_frame.get_frame()
     for i in range(num):
         if i < len(sweep_vars):
-            panels[i].grid(column=0, row=i)
+            sweep_vars[i].set(1)
         else:
             f = Tk.Frame(frame)
             f.grid_columnconfigure(0, weight=1)
@@ -87,13 +93,18 @@ def populate_list(num):
                                      variable=var,
                                      command=lambda x=i, v=var.get:
                                      interface.toggle_sweep(x, v()))
+            checkbuttons.append(button)
             button.grid(column=1, row=i, sticky='es')
             sweep_vars.append(var)
             panels.append(f)
-    while num < len(sweep_vars):
+    while num < len(panels):
         temp = panels.pop(num)
         temp.forget()
         temp.destroy()
+        b = checkbuttons.pop(num)
+        b.forget()
+        b.destroy()
+        sweep_vars.pop(num)
 
 
 
