@@ -37,6 +37,16 @@ def ask_open_trace():
 
     interface.open_trace(fname)
 
+def ask_save_trace():
+    gc.collect()
+    fname = filedialog.asksaveasfilename(title='Save recording as', filetypes=[('abf files', '*.abf'),
+                                                                               ('All files', '*.*')])
+    if fname:
+        interface.save_trace_as(fname)
+        pass
+    else:
+        return None
+
 def save_events():
     if not pymini.event_filename:
         save_events_as()
@@ -129,7 +139,7 @@ def _continuous_mode():
 def _overlay_mode(e=None):
     pymini.widgets['trace_mode'].set('overlay')
     try:
-        pymini.cp_notebook.insert(1, pymini.tabs['sweep_tab'], text='Sweep')
+        pymini.cp_notebook.insert(3, pymini.tabs['sweep_tab'], text='Sweep')
         interface.plot_overlay(fix_axis=True)
         pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector_tab']), state='disabled')
     except Exception as e:
