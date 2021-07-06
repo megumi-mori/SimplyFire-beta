@@ -1,7 +1,7 @@
 from tkinter import ttk
 import tkinter as Tk
 import yaml
-import Backend
+from Backend import interpreter
 
 from config import config
 
@@ -9,6 +9,8 @@ from Layout import font_bar, menubar, detector_tab, style_tab, progress_bar, set
 from DataVisualizer import data_display, log_display
 
 from utils import widget
+
+
 
 event_filename = None
 widgets = {}
@@ -32,8 +34,9 @@ def _on_close():
     """
     print('closing')
     if widgets['config_autosave'].get():
-        dump_user_config(ignore=['config_', '_log'])
-    dump_system_config()
+        dump_user_setting(ignore=['config_', '_log'])
+    dump_config_var(key='key_', filename=config.config_keymap_path, title='Keymap')
+    dump_system_setting()
     root.destroy()
 
 def get_value(key, tab=None):
@@ -228,6 +231,9 @@ def load():
     # set up closing sequence
     root.protocol('WM_DELETE_WINDOW', _on_close)
 
+    # set up event bindings
+    interpreter.initialize()
+
     # finalize the data viewer - table
     data_display.show_columns()
     root.update()
@@ -237,11 +243,12 @@ def load():
 
 
 
-def dump_user_config(ignore=None):
+def dump_user_setting(filename=None, ignore=None):
     print('Writing out configuration variables....')
-    config_user_path = widgets['config_user_path'].get()
-    with open(config.config_user_path, 'w') as f:
-        print('writing dump user config {}'.format(config_user_path))
+    if filename is None:
+        filename = widgets['config_user_path'].get()
+    with open(filename, 'w') as f:
+        print('writing dump user config {}'.format(filename))
         f.write("#################################################################\n")
         f.write("# PyMini user configurations\n")
         f.write("#################################################################\n")
@@ -265,7 +272,7 @@ def dump_user_config(ignore=None):
         # f.write(yaml.safe_dump(user_vars))
     print('Completed')
 
-def dump_system_config():
+def dump_system_setting():
     print('Saving config options....')
     with open(config.config_system_path, 'w') as f:
         print('dumping system config {}'.format(config.config_system_path))
@@ -277,6 +284,15 @@ def dump_system_config():
         f.write(yaml.safe_dump(dict([(key, widgets[key].get()) for key in widgets if 'config' in key])))
     print('Completed')
 
+def dump_config_var(key, filename, title=None):
+    print('Saving "{}" config values...'.format(key))
+    with open(filename, 'w') as f:
+        f.write("#################################################################\n")
+        f.write("# PyMini {} configurations\n".format(title))
+        f.write("#################################################################\n")
+        f.write("\n")
+        f.write(yaml.safe_dump(dict([(n, getattr(config, n)) for n in config.user_vars if key in n])))
+    print('Completed')
 
 def load_config(e=None):
     f = filedialog.askopenfile()

@@ -4,9 +4,9 @@ from DataVisualizer import trace_display
 # from data_panel.event_dataframe import EventDataFrame
 from collections import OrderedDict  # Python 3.7+ can use dict
 import pymini
-from Backend import interface
+from Backend import interface, interpreter
 from config import config
-from Layout import graph_panel
+
 
 
 # just use this to add something:
@@ -42,18 +42,6 @@ mini_header2config = OrderedDict([
 config2header = OrderedDict([(mini_header2config[key], key) for key in mini_header2config.keys()])
 
 
-def stop(e=None):
-    global press
-    press = False
-    global shift_pressed
-    shift_pressed = False
-    try:
-        pymini.root.after_cancel(jobid)
-        trace_display.update_x_scrollbar()
-        trace_display.update_y_scrollbar()
-    except:
-        pass
-
 def define_columns(columns):
     table.config(columns=columns, show='headings')
     for i, col in enumerate(mini_header2config):
@@ -74,96 +62,8 @@ def load(parent):
     # for i, col in enumerate(mini_header2config):
     #     table.heading(i, text=col, command=lambda _col=col: _sort(table, _col, False))
     #     table.column(i, width=80, stretch=Tk.NO)
-    define_columns([col for col in mini_header2config])
-
-    table.bind('<Escape>', key_unselect)
-    table.bind('q', key_unselect)
-    table.bind('o', key_unselect)
-    table.bind('<Delete>', key_delete)
-    table.bind('<BackSpace>', key_delete)
-    table.bind('e', key_delete)
-    table.bind('u', key_delete)
-    table.bind('<Control-a>', select_all)
-
-    # focus is almost always on data_display - navigation keys for trace_display
-
-    def scroll_x(dir):
-        global press
-        if not press:
-            scroll_x_repeat(
-                dir * int(pymini.widgets['navigation_mirror_x_scroll'].get()),
-                int(pymini.widgets['navigation_fps'].get()),
-                float(pymini.widgets['navigation_scroll_percent'].get())
-            )
-        press = True
-    def scroll_y(dir):
-        global press
-        if not press:
-            scroll_y_repeat(
-                dir * int(pymini.widgets['navigation_mirror_y_scroll'].get()),
-                int(pymini.widgets['navigation_fps'].get()),
-                float(pymini.widgets['navigation_scroll_percent'].get())
-            )
-        press = True
-    def scroll_x_repeat(dir, fps, percent):
-        global jobid
-        jobid = pymini.root.after(int(1000 / fps), scroll_x_repeat, dir, fps, percent)
-        if shift_pressed:
-            trace_display.scroll_x_by(dir * 2, percent)
-        else:
-            trace_display.scroll_x_by(dir, percent)
-        pass
-
-    def scroll_y_repeat(dir, fps, percent):
-        global jobid
-        jobid = pymini.root.after(int(1000 / fps), scroll_y_repeat, dir, fps, percent)
-        if shift_pressed:
-            trace_display.scroll_y_by(dir*2, percent)
-        else:
-            trace_display.scroll_y_by(dir, percent)
-        pass
-
-    def do_shift_pressed(e=None):
-        global shift_pressed
-        shift_pressed = True
-
-    def remove_shift_pressed(e=None):
-        global shift_pressed
-        shift_pressed = False
-
-    global press
-    press = False
-    global shift_pressed
-    shift_pressed = False
-
-    table.bind('<Shift_L>', do_shift_pressed, add='+')
-    table.bind('<KeyRelease-Shift_L>', remove_shift_pressed, add="+")
-    table.bind('<Shift_R>', do_shift_pressed, add='+')
-    table.bind('<KeyRelease-Shift_R>', remove_shift_pressed, add="+")
-
-    for k in config.key_pan_left:
-        table.bind(k, lambda e, d=-1:scroll_x(d))
-        table.bind(k.upper(), lambda e, d=-1: scroll_x(d))
-        table.bind('<KeyRelease-{}>'.format(k), stop)
-        table.bind('<KeyRelease-{}>'.format(k.upper()), stop)
-
-    for k in config.key_pan_right:
-        table.bind(k, lambda e, d=1:scroll_x(d))
-        table.bind(k.upper(), lambda e, d=2: scroll_x(d))
-        table.bind('<KeyRelease-{}>'.format(k), stop)
-        table.bind('<KeyRelease-{}>'.format(k.upper()), stop)
-
-    for k in config.key_pan_up:
-        table.bind(k, lambda e, d=1:scroll_y(d))
-        table.bind(k.upper(), lambda e, d=2: scroll_y(d))
-        table.bind('<KeyRelease-{}>'.format(k), stop)
-        table.bind('<KeyRelease-{}>'.format(k.upper()), stop)
-
-    for k in config.key_pan_down:
-        table.bind(k, lambda e, d=-1:scroll_y(d))
-        table.bind(k.upper(), lambda e, d=-2: scroll_y(d))
-        table.bind('<KeyRelease-{}>'.format(k), stop)
-        table.bind('<KeyRelease-{}>'.format(k.upper()), stop)
+    if config.analysis_mode == 'mini':
+        define_columns([col for col in mini_header2config])
 
     global selected
     selected = table.selection()
@@ -239,27 +139,17 @@ def select(e=None):
     selected = table.selection()
     if len(selected) == 1:
         interface.select_single_mini(float(selected[0]))
-    interface.highlight_selected([float(i) for i in selected])
+    if pymini.widgets['analysis_mode'].get() == 'mini':
+        interface.highlight_selected_mini([float(i) for i in selected])
 
 
 def unselect(e=None):
     table.selection_remove(*table.selection())
 
 
-def select_all(e=None):
-    if pymini.widgets['trace_mode'].get() == 'overlay':
-        interface.highlight_all_sweeps()
-    if pymini.widgets['analysis_mode'].get() == 'mini':
-        global selected
-        if len(selected) == len(table.get_children()):
-            return
-        table.selection_set(table.get_children())
-
-
-
 def select_one(iid):
     table.see(str(iid))
-    interface.highlight_selected([float(iid)])
+    interface.highlight_selected_mini([float(iid)])
     print(selected)
     if selected == (str(iid),):
         return
@@ -270,7 +160,7 @@ def select_one_by_index(idx):
     select_one(table.get_children()[idx])
 
 def toggle_one(iid):
-    if shift_pressed:
+    if interpreter.multi_select:
         table.selection_toggle(str(iid))
         table.see(str(iid))
         return
@@ -284,21 +174,3 @@ def delete_one(iid):
         pass
     interface.delete_event([iid])
     table.delete(str(iid))
-
-def key_delete(e=None):
-    if pymini.widgets['analysis_mode'].get() == 'mini':
-        sel = table.selection()
-        table.selection_remove(*sel)
-        interface.delete_event([i for i in sel])
-        table.update()
-        try:
-            table.selection_set(table.next(sel[-1]))
-        except Exception as e:
-            pass
-        table.delete(*sel)
-    if pymini.widgets['trace_mode'].get() == 'overlay':
-        interface.hide_highlighted_sweep()
-
-def key_unselect(e=None):
-    if pymini.widgets['analysis_mode'].get() == 'mini':
-        unselect()
