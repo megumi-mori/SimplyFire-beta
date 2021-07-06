@@ -11,14 +11,6 @@ def load(parent):
     ##################################################
     #                    Methods                     #
     ##################################################
-    def _save_config():
-        """
-        Linked to the settings_tab "Save current config now" button
-        Calls the config module's dump_user_config function with the current config path
-        :return:
-        """
-        config.dump_user_config(optionframe.widgets['config_path'].get())
-        pass
 
     def _ask_dirname(e=None):
         d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
@@ -30,8 +22,9 @@ def load(parent):
 
     def _save_config_as():
         d = filedialog.asksaveasfilename(filetypes=[('yaml file', '*.yaml')], defaultextension='.yaml')
+
         if d:
-            pymini.dump_user_config(d)
+            pymini.dump_user_setting(d)
 
 
     ##################################################
@@ -89,7 +82,7 @@ def load(parent):
 
     optionframe.insert_button("Save current \nconfig now",
                               command= lambda e=pymini.widgets['config_user_path'].get():
-                            pymini.dump_user_config(e))
+                            pymini.dump_user_setting(e))
 
     optionframe.insert_button("Save current \nconfig As...", command=_save_config_as)
 

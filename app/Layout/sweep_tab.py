@@ -10,6 +10,7 @@ def load(parent):
     frame = OptionFrame(parent)#, scrollbar=False)
     frame.grid_columnconfigure(0, weight=1)
 
+
     frame.insert_title(
         name='sweep_title',
         text='Overlay Configurations'
