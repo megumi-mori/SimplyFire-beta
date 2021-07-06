@@ -32,6 +32,8 @@ DIR=os.getcwd()
 default_vars = {}
 system_vars = {}
 user_vars = {}
+keymap_vars = {}
+
 default_config_path = os.path.join(DIR, "config", "default_config.yaml")
 with open(default_config_path) as f:
     configs = yaml.safe_load(f)
@@ -46,13 +48,23 @@ with open(default_config_path) as f:
         #     system_vars[c[15:]] = v
 # Load user configurations
 
-config_system_path = os.path.join(DIR, "config", "pymini_config.yaml")
+config_system_path = os.path.join(DIR, *default_config_system_path)
 try:
     with open(config_system_path) as f:
         configs = yaml.safe_load(f)
         for c, v in configs.items():
             globals()[c] = v
             # system_vars[c] = v
+            user_vars[c] = v
+except:
+    pass
+
+config_keymap_path = os.path.join(DIR, *default_config_keymap_path)
+try:
+    with open(config_keymap_path) as f:
+        configs = yaml.safe_load(f)
+        for c, v in configs.items():
+            globals()[c] = v
             user_vars[c] = v
 except:
     pass

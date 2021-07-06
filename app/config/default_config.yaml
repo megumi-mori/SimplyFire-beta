@@ -120,6 +120,9 @@ default_config_user_path :
 default_config_system_path :
   - 'config'
   - 'pymini_config.yaml'
+default_config_keymap_path:
+  - 'config'
+  - 'key_map.yaml'
 default_config_autoload : 1
 default_config_autosave : 1
 default_config_file_autodir : 1
@@ -138,24 +141,53 @@ default_sweep_picker_offset : 20
 default_trace_mode : 'continuous'
 default_analysis_mode : 'mini'
 
-# key map
+#####################
+#      key map      #
+#####################
+# selection
+default_key_deselect:
+  - '<Escape>'
+  - 'q'
+  - 'o'
+default_key_delete:
+  - '<Delete>'
+  - '<BackSpace>'
+  - 'e'
+  - 'u'
+default_key_select_all:
+  - '<Control-a>'
+default_key_multi_select:
+  - '<Shift_L>'
+  - '<Shift_R>'
+# plot navigation
+default_key_scroll_rapid:
+  - '<Shift_L>'
+  - '<Shift_R>'
 default_key_pan_left :
   - 'a'
-  - 'j'
 default_key_pan_right:
   - 'd'
-  - 'l'
 default_key_pan_up:
   - 'w'
-  - 'i'
 default_key_pan_down:
   - 's'
-  - 'k'
 default_key_escape:
   - 'q'
-  - 'u'
 default_key_erase:
   - 'e'
-  - 'o'
+default_key_zoom_in_x:
+  - 'j'
+default_key_zoom_out_x:
+  - 'l'
+default_key_zoom_in_y:
+  - 'i'
+default_key_zoom_out_y:
+  - 'k'
+
 default_key_reset_focus:
   - '<space>'
+# toolbar
+default_key_toolbar_pan:
+  - 'p'
+default_key_toolbar_zoom:
+  - 'z'
