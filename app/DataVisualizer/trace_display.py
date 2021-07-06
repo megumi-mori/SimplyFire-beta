@@ -2,7 +2,7 @@ import tkinter as Tk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.patches import Rectangle
-from matplotlib.widgets import Cursor
+from matplotlib.animation import FuncAnimation
 import pymini
 import gc
 
@@ -55,8 +55,6 @@ def load(parent):
     canvas.mpl_connect('button_press_event', _on_mouse_press)
     canvas.mpl_connect('motion_notify_event', _on_mouse_move)
     # canvas.mpl_connect('button_release_event', _on_mouse_release)
-
-    cursor = Cursor(ax, useblit=True, color='red', linewidth=2)
 
     canvas.draw()
     # refresh()
@@ -236,11 +234,21 @@ def zoom_x_by(dir=1, percent=0, event=None):
         new_lim = (max(new_lim[1] - width, default_xlim[0]), default_xlim[1])
 
     ax.set_xlim(new_lim)
+    global fig
+    global ani
+    ani = FuncAnimation(
+        fig,
+        anim_func,
+        frames=1,
+        interval = int(1),
+        repeat=False
+    )
+    ani._start()
     update_x_scrollbar(new_lim)
-    canvas.draw()
+    # canvas.draw()
     # refresh()
-
-
+def anim_func(idx):
+    return sweeps
 def zoom_y_by(dir=1, percent=0, event=None):
     win_lim = ax.get_ylim()
     delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
