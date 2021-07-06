@@ -23,6 +23,10 @@ def open_trace(filename, channel=0):
 
 
 def search_index(x, l, rate=None):
+    if x < l[0]:
+        return -1 # out of bounds
+    if x > l[-1]:
+        return len(xs) + 1 # out of bounds
     if rate is None:
         rate = np.mean(l[1:6] - l[0:5])
     est = int((x - l[0]) * rate)
@@ -122,6 +126,7 @@ def find_mini_at(
 
     return data
 
+
 def find_window(x, points_search, xs=None, ys=None, sampling_rate=None,
                 xlim=None, ylim=None):
     if xs is None:
@@ -183,7 +188,7 @@ def find_peak_recursive(
     ######## search candidate peak ##########
     peak_y = max(ys[start:end] * direction)
     peaks = np.where(ys[start:end] * direction == peak_y)[0] + start  # list of indices where ys is at peak
-    peak_idx = peaks[int(len(peaks)/2)]  # take the earliest time point as candidate
+    peak_idx = peaks[int(len(peaks) / 2)]  # take the earliest time point as candidate
 
     FUDGE = 10  # adjust if needed
 
@@ -199,6 +204,7 @@ def find_peak_recursive(
         return find_peak_recursive(xs, ys, start, end - FUDGE, direction=direction)
 
     return peak_idx
+
 
 def find_baseline(peak_idx, ys, lag, direction, max_points_baseline=None):
     base_idx = peak_idx - 1
@@ -220,6 +226,7 @@ def find_baseline(peak_idx, ys, lag, direction, max_points_baseline=None):
         return None, None
     return base_idx, y_avg * direction
 
+
 def find_end_of_mini(peak_idx, ys, lag, direction):
     end_idx = peak_idx
     y_avg = np.mean(ys[end_idx: end_idx + lag]) * direction
@@ -233,15 +240,17 @@ def find_end_of_mini(peak_idx, ys, lag, direction):
     else:
         return None, None
 
+
 def find_halfwidth_idx(amp, ys, direction, baseline, offset):
-    left_idx = [i+offset for i in range(1,len(ys)-1) if ys[i-1]*direction <= (baseline+amp/2)*direction if ys[i+1]*direction >=(baseline+amp/2)*direction]
-    right_idx = [i+offset for i in range(1, len(ys)-1) if ys[i-1]*direction >= (baseline+amp/2)*direction
-                 if ys[i+1]*direction <= (baseline+amp/2)*direction]
+    left_idx = [i + offset for i in range(1, len(ys) - 1) if ys[i - 1] * direction <= (baseline + amp / 2) * direction
+                if ys[i + 1] * direction >= (baseline + amp / 2) * direction]
+    right_idx = [i + offset for i in range(1, len(ys) - 1) if ys[i - 1] * direction >= (baseline + amp / 2) * direction
+                 if ys[i + 1] * direction <= (baseline + amp / 2) * direction]
     return left_idx[0], right_idx[0]
     # mini analysis does closest 2 points, or we could do farthest 2 points.
 
-def fit_decay(xs, ys, direction, function, constant=True, fit_zero=True):
 
+def fit_decay(xs, ys, direction, function, constant=True, fit_zero=True):
     decay_func = function
     decay_func_type = 1
     decay_func_constant = True
@@ -256,8 +265,8 @@ def fit_decay(xs, ys, direction, function, constant=True, fit_zero=True):
     # if decay_func_constant:
     #     high_bounds.append(np.inf)
 
-        ###################
-    x_data = (xs-xs[0]) * 1000
+    ###################
+    x_data = (xs - xs[0]) * 1000
     y_data = (ys) * direction
 
     y_weight = np.empty(len(y_data))
@@ -267,15 +276,14 @@ def fit_decay(xs, ys, direction, function, constant=True, fit_zero=True):
         y_weight[0] = 0.001
 
     results = optimize.curve_fit(decay_func,
-                                     x_data,
-                                     y_data,
-                                     # ftol=decay_fit_ftol,
-                                     sigma=y_weight,
-                                     absolute_sigma=True,
-                                     # bounds=[tuple(low_bounds), tuple(high_bounds)],
-                                     maxfev=15000)
+                                 x_data,
+                                 y_data,
+                                 # ftol=decay_fit_ftol,
+                                 sigma=y_weight,
+                                 absolute_sigma=True,
+                                 # bounds=[tuple(low_bounds), tuple(high_bounds)],
+                                 maxfev=15000)
     return results[0]
-
 
 
 def filter_mini(
@@ -301,11 +309,11 @@ def filter_mini(
     data = {}
     data['search_xlim'] = (start_idx, end_idx)
     for i in ['direction',
-        'lag', 'min_amp', 'min_decay', 'max_decay',
-        'min_hw', 'max_hw', 'min_rise', 'max_rise',
-        'max_points_decay'
+              'lag', 'min_amp', 'min_decay', 'max_decay',
+              'min_hw', 'max_hw', 'min_rise', 'max_rise',
+              'max_points_decay'
               # 'decay_fit_ftol'
-    ]:
+              ]:
         data[i] = locals()[i]
 
     if y_unit is None:
@@ -319,7 +327,7 @@ def filter_mini(
     ##### find peak #####
     if peak_idx is None:
         data['peak_idx'] = find_peak_recursive(xs, ys, start=start_idx, end=end_idx,
-                                                    direction=direction)
+                                               direction=direction)
     else:
         data['peak_idx'] = peak_idx
 
@@ -375,7 +383,7 @@ def filter_mini(
     ##### calculate halfwidth #####
     try:
         data['halfwidth_idx'] = find_halfwidth_idx(data['amp'], ys[data['base_idx']:data['base_end_idx']],
-                                                        direction, data['baseline'], data['base_idx'])
+                                                   direction, data['baseline'], data['base_idx'])
     except:
         data['halfwidth'] = None
         return data, False
@@ -393,16 +401,14 @@ def filter_mini(
     if data['halfwidth'] > max_hw:
         return data, False
 
-
-
     ################ DECAY!!!! ###################
     # scipy curve_fit: need to define a function
 
     try:
-        data['decay_fit'] = fit_decay(xs[data['peak_idx']:min(data['peak_idx']+data['max_points_decay'], len(xs))],
-                             ys[data['peak_idx']:min(data['peak_idx']+data['max_points_decay'], len(ys))],
-                             direction,
-                             function = single_exponent_constant)
+        data['decay_fit'] = fit_decay(xs[data['peak_idx']:min(data['peak_idx'] + data['max_points_decay'], len(xs))],
+                                      ys[data['peak_idx']:min(data['peak_idx'] + data['max_points_decay'], len(ys))],
+                                      direction,
+                                      function=single_exponent_constant)
         data['decay_fit_idx'] = data['peak_idx']  # in case we want to change this
         data['decay_func'] = single_exponent_constant.__name__
         if data['decay_fit'] is None:
@@ -410,7 +416,6 @@ def filter_mini(
 
         e = data['decay_fit'][1]
         e_y = single_exponent_constant(e, *data['decay_fit'])
-
 
         data['decay_const'] = e
 
@@ -445,7 +450,9 @@ def double_exponent(x, a_1, t_1, a_2, t_2):
 
 
 def triple_exponent_constant(x, a_1, t_1, a_2, t_2, a_3, t_3, c):
-    return a_1 * np.exp(-(x ) / t_1) + a_2 * np.exp(-(x ) / t_2) + a_3 * np.exp(-(x ) / t_3) + c
+    return a_1 * np.exp(-(x) / t_1) + a_2 * np.exp(-(x) / t_2) + a_3 * np.exp(-(x) / t_3) + c
+
+
 # def triple_exponent_constant(x, a, t_1,t_2, t_3, c):
 #     return a * np.exp(-(x ) / t_1) + a * np.exp(-(x ) / t_2) + a * np.exp(-(x ) / t_3) + c
 
@@ -453,8 +460,10 @@ def triple_exponent_constant(x, a_1, t_1, a_2, t_2, a_3, t_3, c):
 def triple_exponent(x, a_1, t_1, a_2, t_2, a_3, t_3):
     return a_1 * np.exp(-(x) / t_1) + a_2 * np.exp(-(x) / t_2) + a_3 * np.exp(-(x) / t_3)
 
+
 def rise_decay(x, a, t_2, t_1):
-    return a * (1 - np.exp(-x/t_1))*(np.exp(-(x)/t_2))
+    return a * (1 - np.exp(-x / t_1)) * (np.exp(-(x) / t_2))
+
 
 # def single_exponent(x, V, s, t, b, d):
 #     #V = Vm
@@ -465,19 +474,37 @@ def rise_decay(x, a, t_2, t_1):
 #     return V * np.exp(-(x-s)/t) + b + d
 
 from DataVisualizer import trace_display
+
+
 def point_line_min_distance(x, y, offset, xs, ys, x2y=1, rate=None):
     # finds the minimum square difference between a point and a line.
     idx = search_index(x, xs, rate)
     min_d = np.inf
     min_i = None
-    for i in range(max(idx-offset, 0), min(idx+offset, len(xs))):
-        d = distance((x,y), (xs[i], ys[i]), x2y)
+    for i in range(max(idx - offset, 0), min(idx + offset, len(xs))):
+        d = distance((x, y), (xs[i], ys[i]), x2y)
         if d < min_d:
             min_d = d
             min_i = i
     return min_d, min_i
 
-def distance(coord1, coord2, x2y=1): #(x1,y1), (x2, y2)
+
+def distance(coord1, coord2, x2y=1):  # (x1,y1), (x2, y2)
     # return math.sqrt(sum([(coord1[i] - coord2[i])**2 for i in range(len(coord1))]))
 
-    return math.hypot((coord2[0] - coord1[0])/x2y, coord2[1] - coord1[1])
+    return math.hypot((coord2[0] - coord1[0]) / x2y, coord2[1] - coord1[1])
+
+
+def contains_line(xlim, ylim, xs, ys, rate=None):
+    if xlim:
+        xlim_idx = (search_index(xlim[0], xs, rate), search_index(xlim[1], xs, rate))
+    else:
+        xlim_idx = (0, len(xs))
+    if xlim_idx[0] < 0 or xlim_idx[-1] > len(xs):
+        return False
+    if ylim:
+        for y in ys[xlim_idx[0]:xlim_idx[1]]:
+            if ylim[0] < y < ylim[1]:
+                return True
+        return False
+    return True

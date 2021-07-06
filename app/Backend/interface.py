@@ -6,7 +6,7 @@ from DataVisualizer import data_display, log_display, trace_display, param_guide
 import os
 from Layout import detector_tab, graph_panel, sweep_tab
 import matplotlib as mpl
-from Backend import analyzer
+from Backend import analyzer, interpreter
 import gc
 import pandas as pd
 import numpy as np
@@ -508,7 +508,7 @@ def reanalyze(xs, ys, data, remove_restrict=False):
             if selected:
                 data_display.toggle_one(data['t'])
         except Exception as e:
-            print(e)
+            print('reanalyze {}'.format(e))
             pass
 
     if pymini.widgets['window_param_guide'].get():
@@ -666,7 +666,7 @@ def toggle_marker_display(type):
     else:
         trace_display.clear_markers(type[5:])
 
-def highlight_selected(selection):
+def highlight_selected_mini(selection):
     if len(selection)>0:
         selection = [float(i) for i in selection]
         trace_display.plot_highlight(get_column('peak_coord_x', selection), get_column('peak_coord_y', selection))
@@ -682,6 +682,26 @@ def highlight_selected(selection):
         trace_display.clear_markers('highlight')
     trace_display.canvas.draw()
 
+def highlight_events_in_range(xlim=None, ylim=None):
+    # called when right click drag on plot surrounding peak event markers
+    if xlim and xlim[0] > xlim[1]:
+        xlim = (xlim[1], xlim[0])
+    if ylim and ylim[0] > ylim[1]:
+        ylim = (ylim[1], ylim[0])
+    if len(mini_df.index) == 0:
+        return None
+    xs = mini_df
+    if xlim:
+        xs = xs.loc[mini_df.index > xlim[0]]
+        xs = xs.loc[xs.index < xlim[1]]
+    if ylim:
+        xs = xs.loc[xs['peak_coord_y'] > ylim[0]]
+        xs = xs.loc[xs['peak_coord_y'] < ylim[1]]
+    data_display.table.selection_set([str(x) for x in xs.index])
+
+
+
+    pass
 def update_event_marker():
     if pymini.widgets['show_peak'].get():
         trace_display.plot_peak(get_column('peak_coord_x'), get_column('peak_coord_y'))
@@ -730,9 +750,7 @@ def toggle_sweep(idx, v, draw=True):
                                  relim=False,
                                  idx=idx)
     else:
-        trace_display.get_sweep(idx).remove()
-        if draw:
-            trace_display.canvas.draw()
+        trace_display.hide_sweep(idx, draw)
 
 def select_trace_from_plot(x, y):
     #called by trace_display during mouse click near trace
@@ -753,21 +771,48 @@ def select_trace_from_plot(x, y):
                 pick = i
     if pick is None:
         return None
-    trace_display.toggle_sweep_highlight(pick, not data_display.shift_pressed)
+    trace_display.toggle_sweep_highlight(pick, not interpreter.multi_select, draw=True)
 
 def hide_highlighted_sweep():
-    print(trace_display.highlighted_sweep)
     for idx in trace_display.highlighted_sweep:
-        sweep_tab.checkbuttons[idx].invoke()
-        print(idx)
-    pass
+        sweep_tab.sweep_vars[idx].set(0)
+        toggle_sweep(idx, 0, draw=False)
+    trace_display.canvas.draw()
 
 def highlight_all_sweeps():
     for i in range(len(sweep_tab.sweep_vars)):
         if sweep_tab.sweep_vars[i].get():
-            trace_display.highlight_sweep(i, draw=False)
+            trace_display.set_highlight_sweep(i, highlight=True, draw=False)
     trace_display.canvas.draw()
     return
+
+def unhighlight_all_sweeps(draw=True):
+    for i in range(len(sweep_tab.sweep_vars)):
+        if sweep_tab.sweep_vars[i].get():
+            trace_display.set_highlight_sweep(i, highlight=False, draw=False)
+    if draw:
+        trace_display.canvas.draw()
+    return
+
+def highlight_sweep_in_range(xlim=None, ylim=None, draw=True):
+    # called when right click drag on plot
+    unhighlight_all_sweeps(draw=True)
+    print(trace_display.highlighted_sweep)
+    if xlim and xlim[0] > xlim[1]:
+        xlim = (xlim[1], xlim[0])
+    if ylim and ylim[0] > ylim[1]:
+        ylim = (ylim[1], ylim[0])
+
+    for sweep in trace_display.sweeps:
+        if analyzer.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
+                                  trace_display.sweeps[sweep].get_ydata(), rate=analyzer.trace_file.sampling_rate):
+            trace_display.set_highlight_sweep(int(sweep.split('_')[-1]), highlight=True, draw=False)
+    if draw:
+        trace_display.canvas.draw()
+
+
+
+
 def delete_hidden(delete):
     if len(delete) == analyzer.trace_file.sweep_count:
         messagebox.showerror(message='Must have at least 1 visible trace')
