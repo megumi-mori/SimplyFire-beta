@@ -112,12 +112,7 @@ def load_menubar(parent):
     analysis_menu.add_radiobutton(label='Mini', command=_mini_mode, variable=analysis_var, value='mini')
     analysis_menu.add_radiobutton(label='Evoked', command=_evoked_mode, variable=analysis_var, value='evoked')
     analysis_menu.invoke({'mini':0, 'evoked':1}[config.analysis_mode])
-    print(analysis_var.get())
-    # try:
-    #     analysis_menu.invoke({'mini':0, 'evoked':1}[config.analysis_mode])
-    # except:
-    #     analysis_menu.invoke(0)
-    # analysis_menu.invoke({'mini': 0, 'evoked': 1}[config.analysis_mode])
+
 
     if pymini.widgets['window_param_guide'].get() == '1':
         param_guide.load()
