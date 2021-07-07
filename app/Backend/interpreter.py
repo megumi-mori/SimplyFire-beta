@@ -4,8 +4,8 @@ from Backend import interface
 from config import config
 def initialize():
 
-    global scroll_speed
-    scroll_speed = 1
+    global navigation_speed
+    navigation_speed = 1
     global multi_select
     multi_select = False
     global scrolling_x
@@ -29,6 +29,10 @@ def initialize():
     for key in config.key_select_all:
         bind_key_dp(key, press_function=select_all_key)
 
+    for key in config.key_select_window:
+        bind_key_dp(key, press_function=select_window_key)
+
+
     for key in config.key_multi_select:
         bind_key_dp(key,
                  press_function=lambda e:exec('global multi_select; multi_select=True'),
@@ -36,82 +40,92 @@ def initialize():
 
     # navigation keys
     for key in config.key_pan_left:
-        bind_key_dp(key, press_function=lambda e, d=-1: pan_x_key(e, d),
-                 release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
+        bind_key_dp(key, press_function=lambda e, d=-1: scroll_x_key(e, d),
+                    release_function=lambda e: stop_x_scroll())
+                 # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
         if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
             try:
-                bind_key_dp(key.upper(), press_function=lambda e, d=-1: pan_x_key(e, d),
-                 release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
+                bind_key_dp(key.upper(), press_function=lambda e, d=-1: scroll_x_key(e, d),
+                            release_function=lambda e: stop_x_scroll())
+                 # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
             except:
                 pass
     for key in config.key_pan_right:
-        bind_key_dp(key, press_function=lambda e, d=1: pan_x_key(e, d),
-                 release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
+        bind_key_dp(key, press_function=lambda e, d=1: scroll_x_key(e, d),
+                    release_function=lambda e: stop_x_scroll())
+                 # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
         if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
             try:
-                bind_key_dp(key.upper(), press_function=lambda e, d=1: pan_x_key(e, d),
-                         release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
+                bind_key_dp(key.upper(), press_function=lambda e, d=1: scroll_x_key(e, d),
+                            release_function=lambda e: stop_x_scroll())
+                         # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
             except:
                 pass
 
     for key in config.key_pan_up:
-        bind_key_dp(key, press_function=lambda e, d=1: pan_y_key(e, d),
-                 release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
+        bind_key_dp(key, press_function=lambda e, d=1: scroll_y_key(e, d),
+                    release_function=lambda e: stop_y_scroll())
+                 # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
         if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
             try:
-                bind_key_dp(key.upper(), press_function=lambda e, d=1: pan_y_key(e, d),
-                         release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
+                bind_key_dp(key.upper(), press_function=lambda e, d=1: scroll_y_key(e, d),
+                            release_function=lambda e: stop_y_scroll())
+                         # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
             except:
                 pass
 
     for key in config.key_pan_down:
-        bind_key_dp(key, press_function=lambda e, d=-1: pan_y_key(e, d),
-                 release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
+        bind_key_dp(key, press_function=lambda e, d=-1: scroll_y_key(e, d),
+                    release_function=lambda e: stop_y_scroll())
+                 # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
         if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
             try:
-                bind_key_dp(key.upper(), press_function=lambda e, d=-1: pan_y_key(e, d),
-                         release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
+                bind_key_dp(key.upper(), press_function=lambda e, d=-1: scroll_y_key(e, d),
+                            release_function=lambda e: stop_y_scroll())
+                         # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
             except:
                 pass
 
     for key in config.key_scroll_rapid:
-        bind_key_dp(key, press_function=lambda e:exec('global scroll_speed; scroll_speed=2'),
-                 release_function=lambda e: exec('global scroll_speed; scroll_speed=1'))
+        bind_key_dp(key, press_function=lambda e:exec('global navigation_speed; navigation_speed=2'),
+                 release_function=lambda e: exec('global navigation_speed; navigation_speed=1'))
 
     for key in config.key_zoom_in_x:
         bind_key_dp(key, press_function=lambda e, d=1:zoom_x_key(e, d),
-                 release_function=lambda e: exec('global zooming_x; zooming_x=False'))
+                 release_function=lambda e: stop_x_zoom())
         if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
             try:
                 bind_key_dp(key.upper(), press_function=lambda e, d=1: zoom_x_key(e, d),
-                         release_function=lambda e: exec('global zooming_x; zooming_x=False'))
+                         release_function=lambda e: stop_x_zoom())
             except:
                 pass
     for key in config.key_zoom_out_x:
         bind_key_dp(key, press_function=lambda e, d=-1:zoom_x_key(e, d),
-                 release_function=lambda e: exec('global zooming_x; zooming_x=False'))
+                 release_function=lambda e: stop_x_zoom())
         if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
             try:
                 bind_key_dp(key.upper(), press_function=lambda e, d=-1: zoom_x_key(e, d),
-                         release_function=lambda e: exec('global zooming_x; zooming_x=False'))
+                         release_function=lambda e: stop_x_zoom())
             except:
                 pass
+
+    bind_key_dp('<FocusOut>', press_function=lambda e: stop_all())
     for key in config.key_zoom_in_y:
         bind_key_dp(key, press_function=lambda e, d=1:zoom_y_key(e, d),
-                 release_function=lambda e: exec('global zooming_y; zooming_y=False'))
+                 release_function=lambda e: stop_y_zoom())
         if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
             try:
                 bind_key_dp(key, press_function=lambda e, d=1: zoom_y_key(e, d),
-                        release_function=lambda e: exec('global zooming_y; zooming_y=False'))
+                        release_function=lambda e: stop_y_zoom())
             except:
                 pass
     for key in config.key_zoom_out_y:
         bind_key_dp(key, press_function=lambda e, d=-1:zoom_y_key(e, d),
-                 release_function=lambda e: exec('global zooming_y; zooming_y=False'))
+                 release_function=lambda e: stop_y_zoom())
         if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
             try:
                 bind_key_dp(key, press_function=lambda e, d=-1: zoom_y_key(e, d),
-                        release_function=lambda e: exec('global zooming_y; zooming_y=False'))
+                        release_function=lambda e: stop_y_zoom())
             except:
                 pass
 
@@ -254,56 +268,135 @@ def plot_mouse_release(event):
         interface.pick_event_manual(event.xdata)
 
 # trace_display navigation by key-press
-def pan_x_key(event, direction):
-    #voids right click drag
-    global drag_coord_start
-    drag_coord_start = None
-    global drag_coord_end
-    drag_coord_end = None
-
+def scroll_x_key(event, direction):
     global scrolling_x
+    # if not scrolling_x:
+    #     trace_display.scroll_x_by(direction * int(pymini.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
+    #                           float(pymini.widgets['navigation_scroll_percent'].get()))
     if not scrolling_x:
-        trace_display.scroll_x_by(direction * int(pymini.widgets['navigation_mirror_x_scroll'].get())*scroll_speed,
-                              float(pymini.widgets['navigation_scroll_percent'].get()))
+        scroll_x_repeat(direction * int(pymini.widgets['navigation_mirror_x_scroll'].get()),
+                     int(pymini.widgets['navigation_fps'].get()),
+                     float(pymini.widgets['navigation_scroll_percent'].get()) * navigation_speed)
     scrolling_x = True
-def pan_y_key(event, direction):
-    # voids right click drag
-    global drag_coord_start
-    drag_coord_start = None
-    global drag_coord_end
-    drag_coord_end = None
 
+def scroll_y_key(event, direction):
     global scrolling_y
     if not scrolling_y:
-        trace_display.scroll_y_by(direction * int(pymini.widgets['navigation_mirror_x_scroll'].get())*scroll_speed,
-                              float(pymini.widgets['navigation_scroll_percent'].get()))
+        # trace_display.scroll_y_by(direction * int(pymini.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
+        #                       float(pymini.widgets['navigation_scroll_percent'].get()))
+        scroll_y_repeat(direction * int(pymini.widgets['navigation_mirror_y_scroll'].get()),
+                     int(pymini.widgets['navigation_fps'].get()),
+                     float(pymini.widgets['navigation_scroll_percent'].get()))
     scrolling_y = True
 
-def zoom_x_key(event, direction):
-    # voids right click drag
-    global drag_coord_start
-    drag_coord_start = None
-    global drag_coord_end
-    drag_coord_end = None
+def scroll_x_repeat(direction, fps, percent):
+    global jobid_x_scroll
+    jobid_x_scroll = pymini.root.after(int(1000 / fps), scroll_x_repeat, direction, fps, percent)
+    trace_display.scroll_x_by(direction, percent)
+    pass
 
+def scroll_y_repeat(direction, fps, percent):
+    global jobid_y_scroll
+    jobid_y_scroll = pymini.root.after(int(1000 / fps), scroll_y_repeat, direction, fps, percent)
+    trace_display.scroll_y_by(direction, percent * navigation_speed)
+    pass
+
+def stop_x_scroll(e=None):
+    global jobid_x_scroll
+    global scrolling_x
+    scrolling_x = False
+    try:
+        pymini.root.after_cancel(jobid_x_scroll)
+    except:
+        pass
+
+def stop_y_scroll(e=None):
+    global jobid_y_scroll
+    global scrolling_y
+    scrolling_y = False
+    try:
+        pymini.root.after_cancel(jobid_y_scroll)
+    except:
+        pass
+
+def stop_all(e=None):
+    global jobid_x_scroll
+    global jobid_y_scroll
+    global jobid_x_zoom
+    global jobid_y_zoom
+
+    global scrolling_y
+    global scrolling_x
+    global zooming_x
+    global zooming_y
+
+    scrolling_x = False
+    scrolling_y = False
+    zooming_x = False
+    zooming_y = False
+    try:
+        pymini.root.after_cancel(jobid_x_scroll)
+    except:
+        pass
+    try:
+        pymini.root.after_cancel(jobid_y_scroll)
+    except:
+        pass
+    try:
+        pymini.root.after_cancel(jobid_x_zoom)
+    except:
+        pass
+    try:
+        pymini.root.after_cancel(jobid_y_zoom)
+    except:
+        pass
+
+def zoom_x_key(event, direction):
     global zooming_x
     if not zooming_x:
-        trace_display.zoom_x_by(direction * scroll_speed,
-                                float(pymini.widgets['navigation_zoom_percent'].get()))
+        zoom_x_repeat(direction,
+                      int(pymini.widgets['navigation_fps'].get()),
+                      float(pymini.widgets['navigation_zoom_percent'].get()))
     zooming_x = True
 
-def zoom_y_key(event, direction):
-    # voids right click drag
-    global drag_coord_start
-    drag_coord_start = None
-    global drag_coord_end
-    drag_coord_end = None
+def zoom_x_repeat(direction, fps, percent):
+    global jobid_x_zoom
+    jobid_x_zoom = pymini.root.after(int(1000/fps), zoom_x_repeat, direction, fps, percent)
+    trace_display.zoom_x_by(direction, percent)
+    pass
 
+def stop_x_zoom(e=None):
+    global jobid_x_zoom
+    global zooming_x
+    try:
+        pymini.root.after_cancel(jobid_x_zoom)
+    except:
+        pass
+    zooming_x = False
+
+def zoom_y_key(event, direction):
     global zooming_y
     if not zooming_y:
-        trace_display.zoom_y_by(direction * scroll_speed,
-                                float(pymini.widgets['navigation_zoom_percent'].get()))
+        zoom_y_repeat(
+            direction,
+            int(pymini.widgets['navigation_fps'].get()),
+            float(pymini.widgets['navigation_zoom_percent'].get())
+        )
     zooming_y = True
+
+def zoom_y_repeat(direction, fps, percent):
+    global jobid_y_zoom
+    jobid_y_zoom = pymini.root.after(int(1000 / fps), zoom_y_repeat, direction, fps, percent)
+    trace_display.zoom_y_by(direction, percent)
+
+def stop_y_zoom(e=None):
+    global jobid_y_zoom
+    global zooming_y
+    try:
+        pymini.root.after_cancel(jobid_y_zoom)
+    except:
+        pass
+    zooming_y = False
 
 # trace_display navigation_toolbar control
 def toolbar_toggle_pan(event, toolbar):
@@ -341,8 +434,15 @@ def select_all_key(event):
     if pymini.widgets['analysis_mode'].get() == 'mini':
         if len(data_display.selected) == len(data_display.table.get_children()):
             return
-        table.selection_set(table.get_children())
+        data_display.table.selection_set(data_display.table.get_children())
     pass
 
-
-
+def select_window_key(event=None):
+    print('select_window_key!')
+    xlim = trace_display.ax.get_xlim()
+    ylim = trace_display.ax.get_ylim()
+    if pymini.widgets['analysis_mode'].get() == 'mini' and pymini.widgets['trace_mode'].get() == 'continuous':
+        interface.highlight_events_in_range(xlim, ylim)
+    elif pymini.widgets['trace_mode'].get() == 'overlay':
+        interface.highlight_sweep_in_range(xlim, ylim,
+                                           draw=True)
