@@ -106,8 +106,17 @@ def scroll_x_by(dir=1, percent=0):
         new_lim = (new_lim[0] - delta, new_lim[1] - delta)
     ax.set_xlim(new_lim)
     update_x_scrollbar(new_lim)
-    # refresh()
-    canvas.draw()
+    # update_y_scrollbar(xlim=new_lim)
+    global fig
+    global ani
+    ani = FuncAnimation(
+        fig,
+        anim_func,
+        frames=1,
+        interval=int(1),
+        repeat=False
+    )
+    ani._start()
 
 
 def scroll_y_by(dir=1, percent=0):
@@ -116,11 +125,19 @@ def scroll_y_by(dir=1, percent=0):
     height = ylim[1] - ylim[0]
     delta = height * percent / 100
     new_lim = (ylim[0] + delta * dir, ylim[1] + delta * dir)
-
-    ax.set_ylim(new_lim)
-    # refresh()
+    # update_x_scrollbar()
     # update_y_scrollbar(ylim=new_lim)
-    canvas.draw()
+    ax.set_ylim(new_lim)
+    global fig
+    global ani
+    ani = FuncAnimation(
+        fig,
+        anim_func,
+        frames=1,
+        interval=int(1),
+        repeat=False
+    )
+    ani._start()
 
 
 def scroll_x_to(num):
@@ -144,7 +161,7 @@ def scroll_y_to(num):
     ys = ax.lines[0].get_ydata()
     y = ys[analyzer.search_index(xlim[0], ax.lines[0].get_xdata())]
     y1 = float(num) / 100 * (height) + y
-    ax.set_ylim((y1 - height, y1))
+    # ax.set_ylim((y1 - height, y1))
     canvas.draw()
 
 
@@ -215,16 +232,29 @@ def center_plot_area(x1, x2, y1, y2):
     canvas.draw()
 
 
-def zoom_x_by(dir=1, percent=0, event=None):
+def zoom_x_by(direction=1, percent=0, event=None):
     # direction 1 = zoom in, -1=zoom out
-    win_lim = ax.get_xlim()
-    delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
+    xlim = ax.get_xlim()
+    # delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
+    # center_pos = 0.5
+    # try:
+    #     center_pos = (event.xdata - win_lim[0]) / (win_lim[1] - win_lim[0])
+    # except:
+    #     pass
+    # new_lim = (win_lim[0] + (1 - center_pos) * delta, win_lim[1] - (center_pos) * delta)
+    # print(center_pos)
+
+    width = xlim[1] - xlim[0]
+    new_width = width + width * direction * percent/100
+
     center_pos = 0.5
     try:
-        center_pos = (event.xdata - win_lim[0]) / (win_lim[1] - win_lim[0])
+        center_pos = (event.xdata - win_lim[0])/width
     except:
         pass
-    new_lim = (win_lim[0] + (1 - center_pos) * delta, win_lim[1] - (center_pos) * delta)
+    center_pos = center_pos * width + xlim[0]
+    print(center_pos)
+    new_lim = (center_pos - new_width/2, center_pos + new_width/2)
 
     if new_lim[0] < default_xlim[0]:
         width = new_lim[1] - new_lim[0]
@@ -245,10 +275,10 @@ def zoom_x_by(dir=1, percent=0, event=None):
     )
     ani._start()
     update_x_scrollbar(new_lim)
-    # canvas.draw()
-    # refresh()
+
 def anim_func(idx):
-    return sweeps
+    return None
+
 def zoom_y_by(dir=1, percent=0, event=None):
     win_lim = ax.get_ylim()
     delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
@@ -259,59 +289,67 @@ def zoom_y_by(dir=1, percent=0, event=None):
         pass
     new_lim = (win_lim[0] + (1 - center_pos) * delta, win_lim[1] - (center_pos) * delta)
     ax.set_ylim(new_lim)
-    canvas.draw()
-    # refresh()
+    global fig
+    global ani
+    ani = FuncAnimation(
+        fig,
+        anim_func,
+        frames=1,
+        interval=int(1),
+        repeat=False
+    )
+    ani._start()
 
 
-def zoom_by(axis, dir=1, percent=0, event=None):
-    """
-    zooms in/out of the axes by percentage specified in config
-    :param axis: 'x' for x-axis, 'y' for y-axis. currently does not support both
-    :param dir: 1 to zoom in , -1 to zoom out
-    :param event:
-    :return:
-    """
-    if axis == 'x':
-        win_lim = ax.get_xlim()
-    elif axis == 'y':
-        win_lim = ax.get_ylim()
-    else:
-        return None
-
-    delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
-    center_pos = 0.5
-    try:
-        if axis == 'x':
-            center_pos = (event.xdata - win_lim[0]) / (win_lim[1] - win_lim[0])
-        elif axis == 'y':
-            center_pos = (event.ydata - win_lim[0]) / (win_lim[1] - win_lim[0])
-    except:
-        center_pos = 0.5
-
-    new_lim = (win_lim[0] + (1 - center_pos) * delta, win_lim[1] - (center_pos) * delta)
-
-    if axis == 'x':
-        if new_lim[0] < default_xlim[0]:
-            width = new_lim[1] - new_lim[0]
-            new_lim = (default_xlim[0], min(new_lim[0] + width, default_xlim[1]))
-        elif new_lim[1] > default_xlim[1]:
-            width = new_lim[1] - new_lim[0]
-            new_lim = (max(new_lim[1] - width, default_xlim[0]), default_xlim[1])
-
-        ax.set_xlim(new_lim)
-        update_x_scrollbar(new_lim)
-        # update_y_scrollbar(xlim=new_lim)
-        """
-        need to compare against plot area (xlim of trace) once trace is loaded
-        """
-    else:
-        ax.set_ylim(new_lim)
-        # update_y_scrollbar(ylim=new_lim)
-    canvas.draw()
-
-    """
-    need to link this to the scrollbar once a trace is opened
-    """
+# def zoom_by(axis, dir=1, percent=0, event=None):
+#     """
+#     zooms in/out of the axes by percentage specified in config
+#     :param axis: 'x' for x-axis, 'y' for y-axis. currently does not support both
+#     :param dir: 1 to zoom in , -1 to zoom out
+#     :param event:
+#     :return:
+#     """
+#     if axis == 'x':
+#         win_lim = ax.get_xlim()
+#     elif axis == 'y':
+#         win_lim = ax.get_ylim()
+#     else:
+#         return None
+#
+#     delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
+#     center_pos = 0.5
+#     try:
+#         if axis == 'x':
+#             center_pos = (event.xdata - win_lim[0]) / (win_lim[1] - win_lim[0])
+#         elif axis == 'y':
+#             center_pos = (event.ydata - win_lim[0]) / (win_lim[1] - win_lim[0])
+#     except:
+#         center_pos = 0.5
+#
+#     new_lim = (win_lim[0] + (1 - center_pos) * delta, win_lim[1] - (center_pos) * delta)
+#
+#     if axis == 'x':
+#         if new_lim[0] < default_xlim[0]:
+#             width = new_lim[1] - new_lim[0]
+#             new_lim = (default_xlim[0], min(new_lim[0] + width, default_xlim[1]))
+#         elif new_lim[1] > default_xlim[1]:
+#             width = new_lim[1] - new_lim[0]
+#             new_lim = (max(new_lim[1] - width, default_xlim[0]), default_xlim[1])
+#
+#         ax.set_xlim(new_lim)
+#         update_x_scrollbar(new_lim)
+#         # update_y_scrollbar(xlim=new_lim)
+#         """
+#         need to compare against plot area (xlim of trace) once trace is loaded
+#         """
+#     else:
+#         ax.set_ylim(new_lim)
+#         # update_y_scrollbar(ylim=new_lim)
+#     canvas.draw()
+#
+#     """
+#     need to link this to the scrollbar once a trace is opened
+#     """
 
 
 ################## Navigation by Scrollbar ###################
