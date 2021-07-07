@@ -803,14 +803,23 @@ def highlight_sweep_in_range(xlim=None, ylim=None, draw=True):
     if ylim and ylim[0] > ylim[1]:
         ylim = (ylim[1], ylim[0])
 
-    for sweep in trace_display.sweeps:
-        if analyzer.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
-                                  trace_display.sweeps[sweep].get_ydata(), rate=analyzer.trace_file.sampling_rate):
-            trace_display.set_highlight_sweep(int(sweep.split('_')[-1]), highlight=True, draw=False)
+    # for sweep in trace_display.sweeps:
+    #     if analyzer.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
+    #                               trace_display.sweeps[sweep].get_ydata(), rate=analyzer.trace_file.sampling_rate):
+    #         trace_display.set_highlight_sweep(int(sweep.split('_')[-1]), highlight=True, draw=False)
+    for i, s in get_sweep_in_range(xlim, ylim):
+        trace_display.set_highlight_sweep(int(i), highlight=True, draw=False)
     if draw:
         trace_display.canvas.draw()
 
 
+def get_sweep_in_range(xlim=None, ylim=None):
+    ls = []
+    for i, sweep in enumerate(trace_display.sweeps):
+        if analyzer.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
+                                  trace_display.sweeps[sweep].get_ydata(), rate=analyzer.trace_file.sampling_rate):
+            ls.append((i, sweep))
+    return ls
 
 
 def delete_hidden(delete):

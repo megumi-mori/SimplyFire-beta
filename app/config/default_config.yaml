@@ -156,6 +156,8 @@ default_key_delete:
   - 'u'
 default_key_select_all:
   - '<Control-a>'
+default_key_select_window:
+  - '<Control-A>'
 default_key_multi_select:
   - '<Shift_L>'
   - '<Shift_R>'
@@ -183,7 +185,6 @@ default_key_zoom_in_y:
   - 'i'
 default_key_zoom_out_y:
   - 'k'
-
 default_key_reset_focus:
   - '<space>'
 # toolbar
