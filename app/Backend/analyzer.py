@@ -47,84 +47,84 @@ def search_index(x, l, rate=None):
     return int(est)  # out of bounds
 
 
-def find_mini_at(
-        x,
-        xs=None,
-        ys=None,
-        sampling_rate=None,
-        x_unit='seconds',
-        y_unit="",
-        xlim=None,
-        ylim=None,
-        direction=1,
-        lag=config.detector_points_baseline,
-        points_search=config.detector_points_search,
-        max_points_baseline=config.detector_max_points_baseline,
-        max_points_decay=config.detector_max_points_decay,
-        min_amp=config.detector_min_amp,
-        min_decay=config.detector_min_decay,
-        max_decay=config.detector_max_decay,
-        min_hw=config.detector_min_hw,
-        max_hw=config.detector_max_hw,
-        min_rise=config.detector_min_rise,
-        max_rise=config.detector_max_rise,
-        # decay_func_type=config.detector_decay_func_type,
-        # decay_func_constant=config.detector_decay_func_constant,
-        # decay_fit_ftol=config.detector_decay_fit_ftol,
-        df=None
-):
-    """
-    searches for a synaptic event centered around x using the parameters given
-    :param decay_func_type:
-    :param decay_fit_percent:
-    :param decay_func_constant:
-    :param x: central x-coordinate used for the search. float. must be within the y-data of the trace
-    :param xlim: x-axis search limit. tuple(min_x, max_x)
-    :param ylim: y-axis search limit. tuple (min_y, max_y)
-    :param direction: expected direction of the synaptic event. int 1 = positive, -1 = negative
-    :param xs: x data, given as a 1D numpy array
-    :param ys: y data, given as a 1D numpy array
-    :param lag: number of points to average to find start/end (baseline) of the event. int > 10
-    :param points_search: number of data points around central x to search for an event peak. (*not this is _not_ float in seconds)
-    :param max_points_baseline: maximum number of data points from candidate peak to look for a baseline. If baseline is not found within this limit, the candidate peak is rejected
-    :param max_points_decay: maximum number of data points from candidate peak to include for decay fitting. - used if the 'end' cannot be found (i.e. compound peaks)
-    :param min_amp: minimum event amplitude. a candidate peak with a smaller amplitude is rejected
-    :param min_decay: minimum decay constant. a candidate peak with a smaller decay constant is rejected. float >= 0
-    :param max_decay: maximum decay constant. a candidate peak with a larger decay constant is rejected. float >= 0 or str 'None'
-    :param min_hw: minimum halfwidth. a candidate peak with a  smaller halfwidth is rejected. float >= 0
-    :param max_hw: maximum halfwidth. a candidate peak with a larger halfwidth is rejected. float >=0 or str 'None'
-    :param min_rise: minimum rise constant. a candidate peak with a smaller rise is rejected. float >= 0
-    :param max_rise: maximum rise constant. a candidate peak with a larger rise is rejected. float >=0 or str 'None'
-    :return:
-    """
-
-    ######### find peak ##########
-    data = filter_mini(
-        peak_idx,
-        start_idx,
-        end_idx,
-        xs=xs,
-        ys=ys,
-        x_unit=x_unit,
-        y_unit=y_unit,
-        direction=direction,
-        lag=lag,
-        max_points_baseline=max_points_baseline,
-        max_points_decay=max_points_decay,
-        min_amp=min_amp,
-        min_decay=min_decay,
-        max_decay=max_decay,
-        min_hw=min_hw,
-        max_hw=max_hw,
-        min_rise=min_rise,
-        max_rise=max_rise,
-        # decay_func_type=decay_func_type,
-        # decay_func_constant=decay_func_constant,
-        # decay_fit_ftol=decay_fit_ftol,
-        df=df
-    )
-
-    return data
+# def find_mini_at(
+#         x,
+#         xs=None,
+#         ys=None,
+#         sampling_rate=None,
+#         x_unit='seconds',
+#         y_unit="",
+#         xlim=None,
+#         ylim=None,
+#         direction=1,
+#         lag=config.detector_points_baseline,
+#         points_search=config.detector_points_search,
+#         max_points_baseline=config.detector_max_points_baseline,
+#         max_points_decay=config.detector_max_points_decay,
+#         min_amp=config.detector_min_amp,
+#         min_decay=config.detector_min_decay,
+#         max_decay=config.detector_max_decay,
+#         min_hw=config.detector_min_hw,
+#         max_hw=config.detector_max_hw,
+#         min_rise=config.detector_min_rise,
+#         max_rise=config.detector_max_rise,
+#         # decay_func_type=config.detector_decay_func_type,
+#         # decay_func_constant=config.detector_decay_func_constant,
+#         # decay_fit_ftol=config.detector_decay_fit_ftol,
+#         df=None
+# ):
+#     """
+#     searches for a synaptic event centered around x using the parameters given
+#     :param decay_func_type:
+#     :param decay_fit_percent:
+#     :param decay_func_constant:
+#     :param x: central x-coordinate used for the search. float. must be within the y-data of the trace
+#     :param xlim: x-axis search limit. tuple(min_x, max_x)
+#     :param ylim: y-axis search limit. tuple (min_y, max_y)
+#     :param direction: expected direction of the synaptic event. int 1 = positive, -1 = negative
+#     :param xs: x data, given as a 1D numpy array
+#     :param ys: y data, given as a 1D numpy array
+#     :param lag: number of points to average to find start/end (baseline) of the event. int > 10
+#     :param points_search: number of data points around central x to search for an event peak. (*not this is _not_ float in seconds)
+#     :param max_points_baseline: maximum number of data points from candidate peak to look for a baseline. If baseline is not found within this limit, the candidate peak is rejected
+#     :param max_points_decay: maximum number of data points from candidate peak to include for decay fitting. - used if the 'end' cannot be found (i.e. compound peaks)
+#     :param min_amp: minimum event amplitude. a candidate peak with a smaller amplitude is rejected
+#     :param min_decay: minimum decay constant. a candidate peak with a smaller decay constant is rejected. float >= 0
+#     :param max_decay: maximum decay constant. a candidate peak with a larger decay constant is rejected. float >= 0 or str 'None'
+#     :param min_hw: minimum halfwidth. a candidate peak with a  smaller halfwidth is rejected. float >= 0
+#     :param max_hw: maximum halfwidth. a candidate peak with a larger halfwidth is rejected. float >=0 or str 'None'
+#     :param min_rise: minimum rise constant. a candidate peak with a smaller rise is rejected. float >= 0
+#     :param max_rise: maximum rise constant. a candidate peak with a larger rise is rejected. float >=0 or str 'None'
+#     :return:
+#     """
+#
+#     ######### find peak ##########
+#     data = filter_mini(
+#         peak_idx,
+#         start_idx,
+#         end_idx,
+#         xs=xs,
+#         ys=ys,
+#         x_unit=x_unit,
+#         y_unit=y_unit,
+#         direction=direction,
+#         lag=lag,
+#         max_points_baseline=max_points_baseline,
+#         max_points_decay=max_points_decay,
+#         min_amp=min_amp,
+#         min_decay=min_decay,
+#         max_decay=max_decay,
+#         min_hw=min_hw,
+#         max_hw=max_hw,
+#         min_rise=min_rise,
+#         max_rise=max_rise,
+#         # decay_func_type=decay_func_type,
+#         # decay_func_constant=decay_func_constant,
+#         # decay_fit_ftol=decay_fit_ftol,
+#         df=df
+#     )
+#
+#     return data
 
 
 def find_window(x, points_search, xs=None, ys=None, sampling_rate=None,

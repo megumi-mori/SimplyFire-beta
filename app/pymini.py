@@ -15,6 +15,7 @@ from utils import widget
 
 event_filename = None
 widgets = {}
+
 ##################################################
 #                    Methods                     #
 ##################################################
@@ -90,6 +91,7 @@ def load():
     root.title('PyMini v{}'.format(config.version))
     root.geometry('{}x{}'.format(config.geometry[0], config.geometry[1]))
 
+    config.load()
     root.bind('<Control-o>', lambda e:menubar.ask_open_trace())
 
     root.grid_rowconfigure(0, weight=1)
@@ -279,6 +281,9 @@ def load():
     data_display.show_columns()
     root.update()
     data_display.fit_columns()
+
+
+    # config.splash.after(5000, config.splash.destroy())
 
     return root
 

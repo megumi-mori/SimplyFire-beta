@@ -31,9 +31,10 @@ class OptionFrame(Tk.Frame):
                 label="",
                 value=None,
                 default=None,
+                separator=config.default_separator,
                 **kwargs
         ):
-            panel = self.make_panel(separator=config.default_separator)
+            panel = self.make_panel(separator=separator)
             frame = ttk.Frame(panel)
             frame.grid_columnconfigure(0, weight=1)
             frame.grid_rowconfigure(0, weight=1)
