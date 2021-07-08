@@ -13,25 +13,19 @@ key_deselect:
 - o
 key_erase:
 - e
-- o
 key_escape:
 - q
-- u
 key_multi_select:
 - <Shift_L>
 - <Shift_R>
 key_pan_down:
 - s
-- k
 key_pan_left:
 - a
-- j
 key_pan_right:
 - d
-- l
 key_pan_up:
 - w
-- i
 key_reset_focus:
 - <space>
 key_scroll_rapid:
@@ -39,8 +33,8 @@ key_scroll_rapid:
 - <Shift_R>
 key_select_all:
 - <Control-a>
-key_toobar_zoom:
-- z
+key_select_window:
+- <Control-A>
 key_toolbar_pan:
 - p
 key_toolbar_zoom:
@@ -53,5 +47,3 @@ key_zoom_out_x:
 - l
 key_zoom_out_y:
 - k
-key_zoom_x:
-- null
