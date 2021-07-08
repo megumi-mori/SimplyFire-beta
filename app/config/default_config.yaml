@@ -55,6 +55,15 @@ default_navigation_zoom_percent : 10
 default_navigation_mirror_y_scroll : 1
 default_navigation_mirror_x_scroll : 1
 
+# adjust
+default_adjust_baseline_mode: 'mean'
+default_adjust_range_left: 0
+default_adjust_range_right: 1
+default_adjust_fixed: 0
+default_adjust_baseline_signal: 'All sweeps'
+default_adjust_baseline_target: 'All sweeps'
+
+
 
 #detector parameters
 default_detector_search_radius : 5.0

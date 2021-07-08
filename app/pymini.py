@@ -5,7 +5,8 @@ from Backend import interpreter
 
 from config import config
 
-from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navigation_tab, sweep_tab, graph_panel, continuous_tab
+from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navigation_tab, \
+    sweep_tab, graph_panel, continuous_tab, adjust_tab
 from DataVisualizer import data_display, log_display
 
 from utils import widget
@@ -189,6 +190,12 @@ def load():
             'partner': 'continuous'
         },
         {
+            'name': 'adjust',
+            'module': adjust_tab,
+            'text': 'Adjust',
+            'partner': None
+        },
+        {
             'name': 'navigation',
             'module': navigation_tab,
             'text': 'Navi',
@@ -283,6 +290,8 @@ def dump_user_setting(filename=None, ignore=None):
         # pymini.pb.initiate()
         d = {}
         for key in widgets.keys():
+            if key == 'adjust_base_sub_mode':
+                print(widgets[key].get())
             try:
                 for ig in ignore:
                     if ig in key:

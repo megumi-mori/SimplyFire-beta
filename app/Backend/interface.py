@@ -730,25 +730,31 @@ def plot_overlay(fix_axis=False):
         ylim = trace_display.get_axis_limits('y')
     trace_display.clear()
     data_display.clear()
+    for i in range(analyzer.trace_file.sweep_count):
+        trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=i),
+                                 analyzer.trace_file.get_ys(mode='overlay', sweep=i),
+                                 draw=False,
+                                 relim=False,
+                                 idx=i)
+    trace_display.show_all_plot(update_default=True)
     for i, var in enumerate(sweep_tab.sweep_vars):
         if var.get():
-            trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=i),
-                                     analyzer.trace_file.get_ys(mode='overlay', sweep=i),
-                                     draw=False,
-                                     relim=False,
-                                     idx=i)
-    trace_display.show_all_plot(update_default=True)
+            trace_display.show_sweep(i)
+        else:
+            trace_display.hide_sweep(i)
     if fix_axis:
         trace_display.set_axis_limit('x', xlim)
         trace_display.set_axis_limit('y', ylim)
+    trace_display.canvas.draw()
 
 def toggle_sweep(idx, v, draw=True):
     if v == 1:
-        trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=idx),
-                                 analyzer.trace_file.get_ys(mode='overlay', sweep=idx),
-                                 draw=draw,
-                                 relim=False,
-                                 idx=idx)
+        # trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=idx),
+        #                          analyzer.trace_file.get_ys(mode='overlay', sweep=idx),
+        #                          draw=draw,
+        #                          relim=False,
+        #                          idx=idx)
+        trace_display.show_sweep(idx, draw)
     else:
         trace_display.hide_sweep(idx, draw)
 

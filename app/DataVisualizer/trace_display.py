@@ -106,7 +106,7 @@ def scroll_x_by(dir=1, percent=0):
         new_lim = (new_lim[0] - delta, new_lim[1] - delta)
     ax.set_xlim(new_lim)
     update_x_scrollbar(new_lim)
-    # update_y_scrollbar(xlim=new_lim)
+
     global fig
     global ani
     ani = FuncAnimation(
@@ -150,8 +150,16 @@ def scroll_x_to(num):
     end = start + xlim[1] - xlim[0]
 
     ax.set_xlim((start, end))
-    canvas.draw()
-    # refresh()
+    global fig
+    global ani
+    ani = FuncAnimation(
+        fig,
+        anim_func,
+        frames=1,
+        interval=int(1),
+        repeat=False
+    )
+    ani._start()
 
 
 def scroll_y_to(num):
@@ -161,8 +169,17 @@ def scroll_y_to(num):
     ys = ax.lines[0].get_ydata()
     y = ys[analyzer.search_index(xlim[0], ax.lines[0].get_xdata())]
     y1 = float(num) / 100 * (height) + y
-    # ax.set_ylim((y1 - height, y1))
-    canvas.draw()
+    ax.set_ylim((y1 - height, y1))
+    global fig
+    global ani
+    ani = FuncAnimation(
+        fig,
+        anim_func,
+        frames=1,
+        interval=int(1),
+        repeat=False
+    )
+    ani._start()
 
 
 def center_plot_on(x, y):
@@ -476,13 +493,22 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0):
 
 def hide_sweep(idx, draw=False):
     try:
-        sweeps['sweep_{}'.format(idx)].remove()
-        del sweeps['sweep_{}'.format(idx)]
-    except:
+        sweeps['sweep_{}'.format(idx)].set_linestyle('None')
+        # del sweeps['sweep_{}'.format(idx)]
+    except Exception as e:
+        print(e)
         pass
     if draw:
         canvas.draw()
 
+def show_sweep(idx, draw=False):
+    sweeps['sweep_{}'.format(idx)].set_linestyle('-')
+    try:
+        pass
+    except:
+        pass
+    if draw:
+        canvas.draw()
 
 
 def get_sweep(idx):

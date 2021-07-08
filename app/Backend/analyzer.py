@@ -26,25 +26,25 @@ def search_index(x, l, rate=None):
     if x < l[0]:
         return -1 # out of bounds
     if x > l[-1]:
-        return len(xs) + 1 # out of bounds
+        return len(l) + 1 # out of bounds
     if rate is None:
         rate = np.mean(l[1:6] - l[0:5])
     est = int((x - l[0]) * rate)
     if est >= len(l):
         return len(l)  # out of bounds
     elif l[est] == x:
-        return est
+        return int(est)
     elif l[est] > x:  # overshot
         while est >= 0:
             if l[est] < x:
-                return est + 1
+                return int(est + 1)
             est -= 1
     elif l[est] < x:  # need to go higher
         while est < len(l):
             if l[est] > x:
-                return est
+                return int(est)
             est += 1
-    return est  # out of bounds
+    return int(est)  # out of bounds
 
 
 def find_mini_at(

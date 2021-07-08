@@ -2,6 +2,12 @@
 # PyMini user configurations
 #################################################################
 
+adjust_baseline_mode: fixed
+adjust_baseline_signal: Visible sweeps
+adjust_baseline_target: Visible sweeps
+adjust_fixed: '5'
+adjust_range_left: '0'
+adjust_range_right: '25'
 analysis_mode: mini
 channel_option: '2: I2 (nA)'
 data_display_amplitude: '1'
@@ -17,7 +23,7 @@ detector_auto_radius: '60'
 detector_direction: negative
 detector_max_decay: none
 detector_max_hw: None
-detector_max_points_decay: '1000'
+detector_max_points_decay: '40000'
 detector_max_rise: None
 detector_min_amp: '0.3'
 detector_min_decay: '0'
@@ -33,10 +39,10 @@ max_x: '0.05950629336031346'
 max_y: '-15.127645831453389'
 min_x: '0.02744433729167333'
 min_y: '-23.29490695363175'
-navigation_fps: '12'
+navigation_fps: '24'
 navigation_mirror_x_scroll: '1'
 navigation_mirror_y_scroll: '-1'
-navigation_scroll_percent: '3'
+navigation_scroll_percent: '10'
 navigation_zoom_percent: '10'
 show_decay: '1'
 show_peak: '1'
@@ -52,5 +58,5 @@ style_trace_line_color: black
 style_trace_line_width: '1'
 sweep_picker_offset: '1'
 trace_info: ''
-trace_mode: continuous
-window_param_guide: '1'
+trace_mode: overlay
+window_param_guide: '0'

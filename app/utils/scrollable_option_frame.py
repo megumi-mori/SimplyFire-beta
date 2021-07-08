@@ -118,10 +118,12 @@ class OptionFrame(Tk.Frame):
     def insert_title(
             self,
             name="",
-            text=""
+            text="",
+            separator=config.default_separator,
+            justify=Tk.CENTER
     ):
-        panel = self.make_panel(separator=config.default_separator)
-        label = Tk.Label(panel, text=text, justify=Tk.CENTER)
+        panel = self.make_panel(separator=separator)
+        label = Tk.Label(panel, text=text, justify=justify)
         self.titles[name] = label
         label.grid(column=0, row=0, sticky='news')
         return label
@@ -141,6 +143,15 @@ class OptionFrame(Tk.Frame):
             separator = ttk.Separator(frame, orient='horizontal')
             separator.grid(column=0, row=1, sticky='news')
         self.num_row += 1
+        self.col_button = 0
+
+    def insert_widget(self, widget):
+        widget.grid(row=self.num_row, column=0, sticky='news')
+        self.num_row += 1
+        # if separator:
+        #     separator = ttk.Separator(self, orient=Tk.HORIZONTAL)
+        #     separator.grid(column=0, row=self.num_row, sticky='news')
+        #     self.num_row += 1
         self.col_button = 0
 
     def insert_separator(self):

@@ -20,6 +20,7 @@ def _setting_window(event=None):
 def _show_param_guide(event=None):
     try:
         if pymini.widgets['window_param_guide'].get() == '1':
+            param_guide.window.focus_set()
             pass
         else:
             pymini.widgets['window_param_guide'].set('1')
@@ -101,9 +102,6 @@ def load_menubar(parent):
     view_menu.add_radiobutton(label='Continous', command=_continuous_mode, variable=trace_var, value='continuous')
     view_menu.add_radiobutton(label='Overlay', command=_overlay_mode, variable=trace_var, value='overlay')
     view_menu.invoke({'continuous': 0, 'overlay': 1}[config.trace_mode])
-    view_menu.add_separator()
-    pymini.widgets['window_param_guide'] = VarWidget(name='window_param_guide')
-    view_menu.add_command(label='Show parameter-guide', command=_show_param_guide)
 
     analysis_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='Analysis', menu=analysis_menu)
@@ -113,11 +111,12 @@ def load_menubar(parent):
     analysis_menu.add_radiobutton(label='Evoked', command=_evoked_mode, variable=analysis_var, value='evoked')
     analysis_menu.invoke({'mini':0, 'evoked':1}[config.analysis_mode])
 
-
+    window_menu = Tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label='Window', menu=window_menu)
+    pymini.widgets['window_param_guide'] = VarWidget(name='window_param_guide')
+    window_menu.add_command(label='Parameter-guide', command=_show_param_guide)
     if pymini.widgets['window_param_guide'].get() == '1':
-        param_guide.load()
-
-
+        window_menu.invoke(window_menu.index('Parameter-guide'))
 
     return menubar
 
@@ -145,7 +144,10 @@ def _overlay_mode(e=None):
     pymini.widgets['trace_mode'].set('overlay')
     pymini.cp_notebook.hide(pymini.tabs['continuous'].index)
     pymini.cp_notebook.add(pymini.tabs['overlay'])
-    interface.plot_overlay(fix_axis=True)
+    try:
+        interface.plot_overlay(fix_axis=True)
+    except:
+        pass
     pymini.cp_notebook.select(idx)
     try:
         pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector']), state='disabled')

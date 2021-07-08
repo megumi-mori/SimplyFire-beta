@@ -92,8 +92,9 @@ class Trace():
             self.y_unit = self.channel_units[num]
 
 
-    def get_ys(self, mode='continuous', sweep=0):
+    def get_ys(self, mode='continuous', sweep=0, sweeps=None):
         """
+        mode: continuous, concatenate, or None
         """
 
         if mode == 'continuous':
@@ -108,10 +109,18 @@ class Trace():
             # end = time.perf_counter()
             # print(end - start)
             # return d
+        elif mode == 'concatenate' and sweeps:
+            ys = np.array([])
+            for i in sweeps:
+                ys = np.concatenate((ys, self.y_data[self.channel][i]))
+            return ys
         else:
             return self.y_data[self.channel][sweep]
 
-    def get_xs(self, mode='continuous', sweep=0):
+    def get_xs(self, mode='continuous', sweep=0, sweeps=None):
+        """
+               mode: continuous, concatenate, or None
+               """
         if mode == 'continuous':
             xs = np.array(self.x_data[0])
             for i in range(1, self.sweep_count):
@@ -120,6 +129,14 @@ class Trace():
                 except:
                     pass
             # self.x_data_c = xs
+            return xs
+        elif mode == 'concatenate' and sweeps:
+            xs = np.array(self.x_data[0])
+            for i in sweeps[1:]:
+                try:
+                    xs = np.concatenate((xs, self.x_data[i] + xs[-1] + self.x_interval))
+                except:
+                    pass
             return xs
         else:
             return self.x_data[sweep]
