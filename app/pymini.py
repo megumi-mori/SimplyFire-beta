@@ -5,7 +5,7 @@ from Backend import interpreter
 
 from config import config
 
-from Layout import font_bar, menubar, detector_tab, style_tab, progress_bar, setting_tab, navigation_tab, sweep_tab, graph_panel
+from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navigation_tab, sweep_tab, graph_panel, continuous_tab
 from DataVisualizer import data_display, log_display
 
 from utils import widget
@@ -168,24 +168,52 @@ def load():
     #need to check user defined mode
     global tabs
     tabs = {}
-    tabs['detector_tab'] = detector_tab.load(left)
-    cp_notebook.add(tabs['detector_tab'], text='Mini')
 
-    #insert sweep tab
-    tabs['sweep_tab'] = sweep_tab.load(left)
-    cp_notebook.add(tabs['sweep_tab'], text='Sweeps')
+    tab_details = [
+        {
+            'name': 'detector',
+            'module': detector_tab,
+            'text': 'Analysis',
+            'partner': None
+        },
+       {
+           'name':  'continuous',
+            'module': continuous_tab,
+            'text': 'Trace',
+            'partner': 'overlay'
+        },
+        {
+            'name': 'overlay',
+            'module': sweep_tab,
+            'text': 'Trace',
+            'partner': 'continuous'
+        },
+        {
+            'name': 'navigation',
+            'module': navigation_tab,
+            'text': 'Navi',
+            'partner': None
+        },
+        {
+            'name': 'style',
+            'module': style_tab,
+            'text': 'Style',
+            'partner': None
+        },
+        {
+            'name': 'setting',
+            'module': setting_tab,
+            'text': 'Setting',
+            'partner': None
+        }
+    ]
 
-    # insert navigation_tab tab into control panel
-    tabs['navigation_tab'] = navigation_tab.load(left, root)
-    cp_notebook.add(tabs['navigation_tab'], text='Navi')
+    for i, t in enumerate(tab_details):
+        tabs[t['name']] = t['module'].load(left)
+        cp_notebook.add(tabs[t['name']], text=t['text'])
+        tabs[t['name']].partner = t['partner']
+        tabs[t['name']].index = i
 
-    # insert style_tab options tab into control panel
-    tabs['style_tab'] = style_tab.load(left)
-    cp_notebook.add(tabs['style_tab'], text='Style')
-
-    # insert setting option tab into control panel
-    tabs['settings_tab'] = setting_tab.load(left)
-    cp_notebook.add(tabs['settings_tab'], text='Setting')
 
     # set focus rules
     for key in widgets:
@@ -242,7 +270,6 @@ def load():
     return root
 
 
-
 def dump_user_setting(filename=None, ignore=None):
     print('Writing out configuration variables....')
     if filename is None:
@@ -286,6 +313,7 @@ def dump_system_setting():
 
 def dump_config_var(key, filename, title=None):
     print('Saving "{}" config values...'.format(key))
+    print(filename)
     with open(filename, 'w') as f:
         f.write("#################################################################\n")
         f.write("# PyMini {} configurations\n".format(title))

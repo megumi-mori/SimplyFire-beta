@@ -4,7 +4,7 @@ import pymini
 from DataVisualizer import trace_display
 
 
-def load(parent, root):
+def load(parent):
     ##################################################
     #                    Methods                     #
     ##################################################

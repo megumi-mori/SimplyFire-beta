@@ -13,7 +13,7 @@ def load(parent):
 
     frame.insert_title(
         name='sweep_title',
-        text='Overlay Configurations'
+        text='Overlay Mode'
     )
     frame.insert_title(
         name='sweep_select',

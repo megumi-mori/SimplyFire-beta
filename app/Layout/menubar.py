@@ -122,21 +122,33 @@ def load_menubar(parent):
     return menubar
 
 def _continuous_mode():
+    idx = pymini.cp_notebook.index('current')
+    if idx == pymini.tabs[pymini.tabs['continuous'].partner].index:
+        idx = pymini.tabs['continuous'].index
     pymini.widgets['trace_mode'].set('continuous')
+    pymini.cp_notebook.hide(pymini.tabs['overlay'].index)
+    pymini.cp_notebook.add(pymini.tabs['continuous'])
+    pymini.cp_notebook.select(idx)
     try:
-        pymini.cp_notebook.forget(pymini.cp_notebook.index(pymini.tabs['sweep_tab']))
         interface.plot_continuous(fix_axis=True)
-        pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector_tab']), state='normal')
+    except:
         pass
+    try:
+        pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector']), state='normal')
     except:
         pass
 
 def _overlay_mode(e=None):
+    idx = pymini.cp_notebook.index('current')
+    if idx == pymini.tabs[pymini.tabs['overlay'].partner].index:
+        idx = pymini.tabs['overlay'].index
     pymini.widgets['trace_mode'].set('overlay')
+    pymini.cp_notebook.hide(pymini.tabs['continuous'].index)
+    pymini.cp_notebook.add(pymini.tabs['overlay'])
+    interface.plot_overlay(fix_axis=True)
+    pymini.cp_notebook.select(idx)
     try:
-        pymini.cp_notebook.insert(3, pymini.tabs['sweep_tab'], text='Sweep')
-        interface.plot_overlay(fix_axis=True)
-        pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector_tab']), state='disabled')
+        pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector']), state='disabled')
     except Exception as e:
         print(e)
         pass
@@ -145,16 +157,16 @@ def _overlay_mode(e=None):
 def _mini_mode(e=None):
     pymini.widgets['analysis_mode'].set('mini')
     try:
-        pymini.cp_notebook.insert(0, pymini.tabs['detector_tab'], text='Mini')
+        pymini.cp_notebook.insert(0, pymini.tabs['detector'], text='Mini')
         if pymini.widgets['trace_mode'].get() != 'continuous':
-            pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector_tab']), state='disabled')
+            pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector']), state='disabled')
     except:
         pass
 
 def _evoked_mode(e=None):
     pymini.widgets['analysis_mode'].set('evoked')
     try:
-        pymini.cp_notebook.forget(pymini.cp_notebook.index(pymini.tabs['detector_tab']))
+        pymini.cp_notebook.forget(pymini.cp_notebook.index(pymini.tabs['detector']))
     except:
         pass
 
