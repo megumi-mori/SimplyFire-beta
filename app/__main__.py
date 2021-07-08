@@ -5,7 +5,7 @@ if __name__ == '__main__':
     splash = Tk.Tk()
     Tk.Label(splash, text='Now Loading').grid(column=0, row=0)
     splash.update()
-    splash.after(1000, splash.destroy)
+    splash.after(10, splash.destroy)
 
     import pymini
     import Layout
