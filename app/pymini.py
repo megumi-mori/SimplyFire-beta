@@ -1,4 +1,4 @@
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import tkinter as Tk
 import yaml
 from Backend import interpreter
@@ -35,7 +35,13 @@ def _on_close():
     """
     print('closing')
     if widgets['config_autosave'].get():
-        dump_user_setting(ignore=['config_', '_log'])
+        try:
+            dump_user_setting(ignore=['config_', '_log'])
+        except:
+            f = setting_tab.save_config_as()
+            if f:
+                widgets['config_user_path'].set(f)
+
     dump_config_var(key='key_', filename=config.config_keymap_path, title='Keymap')
     dump_system_setting()
     root.destroy()

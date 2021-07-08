@@ -20,11 +20,7 @@ def load(parent):
             optionframe.widgets['config_path'].set(d)
             optionframe.widgets['config_path'].widget.config(state='disabled')
 
-    def _save_config_as():
-        d = filedialog.asksaveasfilename(filetypes=[('yaml file', '*.yaml')], defaultextension='.yaml')
 
-        if d:
-            pymini.dump_user_setting(d)
 
 
     ##################################################
@@ -84,7 +80,7 @@ def load(parent):
                               command= lambda e=pymini.widgets['config_user_path'].get():
                             pymini.dump_user_setting(e))
 
-    optionframe.insert_button("Save current \nconfig As...", command=_save_config_as)
+    optionframe.insert_button("Save current \nconfig As...", command=save_config_as)
 
     optionframe.insert_button("Load config \nfrom file...", command=pymini.load_config)
 
@@ -107,7 +103,15 @@ def load(parent):
 
     return frame
 
+def save_config_as():
+    d = filedialog.asksaveasfilename(filetypes=[('yaml file', '*.yaml')], defaultextension='.yaml')
 
+    if d:
+        try:
+            pymini.dump_user_setting(d)
+        except:
+            save_config_as()
+    return d
 
 
 
