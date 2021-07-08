@@ -62,6 +62,7 @@ default_adjust_range_right: 1
 default_adjust_fixed: 0
 default_adjust_baseline_signal: 'All sweeps'
 default_adjust_baseline_target: 'All sweeps'
+default_filter_kernel : 11
 
 
 

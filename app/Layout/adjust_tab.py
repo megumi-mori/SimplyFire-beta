@@ -8,6 +8,8 @@ from Backend import analyzer
 from Layout import sweep_tab
 from DataVisualizer import trace_display
 import numpy as np
+# from scipy.signal import convolve
+from astropy.convolution import Box1DKernel, convolve
 
 def load(parent):
     optionframe = ScrollableOptionFrame(parent)
@@ -20,7 +22,7 @@ def load(parent):
     )
     frame.insert_title(
         name='baseline_subtraction',
-        text='Adjust baseline using:',
+        text='Perform baseline subtraction using:',
         separator=False,
         justify=Tk.LEFT
     )
@@ -56,8 +58,9 @@ def load(parent):
 
     pymini.widgets['adjust_baseline_signal'] = baseline_panel.insert_label_optionmenu(
         name='adjust_baseline_signal',
-        label='Use signal to calculate mean:',
+        label='Calculate mean of:',
         options=['All sweeps', 'Visible sweeps', 'Highlighted sweeps'],
+        separator=False
     )
 
     baseline_options['range']['button'] = ttk.Radiobutton(
@@ -114,6 +117,7 @@ def load(parent):
         name='adjust_baseline_target',
         label='Adjust baseline for:',
         options=['All sweeps', 'Visible sweeps', 'Highlighted sweeps'],
+        separator=False
     )
 
     frame.insert_button(
@@ -122,6 +126,26 @@ def load(parent):
     )
     baseline_options[config.adjust_baseline_mode]['button'].invoke()
 
+    frame.insert_separator()
+    frame.insert_title(
+        name='filtering',
+        text='Test Box2DKernel:',
+        separator=False,
+        justify=Tk.LEFT
+    )
+    pymini.widgets['filter_kernel'] = frame.insert_label_entry(
+        name='filter_kernel',
+        label='Filter kernel:',
+        validate_type='int'
+    )
+
+    # add a filtered count here!
+
+    # handle other types of filtering
+    frame.insert_button(
+        text='Apply',
+        command=_test_filtering
+    )
     return optionframe
 
 def _select_baseline_mode(e=None):
@@ -257,3 +281,12 @@ def _adjust_baseline(e=None):
     # calculate offset:
 
     print(signal_list)
+
+def _test_filtering(e=None):
+    kernel = int(pymini.widgets['filter_kernel'].get())
+    k = Box1DKernel(kernel)
+    ys = trace_display.ax.lines[0].get_ydata()
+    print(convolve(ys, k))
+
+    trace_display.ax.lines[0].set_ydata(convolve(ys, k))
+    trace_display.canvas.draw()
