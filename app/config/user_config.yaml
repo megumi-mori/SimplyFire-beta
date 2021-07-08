@@ -2,7 +2,7 @@
 # PyMini user configurations
 #################################################################
 
-adjust_baseline_mode: range
+adjust_baseline_mode: mean
 adjust_baseline_signal: All sweeps
 adjust_baseline_target: All sweeps
 adjust_fixed: '0'
@@ -34,8 +34,8 @@ detector_search_radius: '5.0'
 detector_update_events: '0'
 filter_kernel: '11'
 force_axis_limit: '0'
-force_channel: '1'
-force_channel_id: '2'
+force_channel: '0'
+force_channel_id: '0'
 max_x: auto
 max_y: auto
 min_x: auto

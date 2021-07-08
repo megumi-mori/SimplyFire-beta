@@ -62,6 +62,7 @@ def load():
                 user_vars[c] = v
     except:
         pass
+
     global config_keymap_path
     config_keymap_path = os.path.join(DIR, *default_config_keymap_path)
     try:
@@ -90,7 +91,7 @@ def load():
                     user_vars[c] = v
         except:
             pass
-
+    print('config user path at config: {}'.format(config_user_path))
 
 
 

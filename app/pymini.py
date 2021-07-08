@@ -37,7 +37,7 @@ def _on_close():
     print('closing')
     if widgets['config_autosave'].get():
         try:
-            dump_user_setting(ignore=['config_', '_log'])
+            dump_user_setting()
         except:
             f = setting_tab.save_config_as()
             if f:
@@ -288,7 +288,8 @@ def load():
     return root
 
 
-def dump_user_setting(filename=None, ignore=None):
+def dump_user_setting(filename=None):
+    ignore = ['config_', '_log']
     print('Writing out configuration variables....')
     if filename is None:
         filename = widgets['config_user_path'].get()

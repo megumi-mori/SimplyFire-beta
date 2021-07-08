@@ -16,9 +16,9 @@ def load(parent):
         d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
                                            defaultextension='.yaml')
         if d:
-            optionframe.widgets['config_path'].widget.config(state="normal")
-            optionframe.widgets['config_path'].set(d)
-            optionframe.widgets['config_path'].widget.config(state='disabled')
+            pymini.widgets['config_user_path'].config(state="normal")
+            pymini.widgets['config_user_path'].set(d)
+            pymini.widgets['config_user_path'].config(state='disabled')
 
 
 
@@ -49,7 +49,6 @@ def load(parent):
         onvalue='1',
         offvalue=""
     )
-    print(pymini.widgets['config_autosave'])
 
     # auto_load directory panel
 
@@ -66,6 +65,7 @@ def load(parent):
         value=config.convert_to_path(config.config_user_path),
         default=config.convert_to_path(config.default_config_user_path)
     )
+    print('config user path being loaded to settings {}'.format(config.config_user_path))
     dir_entry.configure(state='disabled', height=2)
     dir_entry.grid(column=0,row=1,sticky='news')
     pymini.widgets['config_user_path'] = dir_entry
