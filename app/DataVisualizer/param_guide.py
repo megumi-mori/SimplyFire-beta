@@ -81,21 +81,25 @@ def create_window():
     accept_button = ttk.Button(button_frame, text='Remove restrictions')
     accept_button.grid(column=0, row=0, sticky='news')
     accept_button.config(state='disabled')
+    accept_button.bind('<Button>', canvas.get_tk_widget().focus_set())
 
     global reanalyze_button
     reanalyze_button = ttk.Button(button_frame, text='Reanalyze')
     reanalyze_button.grid(column=1, row=0, sticky='news')
     reanalyze_button.config(state='disabled')
+    reanalyze_button.bind('<Button>', canvas.get_tk_widget().focus_set())
 
     global reject_button
     reject_button = ttk.Button(button_frame, text='Reject')
     reject_button.grid(column=2, row=0, sticky='news')
     reject_button.config(state='disabled')
+    reject_button.bind('<Button>', canvas.get_tk_widget().focus_set())
 
     global goto_button
     goto_button = ttk.Button(button_frame, text='Select')
     goto_button.grid(column=3, row=0, sticky='news')
     goto_button.config(state='disabled')
+    goto_button.bind('<Button>', canvas.get_tk_widget().focus_set())
 
 
 
@@ -112,6 +116,7 @@ def create_window():
     # msg_label.configure(yscrollcommand=vsb.set)
 
     toolbar_frame = Tk.Frame(frame)
+
     toolbar = NavigationToolbar(canvas, toolbar_frame)
     toolbar.grid(column=0, row=0, sticky='news')
     toolbar_frame.grid(column=0, row=0, sticky='news')
