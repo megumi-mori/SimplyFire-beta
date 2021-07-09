@@ -60,9 +60,16 @@ default_adjust_baseline_mode: 'mean'
 default_adjust_range_left: 0
 default_adjust_range_right: 1
 default_adjust_fixed: 0
-default_adjust_baseline_signal: 'All sweeps'
+default_adjust_baseline_signal: 'Sweeps'
 default_adjust_baseline_target: 'All sweeps'
+default_adjust_baseline_channel: '1'
 default_filter_kernel : 11
+
+default_adjust_avg_show_result : '1'
+default_adjust_avg_signal : 'All sweeps'
+default_adjust_avg_channel : '1'
+
+
 
 
 
@@ -136,6 +143,7 @@ default_config_keymap_path:
 default_config_autoload : 1
 default_config_autosave : 1
 default_config_file_autodir : 1
+default_config_undo_stack : 2
 
 
 # channel

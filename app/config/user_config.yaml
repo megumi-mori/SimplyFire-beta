@@ -2,8 +2,12 @@
 # PyMini user configurations
 #################################################################
 
+adjust_avg_channel: '1'
+adjust_avg_show_result: '1'
+adjust_avg_signal: All sweeps
+adjust_baseline_channel: '1'
 adjust_baseline_mode: mean
-adjust_baseline_signal: All sweeps
+adjust_baseline_signal: Sweeps
 adjust_baseline_target: All sweeps
 adjust_fixed: '0'
 adjust_range_left: '0'

@@ -5,4 +5,5 @@
 config_autoload: '1'
 config_autosave: '1'
 config_file_autodir: '1'
+config_undo_stack: '2'
 config_user_path: D:/megum/Documents/GitHub/PyMini/app/config/user_config.yaml
