@@ -238,6 +238,8 @@ def load():
             widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
         if type(widgets[key]) == widget.VarOptionmenu:
             widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
+        if type(widgets[key]) == widget.VarCheckbutton:
+            widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
 
     # set up font adjustment bar
     fb = font_bar.load(left)
