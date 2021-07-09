@@ -32,7 +32,7 @@ def load(parent):
     pymini.widgets['adjust_baseline_mode'] = StringVar(baseline_panel, config.adjust_baseline_mode)
     baseline_options = {
         'mean': {'name': 'mean',
-         'text': 'Mean of all sweeps',
+         'text': 'Mean of:',
          'value': 'mean'
          },
         'range': {
@@ -49,7 +49,7 @@ def load(parent):
 
     baseline_options['mean']['button'] = ttk.Radiobutton(
         baseline_panel,
-        text='Mean of all sweeps:',
+        text='Mean of all target sweeps',
         value='mean',
         command=_select_baseline_mode,
         variable=pymini.widgets['adjust_baseline_mode']
@@ -119,6 +119,13 @@ def load(parent):
         options=['All sweeps', 'Visible sweeps', 'Highlighted sweeps'],
         separator=False
     )
+    pymini.widgets['adjust_baseline_channel'] = frame.insert_label_checkbox(
+        name='adjust_baseline_channel',
+        label='Apply to visible channel only',
+        onvalue='1',
+        offvalue="",
+        separator=False
+    )
 
     frame.insert_button(
         text='Apply',
@@ -127,6 +134,39 @@ def load(parent):
     baseline_options[config.adjust_baseline_mode]['button'].invoke()
 
     frame.insert_separator()
+
+    frame.insert_title(
+        name='averaging',
+        text='Average trace:',
+        separator=False
+    )
+
+    pymini.widgets['adjust_avg_signal'] = frame.insert_label_optionmenu(
+        name='adjust_avg_signal',
+        label='Average:',
+        options=['All sweeps', 'Visible sweeps', 'Highlighted sweeps'],
+        separator=False
+    )
+    pymini.widgets['adjust_avg_show_result'] = frame.insert_label_checkbox(
+        name='adjust_avg_show_result',
+        label='Only show resultant trace (hide original sweeps)',
+        onvalue='1',
+        offvalue="",
+        separator=False
+    )
+    pymini.widgets['adjust_avg_channel'] = frame.insert_label_checkbox(
+        name='adjust_avg_channel',
+        label='Apply to visible channel only',
+        onvalue='1',
+        offvalue='',
+        separator=False
+    )
+    frame.insert_button(
+        text='Apply',
+        command=None
+    )
+    frame.insert_separator()
+    pymini.widgets
     frame.insert_title(
         name='filtering',
         text='Test Box2DKernel:',
@@ -173,8 +213,12 @@ def _select_baseline_mode(e=None):
 
 def _adjust_baseline(e=None):
     signal_list = None
+    if pymini.widgets['adjust_baseline_channel'].get():
+        channels = [analyzer.trace_file.channel]
+    else:
+        channels = [i for i in range(analyzer.trace_file.channel_count)]
     if pymini.widgets['adjust_baseline_mode'].get() == 'mean':
-        if pymini.widgets['adjust_baseline_signal'].get() == 'All sweeps':
+        if pymini.widgets['adjust_baseline_target'].get() == 'All sweeps':
             ys = np.array([])
             for s in trace_display.sweeps:
                 ys = np.concatenate((ys, trace_display.sweeps[s].get_ydata()))
@@ -182,7 +226,7 @@ def _adjust_baseline(e=None):
                 print(ys)
                 return None
             baseline = [np.mean(ys)]
-        elif pymini.widgets['adjust_baseline_signal'].get() == 'Visible sweeps':
+        elif pymini.widgets['adjust_baseline_target'].get() == 'Visible sweeps':
             if pymini.widgets['trace_mode'].get() == 'overlay':
                 signal_list = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]
             else:
@@ -196,7 +240,7 @@ def _adjust_baseline(e=None):
             for i in signal_list:
                 ys = np.concatenate((ys, trace_display.sweeps['sweep_{}'.format(i)].get_ydata()))
             baseline = [np.mean(ys)]
-        elif pymini.widgets['adjust_baseline_signal'].get() == 'Highlighted sweeps':
+        elif pymini.widgets['adjust_baseline_target'].get() == 'Highlighted sweeps':
             signal_list = trace_display.highlighted_sweep
             if len(signal_list) > 0:
                 ys = np.array([])
