@@ -100,6 +100,10 @@ def load(parent):
         offvalue=""
     )
 
+    pymini.widgets['config_undo_stack'] = optionframe.insert_label_entry(
+        name='config_undo_stack',
+        label='Number of steps to store in memory for undo (Experimental)',
+    )
 
     return frame
 
