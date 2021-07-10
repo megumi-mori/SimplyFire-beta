@@ -156,7 +156,7 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
     def replace_options(self, options=None):
         if options is None:
             options = []
-        self['menu'].delete_selected(0, 'end')
+        self['menu'].delete(0, 'end')
         for i in options:
             self['menu'].add_command(
                 label=i,

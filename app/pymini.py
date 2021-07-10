@@ -10,7 +10,7 @@ from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navi
 from DataVisualizer import data_display, log_display
 
 from utils import widget
-
+import tracemalloc
 
 
 event_filename = None
@@ -85,6 +85,7 @@ def change_label(key, value, tab=None):
     return False
 
 def load():
+    tracemalloc.start()
 
     global root
     root = Tk.Tk()
@@ -285,13 +286,12 @@ def load():
     data_display.fit_columns()
 
 
-    # config.splash.after(5000, config.splash.destroy())
 
     return root
 
 
 def dump_user_setting(filename=None):
-    ignore = ['config_', '_log']
+    ignore = ['config_', '_log', 'temp_']
     print('Writing out configuration variables....')
     if filename is None:
         filename = widgets['config_user_path'].get()

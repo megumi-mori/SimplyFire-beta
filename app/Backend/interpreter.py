@@ -155,6 +155,11 @@ def initialize():
     trace_display.canvas.mpl_connect('motion_notify_event', plot_mouse_move)
     trace_display.canvas.mpl_connect('button_release_event', plot_mouse_release)
 
+    #######################################
+    # Global Keys
+    #######################################
+    for key in config.key_undo:
+        pymini.root.bind(key, interface.undo)
 
 def initialize_param_guide():
     for key in config.key_toolbar_pan:

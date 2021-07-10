@@ -18,6 +18,10 @@ from DataVisualizer import param_guide, trace_display  # remove this during depl
 
 def open_trace(filename, channel=0):
     global trace_file
+    try:
+        del trace_file
+    except:
+        pass
     trace_file = recording.Trace(filename)
     trace_file.set_channel(channel)
 
@@ -508,3 +512,28 @@ def contains_line(xlim, ylim, xs, ys, rate=None):
                 return True
         return False
     return True
+
+def format_list_indices(idx):
+    if len(idx) == 1:
+        return str(idx[0])
+    s = ""
+    for i, n in enumerate(idx):
+        if i == 0:
+            s = str(n)
+        elif i == len(idx) - 1:
+            if n - 1 == idx[-2]:
+                s = '{}..{}'.format(s, n)
+            else:
+                s = '{},{}'.format(s, n)
+        elif n - 1 == idx[i-1] and n+1 == idx[i+1]:
+            #0, [1, 2, 3], 4, 10, 11 --> '0'
+            pass # do nothing
+        elif n-1 == idx[i-1] and n+1 != idx[i+1]:
+            #0, 1, 2, [3, 4, 10], 11 --> '0..4'
+            s = '{}..{}'.format(s, n)
+        elif n-1 != idx[i-1]:
+            #0, 1, 2, 3, [4, 10, 11], 14, 16 --> '0..4,10' -->'0..4,10..11'
+            s = '{},{}'.format(s, n)
+
+    return s
+

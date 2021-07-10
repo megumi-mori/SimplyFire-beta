@@ -2,16 +2,16 @@
 # PyMini user configurations
 #################################################################
 
-adjust_avg_channel: '1'
 adjust_avg_show_result: '1'
-adjust_avg_signal: All sweeps
-adjust_baseline_channel: '1'
-adjust_baseline_mode: mean
-adjust_baseline_signal: Sweeps
-adjust_baseline_target: All sweeps
-adjust_fixed: '0'
+adjust_baseline_mode: range
+adjust_channel: '1'
+adjust_filter_algorithm: Boxcar
+adjust_filter_boxcar_kernel: '11'
+adjust_filter_lohi: Lowpass
+adjust_fixed: '5'
 adjust_range_left: '0'
 adjust_range_right: '1'
+adjust_target: All sweeps
 analysis_mode: mini
 channel_option: ''
 data_display_amplitude: '1'
@@ -24,7 +24,7 @@ data_display_halfwidth: '1'
 data_display_rise: '1'
 data_display_time: '1'
 detector_auto_radius: '60'
-detector_direction: positive
+detector_direction: negative
 detector_max_decay: none
 detector_max_hw: None
 detector_max_points_decay: '40000'
@@ -36,10 +36,9 @@ detector_min_rise: '0'
 detector_points_baseline: '100'
 detector_search_radius: '5.0'
 detector_update_events: '0'
-filter_kernel: '11'
 force_axis_limit: '0'
-force_channel: '0'
-force_channel_id: '0'
+force_channel: '1'
+force_channel_id: '2'
 max_x: auto
 max_y: auto
 min_x: auto
@@ -63,5 +62,5 @@ style_trace_line_color: black
 style_trace_line_width: '0.25'
 sweep_picker_offset: '20'
 trace_info: ''
-trace_mode: continuous
+trace_mode: overlay
 window_param_guide: '0'

@@ -53,7 +53,48 @@ mini_df = pd.DataFrame(columns = [
     'datetime'  #
 ])
 
+def get_temp_num():
+    global temp_num
+    try:
+        temp_num += 1
+        return temp_num % int(pymini.widgets['config_undo_stack'].get())
+    except:
+        temp_num = 0
+        return 0
 
+def get_prev_temp_num():
+    global temp_num
+    try:
+        return temp_num % int(pymini.widgets['config_undo_stack'].get())
+    except:
+        return None
+
+global undo_stack
+undo_stack = []
+
+def clear_undo():
+    global undo_stack
+    for stack in undo_stack:
+        del stack
+    undo_stack = []
+
+def add_undo(task):
+    global undo_stack
+    undo_stack.append(task)
+    if len(undo_stack) > int(pymini.widgets['config_undo_stack'].get()):
+        temp = undo_stack.pop(0)
+        del temp
+    return
+
+def undo(e=None):
+    print('undo: {}'.format(e))
+    if len(undo_stack) > 0:
+        task = undo_stack.pop()
+        print(task.__name__)
+        task()
+        del task
+    else:
+        return
 
 
 
@@ -71,6 +112,9 @@ def open_trace(fname):
         mini_df = mini_df.iloc[0:0]
     except:
         return None
+
+    # clear undo
+    clear_undo()
 
     # update save file directory
     if pymini.widgets['config_file_autodir'].get() == '1':
@@ -180,13 +224,15 @@ def _change_channel(num):
                                  draw=True,
                                  relim=True)
     else:
+        for i in range(analyzer.trace_file.sweep_count):
+            trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=i),
+                                     analyzer.trace_file.get_ys(mode='overay', sweep=i),
+                                     draw=False,
+                                     relim=False,
+                                     idx=i)
         for i, var in enumerate(sweep_tab.sweep_vars):
-            if var.get():
-                trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=i),
-                                         analyzer.trace_file.get_ys(mode='overlay', sweep=i),
-                                         draw=False,
-                                         relim=False,
-                                         idx=i)
+            if not var.get():
+                trace_display.hide_sweep(i)
     trace_display.ax.set_xlim(xlim)
     trace_display.canvas.draw()
 
@@ -218,10 +264,6 @@ def plot_continuous(fix_axis=False):
     data_display.append(mini_df.loc[xs])
 
     update_event_marker()
-
-
-
-
 
 def configure(key, value):
     globals()[key] = value

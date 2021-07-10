@@ -270,7 +270,6 @@ def zoom_x_by(direction=1, percent=0, event=None):
     except:
         pass
     center_pos = center_pos * width + xlim[0]
-    print(center_pos)
     new_lim = (center_pos - new_width/2, center_pos + new_width/2)
 
     if new_lim[0] < default_xlim[0]:
@@ -509,6 +508,13 @@ def show_sweep(idx, draw=False):
         pass
     if draw:
         canvas.draw()
+
+def delete_last_sweep(draw=False):
+    sweeps['sweep_{}'.format(len(sweeps) - 1)].remove()
+    # print('length of ax lines after removing sweep: {}'.format(len(ax.lines)))
+    # ax lines are removed - memory leak not because of the axis retaining object
+    del sweeps['sweep_{}'.format(len(sweeps) - 1)]
+
 
 
 def get_sweep(idx):

@@ -65,6 +65,9 @@ def load(parent):
 
     return frame
 
+def log(msg):
+    log_text.insert(Tk.END, '{} {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.see(Tk.END)
 def copy():
     app.root.clipboard_clear()
     app.root.clipboard_append(log_text.get())
@@ -95,6 +98,7 @@ def param_update(msg):
 def save_update(msg):
     log_text.insert(Tk.END, '{} @saved: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     log_text.see(Tk.END)
+
 def save():
     d = filedialog.asksaveasfilename(filetypes=[('log file', '*.log')], defaultextension='.log')
     if d:

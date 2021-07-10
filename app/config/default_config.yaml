@@ -42,6 +42,9 @@ default_geometry_param_guide:
 default_param_guide_height:
   - 400
 
+# temp file save path
+default_temp_path :
+  - 'temp'
 # navigation
 default_min_x : 'auto'
 default_max_x : 'auto'
@@ -56,19 +59,21 @@ default_navigation_mirror_y_scroll : 1
 default_navigation_mirror_x_scroll : 1
 
 # adjust
+default_adjust_target: 'All sweeps'
+default_adjust_channel: '1'
 default_adjust_baseline_mode: 'mean'
 default_adjust_range_left: 0
 default_adjust_range_right: 1
 default_adjust_fixed: 0
 default_adjust_baseline_signal: 'Sweeps'
-default_adjust_baseline_target: 'All sweeps'
-default_adjust_baseline_channel: '1'
-default_filter_kernel : 11
 
 default_adjust_avg_show_result : '1'
-default_adjust_avg_signal : 'All sweeps'
-default_adjust_avg_channel : '1'
 
+default_adjust_filter_lohi : 'Lowpass'
+default_adjust_filter_algorithm : 'Boxcar'
+
+# Boxcar Filter
+default_adjust_filter_boxcar_kernel : 11
 
 
 
@@ -210,3 +215,6 @@ default_key_toolbar_pan:
   - 'p'
 default_key_toolbar_zoom:
   - 'z'
+
+default_key_undo:
+  - '<Control-z>'

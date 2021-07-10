@@ -38,7 +38,10 @@ key_select_window:
 key_toolbar_pan:
 - p
 key_toolbar_zoom:
-- z
+- m
+key_undo:
+- <Control-z>
+- <Control-z>
 key_zoom_in_x:
 - j
 key_zoom_in_y:
