@@ -262,22 +262,27 @@ def _test_filtering(e=None):
         data_list = [i for i in trace_display.highlighted_sweep]
         if not data_list:
             return None
+
+    ########### Save temp file ##############
     temp_filename = os.path.join(config.DIR, *config.default_temp_path, 'temp_{}.temp'.format(interface.get_temp_num()))
 
     analyzer.trace_file.save_ydata(filename=temp_filename,
                                    channels=channels,
                                    progress_bar=pymini.pb)
-    pymini.pb['value']=2
+    pymini.pb['value'] = 2
     pymini.pb.update()
     interface.add_undo(lambda e=temp_filename:
                        undo_trace_adjust_changes(e))
     task_length = len(channels)
     task_progress = 1
+    ##########################################
 
     if pymini.widgets['adjust_filter_algorithm'].get() == 'Boxcar':
         print('starting lowpass filter!')
         kernel = int(pymini.widgets['adjust_filter_boxcar_kernel'].get())
         k = Box1DKernel(kernel)
+
+        parameters = {'kernel': kernel}
 
         for c in channels:
             pymini.pb['value'] = task_progress/task_length * 100
@@ -292,13 +297,20 @@ def _test_filtering(e=None):
     elif pymini.widgets['trace_mode'].get() == 'continuous':
         trace_display.get_sweep(0).set_ydata(analyzer.trace_file.get_ys(mode='continuous'))
 
+    log('Filter traces {}, channels {}'.format(analyzer.format_list_indices(data_list), channels), True)
+    log('   Filtering algorithm: {}'.format(pymini.widgets['adjust_filter_algorithm'].get()), False)
+    log('   Filtering parameters: {}'.format(str(parameters)), False)
+
     pymini.pb['value'] = 0
     pymini.pb.update()
     trace_display.canvas.draw()
 
 
-def log(msg):
-    log_display.log('@ adjust: {}'.format(msg))
+def log(msg, header=True):
+    if header:
+        log_display.log('@ adjust: {}'.format(msg), header)
+    else:
+        log_display.log(msg, header)
 
 def undo_trace_adjust_changes(filename, delete_sweep=False, sweep_list=None):
     analyzer.trace_file.load_ydata(filename)
@@ -315,9 +327,7 @@ def undo_trace_adjust_changes(filename, delete_sweep=False, sweep_list=None):
         for i in range(analyzer.trace_file.sweep_count):
             trace_display.get_sweep(i).set_ydata(analyzer.trace_file.get_ys(mode='overlay', sweep=i))
     trace_display.canvas.draw()
-    log('Undo trace adjustment')
-
-
+    log('Undo trace adjustment', True)
 
 
 def _select_baseline_mode(e=None):
@@ -349,6 +359,7 @@ def _average_trace(e=None):
     else:
         channels = [i for i in range(analyzer.trace_file.channel_count)]
 
+    ################### save undo file ####################
     temp_filename = os.path.join(config.DIR, *config.default_temp_path, 'temp_{}.temp'.format(interface.get_temp_num()))
 
     analyzer.trace_file.save_ydata(filename=temp_filename,
@@ -357,6 +368,7 @@ def _average_trace(e=None):
     sweep_list = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]
     interface.add_undo(lambda e=temp_filename, d=True, l=sweep_list:
                        undo_trace_adjust_changes(e, delete_sweep=d, sweep_list=l))
+    ########################################################
 
     data_list = []
 
@@ -385,7 +397,7 @@ def _average_trace(e=None):
                                    message='No highlighted sweeps',
                                    icon=messagebox.WARNING)
             return None
-    log('Average traces {}, channels {}'.format(analyzer.format_list_indices(data_list), channels))
+
     task_length = len(channels)
     task_progress = 1
     stdev = []
@@ -406,7 +418,7 @@ def _average_trace(e=None):
         empty_data.fill(0)
         analyzer.trace_file.add_sweep(channel=c, data=empty_data)
 
-    log('Standard deviation: {}'.format(stdev))
+
     # add sweep toggle box
     sweep_tab.populate_list(1, replace=False, prefix='Avg ')
 
@@ -418,12 +430,10 @@ def _average_trace(e=None):
                              idx=analyzer.trace_file.sweep_count - 1)
     sweep_tab.hide_all()
     sweep_tab.checkbuttons[-1].invoke()
-    log('Average trace stored on sweep {}'.format(analyzer.trace_file.sweep_count - 1))
 
-    global snap_1
-    tracemalloc.clear_traces()
-    tracemalloc.start()
-    snap_1 = tracemalloc.take_snapshot()
+    log('Average traces {}, channels {}'.format(analyzer.format_list_indices(data_list), channels), True)
+    log('   Standard deviation: {}'.format(stdev), False)
+    log('   Average trace stored on sweep {}'.format(analyzer.trace_file.sweep_count - 1), False)
 
 
 def _adjust_baseline(e=None):
@@ -558,6 +568,7 @@ def _adjust_baseline(e=None):
     if pymini.widgets['trace_mode'].get() == 'continuous':
         trace_display.get_sweep(0).set_ydata(analyzer.trace_file.get_ys(mode='continuous'))
 
+    log('Baseline adjustment traces {}, channels {}'.format(analyzer.format_list_indices(data_list), channels), True)
     pymini.pb['value'] = 0
     pymini.pb.update()
 

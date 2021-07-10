@@ -65,8 +65,11 @@ def load(parent):
 
     return frame
 
-def log(msg):
-    log_text.insert(Tk.END, '{} {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+def log(msg, header=True):
+    if header:
+        log_text.insert(Tk.END, '{} {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    else:
+        log_text.insert(Tk.END, '{}\n'.format(msg))
     log_text.see(Tk.END)
 def copy():
     app.root.clipboard_clear()
