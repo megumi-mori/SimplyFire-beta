@@ -112,8 +112,33 @@ def delete_hidden():
 
 def populate_list(num, replace=True, prefix=""):
     frame = list_frame.get_frame()
+
     if replace:
-        while len(sweep_vars) > 0:
+        start = 0
+    else:
+        start = len(sweep_vars)
+    for i in range(num):
+        if i < len(sweep_vars):
+            sweep_labels[i].config(text='{}Sweep {}'.format(prefix, i))
+        else:
+            f = Tk.Frame(frame)
+            f.grid_columnconfigure(0, weight=1)
+            f.grid_rowconfigure(0, weight=1)
+            f.grid(column=0, row=start+i, sticky='news')
+            label = Tk.Label(f, text='{}Sweep {}'.format(prefix, len(sweep_vars)), justify=Tk.LEFT)
+            label.grid(column=0, row=start+i, sticky='news')
+            sweep_labels.append(label)
+            var = Tk.IntVar(f, 1)
+            button = ttk.Checkbutton(master=f,
+                                     variable=var,
+                                     command=lambda x=start+i, v=var.get:
+                                     interface.toggle_sweep(x, v()))
+            checkbuttons.append(button)
+            button.grid(column=1, row=start+i, sticky='es')
+            sweep_vars.append(var)
+            panels.append(f)
+    if replace:
+        while len(sweep_vars) > num:
             temp = panels.pop()
             temp.forget()
             temp.destroy()
@@ -129,28 +154,6 @@ def populate_list(num, replace=True, prefix=""):
             del temp
             temp = sweep_vars.pop()
             del temp
-
-    if replace:
-        start = 0
-    else:
-        start = len(sweep_vars)
-    for i in range(num):
-        f = Tk.Frame(frame)
-        f.grid_columnconfigure(0, weight=1)
-        f.grid_rowconfigure(0, weight=1)
-        f.grid(column=0, row=start+i, sticky='news')
-        label = Tk.Label(f, text='{}Sweep {}'.format(prefix, len(sweep_vars)), justify=Tk.LEFT)
-        label.grid(column=0, row=start+i, sticky='news')
-        sweep_labels.append(label)
-        var = Tk.IntVar(f, 1)
-        button = ttk.Checkbutton(master=f,
-                                 variable=var,
-                                 command=lambda x=start+i, v=var.get:
-                                 interface.toggle_sweep(x, v()))
-        checkbuttons.append(button)
-        button.grid(column=1, row=start+i, sticky='es')
-        sweep_vars.append(var)
-        panels.append(f)
 
 
 
