@@ -289,6 +289,26 @@ def fit_decay(xs, ys, direction, function, constant=True, fit_zero=True):
                                  maxfev=15000)
     return results[0]
 
+def fit_decay_bound(xs, ys, amp, baseline, direction):
+
+    x_data = (xs - xs[0]) * 1000
+    y_data = (ys) * direction
+
+    y_weight = np.empty(len(y_data))
+    y_weight.fill(10)
+    y_weight[0] = 0.001
+
+    def single_exponent_constant_bound(x, t):
+        return amp * direction * np.exp(-x/t) + baseline * direction
+
+    results = optimize.curve_fit(single_exponent_constant_bound,
+                                 x_data,
+                                 y_data,
+                                 sigma=y_weight,
+                                 absolute_sigma=True,
+                                 maxfev=15000)
+    return results[0][0]
+
 
 def filter_mini(
         start_idx=None,
@@ -409,10 +429,16 @@ def filter_mini(
     # scipy curve_fit: need to define a function
 
     try:
-        data['decay_fit'] = fit_decay(xs[data['peak_idx']:min(data['peak_idx'] + data['max_points_decay'], len(xs))],
+        # data['decay_fit'] = fit_decay(xs[data['peak_idx']:min(data['peak_idx'] + data['max_points_decay'], len(xs))],
+        #                               ys[data['peak_idx']:min(data['peak_idx'] + data['max_points_decay'], len(ys))],
+        #                               direction,
+        #                               function=single_exponent_constant)
+        data['decay_fit'] = (data['amp'] * direction, fit_decay_bound(xs[data['peak_idx']:min(data['peak_idx'] + data['max_points_decay'], len(xs))],
                                       ys[data['peak_idx']:min(data['peak_idx'] + data['max_points_decay'], len(ys))],
-                                      direction,
-                                      function=single_exponent_constant)
+                                            data['amp'],
+                                            data['baseline'],
+                                            direction
+                                      ), data['baseline'] * direction)
         data['decay_fit_idx'] = data['peak_idx']  # in case we want to change this
         data['decay_func'] = single_exponent_constant.__name__
         if data['decay_fit'] is None:
@@ -435,7 +461,6 @@ def filter_mini(
         return data, False
 
     return data, True
-
 
 def single_exponent_constant(x, a, t, d):
     return a * np.exp(-(x) / t) + d

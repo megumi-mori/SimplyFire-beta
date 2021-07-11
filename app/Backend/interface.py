@@ -371,6 +371,9 @@ def find_mini_in_range(xlim, ylim):
         param_guide.goto_button.config(state='disabled')
     except:
         pass
+    pymini.pb['value'] = 0
+    pymini.pb.update()
+
     data_display.unselect()
     lag = int(pymini.widgets['detector_points_baseline'].get())
     direction = {'negative': -1, 'positive': 1}[pymini.widgets['detector_direction'].get()]
@@ -397,6 +400,17 @@ def find_mini_in_range(xlim, ylim):
         max_decay = float(pymini.widgets['detector_max_decay'].get())
     except:
         max_decay = np.inf
+    # lag = 100
+    # direction = -1
+    # search_range = 60
+    # min_amp = 0.3
+    # min_rise = 0
+    # max_rise = np.inf
+    # min_hw = 0
+    # max_hw = np.inf
+    # max_points_decay = 500
+    # min_decay = 0
+    # max_decay = np.inf
 
     xs = trace_display.ax.lines[0].get_xdata()
     ys = trace_display.ax.lines[0].get_ydata()
@@ -406,6 +420,9 @@ def find_mini_in_range(xlim, ylim):
 
     xlim_idx = (analyzer.search_index(xlim[0], xs), analyzer.search_index(xlim[1], xs))
     i=max(xlim_idx[0], lag)
+    task_start = i
+    task_length = xlim_idx[1] - i
+    j = 0
     global mini_df
     while i < xlim_idx[1]:
         data, success = analyzer.filter_mini(
@@ -427,6 +444,9 @@ def find_mini_in_range(xlim, ylim):
             max_points_decay=max_points_decay,
             df=mini_df
         )
+
+        pymini.pb['value'] = (i - task_start)/task_length * 100
+        pymini.pb.update()
         data['channel'] = analyzer.trace_file.channel
         if data['peak_idx'] is None:
             i+= search_range
@@ -448,7 +468,7 @@ def find_mini_in_range(xlim, ylim):
         log_display.param_update(detector_tab.changes)
         detector_tab.changes = {}
         detector_tab.changed = False
-    print('end')
+    pymini.pb['value'] = 0
 
 
 def select_single_mini(iid):
@@ -718,7 +738,6 @@ def highlight_selected_mini(selection):
         else:
             xs = get_column('peak_coord_x', selection)
             ys = get_column('peak_coord_y', selection)
-            print('selection xs and ys: {} {}'.format(xs, ys))
             trace_display.center_plot_area(min(xs), max(xs), min(ys), max(ys))
     else:
         trace_display.clear_markers('highlight')
