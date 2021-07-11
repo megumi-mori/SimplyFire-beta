@@ -4,7 +4,7 @@ from config import config
 import pymini
 from utils.widget import VarWidget
 from Backend import interface
-from DataVisualizer import param_guide
+from DataVisualizer import param_guide, data_display, trace_display
 import gc
 
 def _setting_window(event=None):
@@ -154,6 +154,7 @@ def _overlay_mode(e=None):
     except Exception as e:
         print(e)
         pass
+    data_display.setup_column_headers('evoked')
 
 
 def _mini_mode(e=None):
@@ -164,6 +165,7 @@ def _mini_mode(e=None):
             pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector']), state='disabled')
     except:
         pass
+    data_display.setup_column_headers('mini')
 
 def _evoked_mode(e=None):
     pymini.widgets['analysis_mode'].set('evoked')
@@ -171,5 +173,6 @@ def _evoked_mode(e=None):
         pymini.cp_notebook.forget(pymini.cp_notebook.index(pymini.tabs['detector']))
     except:
         pass
+    trace_display.clear_markers()
 
 

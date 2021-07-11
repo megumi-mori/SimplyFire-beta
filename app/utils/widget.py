@@ -356,6 +356,89 @@ class PseudoFrame():
     def safe_dump_vars(self):
         return yaml.safe_dump(self.data)
 
+class DataTable(Tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
 
+        self.table = ttk.Treeview(self)
+        self.table.grid(column=0, row=0, sticky='news')
+
+        vsb = ttk.Scrollbar(self, orient=Tk.VERTICAL, command=self.table.yview)
+        vsb.grid(column=1, row=0, sticky='ns')
+        self.table.configure(yscrollcommand=vsb.set)
+
+        hsb = ttk.Scrollbar(self, orient=Tk.HORIZONTAL, command=self.table.xview)
+        hsb.grid(column=0, row=1, sticky='ew')
+        self.table.configure(xscrollcommand=hsb.set)
+
+
+    def define_columns(self, columns):
+        # columns should be in tuple to avoid mutation
+        self.table.config(columns=columns, show='headings')
+        self.columns = columns
+        for i, col in enumerate(columns):
+            self.table.heading(i, text=col, command=lambda _col = col: self._sort(_col, False))
+            self.table.column(i, stretch=Tk.NO)
+
+    def add_columns(self, columns):
+        all_columns = [i for i in self.columns]
+        for c in columns:
+            all_columns.append(c)
+        self.define_columns(all_columns)
+
+    def set_iid(self, iid):
+        self.iid_header = iid
+
+    def _sort(self, col, reverse):
+        try:
+            l = [(float(self.table.set(k, col)), k) for k in self.table.get_children('')]
+        except:
+            l = [(self.table.set(k, col), k) for k in self.table.get_children('')]
+        l.sort(reverse=reverse)
+        for index, (val, k) in enumerate(l):
+            self.table.move(k, "", index)
+        self.table.heading(col, command = lambda _col=col: self._sort(_col, not reverse))
+        try:
+            self.table.see(self.table.selection()[0])
+        except:
+            pass
+
+    def add(self, datadict): # data in the form of a dict
+        self.table.insert('', 'end', iid=datadict.get(self.iid_header, None),
+                          values=[datadict.get(i, None) for i in self.columns])
+
+    def append(self, dataframe):
+        for i in dataframe.index:
+            try:
+                self.table.insert('', 'end', iid=i,
+                                  values=[data.loc[i][k] for k in self.columns])
+            except:
+                pass
+
+    def fit_columns(self):
+        w = int(self.table.winfo_width()/len(self.columns))
+        for i in self.columns:
+            self.table.column(i, width=w)
+
+    def clear(self):
+        self.table.selection_remove(*self.table.selection())
+        self.table.delete(*self.table.get_children())
+    ##### selection control #####
+
+    def unselect(self):
+        self.table.selection_remove(*self.table.selection())
+
+    def select(self, iid):
+        self.table.see(str(iid))
+        self.table.selection_set(str(iid))
+
+    def delete(self, iid):
+        try:
+            self.table.selection_remove(str(iid))
+        except:
+            pass
+        self.table.delete(str(iid))
 
 
