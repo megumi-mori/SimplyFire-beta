@@ -6,7 +6,7 @@ from Backend import interpreter
 from config import config
 
 from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navigation_tab, \
-    sweep_tab, graph_panel, continuous_tab, adjust_tab
+    sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab
 from DataVisualizer import data_display, log_display
 
 from utils import widget
@@ -19,15 +19,7 @@ widgets = {}
 ##################################################
 #                    Methods                     #
 ##################################################
-def test():
-    data_display.table.insert("", 'end', values=[{'t':0.0001}.get(i, None) for i in data_display.header2config], iid='0.0001')
-    data_display.add({'amp':'123'})
-    # data_table.add_event({
-    #     't':0.25,
-    # })
-    # data_table.add_event({
-    #     't':0.02
-    # })
+
 def _on_close():
     """
     The function is called when the program is closing (pressing X)
@@ -176,59 +168,70 @@ def load():
 
     # insert detector_tab options tab into control panel
     #need to check user defined mode
-    global tabs
-    tabs = {}
 
-    tab_details = [
-        {
-            'name': 'detector',
+    global tab_details
+    tab_details = {
+        'mini':        {
+            'name': 'mini',
             'module': detector_tab,
-            'text': 'Analysis',
-            'partner': None
+            'text': 'Mini',
+            'partner': 'evoked'
         },
+        'evoked':
+        {
+          'name': 'evoked',
+            'module': evoked_tab,
+            'text': 'Evoked',
+            'partner': 'mini'
+        },
+        'continuous':
        {
            'name':  'continuous',
             'module': continuous_tab,
-            'text': 'Trace',
+            'text': 'Cont',
             'partner': 'overlay'
         },
+        'overlay':
         {
             'name': 'overlay',
             'module': sweep_tab,
-            'text': 'Trace',
+            'text': 'Sweeps',
             'partner': 'continuous'
         },
+        'adjust':
         {
             'name': 'adjust',
             'module': adjust_tab,
             'text': 'Adjust',
             'partner': None
         },
+        'navigation':
         {
             'name': 'navigation',
             'module': navigation_tab,
             'text': 'Navi',
             'partner': None
         },
+        'style':
         {
             'name': 'style',
             'module': style_tab,
             'text': 'Style',
             'partner': None
         },
+        'setting':
         {
             'name': 'setting',
             'module': setting_tab,
             'text': 'Setting',
             'partner': None
         }
-    ]
+    }
 
     for i, t in enumerate(tab_details):
-        tabs[t['name']] = t['module'].load(left)
-        cp_notebook.add(tabs[t['name']], text=t['text'])
-        tabs[t['name']].partner = t['partner']
-        tabs[t['name']].index = i
+        tab_details[t]['tab'] = tab_details[t]['module'].load(left)
+        cp_notebook.add(tab_details[t]['tab'], text=tab_details[t]['text'])
+        tab_details[t]['index'] = i
 
 
     # set focus rules
@@ -280,8 +283,7 @@ def load():
     # set up event bindings
     interpreter.initialize()
 
-    # finalize the data viewer - table
-    data_display.show_columns()
+    # # finalize the data viewer - table
     root.update()
     data_display.fit_columns()
 
