@@ -5,6 +5,7 @@ import pymini
 from utils.widget import VarWidget
 from Backend import interface
 from DataVisualizer import param_guide, data_display, trace_display
+from Layout import detector_tab
 import gc
 
 def _setting_window(event=None):
@@ -101,7 +102,7 @@ def load_menubar(parent):
     pymini.widgets['trace_mode'] = trace_var
     view_menu.add_radiobutton(label='Continous', command=_continuous_mode, variable=trace_var, value='continuous')
     view_menu.add_radiobutton(label='Overlay', command=_overlay_mode, variable=trace_var, value='overlay')
-    view_menu.invoke({'continuous': 0, 'overlay': 1}[config.trace_mode])
+
 
     analysis_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='Analysis', menu=analysis_menu)
@@ -109,7 +110,7 @@ def load_menubar(parent):
     pymini.widgets['analysis_mode'] = analysis_var
     analysis_menu.add_radiobutton(label='Mini', command=_mini_mode, variable=analysis_var, value='mini')
     analysis_menu.add_radiobutton(label='Evoked', command=_evoked_mode, variable=analysis_var, value='evoked')
-    analysis_menu.invoke({'mini':0, 'evoked':1}[config.analysis_mode])
+
 
     window_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='Window', menu=window_menu)
@@ -118,61 +119,74 @@ def load_menubar(parent):
     if pymini.widgets['window_param_guide'].get() == '1':
         window_menu.invoke(window_menu.index('Parameter-guide'))
 
+    view_menu.invoke({'continuous': 0, 'overlay': 1}[config.trace_mode])
+    analysis_menu.invoke({'mini':0, 'evoked':1}[config.analysis_mode])
     return menubar
 
 def _continuous_mode():
     idx = pymini.cp_notebook.index('current')
-    if idx == pymini.tabs[pymini.tabs['continuous'].partner].index:
-        idx = pymini.tabs['continuous'].index
+    if idx == pymini.tab_details[pymini.tab_details['continuous']['partner']]['index']:
+        idx = pymini.tab_details['continuous']['index']
     pymini.widgets['trace_mode'].set('continuous')
-    pymini.cp_notebook.hide(pymini.tabs['overlay'].index)
-    pymini.cp_notebook.add(pymini.tabs['continuous'])
+    pymini.cp_notebook.hide(pymini.tab_details['overlay']['index'])
+    pymini.cp_notebook.add(pymini.tab_details['continuous']['tab'])
     pymini.cp_notebook.select(idx)
     try:
         interface.plot_continuous(fix_axis=True)
     except:
         pass
-    try:
-        pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector']), state='normal')
-    except:
-        pass
+    if pymini.widgets['analysis_mode'].get() == 'mini':
+        pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='normal')
+
 
 def _overlay_mode(e=None):
     idx = pymini.cp_notebook.index('current')
-    if idx == pymini.tabs[pymini.tabs['overlay'].partner].index:
-        idx = pymini.tabs['overlay'].index
+    if idx == pymini.tab_details[pymini.tab_details['overlay']['partner']]['index']:
+        idx = pymini.tab_details['overlay']['index']
     pymini.widgets['trace_mode'].set('overlay')
-    pymini.cp_notebook.hide(pymini.tabs['continuous'].index)
-    pymini.cp_notebook.add(pymini.tabs['overlay'])
+    pymini.cp_notebook.hide(pymini.tab_details[pymini.tab_details['overlay']['partner']]['index'])
+    pymini.cp_notebook.add(pymini.tab_details['overlay']['tab'])
     try:
         interface.plot_overlay(fix_axis=True)
     except:
         pass
     pymini.cp_notebook.select(idx)
-    try:
-        pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector']), state='disabled')
-    except Exception as e:
-        print(e)
-        pass
-    data_display.setup_column_headers('evoked')
+    if pymini.widgets['analysis_mode'].get() == 'mini':
+        pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='disabled')
+
 
 
 def _mini_mode(e=None):
     pymini.widgets['analysis_mode'].set('mini')
-    try:
-        pymini.cp_notebook.insert(0, pymini.tabs['detector'], text='Mini')
-        if pymini.widgets['trace_mode'].get() != 'continuous':
-            pymini.cp_notebook.tab(pymini.cp_notebook.index(pymini.tabs['detector']), state='disabled')
-    except:
-        pass
-    data_display.setup_column_headers('mini')
+
+    idx = pymini.cp_notebook.index('current')
+    if idx == pymini.tab_details[pymini.tab_details['mini']['partner']]['index']:
+        idx = pymini.tab_details['mini']['index']
+    pymini.cp_notebook.hide(pymini.tab_details[pymini.tab_details['mini']['partner']]['index'])
+    pymini.cp_notebook.add(pymini.tab_details['mini']['tab'])
+    pymini.cp_notebook.select(idx)
+    pymini.cp_notebook.add(pymini.tab_details['mini']['tab'])
+    if pymini.widgets['trace_mode'].get() != 'continuous':
+        pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='disabled')
+    data_display.clear()
+    data_display.define_columns(tuple([i for i in data_display.mini_header2config]))
+    data_display.show_columns()
+    detector_tab.populate_data_display()
+    interface.update_event_marker()
+
+
 
 def _evoked_mode(e=None):
     pymini.widgets['analysis_mode'].set('evoked')
-    try:
-        pymini.cp_notebook.forget(pymini.cp_notebook.index(pymini.tabs['detector']))
-    except:
-        pass
+    idx = pymini.cp_notebook.index('current')
+    if idx == pymini.tab_details[pymini.tab_details['evoked']['partner']]['index']:
+        idx = pymini.tab_details['evoked']['index']
+    pymini.cp_notebook.hide(pymini.tab_details[pymini.tab_details['evoked']['partner']]['index'])
+    pymini.cp_notebook.add(pymini.tab_details['evoked']['tab'])
+    pymini.cp_notebook.select(idx)
     trace_display.clear_markers()
+    data_display.clear()
+    data_display.define_columns(data_display.trace_header)
+    data_display.show_columns()
 
 

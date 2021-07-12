@@ -241,8 +241,9 @@ def _change_channel(num):
 
     xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
     xs = xs.dropna()
-    for x in xs:
-        data_display.add(mini_df.loc[x].to_dict())
+    # for x in xs:
+    #     data_display.add(mini_df.loc[x].to_dict())
+    data_display.set(mini_df.loc[xs])
     update_event_marker()
 
 
@@ -567,8 +568,6 @@ def reanalyze(xs, ys, data, remove_restrict=False):
             data_display.add(new_data)
             update_event_marker()
             data_display.table.update()
-            if selected:
-                data_display.toggle_one(data['t'])
         except Exception as e:
             print('reanalyze {}'.format(e))
             pass
@@ -709,6 +708,8 @@ def report_to_param_guide(xs, ys, data, clear=False):
 
 
 def get_column(colname, index = None):
+    if analyzer.trace_file is None:
+        return None
     if index:
         try:
             return list(mini_df.loc[index][colname])
@@ -764,6 +765,8 @@ def highlight_events_in_range(xlim=None, ylim=None):
 
     pass
 def update_event_marker():
+    if analyzer.trace_file is None:
+        return None
     if pymini.widgets['show_peak'].get():
         trace_display.plot_peak(get_column('peak_coord_x'), get_column('peak_coord_y'))
     if pymini.widgets['show_start'].get():

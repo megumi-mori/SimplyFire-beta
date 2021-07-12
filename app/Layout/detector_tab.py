@@ -2,7 +2,7 @@ from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 import pymini
 from DataVisualizer import data_display, trace_display
-from Backend import interface
+from Backend import interface, analyzer
 changed = True
 changes = {}
 parameters = {}
@@ -50,7 +50,7 @@ def load(parent):
     ##################################################
     optionframe.insert_title(
         name='detector',
-        text='Detector Parameters'
+        text='Mini analysis mode'
     )
 
     pymini.widgets['detector_direction'] = optionframe.insert_label_optionmenu(
@@ -200,3 +200,11 @@ def load(parent):
     )
 
     return frame
+
+def populate_data_display():
+    try:
+        xs = interface.mini_df.index.where(interface.mini_df['channel'] == analyzer.trace_file.channel)
+        xs = xs.dropna()
+        data_display.set(interface.mini_df.loc[xs])
+    except: # file not loaded yet
+        pass

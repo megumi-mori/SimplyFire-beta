@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 
 from DataVisualizer import param_guide, trace_display  # remove this during deployment
 
+trace_file = None
 
 ### this module does all the calculations for event detection and modeling
 ### this module should be able to function on its own
