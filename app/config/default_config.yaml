@@ -75,6 +75,12 @@ default_adjust_filter_algorithm : 'Boxcar'
 # Boxcar Filter
 default_adjust_filter_boxcar_kernel : 11
 
+# evoked
+default_evoked_target: 'Visible sweeps'
+default_evoked_channel: '1'
+default_evoked_window_mode: 'visible'
+default_evoked_range_left: 0
+default_evoked_range_right: 1
 
 
 
