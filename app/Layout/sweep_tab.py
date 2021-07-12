@@ -118,8 +118,8 @@ def populate_list(num, replace=True, prefix=""):
     else:
         start = len(sweep_vars)
     for i in range(num):
-        if i < len(sweep_vars):
-            sweep_labels[i].config(text='{}Sweep {}'.format(prefix, i))
+        if i+start < len(sweep_vars):
+            sweep_labels[i].config(text='{}Sweep {}'.format(prefix, i+start))
         else:
             f = Tk.Frame(frame)
             f.grid_columnconfigure(0, weight=1)
