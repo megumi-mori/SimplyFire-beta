@@ -529,7 +529,7 @@ def _adjust_baseline(e=None):
                                                           ),
                                     0
                                 ),
-                                0
+                                len(analyzer.trace_file.get_xs(mode='overlay', sweep=i))
                             ),
                             max(
                                 min(
@@ -542,10 +542,10 @@ def _adjust_baseline(e=None):
                                 0
                             )
                         )
-                    for i in range(len(trace_display.sweeps))
+                    for i in data_list
                     ]
                 baseline = [np.mean(analyzer.trace_file.get_ys(mode='overlay',channel=c, sweep=i)[xlim_idx[i][0]:xlim_idx[i][1]])
-                            for i, s in enumerate(trace_display.sweeps)]
+                            for i in data_list]
         elif pymini.widgets['trace_mode'].get() == 'continuous':
             if pymini.widgets['adjust_target'].get() == 'Highlighted sweeps':
                 messagebox.showwarning(title='Parameter error',
