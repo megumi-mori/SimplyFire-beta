@@ -38,10 +38,11 @@ def load(parent):
         offvalue="",
         separator=False
     )
+    frame.insert_separator()
     frame.insert_title(
         name='baseline_subtraction',
         text='Perform baseline subtraction using:',
-        separator=True,
+        separator=False,
         justify=Tk.LEFT
     )
     baseline_panel = OptionFrame(frame)
