@@ -373,11 +373,20 @@ class DataTable(Tk.Frame):
         hsb.grid(column=0, row=1, sticky='ew')
         self.table.configure(xscrollcommand=hsb.set)
 
+    #     self.table.bind('<Button-3>', self.get_element)
+    #
+    # def get_element(self, e):
+    #     print(self.table.identify_region(e.x, e.y))
+
 
     def define_columns(self, columns):
         # columns should be in tuple to avoid mutation
+        self.table.config(displaycolumns=())
         self.table.config(columns=columns, show='headings')
+        self.table.config(displaycolumns=columns)
+        self.iid_header = columns[0]
         self.columns = columns
+        self.displaycolumns=columns
         for i, col in enumerate(columns):
             self.table.heading(i, text=col, command=lambda _col = col: self._sort(_col, False))
             self.table.column(i, stretch=Tk.NO)
@@ -406,6 +415,9 @@ class DataTable(Tk.Frame):
             pass
 
     def add(self, datadict): # data in the form of a dict
+        for key in datadict:
+            if key not in self.columns:
+                self.table.add_columns(append(key))
         self.table.insert('', 'end', iid=datadict.get(self.iid_header, None),
                           values=[datadict.get(i, None) for i in self.columns])
 
@@ -413,14 +425,22 @@ class DataTable(Tk.Frame):
         for i in dataframe.index:
             try:
                 self.table.insert('', 'end', iid=i,
-                                  values=[data.loc[i][k] for k in self.columns])
+                                  values=[dataframe.loc[i][k] for k in self.columns])
             except:
                 pass
+    def set(self, dataframe):
+        self.clear()
+        self.append(dataframe)
 
     def fit_columns(self):
         w = int(self.table.winfo_width()/len(self.columns))
-        for i in self.columns:
+        for i in self.displaycolumns:
             self.table.column(i, width=w)
+
+    def show_columns(self, columns):
+        self.displaycolumns=columns
+        self.table.config(displaycolumns=columns)
+
 
     def clear(self):
         self.table.selection_remove(*self.table.selection())
@@ -440,5 +460,7 @@ class DataTable(Tk.Frame):
         except:
             pass
         self.table.delete(str(iid))
+
+
 
 

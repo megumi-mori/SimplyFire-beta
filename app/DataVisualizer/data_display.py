@@ -3,6 +3,7 @@ from tkinter import ttk
 from collections import OrderedDict  # Python 3.7+ can use dict
 import pymini
 from Backend import interface, interpreter
+from utils.widget import DataTable
 
 
 
@@ -29,9 +30,6 @@ mini_header2config = OrderedDict([
     ('halfwidth_unit', 'data_display_halfwidth'),
     ('baseline', 'data_display_baseline'),
     ('baseline_unit', 'data_display_baseline'),
-#    ('auc', 'data_display_auc'),#
-#     ('t_start', 'data_display_start'),
-#     ('t_end', 'data_display_end'),
     ('channel', 'data_display_channel'),
     ('direction', 'data_display_direction')
 ])
@@ -43,98 +41,54 @@ trace_header = [
     'state'
 ]
 
-def define_columns(columns):
-    table.config(columns=columns, show='headings')
-    global headers
-    headers = columns
-    for i, col in enumerate(columns):
-        table.heading(i, text=col, command=lambda _col=col: _sort(table, _col, False))
-        table.column(i, width=80, stretch=Tk.NO)
-
-def setup_column_headers(mode):
-    if mode == 'mini':
-        define_columns([h for h in mini_header2config])
-    else:
-        define_columns([h for h in trace_header])
 def load(parent):
-    frame = Tk.Frame(parent)
-    frame.grid_rowconfigure(0, weight=1)
-    frame.grid_columnconfigure(0, weight=1)
+    global frame
+    frame = DataTable(parent)
 
     global table
-    table = ttk.Treeview(frame)
-    table.grid(column=0, row=0, sticky='news')
-    table.bind('<<TreeviewSelect>>', select)
+    table = frame.table
 
-    # table.config(columns=[col for col in mini_header2config], show='headings')
-    # for i, col in enumerate(mini_header2config):
-    #     table.heading(i, text=col, command=lambda _col=col: _sort(table, _col, False))
-    #     table.column(i, width=80, stretch=Tk.NO)
-    # if config.analysis_mode == 'mini':
-    # define_columns([col for col in mini_header2config])
+    frame.table.bind('<<TreeviewSelect>>', select)
 
-    global selected
-    selected = table.selection()
-
-    # table.show_columns = show_columns
-    # table.fit_columns = fit_columns
-
-    vsb = ttk.Scrollbar(frame, orient=Tk.VERTICAL, command=table.yview)
-    vsb.grid(column=1, row=0, sticky='ns')
-    table.configure(yscrollcommand=vsb.set)
-
-    hsb = ttk.Scrollbar(frame, orient=Tk.HORIZONTAL, command=table.xview)
-    hsb.grid(column=0, row=1, sticky='ew')
-    table.configure(xscrollcommand=hsb.set)
     return frame
 
 def add(data):
-    table.insert("", 'end', iid=data.get('t', None), values=[data.get(i, None) for i in mini_header2config])
-    unselect()
+    frame.add(data)
 
 def append(data):
-    # data is dataframe
-    for i in data.index:
-        try:
-            table.insert("", 'end', iid=i, values=[data.loc[i][k] for k in mini_header2config])
-        except:
-            pass
+    frame.append(data)
+
+def set(data):
+    frame.set(data)
 
 def show_columns():
     if pymini.widgets['analysis_mode'].get() == 'mini':
-        table.config(displaycolumns=tuple([
-            i for i in mini_header2config
-            if pymini.widgets[mini_header2config[i]].get()
-        ]))
-    else:
+        frame.show_columns(tuple([
+                i for i in mini_header2config
+                if pymini.widgets[mini_header2config[i]].get()
+            ]))
         pass
-
+    else:
+        # frame.show_columns(tuple(trace_header))
+        pass
+    fit_columns()
 
 def fit_columns():
-    print(table.tk)
-    indices = headers
-    w = int(table.winfo_width() / len(indices))
-    for i in indices:
-        table.column(i, width=w)
+    frame.fit_columns()
+
+def define_columns(columns):
+    frame.define_columns(columns)
+
+def add_columns(columns):
+    # tuple of column headers
+    frame.add_columns(columns)
+    for c in columns:
+        trace_header.append(c)
 
 
 def clear():
-    table.selection_remove(*table.selection())
-    table.delete(*table.get_children())
+    frame.clear()
 
-def _sort(tv, col, reverse):
-    try:
-        l = [(float(tv.set(k, col)), k) for k in tv.get_children('')]
-    except:
-        l = [(tv.set(k, col), k) for k in tv.get_children('')]
-    l.sort(reverse=reverse)
-    for index, (val, k) in enumerate(l):
-        tv.move(k, '', index)
-    tv.heading(col, command=lambda _col=col: _sort(tv, _col, not reverse))
-    try:
-        tv.see(tv.selection()[0])
-    except:
-        pass
 
 def select(e=None):
     selected = table.selection()
@@ -142,37 +96,15 @@ def select(e=None):
         interface.select_single_mini(float(selected[0]))
     if pymini.widgets['analysis_mode'].get() == 'mini':
         interface.highlight_selected_mini([float(i) for i in selected])
-    try:
-        table.see(selected[0])
-    except:
-        pass
 
 
 def unselect(e=None):
-    table.selection_remove(*table.selection())
-
+    frame.unselect()
 
 def select_one(iid):
-    table.see(str(iid))
     interface.highlight_selected_mini([float(iid)])
-    print(selected)
-    if selected == (str(iid),):
-        return
-    table.selection_set(str(iid))
-    print(selected)
-
-def toggle_one(iid):
-    if interpreter.multi_select:
-        table.selection_toggle(str(iid))
-        table.see(str(iid))
-        return
-    table.selection_set(iid)
-    table.see(str(iid))
+    frame.select(iid)
 
 def delete_one(iid):
-    try:
-        table.selection_remove(str(iid))
-    except:
-        pass
+    frame.delete_one(iid)
     interface.delete_event([iid])
-    table.delete(str(iid))
