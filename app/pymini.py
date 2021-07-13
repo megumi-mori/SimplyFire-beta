@@ -7,7 +7,7 @@ from config import config
 
 from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navigation_tab, \
     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab
-from DataVisualizer import data_display, log_display
+from DataVisualizer import data_display, log_display, evoked_data_display
 
 from utils import widget
 import tracemalloc
@@ -129,20 +129,22 @@ def load():
 
 
     # must set up a graph object that can 'refresh' and 'plot' etc
-    panel = graph_panel.load(pw_2)
-    panel.grid(column=0, row=0, sticky='news')
+    panel = graph_panel.load(None)
     pw_2.add(panel)
     pw_2.paneconfig(panel, height=config.gp_height)
 
-    panel = data_display.load(pw_2)
-    pw_2.add(panel)
-    pw_2.grid(column=0, row=0, sticky='news')
+    data_notebook = ttk.Notebook(pw_2)
+
+    panel = data_display.load(None)
+    data_notebook.add(panel, text='mini')
+    panel = evoked_data_display.load(None)
+    data_notebook.add(panel, text='evoked')
+
+    pw_2.add(data_notebook)
+
+    log_frame = log_display.load(None)
 
     dp_notebook.add(pw_2, text='data')
-
-    log_frame = log_display.load(right)
-    log_frame.grid(column=0, row=0, sticky='news')
-
     dp_notebook.add(log_frame, text='log')
 
 
