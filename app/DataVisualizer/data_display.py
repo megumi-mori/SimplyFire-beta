@@ -36,58 +36,54 @@ mini_header2config = OrderedDict([
 
 config2header = OrderedDict([(mini_header2config[key], key) for key in mini_header2config.keys()])
 
-trace_header = [
-    'sweep',
-    'state'
-]
-
 def load(parent):
-    global frame
-    frame = DataTable(parent)
+    global datatable
+    datatable = DataTable(parent)
 
     global table
-    table = frame.table
+    table = datatable.table
 
-    frame.table.bind('<<TreeviewSelect>>', select)
+    datatable.table.bind('<<TreeviewSelect>>', select)
+    datatable.define_columns(tuple([key for key in mini_header2config]))
 
-    return frame
+    return datatable
 
 def add(data):
-    frame.add(data)
+    datatable.add(data)
 
 def append(data):
-    frame.append(data)
+    datatable.append(data)
 
 def set(data):
-    frame.set(data)
+    datatable.set(data)
 
 def show_columns():
     if pymini.widgets['analysis_mode'].get() == 'mini':
-        frame.show_columns(tuple([
+        datatable.show_columns(tuple([
                 i for i in mini_header2config
                 if pymini.widgets[mini_header2config[i]].get()
             ]))
         pass
     else:
-        # frame.show_columns(tuple(trace_header))
+        # datatable.show_columns(tuple(trace_header))
         pass
     fit_columns()
 
 def fit_columns():
-    frame.fit_columns()
+    datatable.fit_columns()
 
 def define_columns(columns):
-    frame.define_columns(columns)
+    datatable.define_columns(columns)
 
 def add_columns(columns):
     # tuple of column headers
-    frame.add_columns(columns)
+    datatable.add_columns(columns)
     for c in columns:
         trace_header.append(c)
 
 
 def clear():
-    frame.clear()
+    datatable.clear()
 
 
 def select(e=None):
@@ -99,12 +95,17 @@ def select(e=None):
 
 
 def unselect(e=None):
-    frame.unselect()
+    datatable.unselect()
 
 def select_one(iid):
     interface.highlight_selected_mini([float(iid)])
-    frame.select(iid)
+    datatable.select(iid)
 
 def delete_one(iid):
-    frame.delete([iid])
-    interface.delete_event([iid])
+    print('data_Display delete one: {}'.format(iid))
+    try:
+        datatable.delete([iid])
+        interface.delete_event([iid])
+    except Exception as e:
+        print('data_display delete one error: {}'.format(e))
+        pass
