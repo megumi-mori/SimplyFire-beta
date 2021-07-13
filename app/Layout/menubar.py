@@ -124,13 +124,8 @@ def load_menubar(parent):
     return menubar
 
 def _continuous_mode():
-    idx = pymini.cp_notebook.index('current')
-    if idx == pymini.tab_details[pymini.tab_details['continuous']['partner']]['index']:
-        idx = pymini.tab_details['continuous']['index']
     pymini.widgets['trace_mode'].set('continuous')
-    pymini.cp_notebook.hide(pymini.tab_details['overlay']['index'])
-    pymini.cp_notebook.add(pymini.tab_details['continuous']['tab'])
-    pymini.cp_notebook.select(idx)
+    display_cp_tab('continuous')
     try:
         interface.plot_continuous(fix_axis=True)
     except:
@@ -138,19 +133,23 @@ def _continuous_mode():
     if pymini.widgets['analysis_mode'].get() == 'mini':
         pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='normal')
 
+def display_cp_tab(tab_name):
+    idx = pymini.cp_notebook.index('current')
+    # check if current tab would be replaced by the new tab being displayed
+    if idx in [pymini.tab_details[tab]['index'] for tab in pymini.tab_details[tab_name]['partner']]:
+        idx = pymini.tab_details[tab_name]['index']
+    for partner in pymini.tab_details[tab_name]['partner']:
+        pymini.cp_notebook.hide(pymini.tab_details[partner]['index'])
+    pymini.cp_notebook.add(pymini.tab_details[tab_name]['tab'])
+    pymini.cp_notebook.select(idx)
 
 def _overlay_mode(e=None):
-    idx = pymini.cp_notebook.index('current')
-    if idx == pymini.tab_details[pymini.tab_details['overlay']['partner']]['index']:
-        idx = pymini.tab_details['overlay']['index']
     pymini.widgets['trace_mode'].set('overlay')
-    pymini.cp_notebook.hide(pymini.tab_details[pymini.tab_details['overlay']['partner']]['index'])
-    pymini.cp_notebook.add(pymini.tab_details['overlay']['tab'])
+    display_cp_tab('overlay')
     try:
         interface.plot_overlay(fix_axis=True)
     except:
         pass
-    pymini.cp_notebook.select(idx)
     if pymini.widgets['analysis_mode'].get() == 'mini':
         pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='disabled')
 
@@ -158,14 +157,7 @@ def _overlay_mode(e=None):
 
 def _mini_mode(e=None):
     pymini.widgets['analysis_mode'].set('mini')
-
-    idx = pymini.cp_notebook.index('current')
-    if idx == pymini.tab_details[pymini.tab_details['mini']['partner']]['index']:
-        idx = pymini.tab_details['mini']['index']
-    pymini.cp_notebook.hide(pymini.tab_details[pymini.tab_details['mini']['partner']]['index'])
-    pymini.cp_notebook.add(pymini.tab_details['mini']['tab'])
-    pymini.cp_notebook.select(idx)
-    pymini.cp_notebook.add(pymini.tab_details['mini']['tab'])
+    display_cp_tab('mini')
     if pymini.widgets['trace_mode'].get() != 'continuous':
         pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='disabled')
     data_display.clear()
@@ -178,12 +170,7 @@ def _mini_mode(e=None):
 
 def _evoked_mode(e=None):
     pymini.widgets['analysis_mode'].set('evoked')
-    idx = pymini.cp_notebook.index('current')
-    if idx == pymini.tab_details[pymini.tab_details['evoked']['partner']]['index']:
-        idx = pymini.tab_details['evoked']['index']
-    pymini.cp_notebook.hide(pymini.tab_details[pymini.tab_details['evoked']['partner']]['index'])
-    pymini.cp_notebook.add(pymini.tab_details['evoked']['tab'])
-    pymini.cp_notebook.select(idx)
+    display_cp_tab('evoked')
     trace_display.clear_markers()
     data_display.clear()
     data_display.define_columns(data_display.trace_header)

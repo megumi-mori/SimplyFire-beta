@@ -168,62 +168,55 @@ def load():
     cp_notebook = ttk.Notebook(left)
     cp_notebook.grid(column=0, row=0, sticky='news')
 
-    # insert detector_tab options tab into control panel
-    #need to check user defined mode
+    #############################################################
+    # Insert custom tabs here to include in the control panel
+    #############################################################
 
     global tab_details
     tab_details = {
         'mini':        {
-            'name': 'mini',
             'module': detector_tab,
             'text': 'Mini',
-            'partner': 'evoked'
+            'partner': ['evoked']
         },
         'evoked':
         {
-          'name': 'evoked',
             'module': evoked_tab,
             'text': 'Evoked',
-            'partner': 'mini'
+            'partner': ['mini']
         },
         'continuous':
        {
-           'name':  'continuous',
             'module': continuous_tab,
             'text': 'Cont',
-            'partner': 'overlay'
+            'partner': ['overlay']
         },
         'overlay':
         {
-            'name': 'overlay',
             'module': sweep_tab,
             'text': 'Sweeps',
-            'partner': 'continuous'
+            'partner': ['continuous']
         },
         'adjust':
         {
-            'name': 'adjust',
             'module': adjust_tab,
             'text': 'Adjust',
             'partner': None
         },
         'navigation':
         {
-            'name': 'navigation',
             'module': navigation_tab,
             'text': 'Navi',
             'partner': None
         },
         'style':
         {
-            'name': 'style',
             'module': style_tab,
             'text': 'Style',
             'partner': None
         },
         'setting':
         {
-            'name': 'setting',
             'module': setting_tab,
             'text': 'Setting',
             'partner': None
