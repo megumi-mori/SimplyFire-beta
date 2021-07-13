@@ -329,7 +329,8 @@ def filter_mini(
         min_decay=config.detector_min_decay,
         max_decay=config.detector_max_decay,
         max_points_decay=config.detector_max_points_decay,
-        df=None
+        df=None,
+        x_sigdig=None
 ):
     data = {}
     data['search_xlim'] = (start_idx, end_idx)
@@ -360,6 +361,8 @@ def filter_mini(
         return data, False
 
     data['t'] = xs[data['peak_idx']]
+    if x_sigdig is not None:
+        data['t'] = round(data['t'], x_sigdig)
     try:
         if data['t'] in df.index:
             data['peak_coord_x'] = None

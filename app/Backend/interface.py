@@ -10,6 +10,7 @@ from Backend import analyzer, interpreter
 import gc
 import pandas as pd
 import numpy as np
+from config import config
 
 from utils import recording
 
@@ -190,9 +191,19 @@ def save_events(filename):
     except:
         messagebox.showerror('Write error', 'Could not write data to selected filename.')
 
-def open_events(filename):
+def open_events(filename, log=True):
+    global mini_df
+    if len(mini_df.index) > 0:
+        temp_filename = os.path.join(config.DIR, *config.default_temp_path,
+                                     'temp_{}.temp'.format(get_temp_num()))
+        save_events(temp_filename)
+        add_undo([
+            data_display.clear,
+            update_event_marker,
+            lambda f=temp_filename, log=False:open_events(f, log),
+            log_display.insert('Undo open event file')
+        ])
     try:
-        global mini_df
         mini_df = pd.read_csv(filename, index_col=0)
         pymini.event_filename = filename
         data_display.clear()
@@ -201,6 +212,9 @@ def open_events(filename):
         data_display.append(mini_df.loc[xs])
 
         update_event_marker()
+        if log:
+            log_display.open_update('mini data: {}'.format(filename))
+
     except:
         messagebox.showerror('Read error', 'Could not read data.')
 
@@ -208,14 +222,6 @@ def export_events(filename):
     #need to think about what columns to export and if/how the user interacts with that decision
     pass
 
-# was thinking about export/import protocol, but I already have a system to store config files.
-# def export_protocol(filename):
-#     #write out the dictionary as JSON, and have a way to read it
-#     pass
-#
-# def open_protocol(filename):
-#     #read a JSON file to set parameters
-#     pass
 
 def _change_channel(num):
     analyzer.trace_file.set_channel(num)
@@ -272,18 +278,6 @@ def plot_continuous(fix_axis=False):
 
 def configure(key, value):
     globals()[key] = value
-
-
-def search_event_from_click(x):
-    pass
-
-
-# def accept_data(data, update=True):
-#     global mini_df
-#     mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
-#     data_display.add(data)
-#     if update:
-#         update_event_marker()
 
 #######################################
 # Mini Analysis
@@ -354,7 +348,6 @@ def pick_event_manual(x):
         df=mini_df,
         x_sigdig=analyzer.trace_file.sampling_rate_sigdig
     )
-
     if guide:
         report_to_param_guide(xs, ys, data)
     if success:
@@ -362,6 +355,9 @@ def pick_event_manual(x):
         mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
         data_display.add({key: value for key, value in data.items() if key in data_display.mini_header2config})
         update_event_marker()
+        add_undo([
+            lambda iid=data['t']:data_display.delete_one(iid)
+        ])
     if detector_tab.changed:
         log_display.search_update('Manual')
         log_display.param_update(detector_tab.changes)
