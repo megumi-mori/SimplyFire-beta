@@ -106,5 +106,5 @@ def select_one(iid):
     frame.select(iid)
 
 def delete_one(iid):
-    frame.delete_one(iid)
+    frame.delete([iid])
     interface.delete_event([iid])

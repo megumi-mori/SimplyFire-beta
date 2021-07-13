@@ -415,9 +415,6 @@ class DataTable(Tk.Frame):
             pass
 
     def add(self, datadict): # data in the form of a dict
-        for key in datadict:
-            if key not in self.columns:
-                self.table.add_columns(append(key))
         self.table.insert('', 'end', iid=datadict.get(self.iid_header, None),
                           values=[datadict.get(i, None) for i in self.columns])
 
@@ -456,10 +453,10 @@ class DataTable(Tk.Frame):
 
     def delete(self, iid):
         try:
-            self.table.selection_remove(str(iid))
+            self.table.selection_remove(*[str(i) for i in iid])
         except:
             pass
-        self.table.delete(str(iid))
+        self.table.delete(*[str(i) for i in iid])
 
 
 
