@@ -274,12 +274,12 @@ def search_event_from_click(x):
     pass
 
 
-def accept_data(data, update=True):
-    global mini_df
-    mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
-    data_display.add(data)
-    if update:
-        update_event_marker()
+# def accept_data(data, update=True):
+#     global mini_df
+#     mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+#     data_display.add(data)
+#     if update:
+#         update_event_marker()
 
 #######################################
 # Mini Analysis
@@ -355,7 +355,7 @@ def pick_event_manual(x):
     if success:
         data['channel'] = analyzer.trace_file.channel
         mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
-        data_display.add(data)
+        data_display.add({key: value for key, value in data.items() if key in data_display.mini_header2config})
         update_event_marker()
     if detector_tab.changed:
         log_display.search_update('Manual')
@@ -565,7 +565,7 @@ def reanalyze(xs, ys, data, remove_restrict=False):
     if success:
         try:
             mini_df = mini_df.append(pd.Series(new_data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
-            data_display.add(new_data)
+            data_display.add({key: value for key, value in new_data.items() if key in data_display.mini_header2config})
             update_event_marker()
             data_display.table.update()
         except Exception as e:

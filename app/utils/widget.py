@@ -394,7 +394,8 @@ class DataTable(Tk.Frame):
     def add_columns(self, columns):
         all_columns = [i for i in self.columns]
         for c in columns:
-            all_columns.append(c)
+            if c not in all_columns:
+                all_columns.append(c)
         self.define_columns(all_columns)
 
     def set_iid(self, iid):
@@ -415,6 +416,9 @@ class DataTable(Tk.Frame):
             pass
 
     def add(self, datadict): # data in the form of a dict
+        new_columns = [key for key in datadict if key not in self.columns]
+        if new_columns:
+            self.add_columns(new_columns)
         self.table.insert('', 'end', iid=datadict.get(self.iid_header, None),
                           values=[datadict.get(i, None) for i in self.columns])
 
