@@ -1,10 +1,18 @@
 from utils.widget import DataTable
 
+
+trace_header = [
+    'sweep',
+    'state'
+]
+
 def load(parent=None):
-    global frame
-    frame = DataTable(parent)
+    global datatable
+    datatable = DataTable(parent)
 
     global table
-    table = frame.table
+    table = datatable.table
 
-    return frame
+    datatable.define_columns(tuple(trace_header))
+
+    return datatable
