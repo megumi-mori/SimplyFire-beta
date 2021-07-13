@@ -80,7 +80,10 @@ def clear_undo():
 
 def add_undo(task):
     global undo_stack
-    undo_stack.append(task)
+    if isinstance(task, list):
+        undo_stack.append(task)
+    else:
+        undo_stack.append([task])
     if len(undo_stack) > int(pymini.widgets['config_undo_stack'].get()):
         temp = undo_stack.pop(0)
         del temp
@@ -89,10 +92,11 @@ def add_undo(task):
 def undo(e=None):
     print('undo: {}'.format(e))
     if len(undo_stack) > 0:
-        task = undo_stack.pop()
-        print(task.__name__)
-        task()
-        del task
+        task_stack = undo_stack.pop()
+        for task in task_stack:
+            task()
+            del task
+        del task_stack
     else:
         return
 
@@ -347,7 +351,8 @@ def pick_event_manual(x):
         min_decay=float(pymini.widgets['detector_min_decay'].get()),
         max_decay=max_decay,
         max_points_decay=int(pymini.widgets['detector_max_points_decay'].get()),
-        df=mini_df
+        df=mini_df,
+        x_sigdig=analyzer.trace_file.sampling_rate_sigdig
     )
 
     if guide:
@@ -443,7 +448,8 @@ def find_mini_in_range(xlim, ylim):
             min_decay=min_decay,
             max_decay=max_decay,
             max_points_decay=max_points_decay,
-            df=mini_df
+            df=mini_df,
+            x_sigdig=analyzer.trace_file.sampling_rate_sigdig
         )
 
         pymini.pb['value'] = (i - task_start)/task_length * 100
@@ -558,7 +564,8 @@ def reanalyze(xs, ys, data, remove_restrict=False):
         min_decay=min_decay,
         max_decay=max_decay,
         max_points_decay=int(pymini.widgets['detector_max_points_decay'].get()),
-        df=mini_df
+        df=mini_df,
+        x_sigdig=analyzer.trace_file.sampling_rate_sigdig
     )
     new_data['channel'] = analyzer.trace_file.channel
     new_data['search_xlim'] = data['search_xlim']
