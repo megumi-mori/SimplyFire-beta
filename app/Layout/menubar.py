@@ -78,7 +78,12 @@ def export_events():
 
 def load_menubar(parent):
     menubar = Tk.Menu(parent)
-    # FILE
+
+    ##################################
+    # add menu bar commands here
+    ##################################
+
+    # File menu
     file_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='File', menu=file_menu)
 
@@ -89,29 +94,27 @@ def load_menubar(parent):
     file_menu.add_command(label='Save event file as...', command=save_events_as)
     file_menu.add_separator()
     file_menu.add_command(label='Export events', command=export_events)
-    # file_menu.add_command(label='Close', command=pymini.plot_area.close)
 
-    # options_menu = Tk.Menu(menubar, tearoff=0)
-    # menubar.add_cascade(label="Options", menu=options_menu)
-    #
-    # options_menu.add_command(label="Setting", command=_setting_window)
 
+    # View menu
     view_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='View', menu=view_menu)
+    # track trace_mode
     trace_var = Tk.StringVar(parent, 0)
     pymini.widgets['trace_mode'] = trace_var
     view_menu.add_radiobutton(label='Continous', command=_continuous_mode, variable=trace_var, value='continuous')
     view_menu.add_radiobutton(label='Overlay', command=_overlay_mode, variable=trace_var, value='overlay')
 
-
+    # Analysis menu
     analysis_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='Analysis', menu=analysis_menu)
+    # track analysis_mode
     analysis_var = Tk.StringVar(parent, 0)
     pymini.widgets['analysis_mode'] = analysis_var
     analysis_menu.add_radiobutton(label='Mini', command=_mini_mode, variable=analysis_var, value='mini')
     analysis_menu.add_radiobutton(label='Evoked', command=_evoked_mode, variable=analysis_var, value='evoked')
 
-
+    # Window menu
     window_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='Window', menu=window_menu)
     pymini.widgets['window_param_guide'] = VarWidget(name='window_param_guide')
@@ -123,6 +126,19 @@ def load_menubar(parent):
     analysis_menu.invoke({'mini':0, 'evoked':1}[config.analysis_mode])
     return menubar
 
+def display_cp_tab(tab_name):
+    # call this function if a menu command is associated with switching out tabs
+    # indicate the partner of the tab in the pymini tab setting section
+    idx = pymini.cp_notebook.index('current')
+    # check if current tab would be replaced by the new tab being displayed
+    if idx in [pymini.tab_details[tab]['index'] for tab in pymini.tab_details[tab_name]['partner']]:
+        idx = pymini.tab_details[tab_name]['index']
+    for partner in pymini.tab_details[tab_name]['partner']:
+        pymini.cp_notebook.hide(pymini.tab_details[partner]['index'])
+    pymini.cp_notebook.add(pymini.tab_details[tab_name]['tab'])
+    pymini.cp_notebook.select(idx)
+
+
 def _continuous_mode():
     pymini.widgets['trace_mode'].set('continuous')
     display_cp_tab('continuous')
@@ -133,15 +149,6 @@ def _continuous_mode():
     if pymini.widgets['analysis_mode'].get() == 'mini':
         pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='normal')
 
-def display_cp_tab(tab_name):
-    idx = pymini.cp_notebook.index('current')
-    # check if current tab would be replaced by the new tab being displayed
-    if idx in [pymini.tab_details[tab]['index'] for tab in pymini.tab_details[tab_name]['partner']]:
-        idx = pymini.tab_details[tab_name]['index']
-    for partner in pymini.tab_details[tab_name]['partner']:
-        pymini.cp_notebook.hide(pymini.tab_details[partner]['index'])
-    pymini.cp_notebook.add(pymini.tab_details[tab_name]['tab'])
-    pymini.cp_notebook.select(idx)
 
 def _overlay_mode(e=None):
     pymini.widgets['trace_mode'].set('overlay')
@@ -154,18 +161,14 @@ def _overlay_mode(e=None):
         pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='disabled')
 
 
-
 def _mini_mode(e=None):
     pymini.widgets['analysis_mode'].set('mini')
     display_cp_tab('mini')
     if pymini.widgets['trace_mode'].get() != 'continuous':
         pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='disabled')
     data_display.clear()
-    data_display.define_columns(tuple([i for i in data_display.mini_header2config]))
-    data_display.show_columns()
     detector_tab.populate_data_display()
     interface.update_event_marker()
-
 
 
 def _evoked_mode(e=None):
@@ -173,7 +176,6 @@ def _evoked_mode(e=None):
     display_cp_tab('evoked')
     trace_display.clear_markers()
     data_display.clear()
-    data_display.define_columns(data_display.trace_header)
     data_display.show_columns()
 
 
