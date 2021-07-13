@@ -183,26 +183,27 @@ def open_trace(fname):
 
     # trace_display.refresh()
 
-def save_events(filename):
-    try:
-        mini_df.to_csv(filename)
+def save_events(filename, dataframe=None):
+    if dataframe is None:
+        dataframe = mini_df
         pymini.event_filename = filename
-
+    try:
+        dataframe.to_csv(filename)
     except:
         messagebox.showerror('Write error', 'Could not write data to selected filename.')
 
 def open_events(filename, log=True):
     global mini_df
-    if len(mini_df.index) > 0:
-        temp_filename = os.path.join(config.DIR, *config.default_temp_path,
-                                     'temp_{}.temp'.format(get_temp_num()))
-        save_events(temp_filename)
-        add_undo([
-            data_display.clear,
-            update_event_marker,
-            lambda f=temp_filename, log=False:open_events(f, log),
-            log_display.insert('Undo open event file')
-        ])
+
+    temp_filename = os.path.join(config.DIR, *config.default_temp_path,
+                                 'temp_{}.temp'.format(get_temp_num()))
+    save_events(temp_filename)
+    add_undo([
+        data_display.clear,
+        lambda f=temp_filename:restore_events(f),
+        lambda msg='Undo open event file':log_display.log(msg),
+        update_event_marker,
+    ])
     try:
         mini_df = pd.read_csv(filename, index_col=0)
         pymini.event_filename = filename
@@ -217,6 +218,23 @@ def open_events(filename, log=True):
 
     except:
         messagebox.showerror('Read error', 'Could not read data.')
+
+def restore_events(filename):
+    print('restore events!! {}'.format(filename))
+    try:
+        global mini_df
+        mini_df = pd.read_csv(filename, index_col=0)
+        print(mini_df)
+        pymini.event_filename = filename
+        data_display.clear()
+        xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
+        xs = xs.dropna()
+        data_display.append(mini_df.loc[xs])
+
+        update_event_marker()
+    except Exception as e:
+        print('restore events error: {}'.format(e))
+        pass
 
 def export_events(filename):
     #need to think about what columns to export and if/how the user interacts with that decision
@@ -356,7 +374,8 @@ def pick_event_manual(x):
         data_display.add({key: value for key, value in data.items() if key in data_display.mini_header2config})
         update_event_marker()
         add_undo([
-            lambda iid=data['t']:data_display.delete_one(iid)
+            lambda iid=data['t']:data_display.delete_one(iid),
+            lambda msg='Undo manual mini detection at {}'.format(x):log_display.log(msg)
         ])
     if detector_tab.changed:
         log_display.search_update('Manual')
@@ -402,17 +421,6 @@ def find_mini_in_range(xlim, ylim):
         max_decay = float(pymini.widgets['detector_max_decay'].get())
     except:
         max_decay = np.inf
-    # lag = 100
-    # direction = -1
-    # search_range = 60
-    # min_amp = 0.3
-    # min_rise = 0
-    # max_rise = np.inf
-    # min_hw = 0
-    # max_hw = np.inf
-    # max_points_decay = 500
-    # min_decay = 0
-    # max_decay = np.inf
 
     xs = trace_display.ax.lines[0].get_xdata()
     ys = trace_display.ax.lines[0].get_ydata()
@@ -424,8 +432,14 @@ def find_mini_in_range(xlim, ylim):
     i=max(xlim_idx[0], lag)
     task_start = i
     task_length = xlim_idx[1] - i
-    j = 0
     global mini_df
+    temp_filename = os.path.join(config.DIR, *config.default_temp_path, 'temp_{}.temp'.format(get_temp_num()))
+    save_events(temp_filename, mini_df)
+    add_undo([
+        lambda f=temp_filename: restore_events(f),
+        lambda msg='Undo auto mini detection in range: {} - {}'.format(xlim[0], xlim[1]): log_display.log(msg)
+    ])
+
     while i < xlim_idx[1]:
         data, success = analyzer.filter_mini(
             start_idx=i,
@@ -456,6 +470,7 @@ def find_mini_in_range(xlim, ylim):
         else:
             i += max(search_range, data['peak_idx'] - i)
         if success:
+
             try:
                 mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
             except:
@@ -489,16 +504,13 @@ def select_in_data_display(iid):
         data_display.select_one(iid)
 
 def reanalyze(xs, ys, data, remove_restrict=False):
-
+    global mini_df
     try:
-        selected = data_display.table.selection()[0] == str(data['t'])
+        old_data = mini_df.loc[data['t']]
     except:
-        selected = False
-    try:
-        data_display.delete_one(data['t'])
-    except:
-        pass
+        old_data = None
 
+    data_display.delete_one(data['t'])
     try:
         param_guide.accept_button.config(state='disabled')
         param_guide.reanalyze_button.config(state='disabled')
@@ -541,7 +553,6 @@ def reanalyze(xs, ys, data, remove_restrict=False):
         except:
             max_decay = np.inf
 
-    global mini_df
     new_data, success = analyzer.filter_mini(
         start_idx=None,
         end_idx=None,
@@ -565,15 +576,27 @@ def reanalyze(xs, ys, data, remove_restrict=False):
     )
     new_data['channel'] = analyzer.trace_file.channel
     new_data['search_xlim'] = data['search_xlim']
+    undo = []
     if success:
         try:
-            mini_df = mini_df.append(pd.Series(new_data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+            mini_df = mini_df.append(pd.Series(new_data, name=new_data['t']), ignore_index=False, verify_integrity=True,
+                                     sort=True)
             data_display.add({key: value for key, value in new_data.items() if key in data_display.mini_header2config})
             update_event_marker()
             data_display.table.update()
+            # add_undo([
+            #     lambda t=new_data['t']:data_display.delete_one(t),
+            #     lambda msg='Undo reanalysis of mini at {}'.format(data['t']):log_display.log(msg)
+            # ])
         except Exception as e:
             print('reanalyze {}'.format(e))
             pass
+    if old_data is not None:
+        pass
+        # add_undo([
+        #     lambda d=old_data: add_event(d),
+        #     update_event_marker
+        # ])
 
     if pymini.widgets['window_param_guide'].get():
         report_to_param_guide(xs, ys, new_data)
@@ -584,6 +607,12 @@ def reanalyze(xs, ys, data, remove_restrict=False):
         detector_tab.changes = {}
         detector_tab.changed = False
 
+def add_event(data):
+    # populate this and replace with repeated calls in interpreter
+    # also include add to data display after removing calls
+    data_display.add({key:value for key, value in data.items() if key in data_display.mini_header2config})
+    global mini_df
+    mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
 def report_to_param_guide(xs, ys, data, clear=False):
     if clear:
         param_guide.clear()
