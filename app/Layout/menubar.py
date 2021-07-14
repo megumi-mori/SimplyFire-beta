@@ -8,6 +8,8 @@ from DataVisualizer import param_guide, data_display, trace_display
 from Layout import detector_tab
 import gc
 
+global trace_mode
+trace_mode = None
 def _setting_window(event=None):
     window = Tk.Toplevel()
 
@@ -141,6 +143,11 @@ def display_cp_tab(tab_name):
 
 
 def _continuous_mode(save_undo=True):
+    global trace_mode
+    if save_undo and trace_mode == 'overlay':
+        interface.add_undo([
+            lambda s=False:_overlay_mode(s),
+        ])
     pymini.widgets['trace_mode'].set('continuous')
     display_cp_tab('continuous')
     try:
@@ -149,13 +156,15 @@ def _continuous_mode(save_undo=True):
         pass
     if pymini.widgets['analysis_mode'].get() == 'mini':
         pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='normal')
-    if save_undo:
+    trace_mode = 'continuous'
+
+
+def _overlay_mode(save_undo=True):
+    global trace_mode
+    if save_undo and trace_mode == 'continuous':
         interface.add_undo([
-            lambda s=False:_continuous_mode(s),
+            lambda d=False:_continuous_mode(d)
         ])
-
-
-def _overlay_mode(e=None):
     pymini.widgets['trace_mode'].set('overlay')
     display_cp_tab('overlay')
     try:
@@ -164,8 +173,7 @@ def _overlay_mode(e=None):
         pass
     if pymini.widgets['analysis_mode'].get() == 'mini':
         pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='disabled')
-    interface.add_undo(lambda i=0: view_menu.invoke(i))
-
+    trace_mode = 'overlay'
 
 def _mini_mode(e=None):
     pymini.widgets['analysis_mode'].set('mini')

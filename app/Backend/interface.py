@@ -88,6 +88,7 @@ def add_undo(task):
     if len(undo_stack) > int(pymini.widgets['config_undo_stack'].get()):
         temp = undo_stack.pop(0)
         del temp
+    print(undo_stack)
     return
 
 def undo(e=None):
@@ -97,8 +98,10 @@ def undo(e=None):
             task()
             del task
         del task_stack
+        print(undo_stack)
     else:
         return
+
 
 
 
@@ -614,6 +617,7 @@ def add_event(data):
     data_display.add({key:value for key, value in data.items() if key in data_display.mini_header2config})
     global mini_df
     mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+
 def report_to_param_guide(xs, ys, data, clear=False):
     if clear:
         param_guide.clear()

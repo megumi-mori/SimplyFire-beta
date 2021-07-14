@@ -63,18 +63,18 @@ def set_value(key, value, tab=None):
         None
 
 
-def change_label(key, value, tab=None):
-    try:
-        tabs[tab].change_label(key, value)
-        return True
-    except:
-        for t in tabs:
-            try:
-                tabs[t].change_label(key, value)
-                return True
-            except:
-                pass
-    return False
+# def change_label(key, value, tab=None):
+#     try:
+#         tabs[tab].change_label(key, value)
+#         return True
+#     except:
+#         for t in tabs:
+#             try:
+#                 tabs[t].change_label(key, value)
+#                 return True
+#             except:
+#                 pass
+#     return False
 
 def load():
     tracemalloc.start()

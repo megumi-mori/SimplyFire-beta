@@ -587,14 +587,15 @@ def plot_peak(xs, ys):
     global markers
     try:
         markers['peak'].remove()
-    except:
+    except Exception as e:
+        print('plot_peak, remove markers error: {}'.format(e))
         pass
     try:
         markers['peak'] = ax.scatter(xs, ys, marker='o', c=pymini.widgets['style_event_color_peak'].get(), picker=True,
                                      pickradius=int(pymini.widgets['style_event_pick_offset'].get()), animated=False)
         # canvas.draw()
     except Exception as e:
-        print(e)
+        print('plot peak, plotting error:{}'.format(e))
         pass
 
 

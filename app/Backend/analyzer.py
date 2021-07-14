@@ -369,7 +369,7 @@ def filter_mini(
             return data, False
     except:
         pass
-    data['peak_coord_x'] = xs[data['peak_idx']]
+    data['peak_coord_x'] = data['t']
     data['peak_coord_y'] = ys[data['peak_idx']]
 
     ##### find baseline/start of event #####
