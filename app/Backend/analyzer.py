@@ -359,6 +359,7 @@ def filter_mini(
 
     if data['peak_idx'] is None:
         return data, False
+        #test
 
     data['t'] = xs[data['peak_idx']]
     if x_sigdig is not None:
