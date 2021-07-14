@@ -91,7 +91,6 @@ def add_undo(task):
     return
 
 def undo(e=None):
-    print('undo: {}'.format(e))
     if len(undo_stack) > 0:
         task_stack = undo_stack.pop()
         for task in task_stack:
@@ -240,8 +239,11 @@ def export_events(filename):
     #need to think about what columns to export and if/how the user interacts with that decision
     pass
 
+def _change_channel(num, save_undo=True):
+    log_display.log('@ graph_viewer: switch to channel {}'.format(num))
+    if save_undo and num != analyzer.trace_file.channel:
+        add_undo(lambda n=analyzer.trace_file.channel, s=False:_change_channel(n, s))
 
-def _change_channel(num):
     analyzer.trace_file.set_channel(num)
     pymini.widgets['channel_option'].set('{}: {}'.format(analyzer.trace_file.channel + 1, analyzer.trace_file.y_label))
     xlim = trace_display.ax.get_xlim()
@@ -375,7 +377,7 @@ def pick_event_manual(x):
         update_event_marker()
         add_undo([
             lambda iid=data['t']:data_display.delete_one(iid),
-            lambda msg='Undo manual mini detection at {}'.format(x):log_display.log(msg)
+            lambda msg='Undo manual mini detection at {}'.format(x):detector_tab.log(msg)
         ])
     if detector_tab.changed:
         log_display.search_update('Manual')
@@ -437,7 +439,7 @@ def find_mini_in_range(xlim, ylim):
     save_events(temp_filename, mini_df)
     add_undo([
         lambda f=temp_filename: restore_events(f),
-        lambda msg='Undo auto mini detection in range: {} - {}'.format(xlim[0], xlim[1]): log_display.log(msg)
+        lambda msg='Undo auto mini detection in range: {} - {}'.format(xlim[0], xlim[1]): detector_tab.log(msg)
     ])
 
     while i < xlim_idx[1]:
@@ -584,19 +586,18 @@ def reanalyze(xs, ys, data, remove_restrict=False):
             data_display.add({key: value for key, value in new_data.items() if key in data_display.mini_header2config})
             update_event_marker()
             data_display.table.update()
-            # add_undo([
-            #     lambda t=new_data['t']:data_display.delete_one(t),
-            #     lambda msg='Undo reanalysis of mini at {}'.format(data['t']):log_display.log(msg)
-            # ])
+            undo = [
+                lambda t=new_data['t']:data_display.delete_one(t),
+                lambda msg='Undo reanalysis of mini at {}'.format(data['t']):log_display.log(msg)
+            ]
         except Exception as e:
             print('reanalyze {}'.format(e))
             pass
     if old_data is not None:
         pass
-        # add_undo([
-        #     lambda d=old_data: add_event(d),
-        #     update_event_marker
-        # ])
+        undo.append(lambda d=old_data: add_event(d))
+    undo.append(update_event_marker)
+    add_undo(undo)
 
     if pymini.widgets['window_param_guide'].get():
         report_to_param_guide(xs, ys, new_data)
