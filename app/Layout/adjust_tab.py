@@ -15,6 +15,8 @@ from astropy.convolution import Box1DKernel, convolve
 
 #### DEBUG
 import tracemalloc
+global name
+name = 'adjust'
 
 def load(parent):
     optionframe = ScrollableOptionFrame(parent)
@@ -190,7 +192,7 @@ def load(parent):
 
     frame.insert_button(
         text='Apply',
-        command=_test_filtering
+        command=_filter
     )
 
     global filter_form
@@ -221,6 +223,12 @@ def load(parent):
 
     return optionframe
 
+def log(msg, header=True):
+    if header:
+        log_display.log('@ {}: {}'.format(name, msg), header)
+    else:
+        log_display.log("   {}".format(msg), header)
+
 def _populate_filter_algorithm_choices(e=None):
     pymini.widgets['adjust_filter_algorithm'].clear_options()
     for m in globals()['{}_list'.format(pymini.widgets['adjust_filter_lohi'].get())]:
@@ -230,7 +238,7 @@ def _populate_filter_algorithm_choices(e=None):
     if e is not None:
         _populate_filter_form(globals()['{}_list'.format(e)][0])
 
-def _populate_filter_form(e=None): ################# not working!!!
+def _populate_filter_form(e=None):
     print(e)
     filter_form[pymini.widgets['adjust_filter_algorithm'].get()].grid_forget()
     if e is not None:
@@ -239,79 +247,6 @@ def _populate_filter_form(e=None): ################# not working!!!
     else:
         filter_form[pymini.widgets['adjust_filter_algorithm'].get()].grid(column=0, row=0, sticky='news')
 
-
-def _test_filtering(e=None):
-    if analyzer.trace_file is None:
-        return None
-
-    if pymini.widgets['adjust_channel'].get():
-        channels = [analyzer.trace_file.channel]
-    else:
-        channels = [i for i in range(analyzer.trace_file.channel_count)]
-
-    if pymini.widgets['adjust_target'].get() == 'All sweeps' or pymini.widgets[
-        'trace_mode'].get() == 'continuous':
-        data_list = [i for i in range(analyzer.trace_file.sweep_count)]
-        if not data_list:
-            return None
-    elif pymini.widgets['adjust_target'].get() == 'Visible sweeps':
-        data_list = [i for i, v in enumerate(sweep_tab.sweep_vars) if
-                     v.get()]  # consider making a function for this in sweep_tab
-        if not data_list:
-            return None
-    elif pymini.widgets['adjust_target'].get() == 'Highlighted sweeps':
-        data_list = [i for i in trace_display.highlighted_sweep]
-        if not data_list:
-            return None
-
-    ########### Save temp file ##############
-    temp_filename = os.path.join(config.DIR, *config.default_temp_path, 'temp_{}.temp'.format(interface.get_temp_num()))
-
-    analyzer.trace_file.save_ydata(filename=temp_filename,
-                                   channels=channels,
-                                   progress_bar=pymini.pb)
-    pymini.pb['value'] = 2
-    pymini.pb.update()
-    interface.add_undo(lambda e=temp_filename:
-                       undo_trace_adjust_changes(e))
-    task_length = len(channels)
-    task_progress = 1
-    ##########################################
-
-    if pymini.widgets['adjust_filter_algorithm'].get() == 'Boxcar':
-        print('starting lowpass filter!')
-        kernel = int(pymini.widgets['adjust_filter_boxcar_kernel'].get())
-        k = Box1DKernel(kernel)
-
-        parameters = {'kernel': kernel}
-
-        for c in channels:
-            pymini.pb['value'] = task_progress/task_length * 100
-            pymini.pb.update()
-            task_progress += 1
-            for d in data_list:
-                ys = analyzer.trace_file.get_ys(mode='overlay', channel=c, sweep=d)
-                analyzer.trace_file.set_ydata(channel=c, sweep=d, data=convolve(ys, k))
-    if pymini.widgets['trace_mode'].get() == 'overlay':
-        for d in data_list:
-            trace_display.get_sweep(d).set_ydata(analyzer.trace_file.get_ys(mode='overlay', sweep=d))
-    elif pymini.widgets['trace_mode'].get() == 'continuous':
-        trace_display.get_sweep(0).set_ydata(analyzer.trace_file.get_ys(mode='continuous'))
-
-    log('Filter traces {}, channels {}'.format(analyzer.format_list_indices(data_list), channels), True)
-    log('   Filtering algorithm: {}'.format(pymini.widgets['adjust_filter_algorithm'].get()), False)
-    log('   Filtering parameters: {}'.format(str(parameters)), False)
-
-    pymini.pb['value'] = 0
-    pymini.pb.update()
-    trace_display.canvas.draw()
-
-
-def log(msg, header=True):
-    if header:
-        log_display.log('@ adjust: {}'.format(msg), header)
-    else:
-        log_display.log(msg, header)
 
 def undo_trace_adjust_changes(filename, delete_sweep=False, sweep_list=None):
     analyzer.trace_file.load_ydata(filename)
@@ -328,9 +263,9 @@ def undo_trace_adjust_changes(filename, delete_sweep=False, sweep_list=None):
         for i in range(analyzer.trace_file.sweep_count):
             trace_display.get_sweep(i).set_ydata(analyzer.trace_file.get_ys(mode='overlay', sweep=i))
     trace_display.canvas.draw()
-    log('Undo trace adjustment', True)
 
 
+######### Baseline Adjust
 def _select_baseline_mode(e=None):
     if pymini.widgets['adjust_baseline_mode'].get() == 'mean':
         print('mean')
@@ -350,6 +285,182 @@ def _select_baseline_mode(e=None):
         pymini.widgets['adjust_range_right'].config(state='disabled')
         pymini.widgets['adjust_fixed'].config(state='normal')
 
+
+def _adjust_baseline(e=None):
+    if analyzer.trace_file is None:
+        return None
+    pymini.pb['value'] = 5
+    pymini.pb.update()
+    if pymini.widgets['adjust_channel'].get():
+        channels = [analyzer.trace_file.channel]
+    else:
+        channels = [i for i in range(analyzer.trace_file.channel_count)]
+
+    ######### UNDO ##########
+    temp_filename = os.path.join(config.DIR, *config.default_temp_path, 'temp_{}.temp'.format(interface.get_temp_num()))
+    analyzer.trace_file.save_ydata(filename=temp_filename,
+                                   channels=channels,
+                                   progress_bar=pymini.pb)
+    interface.add_undo(lambda f=temp_filename: _undo_baseline(f))
+    #########################
+
+    data_list = []
+
+    if pymini.widgets['adjust_target'].get() == 'All sweeps' or pymini.widgets[
+        'trace_mode'].get() == 'continuous':
+        data_list = [i for i in range(analyzer.trace_file.sweep_count)]
+        if not data_list:
+            return None
+    elif pymini.widgets['adjust_target'].get() == 'Visible sweeps':
+        data_list = [i for i, v in enumerate(sweep_tab.sweep_vars) if
+                     v.get()]  # consider making a function for this in sweep_tab
+        if not data_list:
+            return None
+    elif pymini.widgets['adjust_target'].get() == 'Highlighted sweeps':
+        data_list = [i for i in trace_display.highlighted_sweep]
+        if not data_list:
+            return None
+
+    ###### Log output ######
+    log('Baseline adjustment performed on: {}'.format(pymini.widgets['adjust_target'].get()), True)
+    log('Traces {}'.format(analyzer.format_list_indices(data_list)), False)
+    log('Channels {}'.format(channels), False)
+    ########################
+
+    task_length = len(channels)
+    task_progress = 1
+    baseline = []
+    for c in channels:
+        pymini.pb['value'] = task_progress/task_length * 90 + 10
+        task_progress += 1
+        pymini.pb.update()
+        if pymini.widgets['adjust_baseline_mode'].get() == 'fixed':
+            baseline = [float(pymini.widgets['adjust_fixed'].get())]
+            #### Log ####
+            log('Subtract a fixed number: {}{}'.format(baseline, analyzer.trace_file.y_unit), False)
+            #############
+        elif pymini.widgets['trace_mode'].get() == 'overlay':
+            if pymini.widgets['adjust_baseline_mode'].get() == 'mean':
+                if pymini.widgets['adjust_target'].get() == 'All sweeps':
+                    ys = analyzer.trace_file.get_ys(mode='continuous', channel=c)  # get data for all ys for the channel
+                    baseline = [np.mean(ys)]
+                elif pymini.widgets['adjust_target'].get() == 'Visible sweeps':
+                    signal_list = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]
+                    if not signal_list:
+                        messagebox.showwarning(title='Parameter error',
+                                               message='No visible sweeps',
+                                               icon=messagebox.WARNING)
+                        return None
+                    ys = np.array([])
+                    for i in signal_list:
+                        ys = np.concatenate((ys, analyzer.trace_file.get_ys(mode='overlay', channel=c, sweep=i)))
+                    baseline = [np.mean(ys)]
+                elif pymini.widgets['adjust_target'].get() == 'Highlighted sweeps':
+                    signal_list = trace_display.highlighted_sweep
+                    if len(signal_list) > 0:
+                        ys = np.array([])
+                        for i in signal_list:
+                            ys = np.concatenate((ys, analyzer.trace_file.get_ys(mode='overlay', channel=c, sweep=i)))
+                        baseline = [np.mean(ys)]
+                    else:
+                        messagebox.showwarning(title='Parameter error',
+                                               message='No sweeps are highlighted (must be in Overlay mode)',
+                                               icon=messagebox.WARNING)
+                        return None
+                ##### Log #####
+                log('Subtract the mean value: {}{}'.format(baseline, analyzer.trace_file.y_unit), False)
+                ###############
+            elif pymini.widgets['adjust_baseline_mode'].get() == 'range':
+                if len(trace_display.sweeps) == 0:
+                    return None
+                xlim = (float(pymini.widgets['adjust_range_left'].get()),
+                        float(pymini.widgets['adjust_range_right'].get()))
+                if xlim[0] > xlim[1]:
+                    xlim = (xlim[1], xlim[0])
+
+                xlim_idx = [
+                        (
+                            min(
+                                max(
+                                    analyzer.search_index(xlim[0],
+                                                          analyzer.trace_file.get_xs(mode='overlay', sweep=i),
+                                                          analyzer.trace_file.sampling_rate
+                                                          ),
+                                    0
+                                ),
+                                len(analyzer.trace_file.get_xs(mode='overlay', sweep=i))
+                            ),
+                            max(
+                                min(
+                                    analyzer.search_index(xlim[1],
+                                                          analyzer.trace_file.get_xs(mode='overlay', sweep=i),
+                                                          analyzer.trace_file.sampling_rate
+                                                          ),
+                                    len(analyzer.trace_file.get_xs(mode='overlay', sweep=i))
+                                ),
+                                0
+                            )
+                        )
+                    for i in data_list
+                    ]
+                baseline = [np.mean(analyzer.trace_file.get_ys(mode='overlay',channel=c, sweep=i)[xlim_idx[i][0]:xlim_idx[i][1]])
+                            for i in data_list]
+                ##### Log #####
+                log('Subtract mean of range ({}, {}) from each sweep: {}{}'.format(xlim[0], xlim[1], baseline, analyzer.trace_file.y_unit), False)
+                ###############
+        elif pymini.widgets['trace_mode'].get() == 'continuous':
+            if pymini.widgets['adjust_target'].get() == 'Highlighted sweeps':
+                messagebox.showwarning(title='Parameter error',
+                                       message='No sweeps are highlighted (must be in Overlay mode)',
+                                       icon=messagebox.WARNING)
+            else:
+                # all sweeps or all visible sweeps, doesn't matter on continuous mode
+                ys = analyzer.trace_file.get_ys(mode='continuous', channel=c)  # get data for all ys for the channel
+                baseline = [np.mean(ys)]
+                ##### Log #####
+                log('Subtract the mean value: {}{}'.format(baseline, analyzer.trace_file.y_unit), False)
+                ###############
+
+        else:
+            return None
+
+        if len(data_list) > len(baseline):
+            baseline = [baseline[0]] * len(data_list)
+        for i in data_list:
+            ys = analyzer.trace_file.get_ys(mode='overlay', channel=c, sweep=i) - baseline[i]
+            analyzer.trace_file.set_ydata(channel=c, sweep=i, data=ys)
+            if c == analyzer.trace_file.channel:
+                trace_display.get_sweep(i).set_ydata(ys)
+    if pymini.widgets['trace_mode'].get() == 'continuous':
+        trace_display.get_sweep(0).set_ydata(analyzer.trace_file.get_ys(mode='continuous'))
+
+
+
+
+    # log('Average traces using: {}'.format(pymini.widgets['adjust_target'].get()), True)
+    # log('Traces {}'.format(analyzer.format_list_indices(data_list)), False)
+    # log('Channels {}'.format(channels))
+    # log('Result stored on sweep {}'.format(analyzer.trace_file.sweep_count - 1), False)
+
+
+    pymini.pb['value'] = 0
+    pymini.pb.update()
+
+
+    trace_display.canvas.draw()
+
+
+def _undo_baseline(filename):
+    analyzer.trace_file.load_ydata(filename)
+    if pymini.widgets['trace_mode'].get() == 'continuous':
+        trace_display.get_sweep(0).set_ydata(analyzer.trace_file.get_ys(mode='continuous'))
+    if pymini.widgets['trace_mode'].get() == 'overlay':
+        for i in range(analyzer.trace_file.sweep_count):
+            trace_display.get_sweep(i).set_ydata(analyzer.trace_file.get_ys(mode='overlay', sweep=i))
+    trace_display.canvas.draw()
+    log('Undo baseline adjustment', True)
+
+#### Trace Averaging #####
 def _average_trace(e=None):
     if analyzer.trace_file is None:
         return None
@@ -367,8 +478,7 @@ def _average_trace(e=None):
                                    channels=channels,
                                    progress_bar=pymini.pb)
     sweep_list = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]
-    interface.add_undo(lambda e=temp_filename, d=True, l=sweep_list:
-                       undo_trace_adjust_changes(e, delete_sweep=d, sweep_list=l))
+    interface.add_undo(lambda e=temp_filename, l=sweep_list: _undo_average_trace(e, sweep_list=l))
     ########################################################
 
     data_list = []
@@ -432,30 +542,37 @@ def _average_trace(e=None):
     sweep_tab.hide_all()
     sweep_tab.checkbuttons[-1].invoke()
 
-    log('Average traces {}, channels {}'.format(analyzer.format_list_indices(data_list), channels), True)
-    log('   Standard deviation: {}'.format(stdev), False)
-    log('   Average trace stored on sweep {}'.format(analyzer.trace_file.sweep_count - 1), False)
+    log('Trace averaging performed on: {}'.format(pymini.widgets['adjust_target'].get()), True)
+    log('Traces {}'.format(analyzer.format_list_indices(data_list)), False)
+    log('Channels {}'.format(channels), False)
+    log('Result stored on sweep {}'.format(analyzer.trace_file.sweep_count - 1), False)
 
+def _undo_average_trace(filename, sweep_list=None):
+    analyzer.trace_file.load_ydata(filename)
 
-def _adjust_baseline(e=None):
+    analyzer.trace_file.delete_last_sweep()
+    sweep_tab.delete_last_sweep()
+    trace_display.delete_last_sweep()
+    if sweep_list:
+        sweep_tab.show(sweep_list, False)
+    if pymini.widgets['trace_mode'].get() == 'continuous':
+        trace_display.get_sweep(0).set_ydata(analyzer.trace_file.get_ys(mode='continuous'))
+    if pymini.widgets['trace_mode'].get() == 'overlay':
+        for i in range(analyzer.trace_file.sweep_count):
+            trace_display.get_sweep(i).set_ydata(analyzer.trace_file.get_ys(mode='overlay', sweep=i))
+    trace_display.canvas.draw()
+    log('Undo trace averaging', header=True)
+
+#### Filtering #####
+
+def _filter(e=None):
     if analyzer.trace_file is None:
         return None
-    pymini.pb['value'] = 5
-    pymini.pb.update()
+
     if pymini.widgets['adjust_channel'].get():
         channels = [analyzer.trace_file.channel]
     else:
         channels = [i for i in range(analyzer.trace_file.channel_count)]
-
-    temp_filename = os.path.join(config.DIR, *config.default_temp_path, 'temp_{}.temp'.format(interface.get_temp_num()))
-
-    analyzer.trace_file.save_ydata(filename=temp_filename,
-                                   channels=channels,
-                                   progress_bar=pymini.pb)
-
-    interface.add_undo(lambda e=temp_filename:undo_trace_adjust_changes(e))
-
-    data_list = []
 
     if pymini.widgets['adjust_target'].get() == 'All sweeps' or pymini.widgets[
         'trace_mode'].get() == 'continuous':
@@ -472,106 +589,58 @@ def _adjust_baseline(e=None):
         if not data_list:
             return None
 
+    ########### Save temp file ##############
+    temp_filename = os.path.join(config.DIR, *config.default_temp_path, 'temp_{}.temp'.format(interface.get_temp_num()))
+
+    analyzer.trace_file.save_ydata(filename=temp_filename,
+                                   channels=channels,
+                                   progress_bar=pymini.pb)
+    pymini.pb['value'] = 2
+    pymini.pb.update()
+    interface.add_undo([
+        lambda e=temp_filename: _undo_filtering(e)
+    ])
     task_length = len(channels)
     task_progress = 1
+    ##########################################
 
-    for c in channels:
-        pymini.pb['value'] = task_progress/task_length * 90 + 10
-        task_progress += 1
-        pymini.pb.update()
-        if pymini.widgets['adjust_baseline_mode'].get() == 'fixed':
-            baseline = [float(pymini.widgets['adjust_fixed'].get())]
-        elif pymini.widgets['trace_mode'].get() == 'overlay':
-            if pymini.widgets['adjust_baseline_mode'].get() == 'mean':
-                if pymini.widgets['adjust_target'].get() == 'All sweeps':
-                    ys = analyzer.trace_file.get_ys(mode='continuous', channel=c)#get data for all ys for the channel
-                    baseline = [np.mean(ys)]
-                elif pymini.widgets['adjust_target'].get() == 'Visible sweeps':
-                    signal_list = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]
-                    if not signal_list:
-                        messagebox.showwarning(title='Parameter error',
-                                               message='No visible sweeps',
-                                               icon=messagebox.WARNING)
-                        return None
-                    ys = np.array([])
-                    for i in signal_list:
-                        ys = np.concatenate((ys, analyzer.trace_file.get_ys(mode='overlay', channel=c, sweep=i)))
-                    baseline = [np.mean(ys)]
-                elif pymini.widgets['adjust_target'].get() == 'Highlighted sweeps':
-                    signal_list = trace_display.highlighted_sweep
-                    if len(signal_list) > 0:
-                        ys = np.array([])
-                        for i in signal_list:
-                            ys = np.concatenate((ys, analyzer.trace_file.get_ys(mode='overlay', channel=c, sweep=i)))
-                        baseline = [np.mean(ys)]
-                    else:
-                        messagebox.showwarning(title='Parameter error',
-                                               message='No sweeps are highlighted (must be in Overlay mode)',
-                                               icon=messagebox.WARNING)
-                        return None
-                print(baseline)
+    if pymini.widgets['adjust_filter_algorithm'].get() == 'Boxcar':
+        print('starting lowpass filter!')
+        kernel = int(pymini.widgets['adjust_filter_boxcar_kernel'].get())
+        k = Box1DKernel(kernel)
 
-            elif pymini.widgets['adjust_baseline_mode'].get() == 'range':
-                if len(trace_display.sweeps) == 0:
-                    return None
-                xlim = (float(pymini.widgets['adjust_range_left'].get()),
-                        float(pymini.widgets['adjust_range_right'].get()))
-                if xlim[0] > xlim[1]:
-                    xlim = (xlim[1], xlim[0])
+        parameters = {'kernel': kernel}
 
-                xlim_idx = [
-                        (
-                            min(
-                                max(
-                                    analyzer.search_index(xlim[0],
-                                                          analyzer.trace_file.get_xs(mode='overlay', sweep=i),
-                                                          analyzer.trace_file.sampling_rate
-                                                          ),
-                                    0
-                                ),
-                                len(analyzer.trace_file.get_xs(mode='overlay', sweep=i))
-                            ),
-                            max(
-                                min(
-                                    analyzer.search_index(xlim[1],
-                                                          analyzer.trace_file.get_xs(mode='overlay', sweep=i),
-                                                          analyzer.trace_file.sampling_rate
-                                                          ),
-                                    len(analyzer.trace_file.get_xs(mode='overlay', sweep=i))
-                                ),
-                                0
-                            )
-                        )
-                    for i in data_list
-                    ]
-                baseline = [np.mean(analyzer.trace_file.get_ys(mode='overlay',channel=c, sweep=i)[xlim_idx[i][0]:xlim_idx[i][1]])
-                            for i in data_list]
-        elif pymini.widgets['trace_mode'].get() == 'continuous':
-            if pymini.widgets['adjust_target'].get() == 'Highlighted sweeps':
-                messagebox.showwarning(title='Parameter error',
-                                       message='No sweeps are highlighted (must be in Overlay mode)',
-                                       icon=messagebox.WARNING)
-            else:
-                # all sweeps or all visible sweeps, doesn't matter on continuous mode
-                ys = analyzer.trace_file.get_ys(mode='continuous', channel=c)  # get data for all ys for the channel
-                baseline = [np.mean(ys)]
-
-        else:
-            return None
-
-        if len(data_list) > len(baseline):
-            baseline = [baseline[0]] * len(data_list)
-        for i in data_list:
-            ys = analyzer.trace_file.get_ys(mode='overlay', channel=c, sweep=i) - baseline[i]
-            analyzer.trace_file.set_ydata(channel=c, sweep=i, data=ys)
-            if c == analyzer.trace_file.channel:
-                trace_display.get_sweep(i).set_ydata(ys)
-    if pymini.widgets['trace_mode'].get() == 'continuous':
+        for c in channels:
+            pymini.pb['value'] = task_progress/task_length * 100
+            pymini.pb.update()
+            task_progress += 1
+            for d in data_list:
+                ys = analyzer.trace_file.get_ys(mode='overlay', channel=c, sweep=d)
+                analyzer.trace_file.set_ydata(channel=c, sweep=d, data=convolve(ys, k))
+    if pymini.widgets['trace_mode'].get() == 'overlay':
+        for d in data_list:
+            trace_display.get_sweep(d).set_ydata(analyzer.trace_file.get_ys(mode='overlay', sweep=d))
+    elif pymini.widgets['trace_mode'].get() == 'continuous':
         trace_display.get_sweep(0).set_ydata(analyzer.trace_file.get_ys(mode='continuous'))
 
-    log('Baseline adjustment traces {}, channels {}'.format(analyzer.format_list_indices(data_list), channels), True)
+    log('Trace filtering performed on: {}'.format(pymini.widgets['adjust_target'].get()), header=True)
+    log('Traces {}'.format(analyzer.format_list_indices(data_list)), False)
+    log('Channels {}'.format(channels))
+    log('Filtering algorithm: {}'.format(pymini.widgets['adjust_filter_algorithm'].get()), False)
+    log('Filtering parameters: {}'.format(str(parameters)), False)
+
     pymini.pb['value'] = 0
     pymini.pb.update()
-
-
     trace_display.canvas.draw()
+
+
+def _undo_filtering(filename):
+    analyzer.trace_file.load_ydata(filename)
+    if pymini.widgets['trace_mode'].get() == 'continuous':
+        trace_display.get_sweep(0).set_ydata(analyzer.trace_file.get_ys(mode='continuous'))
+    if pymini.widgets['trace_mode'].get() == 'overlay':
+        for i in range(analyzer.trace_file.sweep_count):
+            trace_display.get_sweep(i).set_ydata(analyzer.trace_file.get_ys(mode='overlay', sweep=i))
+    trace_display.canvas.draw()
+    log('Undo filtering', True)

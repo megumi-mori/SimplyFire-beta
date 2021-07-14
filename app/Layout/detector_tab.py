@@ -1,12 +1,14 @@
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 import pymini
-from DataVisualizer import data_display, trace_display
+from DataVisualizer import data_display, trace_display, log_display
 from Backend import interface, analyzer
 changed = True
 changes = {}
 parameters = {}
 
+global name
+name = 'mini'
 def find_all():
     interface.find_mini_in_range(trace_display.default_xlim, trace_display.default_ylim)
 
@@ -208,3 +210,10 @@ def populate_data_display():
         data_display.set(interface.mini_df.loc[xs])
     except: # file not loaded yet
         pass
+
+
+def log(msg, header=True):
+    if header:
+        log_display.log('@ {}: {}'.format(name, msg), header)
+    else:
+        log_display.log("   {}".format(msg), header)
