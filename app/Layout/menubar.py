@@ -97,6 +97,7 @@ def load_menubar(parent):
 
 
     # View menu
+    global view_menu
     view_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='View', menu=view_menu)
     # track trace_mode
@@ -139,7 +140,7 @@ def display_cp_tab(tab_name):
     pymini.cp_notebook.select(idx)
 
 
-def _continuous_mode():
+def _continuous_mode(save_undo=True):
     pymini.widgets['trace_mode'].set('continuous')
     display_cp_tab('continuous')
     try:
@@ -148,6 +149,10 @@ def _continuous_mode():
         pass
     if pymini.widgets['analysis_mode'].get() == 'mini':
         pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='normal')
+    if save_undo:
+        interface.add_undo([
+            lambda s=False:_continuous_mode(s),
+        ])
 
 
 def _overlay_mode(e=None):
@@ -159,6 +164,7 @@ def _overlay_mode(e=None):
         pass
     if pymini.widgets['analysis_mode'].get() == 'mini':
         pymini.cp_notebook.tab(pymini.tab_details['mini']['index'], state='disabled')
+    interface.add_undo(lambda i=0: view_menu.invoke(i))
 
 
 def _mini_mode(e=None):
