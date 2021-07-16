@@ -176,7 +176,7 @@ def open_trace(fname):
     pymini.widgets['channel_option'].clear_options()
 
     for i in range(analyzer.trace_file.channel_count):
-        pymini.widgets['channel_option'].add_option(
+        pymini.widgets['channel_option'].add_command(
             label='{}: {}'.format(i+1, analyzer.trace_file.channel_labels[i]),
             command=lambda c=i:_change_channel(c)
         )

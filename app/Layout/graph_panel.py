@@ -8,6 +8,7 @@ from DataVisualizer import trace_display
 import pymini
 import os
 import time
+from Backend import interface
 
 
 
@@ -176,7 +177,7 @@ def load(parent):
         label='channel',
         value='',
         default='',
-        options=['']
+        options=[''],
     )
 
     pymini.widgets['force_channel'] = channel_frame.insert_label_checkbox(

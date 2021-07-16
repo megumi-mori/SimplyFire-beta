@@ -164,64 +164,57 @@ def load(parent):
         separator=False,
         command=_populate_filter_algorithm_choices
     )
-    global Lowpass_list
-    Lowpass_list = ['Boxcar', 'Gaussian (X)']
 
-    global Highpass_list
-    Highpass_list = ['???', '???']
-    if pymini.widgets['adjust_filter_lohi'].get() == 'Lowpass':
-        filtering_methods = Lowpass_list
-    else:
-        filtering_methods = Highpass_list
+    global filter_algorithm_panels
+    filter_algorithm_panels = {}
+    global lowpass_options
+    pymini.widgets['adjust_filter_Lowpass_algorithm'] = frame.insert_label_optionmenu(
+        name='adjust_filter_Lowpass_algorithm',
+        label='Lowpass algorithm:',
+        options=['Boxcar'],
+        separator=False,
+        command=_populate_filter_param_form
+    )
+    filter_algorithm_panels['Lowpass'] = pymini.widgets['adjust_filter_Lowpass_algorithm'].master.master
+    filter_algorithm_panels['Lowpass'].grid_remove()
 
-    pymini.widgets['adjust_filter_algorithm'] = frame.insert_label_optionmenu(
-        name='adjust_filter_algorithm',
-        label='Filtering algorithm:',
-        options=filtering_methods,
+    pymini.widgets['adjust_filter_Highpass_algorithm'] = frame.insert_label_optionmenu(
+        name='adjust_filter_Highpass_algorithm',
+        label='Highpass algorithm:',
+        options=[],
         separator=False,
         command=None
     )
-
+    filter_algorithm_panels['Highpass'] = pymini.widgets['adjust_filter_Highpass_algorithm'].master.master
+    filter_algorithm_panels['Highpass'].grid_remove()
 
     # handle other types of filtering
 
-    global filter_parameter_frame
-    filter_parameter_frame = OptionFrame(frame)
-    frame.insert_panel(filter_parameter_frame, separator=False)
-    filter_parameter_frame.grid_columnconfigure(0, weight=1)
+    global filter_parameter_panels
+    filter_parameter_panels = {}
 
-    frame.insert_button(
-        text='Apply',
-        command=_filter
-    )
+    filter_parameter_panels['Boxcar'] = OptionFrame(frame)
+    filter_parameter_panels['Boxcar'].grid_columnconfigure(0, weight=1)
+    frame.insert_panel(filter_parameter_panels['Boxcar'], separator=False)
 
-    global filter_form
-    filter_form = {}
-    filter_form['Boxcar'] = OptionFrame(filter_parameter_frame)
-    filter_form['Boxcar'].grid_columnconfigure(0, weight=1)
-    pymini.widgets['adjust_filter_boxcar_kernel'] = filter_form['Boxcar'].insert_label_entry(
+    pymini.widgets['adjust_filter_boxcar_kernel'] = filter_parameter_panels['Boxcar'].insert_label_entry(
         name='adjust_filter_boxcar_kernel',
         label='Filter kernel',
         validate_type='int',
         separator=False
     )
 
-    filter_form['Gaussian (X)'] = OptionFrame(filter_parameter_frame)
-    filter_form['Gaussian (X)'].grid_columnconfigure(0, weight=1)
-    filter_form['Gaussian (X)'].insert_title(
-        name='gaussian',
-        text='Not yet supported!'
+    frame.insert_button(
+        text='Apply',
+        command=_filter
     )
-    filter_form['???'] = OptionFrame(filter_parameter_frame)
-    filter_form['???'].grid_columnconfigure(0, weight=1)
-    filter_form['???'].insert_title(
-        name='???',
-        text='Not yet supported!'
-    )
+
+
     _populate_filter_algorithm_choices()
-    _populate_filter_form()
+    _populate_filter_param_form()
 
     return optionframe
+
 
 def log(msg, header=True):
     if header:
@@ -229,24 +222,23 @@ def log(msg, header=True):
     else:
         log_display.log("   {}".format(msg), header)
 
+
 def _populate_filter_algorithm_choices(e=None):
-    pymini.widgets['adjust_filter_algorithm'].clear_options()
-    for m in globals()['{}_list'.format(pymini.widgets['adjust_filter_lohi'].get())]:
-            pymini.widgets['adjust_filter_algorithm'].add_option(
-                label=m,
-                command=lambda e=m:_populate_filter_form(e))
-    if e is not None:
-        _populate_filter_form(globals()['{}_list'.format(e)][0])
+    for key in filter_algorithm_panels:
+        filter_algorithm_panels[key].grid_remove()
+    filter_algorithm_panels[pymini.widgets['adjust_filter_lohi'].get()].grid()
 
-def _populate_filter_form(e=None):
-    print(e)
-    filter_form[pymini.widgets['adjust_filter_algorithm'].get()].grid_forget()
-    if e is not None:
-        pymini.widgets['adjust_filter_algorithm'].set(e)
-        filter_form[e].grid(column=0, row=0, sticky='news')
-    else:
-        filter_form[pymini.widgets['adjust_filter_algorithm'].get()].grid(column=0, row=0, sticky='news')
-
+def _populate_filter_param_form(algorithm=None):
+    if algorithm is None:
+        lohi = pymini.widgets['adjust_filter_lohi'].get()
+        algorithm = pymini.widgets['adjust_filter_{}_algorithm'.format(lohi)].get()
+    for key in filter_parameter_panels:
+        filter_parameter_panels[key].grid_remove()
+    try:
+        filter_parameter_panels[algorithm].grid()
+    except:
+        pass
+    pass
 
 def undo_trace_adjust_changes(filename, delete_sweep=False, sweep_list=None):
     analyzer.trace_file.load_ydata(filename)

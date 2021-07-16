@@ -162,23 +162,35 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
             self.var,
             value,
             *options,
-            command=command,
+            command=self.command_undo,
             **kwargs
         )
 
-    def replace_options(self, options=None):
-        if options is None:
-            options = []
-        self['menu'].delete(0, 'end')
-        for i in options:
-            print('self.command: {}'.format(self.command  ))
-            self['menu'].add_command(
-                label=i,
-                command=self.command
-            )
+    def command_undo(self, e=None):
+        if self.undo_value == self.get():
+            return None
+        try:
+            self.command(e)
+            interface.add_undo([
+                lambda v=self.undo_value: self.var.set(v),
+                self.command,
+                self.set_undo,
+            ])
+        except:
+            interface.add_undo([
+                lambda v=self.undo_value: self.var.set(v),
+                self.set_undo
+            ])
+        self.undo_value = self.get()
+
+    def set_undo(self):
+        self.undo_value = self.get()
 
     def clear_options(self):
         self['menu'].delete(0, 'end')
+
+    def add_command(self, label="", command=None, **kwargs):
+        self['menu'].add_command(label=label, command=command, **kwargs)
 
     def set(self, val):
         if val != self.get():
@@ -215,6 +227,7 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
             **kwargs
         )
         self.var.trace_add('write', self.toggle)
+
     def toggle(self, var=None, val=None, e=None):
         interface.add_undo([
             self.invoke,

@@ -70,7 +70,8 @@ default_adjust_baseline_signal: 'Sweeps'
 default_adjust_avg_show_result : '1'
 
 default_adjust_filter_lohi : 'Lowpass'
-default_adjust_filter_algorithm : 'Boxcar'
+default_adjust_filter_Lowpass_algorithm: 'Boxcar'
+default_adjust_filter_Highpass_algorithm: 'None'
 
 # Boxcar Filter
 default_adjust_filter_boxcar_kernel : 11
