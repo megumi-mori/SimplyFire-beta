@@ -4,6 +4,8 @@ from config import config
 from utils import validation
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import yaml
+from Backend import interface
+
 
 
 class VarWidget():
@@ -12,7 +14,8 @@ class VarWidget():
             parent=None,
             name="",
             value=None,
-            default=None
+            default=None,
+            interface=None
     ):
         self.name = name
         self.var = Tk.StringVar()
@@ -37,6 +40,8 @@ class VarWidget():
             except:
                 self.var.set('')
                 self.default = ''
+        self.undo_value = self.get()
+        self.interface = interface
 
     def get(self):
         return self.var.get()
@@ -61,15 +66,16 @@ class VarEntry(VarWidget, Tk.Entry):
             value=None,
             default=None,
             validate_type=None,
+            interface=None,
             **kwargs
     ):
-        self.prev = value
         VarWidget.__init__(
             self,
             parent=parent,
             name=name,
             value=value,
-            default=default
+            default=default,
+            interface=interface
         )
         Tk.Entry.__init__(
             self,
@@ -79,14 +85,14 @@ class VarEntry(VarWidget, Tk.Entry):
             justify=Tk.RIGHT,
         )
         self.validate_type=validate_type
-        self.prev = self.default
+        self.prev = self.get()
         self.validate_type = validate_type
         self.validate(event=None, validation_type=validate_type)
-        self.bind('<FocusOut>', lambda e, v=validate_type: self.validate(e, v))
+        self.bind('<FocusOut>', lambda e, v=validate_type: self.validate(e, v), add='+')
         self.bind('<Return>', lambda e, v=validate_type: self.validate(e, v), add="+")
 
     def revert(self):
-        if validation.validate(self.validate_type, self.prev):
+        if validation.validate(self.validate_type, self.prev, undo=False):
             self.set(self.prev)
         else:
             self.set_to_default()
@@ -97,15 +103,18 @@ class VarEntry(VarWidget, Tk.Entry):
         self.delete(0, len(self.var.get()))
         self.insert(0, value)
 
-    def validate(self, event, validation_type, c=None):
+    def validate(self, event, validation_type, undo=True):
         value = self.get()
         if validation.validate(validation_type, self.var.get()):
+            self.undo_value = self.prev
             self.prev = value
             return True
         elif validation_type == 'int':
             try:
                 new_value = str(int(float(value)))
+                self.undo_value = self.prev
                 self.set(new_value)
+                self.prev = new_value
                 return True
             except:
                 self.revert()
@@ -119,6 +128,8 @@ class VarEntry(VarWidget, Tk.Entry):
         #     return None
         return self.var.get()
 
+    def undo(self):
+        self.focus_set()
 
 class VarOptionmenu(VarWidget, ttk.OptionMenu):
     def __init__(
@@ -129,6 +140,7 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
             default="",
             options=None,
             command=None,
+            interface=None,
             **kwargs
     ):
         VarWidget.__init__(
@@ -136,7 +148,8 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
             parent=parent,
             name=name,
             value=value,
-            default=default
+            default=default,
+            interface=interface
         )
         if options is None:
             options = []
@@ -158,6 +171,7 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
             options = []
         self['menu'].delete(0, 'end')
         for i in options:
+            print('self.command: {}'.format(self.command  ))
             self['menu'].add_command(
                 label=i,
                 command=self.command
@@ -166,8 +180,13 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
     def clear_options(self):
         self['menu'].delete(0, 'end')
 
-    def add_option(self, *args, **kwargs):
-        self['menu'].add_command(*args, **kwargs)
+    def set(self, val):
+        if val != self.get():
+            self.undo_value = self.get()
+            self.var.set(val)
+        if self.command is not None:
+            self.command()
+
 
 class VarCheckbutton(VarWidget, ttk.Checkbutton):
     def __init__(
@@ -177,6 +196,7 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
             value=None,
             default=None,
             command=None,
+            interface=None,
             **kwargs
     ):
         VarWidget.__init__(
@@ -184,8 +204,8 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
             name=name,
             parent=parent,
             value=value,
-            default=default
-
+            default=default,
+            interface=interface
         )
         ttk.Checkbutton.__init__(
             self,
@@ -194,6 +214,12 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
             command=command,
             **kwargs
         )
+        self.var.trace_add('write', self.toggle)
+    def toggle(self, var=None, val=None, e=None):
+        interface.add_undo([
+            self.invoke,
+            self.interface.undo_stack.pop
+        ])
 
 class VarText(VarWidget, Tk.Text):
     def __init__(
@@ -203,6 +229,7 @@ class VarText(VarWidget, Tk.Text):
             value=None,
             default=None,
             lock=False,
+            interface=None,
             **kwargs
     ):
         VarWidget.__init__(
@@ -210,7 +237,8 @@ class VarText(VarWidget, Tk.Text):
             parent=parent,
             name=name,
             value=value,
-            default=default
+            default=default,
+            interface=interface
         )
         Tk.Text.__init__(
             self,
