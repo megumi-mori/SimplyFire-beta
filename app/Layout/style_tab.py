@@ -93,3 +93,16 @@ def load(parent):
     )
 
     return frame
+
+from Layout.base_module import BaseModule
+class StyleTab(BaseModule, ScrollableOptionFrame):
+    name = 'style'
+
+    def __init__(self, master, root, interface):
+        BaseModule.__init__(self, root, interface)
+        ScrollableOptionFrame.__init__(self, master)
+
+        self.frame.insert_title(
+            name='plot_style',
+            text='Graph Style'
+        )
