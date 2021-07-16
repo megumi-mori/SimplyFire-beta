@@ -1,7 +1,7 @@
 from tkinter import ttk, filedialog
 import tkinter as Tk
 import yaml
-from Backend import interpreter
+from Backend import interpreter, interface
 
 from config import config
 
@@ -227,7 +227,9 @@ def load():
         tab_details[t]['tab'] = tab_details[t]['module'].load(left)
         cp_notebook.add(tab_details[t]['tab'], text=tab_details[t]['text'])
         tab_details[t]['index'] = i
-
+    from Layout.style_tab import StyleTab
+    test = StyleTab(left, __import__(__name__), interface)
+    cp_notebook.add(test, text='test')
 
     # set focus rules
     for key in widgets:
