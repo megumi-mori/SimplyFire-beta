@@ -503,15 +503,25 @@ def _average_trace(e=None):
 
     task_length = len(channels)
     task_progress = 1
-    stdev = []
-    for c in channels:
+    min_avg = [0] * len(channels)
+    min_std = [0] * len(channels)
+    max_avg = [0] * len(channels)
+    max_std = [0] * len(channels)
+    for i, c in enumerate(channels):
         pymini.pb['value'] = task_progress / task_length * 90 + 10
         task_progress += 1
         pymini.pb.update()
 
         y_data = np.array([analyzer.trace_file.y_data[c][i] for i in data_list])
+        min_data = [min(a) for a in y_data]
+        max_data = [max(a) for a in y_data]
         avg_data = y_data.mean(axis=0)
-        stdev.append(y_data.std(axis=0).mean())
+
+        min_avg[i] = np.mean(min_data)
+        min_std[i] = np.std(min_data)
+
+        max_avg[i] = np.mean(max_data)
+        max_std[i] = np.std(max_data)
 
         # add new sweep to file
         analyzer.trace_file.add_sweep(c, avg_data)
@@ -537,6 +547,8 @@ def _average_trace(e=None):
     log('Trace averaging performed on: {}'.format(pymini.widgets['adjust_target'].get()), True)
     log('Traces {}'.format(analyzer.format_list_indices(data_list)), False)
     log('Channels {}'.format(channels), False)
+    log('Average min values: {}, std: {}'.format(min_avg, min_std), False)
+    log('Average max values: {}, std: {}'.format(max_avg, max_std), False)
     log('Result stored on sweep {}'.format(analyzer.trace_file.sweep_count - 1), False)
 
 def _undo_average_trace(filename, sweep_list=None):
