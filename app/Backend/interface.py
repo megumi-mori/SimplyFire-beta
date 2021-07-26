@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 from config import config
 
-from utils import recording
+import time
 
 ### this module connects the analyzer and the gui
 
@@ -85,9 +85,12 @@ def add_undo(task):
         undo_stack.append(task)
     else:
         undo_stack.append([task])
-    if len(undo_stack) > int(pymini.widgets['config_undo_stack'].get()):
-        temp = undo_stack.pop(0)
-        del temp
+    try:
+        if len(undo_stack) > int(pymini.widgets['config_undo_stack'].get()):
+            temp = undo_stack.pop(0)
+            del temp
+    except:
+        pass
     print(undo_stack)
     return
 
@@ -108,6 +111,7 @@ def undo(e=None):
 
 def open_trace(fname):
     # trace stored in analyzer
+    print('open_trace')
     try:
         analyzer.open_trace(fname)
     except Exception as e:
@@ -122,6 +126,7 @@ def open_trace(fname):
 
     # clear undo
     clear_undo()
+
 
     # update save file directory
     if pymini.widgets['config_file_autodir'].get() == '1':

@@ -6,7 +6,7 @@ from config import config
 from utils import widget
 from Backend import analyzer, interface
 from Layout import sweep_tab
-from DataVisualizer import trace_display, log_display
+from DataVisualizer import trace_display, log_display, results_display
 import numpy as np
 # from scipy.signal import convolve
 import os
@@ -27,6 +27,10 @@ def load(parent):
         name='adjust_title',
         text='Adjust Trace'
     )
+    frame.insert_title(
+        text='General Setting',
+        separator=False
+    )
     pymini.widgets['adjust_target'] = frame.insert_label_optionmenu(
         name='adjust_target',
         label='Apply adjustment to:',
@@ -42,15 +46,19 @@ def load(parent):
     )
     frame.insert_separator()
     frame.insert_title(
+        text='Baseline Subtraction',
+        separator=False
+    )
+    frame.insert_title(
         name='baseline_subtraction',
         text='Perform baseline subtraction using:',
         separator=False,
-        justify=Tk.LEFT
     )
     baseline_panel = OptionFrame(frame)
     baseline_panel.grid_columnconfigure(0, weight=1)
     frame.insert_panel(baseline_panel)
     pymini.widgets['adjust_baseline_mode'] = StringVar(baseline_panel, config.adjust_baseline_mode)
+    global baseline_options
     baseline_options = {
         'mean': {
          'value': 'mean',
@@ -65,6 +73,9 @@ def load(parent):
             'button': None
         }
     }
+
+    global prev_baseline_mode
+    prev_baseline_mode = config.adjust_baseline_mode
 
     baseline_options['mean']['button'] = ttk.Radiobutton(
         baseline_panel,
@@ -118,11 +129,11 @@ def load(parent):
     )
     baseline_panel.insert_widget(pymini.widgets['adjust_fixed'])
 
-    frame.insert_title(
-        name='baseline_signal_data',
-        text='Signal/Data',
-        separator=False,
-        justify=Tk.LEFT
+    pymini.widgets['adjust_baseline_ylim'] = frame.insert_label_checkbox(
+        name='adjust_baseline_ylim',
+        label='Automatically adjust window y-axis limits',
+        onvalue='1',
+        offvalue='',
     )
 
     frame.insert_button(
@@ -131,11 +142,12 @@ def load(parent):
     )
     baseline_options[config.adjust_baseline_mode]['button'].invoke()
 
+
     frame.insert_separator()
 
     frame.insert_title(
         name='averaging',
-        text='Average trace:',
+        text='Trace Averaging',
         separator=False
     )
     pymini.widgets['adjust_avg_show_result'] = frame.insert_label_checkbox(
@@ -143,6 +155,20 @@ def load(parent):
         label='Only show resultant trace (hide original sweeps)',
         onvalue='1',
         offvalue="",
+        separator=False
+    )
+    pymini.widgets['adjust_avg_min_max'] = frame.insert_label_checkbox(
+        name='adjust_avg_min_max',
+        label='Output min/max',
+        onvalue='1',
+        offvalue="",
+        separator=False
+    )
+    pymini.widgets['adjust_avg_window'] = frame.insert_label_checkbox(
+        name='adjust_avg_window',
+        label='Limit min/max to within trace window',
+        onvalue='1',
+        offvalue='',
         separator=False
     )
     frame.insert_button(
@@ -153,7 +179,7 @@ def load(parent):
     pymini.widgets
     frame.insert_title(
         name='filtering',
-        text='Filtering (experimental):',
+        text='Trace Filtering',
         separator=False,
         justify=Tk.LEFT
     )
@@ -258,7 +284,12 @@ def undo_trace_adjust_changes(filename, delete_sweep=False, sweep_list=None):
 
 
 ######### Baseline Adjust
-def _select_baseline_mode(e=None):
+def _select_baseline_mode(e=None, undo=True):
+    global prev_baseline_mode
+    # if undo:
+    #     # interface.add_undo([lambda m=prev_baseline_mode:pymini.widgets['adjust_baseline_mode'].set(m),
+    #     #                     lambda e=None, undo=False:_select_baseline_mode(e, undo)])
+    prev_baseline_mode = pymini.widgets['adjust_baseline_mode'].get()
     if pymini.widgets['adjust_baseline_mode'].get() == 'mean':
         print('mean')
         pymini.widgets['adjust_range_left'].config(state='disabled')
@@ -293,7 +324,6 @@ def _adjust_baseline(e=None):
     analyzer.trace_file.save_ydata(filename=temp_filename,
                                    channels=channels,
                                    progress_bar=pymini.pb)
-    interface.add_undo(lambda f=temp_filename: _undo_baseline(f))
     #########################
 
     data_list = []
@@ -398,7 +428,8 @@ def _adjust_baseline(e=None):
                 baseline = [np.mean(analyzer.trace_file.get_ys(mode='overlay',channel=c, sweep=i)[xlim_idx[i][0]:xlim_idx[i][1]])
                             for i in data_list]
                 ##### Log #####
-                log('Subtract mean of range ({}, {}) from each sweep: {}{}'.format(xlim[0], xlim[1], baseline, analyzer.trace_file.y_unit), False)
+                log('Subtract mean of range ({}, {}){}'.format(xlim[0], xlim[1], analyzer.trace_file.x_unit), False)
+                log('Average adjustment: {}{}'.format(np.mean(baseline), analyzer.trace_file.y_unit), False)
                 ###############
         elif pymini.widgets['trace_mode'].get() == 'continuous':
             if pymini.widgets['adjust_target'].get() == 'Highlighted sweeps':
@@ -438,7 +469,15 @@ def _adjust_baseline(e=None):
     pymini.pb['value'] = 0
     pymini.pb.update()
 
-
+    mean_baseline = np.mean(baseline)
+    trace_display.default_ylim = (trace_display.default_ylim[0] - mean_baseline, trace_display.default_ylim[1] - mean_baseline)
+    print('updated ylim: {}'.format(trace_display.default_ylim))
+    interface.add_undo([lambda f=temp_filename: _undo_baseline(f),
+                        lambda val=mean_baseline:trace_display.adjust_default_ylim(val)
+                       ])
+    if pymini.widgets['adjust_baseline_ylim'].get():
+        ylim=trace_display.ax.get_ylim()
+        trace_display.ax.set_ylim(ylim[0] - mean_baseline, ylim[1] - mean_baseline)
     trace_display.canvas.draw()
 
 
@@ -507,22 +546,41 @@ def _average_trace(e=None):
     min_std = [0] * len(channels)
     max_avg = [0] * len(channels)
     max_std = [0] * len(channels)
+    xlim = trace_display.ax.get_xlim()
+
     for i, c in enumerate(channels):
         pymini.pb['value'] = task_progress / task_length * 90 + 10
         task_progress += 1
         pymini.pb.update()
 
         y_data = np.array([analyzer.trace_file.y_data[c][i] for i in data_list])
-        min_data = [min(a) for a in y_data]
-        max_data = [max(a) for a in y_data]
+        min_data = [0]*len(y_data)
+        max_data = [0]*len(y_data)
+        if pymini.widgets['adjust_avg_min_max'].get():
+            for j, a in enumerate(y_data):
+                xlim_idx = (analyzer.search_index(xlim[0], analyzer.trace_file.x_data[i]),
+                            analyzer.search_index(xlim[1], analyzer.trace_file.x_data[i]))
+                min_data[j] = min(a[xlim_idx[0]:xlim_idx[1]])
+                max_data[j] = max(a[xlim_idx[0]:xlim_idx[1]])
+            min_avg[i] = np.mean(min_data)
+            min_std[i] = np.std(min_data)
+
+            max_avg[i] = np.mean(max_data)
+            max_std[i] = np.std(max_data)
+
+            results_display.table_frame.add({
+                'filename':analyzer.trace_file.fname,
+                'channel':c+1,#0 indexing
+                'analysis':'trace averaging',
+                'min':min_avg[i],
+                'min_unit': analyzer.trace_file.channel_units[c],
+                'min_std':min_std[i],
+                'max':max_avg[i],
+                'max_unit': analyzer.trace_file.channel_units[c],
+                'max_std':max_std[i],
+            })
+
         avg_data = y_data.mean(axis=0)
-
-        min_avg[i] = np.mean(min_data)
-        min_std[i] = np.std(min_data)
-
-        max_avg[i] = np.mean(max_data)
-        max_std[i] = np.std(max_data)
-
         # add new sweep to file
         analyzer.trace_file.add_sweep(c, avg_data)
     other_channels = [i for i in range(analyzer.trace_file.channel_count) if i not in channels]
@@ -547,8 +605,9 @@ def _average_trace(e=None):
     log('Trace averaging performed on: {}'.format(pymini.widgets['adjust_target'].get()), True)
     log('Traces {}'.format(analyzer.format_list_indices(data_list)), False)
     log('Channels {}'.format(channels), False)
-    log('Average min values: {}, std: {}'.format(min_avg, min_std), False)
-    log('Average max values: {}, std: {}'.format(max_avg, max_std), False)
+    if pymini.widgets['adjust_avg_min_max'].get():
+        log('Average min values: {}, std: {}'.format(min_avg, min_std), False)
+        log('Average max values: {}, std: {}'.format(max_avg, max_std), False)
     log('Result stored on sweep {}'.format(analyzer.trace_file.sweep_count - 1), False)
 
 def _undo_average_trace(filename, sweep_list=None):
@@ -607,8 +666,8 @@ def _filter(e=None):
     task_length = len(channels)
     task_progress = 1
     ##########################################
-
-    if pymini.widgets['adjust_filter_algorithm'].get() == 'Boxcar':
+    lohi = pymini.widgets['adjust_filter_lohi'].get()
+    if pymini.widgets['adjust_filter_{}_algorithm'.format(lohi)].get() == 'Boxcar':
         print('starting lowpass filter!')
         kernel = int(pymini.widgets['adjust_filter_boxcar_kernel'].get())
         k = Box1DKernel(kernel)
@@ -630,9 +689,10 @@ def _filter(e=None):
 
     log('Trace filtering performed on: {}'.format(pymini.widgets['adjust_target'].get()), header=True)
     log('Traces {}'.format(analyzer.format_list_indices(data_list)), False)
-    log('Channels {}'.format(channels))
-    log('Filtering algorithm: {}'.format(pymini.widgets['adjust_filter_algorithm'].get()), False)
-    log('Filtering parameters: {}'.format(str(parameters)), False)
+    log('Channels {}'.format(channels), False)
+
+    log('Algorithm: {}'.format(pymini.widgets['adjust_filter_{}_algorithm'.format(lohi)].get()), False)
+    log('Parameters: {}'.format(str(parameters)), False)
 
     pymini.pb['value'] = 0
     pymini.pb.update()

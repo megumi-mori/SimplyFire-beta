@@ -2,6 +2,8 @@
 # PyMini Keymap configurations
 #################################################################
 
+key_copy:
+- <Control-c>
 key_delete:
 - <Delete>
 - <BackSpace>

@@ -4,6 +4,7 @@ from config import config
 from utils import validation
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import yaml
+import pymini
 from Backend import interface
 
 
@@ -87,12 +88,12 @@ class VarEntry(VarWidget, Tk.Entry):
         self.validate_type=validate_type
         self.prev = self.get()
         self.validate_type = validate_type
-        self.validate(event=None, validation_type=validate_type)
+        self.validate(event=None, validation_type=validate_type, undo=False)
         self.bind('<FocusOut>', lambda e, v=validate_type: self.validate(e, v), add='+')
         self.bind('<Return>', lambda e, v=validate_type: self.validate(e, v), add="+")
 
     def revert(self):
-        if validation.validate(self.validate_type, self.prev, undo=False):
+        if validation.validate(self.validate_type, self.prev):
             self.set(self.prev)
         else:
             self.set_to_default()
@@ -107,13 +108,16 @@ class VarEntry(VarWidget, Tk.Entry):
         value = self.get()
         if validation.validate(validation_type, self.var.get()):
             self.undo_value = self.prev
+            # if value != self.prev and undo:
+            #     interface.add_undo([lambda v=self.prev:self.undo(v)])
             self.prev = value
             return True
         elif validation_type == 'int':
             try:
                 new_value = str(int(float(value)))
-                self.undo_value = self.prev
-                self.set(new_value)
+                # self.set(new_value)
+                # if new_value != self.prev and undo:
+                #     interface.add_undo([lambda v=self.prev:self.undo(v)])
                 self.prev = new_value
                 return True
             except:
@@ -128,8 +132,10 @@ class VarEntry(VarWidget, Tk.Entry):
         #     return None
         return self.var.get()
 
-    def undo(self):
+    def undo(self, value):
+        self.set(value)
         self.focus_set()
+        self.prev = value
 
 class VarOptionmenu(VarWidget, ttk.OptionMenu):
     def __init__(
@@ -171,17 +177,19 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
             return None
         try:
             self.command(e)
-            interface.add_undo([
-                lambda v=self.undo_value: self.var.set(v),
-                self.command,
-                self.set_undo,
-            ])
         except:
-            interface.add_undo([
-                lambda v=self.undo_value: self.var.set(v),
-                self.set_undo
-            ])
-        self.undo_value = self.get()
+            pass
+        #     interface.add_undo([
+        #         lambda v=self.undo_value: self.var.set(v),
+        #         self.command,
+        #         self.set_undo,
+        #     ])
+        # except:
+        #     interface.add_undo([
+        #         lambda v=self.undo_value: self.var.set(v),
+        #         self.set_undo
+        #     ])
+        # self.undo_value = self.get()
 
     def set_undo(self):
         self.undo_value = self.get()
@@ -226,13 +234,13 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
             command=command,
             **kwargs
         )
-        self.var.trace_add('write', self.toggle)
-
-    def toggle(self, var=None, val=None, e=None):
-        interface.add_undo([
-            self.invoke,
-            self.interface.undo_stack.pop
-        ])
+    #     self.var.trace_add('write', self.toggle)
+    #
+    # def toggle(self, var=None, val=None, e=None):
+    #     interface.add_undo([
+    #         self.invoke,
+    #         self.interface.undo_stack.pop
+    #     ])
 
 class VarText(VarWidget, Tk.Text):
     def __init__(
@@ -414,23 +422,59 @@ class DataTable(Tk.Frame):
         hsb.grid(column=0, row=1, sticky='ew')
         self.table.configure(xscrollcommand=hsb.set)
 
+        for key in config.key_copy:
+            self.table.bind(key, self.copy)
+
+        for key in config.key_select_all:
+            self.table.bind(key, self.select_all)
+
+        for key in config.key_deselect:
+            self.table.bind(key, self.unselect)
+
     #     self.table.bind('<Button-3>', self.get_element)
     #
     # def get_element(self, e):
     #     print(self.table.identify_region(e.x, e.y))
 
+    def copy(self, event=None):
+        selected = self.table.selection()
+        if len(selected) == 0:
+            return None
+        text = ""
+        for c in self.columns:
+            text = text + '{}\t'.format(c)
+        text = text + '\n'
+        for i in selected:
+            data = self.table.set(i)
+            for c in self.columns:
+                text = text + '{}\t'.format(data[c])
+            text = text + '\n'
+        try:
+            pymini.root.clipboard_clear()
+            pymini.root.clipboard_append(text)
+        except:
+            pass
 
-    def define_columns(self, columns):
+    def select_all(self, event=None):
+        self.table.selection_set(self.table.get_children())
+
+    def define_columns(self, columns, sort=True, iid_header=None):
         # columns should be in tuple to avoid mutation
         self.table.config(displaycolumns=())
         self.table.config(columns=columns, show='headings')
         self.table.config(displaycolumns=columns)
-        self.iid_header = columns[0]
+        self.iid_header = iid_header
         self.columns = columns
         self.displaycolumns=columns
-        for i, col in enumerate(columns):
-            self.table.heading(i, text=col, command=lambda _col = col: self._sort(_col, False))
-            self.table.column(i, stretch=Tk.NO)
+
+        if sort:
+            for i, col in enumerate(columns):
+                self.table.heading(i, text=col, command=lambda _col = col: self._sort(_col, False))
+                self.table.column(i, stretch=Tk.NO)
+        else:
+            for i, col in enumerate(columns):
+                self.table.heading(i, text=col)
+                self.table.column(i, stretch=Tk.NO)
 
     def add_columns(self, columns):
         all_columns = [i for i in self.columns]
@@ -474,7 +518,7 @@ class DataTable(Tk.Frame):
         self.clear()
         self.append(dataframe)
 
-    def fit_columns(self):
+    def fit_columns(self, event=None):
         w = int(self.table.winfo_width()/len(self.columns))
         for i in self.displaycolumns:
             self.table.column(i, width=w)
@@ -487,9 +531,9 @@ class DataTable(Tk.Frame):
     def clear(self):
         self.table.selection_remove(*self.table.selection())
         self.table.delete(*self.table.get_children())
-    ##### selection control #####
 
-    def unselect(self):
+    ##### selection control #####
+    def unselect(self, event=None):
         self.table.selection_remove(*self.table.selection())
 
     def select(self, iid):

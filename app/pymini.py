@@ -7,7 +7,7 @@ from config import config
 
 from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navigation_tab, \
     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab
-from DataVisualizer import data_display, log_display, evoked_data_display
+from DataVisualizer import data_display, log_display, evoked_data_display, results_display
 
 from utils import widget
 import tracemalloc
@@ -141,11 +141,13 @@ def load():
     data_notebook.add(panel, text='evoked')
 
     pw_2.add(data_notebook)
+    dp_notebook.add(pw_2, text='trace')
 
     log_frame = log_display.load(None)
-
-    dp_notebook.add(pw_2, text='data')
     dp_notebook.add(log_frame, text='log')
+
+    results_frame = results_display.load(None)
+    dp_notebook.add(results_frame, text='results', sticky='news')
 
 
     ##################################################
