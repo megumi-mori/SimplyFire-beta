@@ -458,11 +458,12 @@ class DataTable(Tk.Frame):
     def select_all(self, event=None):
         self.table.selection_set(self.table.get_children())
 
-    def define_columns(self, columns, sort=True, iid_header=None):
+    def define_columns(self, columns, sort=True, iid_header=None, stretch=Tk.NO):
         # columns should be in tuple to avoid mutation
         self.table.config(displaycolumns=())
         self.table.config(columns=columns, show='headings')
         self.table.config(displaycolumns=columns)
+        self.sort=sort
         self.iid_header = iid_header
         self.columns = columns
         self.displaycolumns=columns
@@ -470,18 +471,18 @@ class DataTable(Tk.Frame):
         if sort:
             for i, col in enumerate(columns):
                 self.table.heading(i, text=col, command=lambda _col = col: self._sort(_col, False))
-                self.table.column(i, stretch=Tk.NO)
+                self.table.column(i, stretch=stretch)
         else:
             for i, col in enumerate(columns):
                 self.table.heading(i, text=col)
-                self.table.column(i, stretch=Tk.NO)
+                self.table.column(i, stretch=stretch)
 
     def add_columns(self, columns):
         all_columns = [i for i in self.columns]
         for c in columns:
             if c not in all_columns:
                 all_columns.append(c)
-        self.define_columns(all_columns)
+        self.define_columns(all_columns, self.sort, self.iid_header)
 
     def set_iid(self, iid):
         self.iid_header = iid

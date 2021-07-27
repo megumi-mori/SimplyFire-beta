@@ -5,7 +5,7 @@ import pymini
 from utils.widget import VarWidget
 from Backend import interface
 from DataVisualizer import param_guide, data_display, trace_display
-from Layout import detector_tab
+from Layout import detector_tab, batch_popup
 import gc
 
 global trace_mode
@@ -118,6 +118,8 @@ def load_menubar(parent):
     pymini.widgets['analysis_mode'] = analysis_var
     analysis_menu.add_radiobutton(label='Mini', command=_mini_mode, variable=analysis_var, value='mini')
     analysis_menu.add_radiobutton(label='Evoked', command=_evoked_mode, variable=analysis_var, value='evoked')
+    analysis_menu.add_separator()
+    analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
 
     # Window menu
     window_menu = Tk.Menu(menubar, tearoff=0)
