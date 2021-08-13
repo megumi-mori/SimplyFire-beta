@@ -68,9 +68,12 @@ default_adjust_fixed: 0
 default_adjust_baseline_signal: 'Sweeps'
 
 default_adjust_avg_show_result : '1'
+default_adjust_avg_min_max: '1'
+default_adjust_avg_window: '1'
 
 default_adjust_filter_lohi : 'Lowpass'
-default_adjust_filter_algorithm : 'Boxcar'
+default_adjust_filter_Lowpass_algorithm: 'Boxcar'
+default_adjust_filter_Highpass_algorithm: 'None'
 
 # Boxcar Filter
 default_adjust_filter_boxcar_kernel : 11
@@ -224,3 +227,7 @@ default_key_toolbar_zoom:
 
 default_key_undo:
   - '<Control-z>'
+
+default_key_copy:
+  - '<Control-c>'
+  - 'c'

@@ -5,7 +5,7 @@ import pymini
 from utils.widget import VarWidget
 from Backend import interface
 from DataVisualizer import param_guide, data_display, trace_display
-from Layout import detector_tab
+from Layout import detector_tab, batch_popup
 import gc
 
 global trace_mode
@@ -33,13 +33,15 @@ def _show_param_guide(event=None):
 
 def ask_open_trace():
     gc.collect()
+    # first time filedialog is taking a while (even when canceling out of dialog)
     fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files', '*.*')])
+
     if fname:
         pymini.trace_filename = fname
     else:
         return None
-
     interface.open_trace(fname)
+
 
 def ask_save_trace():
     gc.collect()
@@ -116,6 +118,8 @@ def load_menubar(parent):
     pymini.widgets['analysis_mode'] = analysis_var
     analysis_menu.add_radiobutton(label='Mini', command=_mini_mode, variable=analysis_var, value='mini')
     analysis_menu.add_radiobutton(label='Evoked', command=_evoked_mode, variable=analysis_var, value='evoked')
+    analysis_menu.add_separator()
+    analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
 
     # Window menu
     window_menu = Tk.Menu(menubar, tearoff=0)
@@ -189,7 +193,5 @@ def _evoked_mode(e=None):
     pymini.widgets['analysis_mode'].set('evoked')
     display_cp_tab('evoked')
     trace_display.clear_markers()
-    data_display.clear()
-    data_display.show_columns()
 
 

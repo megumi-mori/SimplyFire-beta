@@ -41,10 +41,6 @@ def load(parent):
         label='Sweep picker search radius (% of x-axis)', #might change to us
         validate_type=('float')
     )
-    frame.insert_button(
-        text='Delete added',
-        command=delete_hidden
-    )
 
     global sweep_vars
     sweep_vars = []
@@ -120,6 +116,7 @@ def populate_list(num, replace=True, prefix=""):
     for i in range(num):
         if i+start < len(sweep_vars):
             sweep_labels[i].config(text='{}Sweep {}'.format(prefix, i+start))
+            sweep_vars[i].set(1)
         else:
             f = Tk.Frame(frame)
             f.grid_columnconfigure(0, weight=1)

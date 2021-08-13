@@ -18,16 +18,20 @@ def initialize():
     zooming_y = False
 
 
-
-    # plot manipulation
+    ################################
+    # trace marker manipulation
+    ################################
     for key in config.key_deselect:
-        bind_key_dp(key, press_function=unselect_key)
+        bind_key(key, press_function=unselect_key, target=trace_display.canvas.get_tk_widget())
 
     for key in config.key_delete:
         bind_key_dp(key, press_function=delete_key)
 
     for key in config.key_select_all:
-        bind_key_dp(key, press_function=select_all_key)
+        bind_key(key, press_function=select_all_key, target=trace_display.canvas.get_tk_widget())
+
+    for key in config.key_copy:
+        bind_key(key, press_function=copy, target=trace_display.canvas.get_tk_widget())
 
     for key in config.key_select_window:
         bind_key_dp(key, press_function=select_window_key)
@@ -38,7 +42,9 @@ def initialize():
                  press_function=lambda e:exec('global multi_select; multi_select=True'),
                  release_function=lambda e: exec('global multi_select; multi_select=False'))
 
+    #######################
     # navigation keys
+    #######################
     for key in config.key_pan_left:
         bind_key_dp(key, press_function=lambda e, d=-1: scroll_x_key(e, d),
                     release_function=lambda e: stop_x_scroll())
@@ -128,6 +134,7 @@ def initialize():
                         release_function=lambda e: stop_y_zoom())
             except:
                 pass
+
 
 
     ######################################
@@ -437,9 +444,7 @@ def select_all_key(event):
     if pymini.widgets['trace_mode'].get() == 'overlay':
         interface.highlight_all_sweeps()
     if pymini.widgets['analysis_mode'].get() == 'mini':
-        if len(data_display.selected) == len(data_display.table.get_children()):
-            return
-        data_display.table.selection_set(data_display.table.get_children())
+        data_display.table_frame.select_all()
     pass
 
 def select_window_key(event=None):
@@ -451,3 +456,6 @@ def select_window_key(event=None):
     elif pymini.widgets['trace_mode'].get() == 'overlay':
         interface.highlight_sweep_in_range(xlim, ylim,
                                            draw=True)
+
+def copy(event=None):
+    data_display.table_frame.copy()

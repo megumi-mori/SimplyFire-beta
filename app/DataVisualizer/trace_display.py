@@ -588,7 +588,6 @@ def plot_peak(xs, ys):
     try:
         markers['peak'].remove()
     except Exception as e:
-        print('plot_peak, remove markers error: {}'.format(e))
         pass
     try:
         markers['peak'] = ax.scatter(xs, ys, marker='o', c=pymini.widgets['style_event_color_peak'].get(), picker=True,
@@ -682,6 +681,10 @@ def show_all_plot(update_default=False):
 
 get_axis_limits = lambda axis: getattr(ax, 'get_{}lim'.format(axis))()
 
+def adjust_default_ylim(adjust):
+    global default_ylim
+    default_ylim = (default_ylim[0]+adjust,
+                    default_ylim[1]+adjust)
 
 def set_axis_limit(axis, lim):
     if axis == 'x':
@@ -693,6 +696,7 @@ def set_axis_limit(axis, lim):
         ax.set_xlim(l)
     if axis == 'y':
         l = [float(e) if e != 'auto' else default_ylim[i] for i, e in enumerate(lim)]
+        print('set y lim: {}'.format(l))
         ax.set_ylim(l)
     canvas.draw()
 

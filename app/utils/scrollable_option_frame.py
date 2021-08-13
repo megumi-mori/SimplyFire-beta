@@ -5,6 +5,7 @@ from utils import widget
 from config import config
 import yaml
 import textwrap
+from Backend import interface
 
 
 from functools import wraps
@@ -43,7 +44,7 @@ class OptionFrame(Tk.Frame):
             self.labels[name] = ttk.Label(frame, text=text)
             self.labels[name].grid(column=0, row=0, sticky='news')
             frame.grid(column=0,row=0, sticky='news')
-            w = func(self, parent=frame, name = name, value=value, default=default, **kwargs)
+            w = func(self, parent=frame, name = name, value=value, default=default, interface=interface,**kwargs)
             self.widgets[name] = w
             return w
         return call
@@ -64,7 +65,8 @@ class OptionFrame(Tk.Frame):
             name=name,
             value=value,
             default=default,
-            validate_type=validate_type
+            validate_type=validate_type,
+            interface=interface
         )
         w.grid(column=1, row=0, sticky='ews')
 
@@ -79,6 +81,7 @@ class OptionFrame(Tk.Frame):
             default=None,
             options=None,
             command=None,
+            interface=None,
             **kwargs
     ):
         w = widget.VarOptionmenu(
@@ -88,6 +91,7 @@ class OptionFrame(Tk.Frame):
             default=default,
             options=options,
             command=command,
+            interface=interface,
             **kwargs
 
         )
@@ -102,6 +106,7 @@ class OptionFrame(Tk.Frame):
             value=None,
             default=None,
             command=None,
+            interface=None,
             **kwargs
     ):
         w = widget.VarCheckbutton(
@@ -110,6 +115,7 @@ class OptionFrame(Tk.Frame):
             value=value,
             default=default,
             command=command,
+            interface=interface,
             **kwargs
         )
         w.grid(column=1, row=0, sticky='news')

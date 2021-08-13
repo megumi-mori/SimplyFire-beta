@@ -1,13 +1,13 @@
 from tkinter import ttk, filedialog
 import tkinter as Tk
 import yaml
-from Backend import interpreter
+from Backend import interpreter, interface
 
 from config import config
 
 from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navigation_tab, \
     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab
-from DataVisualizer import data_display, log_display, evoked_data_display
+from DataVisualizer import data_display, log_display, evoked_data_display, results_display
 
 from utils import widget
 import tracemalloc
@@ -141,11 +141,13 @@ def load():
     data_notebook.add(panel, text='evoked')
 
     pw_2.add(data_notebook)
+    dp_notebook.add(pw_2, text='trace')
 
     log_frame = log_display.load(None)
-
-    dp_notebook.add(pw_2, text='data')
     dp_notebook.add(log_frame, text='log')
+
+    results_frame = results_display.load(None)
+    dp_notebook.add(results_frame, text='results', sticky='news')
 
 
     ##################################################
@@ -227,7 +229,9 @@ def load():
         tab_details[t]['tab'] = tab_details[t]['module'].load(left)
         cp_notebook.add(tab_details[t]['tab'], text=tab_details[t]['text'])
         tab_details[t]['index'] = i
-
+    from Layout.style_tab import StyleTab
+    test = StyleTab(left, __import__(__name__), interface)
+    cp_notebook.add(test, text='test')
 
     # set focus rules
     for key in widgets:
