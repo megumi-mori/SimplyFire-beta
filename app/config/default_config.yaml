@@ -150,7 +150,7 @@ default_config_user_path :
   - "user_config.yaml"
 default_config_system_path :
   - 'config'
-  - 'pymini_config.yaml'
+  - 'system_config.yaml'
 default_config_keymap_path:
   - 'config'
   - 'key_map.yaml'
