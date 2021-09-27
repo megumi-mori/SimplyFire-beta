@@ -1,0 +1,74 @@
+#################################################################
+# PyMini user configurations
+#################################################################
+
+adjust_avg_min_max: '1'
+adjust_avg_show_result: '1'
+adjust_avg_window: '1'
+adjust_baseline_mode: range
+adjust_channel: '1'
+adjust_filter_Highpass_algorithm: ''
+adjust_filter_Lowpass_algorithm: Boxcar
+adjust_filter_boxcar_kernel: '11'
+adjust_filter_lohi: Lowpass
+adjust_fixed: '10'
+adjust_range_left: '0'
+adjust_range_right: '0.0002'
+adjust_target: Visible sweeps
+analysis_mode: mini
+channel_option: ''
+data_display_amplitude: '1'
+data_display_baseline: '1'
+data_display_channel: '1'
+data_display_decay: '1'
+data_display_decay_func: '1'
+data_display_direction: '1'
+data_display_halfwidth: '1'
+data_display_rise: '1'
+data_display_time: '1'
+detector_auto_radius: '60'
+detector_direction: negative
+detector_max_decay: none
+detector_max_hw: None
+detector_max_points_decay: '40000'
+detector_max_rise: None
+detector_min_amp: '0.3'
+detector_min_decay: '0'
+detector_min_hw: '0'
+detector_min_rise: '0'
+detector_points_baseline: '100'
+detector_search_radius: '5.0'
+detector_update_events: '1'
+evoked_channel: '1'
+evoked_range_left: '0'
+evoked_range_right: '1'
+evoked_target: Visible sweeps
+evoked_window_mode: visible
+force_axis_limit: '1'
+force_channel: '1'
+force_channel_id: '2'
+max_x: '0.07092089152540708'
+max_y: '3.8188456344510584'
+min_x: '0.03720091829840522'
+min_y: '-41.736211122542045'
+navigation_fps: '24'
+navigation_mirror_x_scroll: '1'
+navigation_mirror_y_scroll: '1'
+navigation_scroll_percent: '10'
+navigation_zoom_percent: '10'
+show_decay: '1'
+show_peak: '1'
+show_start: '1'
+style_event_color_decay: blue
+style_event_color_end: purple
+style_event_color_highlight: red
+style_event_color_peak: yellow
+style_event_color_start: red
+style_event_pick_offset: '0'
+style_trace_highlight_color: red
+style_trace_line_color: black
+style_trace_line_width: '0.25'
+sweep_picker_offset: '20'
+trace_info: ''
+trace_mode: continuous
+window_param_guide: '0'

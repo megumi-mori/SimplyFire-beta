@@ -1,0 +1,233 @@
+#################################################################
+# PyMini Defaults
+#################################################################
+# This file contains the default configuration options
+# for PyMini. IT SHOULD NOT BE EDITED!
+#
+# user-defined parameters should be named exactly as the default
+# counterpart in this file, without the 'default_' tag
+#
+# widgets that use these parameters should also be named exactly
+# as the default variable name, without hte 'default_' tag
+#################################################################
+
+# version
+version : 'b0.1.0'
+
+#aesthetics
+default_geometry :
+  - 900
+  - 600
+
+default_relative_cp_width : 0.25
+default_cp_width : 270
+default_font_size : 9
+default_separator : true
+default_label_length: 30
+default_entry_width : 10
+default_gp_height : 450
+default_pw_handlesize : 15
+
+# semantics
+validation_na :
+  - 'None'
+  - 'n/a'
+  - 'na'
+
+# other windows
+default_window_param_guide : 0
+default_geometry_param_guide:
+  - 500
+  - 600
+default_param_guide_height:
+  - 400
+
+# temp file save path
+default_temp_path :
+  - 'temp'
+# navigation
+default_min_x : 'auto'
+default_max_x : 'auto'
+default_min_y : 'auto'
+default_max_y : 'auto'
+default_force_axis_limit : 0
+
+default_navigation_scroll_percent : 3
+default_navigation_fps : 12
+default_navigation_zoom_percent : 10
+default_navigation_mirror_y_scroll : 1
+default_navigation_mirror_x_scroll : 1
+
+# adjust
+default_adjust_target: 'All sweeps'
+default_adjust_channel: '1'
+default_adjust_baseline_mode: 'mean'
+default_adjust_range_left: 0
+default_adjust_range_right: 1
+default_adjust_fixed: 0
+default_adjust_baseline_signal: 'Sweeps'
+
+default_adjust_avg_show_result : '1'
+default_adjust_avg_min_max: '1'
+default_adjust_avg_window: '1'
+
+default_adjust_filter_lohi : 'Lowpass'
+default_adjust_filter_Lowpass_algorithm: 'Boxcar'
+default_adjust_filter_Highpass_algorithm: 'None'
+
+# Boxcar Filter
+default_adjust_filter_boxcar_kernel : 11
+
+# evoked
+default_evoked_target: 'Visible sweeps'
+default_evoked_channel: '1'
+default_evoked_window_mode: 'visible'
+default_evoked_range_left: 0
+default_evoked_range_right: 1
+
+
+
+#detector parameters
+default_detector_search_radius : 5.0
+default_detector_auto_radius : 60
+default_detector_direction : 'positive'
+default_detector_min_amp : 0.3
+default_detector_points_baseline : 100
+default_detector_points_search : 300
+default_detector_min_decay : 0
+default_detector_max_decay : 'none'
+default_detector_min_auc : 0
+default_detector_min_hw : 0
+default_detector_max_hw : 'None'
+default_detector_min_rise : 0
+default_detector_max_rise : 'None'
+default_detector_max_points_baseline : 1000
+default_detector_max_points_decay : 40000
+default_detector_update_events : 0
+default_detector_decay_func_type : '1'
+default_detector_decay_func_constant : "1"
+default_detector_decay_fit_ftol : 1e-08
+default_detector_show_fit : '1'
+
+default_data_export_all : 1
+default_data_display_time : 1
+default_data_display_amplitude : 1
+default_data_display_amplitude_unit : 1
+default_data_display_decay : 1
+default_data_display_decay_unit : 1
+default_data_display_decay_func : 1
+default_data_display_decay_time : 1
+default_data_display_rise : 1
+default_data_display_rise_unit : 1
+default_data_display_halfwidth : 1
+default_data_display_halfwidth_unit : 1
+default_data_display_baseline : 1
+default_data_display_baseline_unit : 1
+default_data_display_channel : 1
+default_data_display_direction : 1
+
+#style
+default_style_trace_line_color : 'black'
+default_style_trace_line_width : 0.25
+default_major_tick : 'auto'
+default_minor_tick : 'auto'
+default_style_event_color_peak : 'yellow'
+default_style_event_color_start : 'red'
+default_style_event_color_end : 'purple'
+default_style_event_color_decay : 'blue'
+default_style_event_color_highlight: 'red'
+default_style_trace_highlight_color : 'red'
+default_style_event_pick_offset : 0
+
+default_show_peak : "1"
+default_show_decay : "1"
+default_show_start : "1"
+default_show_end : ""
+
+#system
+default_config_user_path :
+  - 'config'
+  - "user_config.yaml"
+default_config_system_path :
+  - 'config'
+  - 'system_config.yaml'
+default_config_keymap_path:
+  - 'config'
+  - 'key_map.yaml'
+default_config_autoload : 1
+default_config_autosave : 1
+default_config_file_autodir : 1
+default_config_undo_stack : 2
+
+
+# channel
+default_channel_option : ""
+default_force_channel : 0
+default_force_channel_id: 0
+
+# sweep
+default_export_sweep : 1
+default_sweep_picker_offset : 20
+
+# menu
+default_trace_mode : 'continuous'
+default_analysis_mode : 'mini'
+
+#####################
+#      key map      #
+#####################
+# selection
+default_key_deselect:
+  - '<Escape>'
+  - 'q'
+  - 'o'
+default_key_delete:
+  - '<Delete>'
+  - '<BackSpace>'
+  - 'e'
+  - 'u'
+default_key_select_all:
+  - '<Control-a>'
+default_key_select_window:
+  - '<Control-A>'
+default_key_multi_select:
+  - '<Shift_L>'
+  - '<Shift_R>'
+# plot navigation
+default_key_scroll_rapid:
+  - '<Shift_L>'
+  - '<Shift_R>'
+default_key_pan_left :
+  - 'a'
+default_key_pan_right:
+  - 'd'
+default_key_pan_up:
+  - 'w'
+default_key_pan_down:
+  - 's'
+default_key_escape:
+  - 'q'
+default_key_erase:
+  - 'e'
+default_key_zoom_in_x:
+  - 'j'
+default_key_zoom_out_x:
+  - 'l'
+default_key_zoom_in_y:
+  - 'i'
+default_key_zoom_out_y:
+  - 'k'
+default_key_reset_focus:
+  - '<space>'
+# toolbar
+default_key_toolbar_pan:
+  - 'p'
+default_key_toolbar_zoom:
+  - 'z'
+
+default_key_undo:
+  - '<Control-z>'
+
+default_key_copy:
+  - '<Control-c>'
+  - 'c'
