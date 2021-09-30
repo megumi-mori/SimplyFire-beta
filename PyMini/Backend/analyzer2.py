@@ -1,7 +1,7 @@
 import numpy as np
 import os.path
 import matplotlib.pyplot as plt
-from math import ceil, hypot, isnan
+from math import ceil, hypot, isnan, sqrt
 from datetime import datetime
 from pyabf import abf
 
@@ -510,14 +510,15 @@ class Analyzer():
     #################
 
     def find_mini_auto(self,
-                       xlim,
+                       xlim=None,
                        xs=None,
                        ys=None,
                        channel=0,
                        sweeps=None,
                        kernel=300,
                        stride=150,
-                       allow_duplicate=False,
+                       direction=1,
+                       reference_df=True,
                        **kwargs
                        ):
         """
@@ -530,13 +531,21 @@ class Analyzer():
 
 
         Args:
-            xlim: float tuple representing the search window limits. [left, right]
+            xlim: float tuple representing the search window limits. [left, right] If None, defaults to entire dataset
             xs: float numpy array representing the x-values of the recording sequence.
                 If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
             ys: float numpy array representing the y-values of the recording sequence.
                 If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
             channel: int indicating the channel number to analyze. Only required if xs and ys are not provided
             sweeps: list of int indicating the sweeps to analyzer. If left None, all sweeps will be considered
+            kernel: int representing the number of data points to consider per iteration.
+                The most extreme data point within the kernel will be tested as a candidate mini peak.
+                Should be smaller than the shortest interval between two minis within the recording.
+                Larger kernel size can speed up the search.
+            stride: int representing the number of data points to shift every iteration.
+                Recommended to be less than kernel.
+                Larger strides can speed up the search.
+            direction: int
             **kwargs: see list of parameters in find_single_mini()
 
         Returns:
@@ -546,345 +555,298 @@ class Analyzer():
                 #### list columns here
         """
         if xs is None:
-            xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps).flatten()
+            xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
         if ys is None:
-            ys = self.recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps).flatten()
+            ys = self.recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
+        try:
+            xlim_idx = (search_index(xlim[0], xs), search_index(xlim[1], xs))
+        except:
+            xlim_idx = (0, len(xs))
+        start_idx = xlim_idx[0]
+        end_idx = start_idx + kernel
 
-        pass
+        while start_idx < len(xs):
+            peak_idx = self.find_peak_recursive(xs, ys, start=start_idx, end=end_idx, direction=direction)
+            if peak_idx is not None:
+                mini = self.analyze_candidate_mini(
+                    xs=xs,
+                    ys=ys,
+                    peak_idx=peak_idx,
+                    x_sigdig=self.recording.x_sigdig,
+                    channel=channel,
+                    direction=direction,
+                    reference_df=reference_df,
+                    **kwargs
+                )
 
-    def find_mini_manual(self,
-                         point: tuple = None,
-                         radius: float = 0.0,
-                         xs: np.ndarray = None,
-                         ys: np.ndarray = None,
-                         channel: int = 0,
-                         sweeps: list = None,
-                         update_df: bool = True,
-                         compare_df: bool = True,
-                         **kwargs
-                         ) -> DataFrame:
-        """
-        Searches mini near a specified point and adds the result to the mini_df attribute
+                if reference_df and mini['success']:
+                    self.mini_df = self.mini_df.append(Series(mini),
+                                                       ignore_index=True,
+                                                       verify_integrity=True,
+                                                       sort=True)
+                    self.mini_df = self.mini_df.sort_values(by='t')
+                   # start_idx = max(peak_idx - 1, start_idx + stride)
+                else:
+                   #start_idx += stride
 
-        Recommended for manual detection in combination with the GUI.
-        If multiple searches are performed on the same xs and ys data, it is recommended to
-        store the xs and ys data outside of the Analyzer and pass them as arguments to speed up
-        the search time. If ys and xs are not provided as arguments, continuous sequence of
-        xs and ys data are created on the fly from the recording data every function call.
-
-        Args:
-            point: tuple float (x, y) representing a point to center the search
-            radius: x-value radius. A window of [point-radius, point+radius] will be used for the search
-            xs: float numpy array representing the x-values of the recording sequence.
-                If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
-            ys: float numpy array representing the y-values of the recording sequence.
-                If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
-            channel: int indicating the channel number to analyze. Only required if xs and ys are not provided
-            sweeps: list of int indicating the sweeps to analyzer. If left None, all sweeps will be considered
-            update_df: bool representing whether to update the mini_df attribute when a mini is found
-                If True, any new mini will be added to mini_df attribute
-            compare_df: bool representing whether to use the mini_df attribute to check for previously found mini
-                If True, any candidate mini will be compared against previously found mini
-            **kwargs: see list of parameters in find_single_mini()
-
-        Returns:
-            pandas DataFrame containing the information on search parameters and mini characteristics.
-            In addition to the search parameters passed as arguments, the following data are included
-            in the result:
-                #### list columns here
-        """
-        if xs is None:
-            xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps).flatten()
-        if ys is None:
-            ys = self.recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps).flatten()
-
-        # if compare_df is True, pass the mini_df attribute as argument for comparison
-        reference = None
-        if compare_df:
-            reference = self.mini_df
-
-        mini = self.find_mini_with_criteria(xs=xs,
-                                     ys=ys,
-                                     xlim=(point[0]-radius, point[0]+radius),
-                                     x_sigdig=self.recording.x_sigdig,
-                                     sampling_rate=self.recording.sampling_rate,
-                                     reference=reference,
-                                     channel=channel,
-                                     **kwargs
-                                     )
-        # fill in data from the recordings attribute
-        mini['t_unit'] = self.recording.x_unit
-        mini['baseline_unit'] = self.recording.channel_units[channel]
-        mini['amp_unit'] = self.recording.channel_units[channel]
-        mini['rise_unit'] = 'ms' if self.recording.x_unit in ['s', 'seconds', 'second', 'sec'] else '{} E-3'.format(
-            self.recording.x_unit)
-
-        print(mini)
-        if update_df:
-            self.mini_df = self.mini_df.append(Series(mini),
-                                               ignore_index=True,
-                                               verify_integrity=True,
-                                               sort=True)
-        print(self.mini_df)
-
-        return mini
-
-
-
-    def find_mini_with_criteria(self,
-                         xs,
-                         ys,
-                         xlim=None,
-                         start_idx:int=None,
-                         end_idx: int=None,
-                         x_sigdig=None,
-                         sampling_rate=None,
-                         channel=0,
-                         lag=100,
-                         direction=1,
-                         min_amp=0.0,
-                         max_amp=np.inf,
-                         min_rise=0.0,
-                         max_rise=np.inf,
-                         min_hw=0.0,
-                         max_hw=np.inf,
-                         min_decay=0.0,
-                         max_decay=np.inf,
-                         max_points_decay=40000,
-                         peak_idx=None,
-                         reference: DataFrame=None
-                         ):
-        """
-        searches for a single mini event. Returns a dict containing details of the mini found
-
-            xlim: float tuple - [start, end) specify window to look for a mini
-            start_idx: int representing the lower limit of search window in index value
-                    - If not None, this parameter takes priority over xlim
-            end_idx: int representing the higher limit of search window in index value
-                    - If not None, this parameter takes priority over xlim
-            x_digits: int - number of digits to round the x-values
-            sampling_rate: int - sampling rate of the recording
-            channel: int used to compare against previously found minis (if reference is not None)
-            xs: 1D float numpy array - x-values
-            ys: 1D float numpy array - y-values
-            direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
-            lag: int indicating the number of data points used to calculate the baseline.
-                See calculate_mini_baseline() for algorithm on baseline estimation.
-            direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
-            min_amp: float indicating the minimum amplitude required in a candidate mini.
-            max_amp: float indicating the maximum amplitude accepted in a candidate mini.
-            min_rise: float indicating the minimum rise required in a candidate mini.
-            max_rise: float indicating the maximum rise accepted in a candidate mini.
-            min_hw: float indicating the minimum halfwidth required in a candidate mini.
-                See calculate_mini_halfwidth() for algorithm on halfwidth calculation
-            max_hw: float indicating the maximum halfwidth accepted in a candidate mini.
-                See calculate_mini_halfwidth() for algorithm on halfwidth calculation
-            min_decay: float indicating the minimum decay constant required in a candidate mini.
-                See calculate_mini_decay() for algorithm on decay constant calculation.
-            max_decay: float indicating the maximum decay constant accepted in a candidate mini.
-                See calculate_mini_decay() for algorithm on decay constant calculation.
-            max_decay_points: int indicating the number of data points after peak to consider for decay fit.
-            allow_duplicate: bool indicating whether to accept mini that was already found by the Analyzer.
-                If False, a candidate mini is rejected if the peak is already included in the mini_df attribute
-            peak_idx: int - use if reanalyzing an existing peak. Index within the xs data corresponding to a peak.
-                - If provided, the data point at peak_idx is assumed to be the local extremum
-            reference: DataFrame containing previously found mini. If not None, the algorithm will check
-                candidate peaks against existing data to avoid duplicates
-        returns dict
-        """
-
-        # convert search window to indices
-        if start_idx is None or end_idx is None and xlim is not None:
-            start_idx = search_index(xlim[0], xs, sampling_rate)
-            end_idx = search_index(xlim[1], xs, sampling_rate)
-        assert start_idx is not None and end_idx is not None, 'insufficient information on xlim'
-        assert start_idx < end_idx, 'start_idx > end_idx'
-        assert 0 < start_idx < len(xs) and 0 < end_idx < len(xs), "search window out of bounds"
-
-        # store search parameters
-        mini = {
-            'search_window_start':xlim[0],
-            'search_window_end': xlim[1],
-            'direction': direction,
-            'lag': lag,
-            'channel':channel,
-            'min_amp':min_amp,
-            'max_amp':max_amp,
-            'min_rise':min_rise,
-            'max_rise':max_rise,
-            'min_hw':min_hw,
-            'max_hw':max_hw,
-            'min_decay':min_decay,
-            'max_decay':max_decay,
-            'max_points_decay':max_points_decay,
-            'datetime':datetime.now().strftime('%m-%d-%y %H:%M:%S'),
-            'failure': None
-        }
-
-        ######## search for peak #######
-        # look for the local extremum
-        if peak_idx is None:
-            mini['peak_idx'] = self.find_peak_recursive(xs, ys, start=start_idx, end=end_idx, direction=direction)
-        else:
-            mini['peak_idx'] = peak_idx
-
-        # if peak is not found, report failure to find peak
-        if mini['peak_idx'] is None:
-            mini['success'] = False
-            mini['failure'] = 'Cannot find peak within the search window'
-            return mini
-
-        # extract peak datapoint
-        mini['t'] = xs[mini['peak_idx']]
-        if x_sigdig is not None:
-            mini['t'] = round(mini['t'], x_sigdig) # round the x_value of the peak to indicated number of digits
-
-        # check if the peak is duplicate of existing mini data
-        if reference is not None:
-            try:
-                if mini['t'] in reference.t:
-                    mini['success'] = False
-                    mini['failure'] = 'Mini was previously found'
-                    return mini
-            except: # error accesing mini_df attribute
+                    pass
+            else:
+                #start_idx += stride
                 pass
+            start_idx += stride
+            end_idx = start_idx + kernel
 
-        # store peak coordinate
-        mini['peak_coord_x'] = xs[mini['peak_idx']]
-        mini['peak_coord_y'] = ys[mini['peak_idx']]
-
-        ####### search baseline #######
-        # find baseline/start of event
-        prev_peak_x = np.nan
-        if reference is not None:
-            try:
-                # find the peak of the previous mini
-                # peak x-value must be stored in the column 't'
-                # check that the channels are the same
-                prev_peak_x = max(reference.t.where(reference.t < mini['t']).where(reference.channel == channel))
-                # can be nan if the reference DataFrame is empty
-            except:
-                pass
-        if isnan(prev_peak_x):
-            prev_peak_x = xs[0]
-        mini['baseline_idx'], mini['baseline'] = self.calculate_mini_baseline(peak_idx=mini['peak_idx'],
-                                                                              ys=ys,
-                                                                              lag=lag,
-                                                                              direction=direction,
-                                                                              stride=-1)
-        if reference is not None and xs[mini['baseline_idx']] < prev_peak_x:
-            # start of this mini is earlier than the peak of the previous mini - potential compound peak
-
-            # insert support for compound peak here:
-
-
-            ######################################
-
-            pass
-
-        # check if baseline calculation was successful
-        if mini['baseline_idx'] is None: # not successful
-            mini['success'] = False
-            mini['failure'] = 'Baseline could not be found'
-            return mini
-
-        # store coordinate for start of mini (where the plot meets the baseline)
-        mini['start_coord_x'] = xs[mini['baseline_idx']]
-        mini['start_coord_y'] = ys[mini['baseline_idx']]
-
-        ####### calculate amplitude #######
-        mini['amp'] = (mini['peak_coord_y'] - mini['baseline']) # signed
-
-        # check against min_amp and max_amp criteria
-        if mini['amp'] * direction < min_amp:
-            mini['success'] = False
-            mini['failure'] = 'Min amp not met'
-            return mini
-
-        if mini['amp'] * direction > max_amp:
-            mini['success'] = False
-            mini['failure'] = 'Max amp exceeded'
-            return mini
-
-        ####### calculate end of event #######
-        mini['end_idx'], _ = self.calculate_mini_baseline(peak_idx=mini['peak_idx'],
-                                                          ys=ys,
-                                                          lag=lag,
-                                                          direction=direction,
-                                                          stride=1)
-        if mini['end_idx'] is None: # not successful
-            mini['success'] = False
-            mini['failure'] = 'End of mini could not be found'
-            return mini
-
-        # store the coordinate for the end of mini (where the plot crosses the trailing average)
-        mini['end_coord_x'] = xs[mini['end_idx']]
-        mini['end_coord_y'] = ys[mini['end_idx']]
-
-        ####### calculate rise #######
-        mini['rise_const'] = (mini['peak_coord_x'] - mini['start_coord_x']) * 1000 # convert to ms
-        print(f'min_rise: {min_rise}')
-        # check against min_rise and max_rise
-        if mini['rise_const'] < min_rise:
-            mini['success'] = False
-            mini['failure'] = 'Min rise not met'
-            return mini
-
-        if mini['rise_const'] > max_rise:
-            mini['success'] = False
-            mini['failure'] = 'Max rise exceeded'
-            return mini
+    # def find_mini_manual(self,
+    #                      point: tuple = None,
+    #                      radius: float = 0.0,
+    #                      xs: np.ndarray = None,
+    #                      ys: np.ndarray = None,
+    #                      channel: int = 0,
+    #                      sweeps: list = None,
+    #                      update_df: bool = True,
+    #                      compare_df: bool = True,
+    #                      **kwargs
+    #                      ) -> DataFrame:
+    #     """
+    #     Searches mini near a specified point and adds the result to the mini_df attribute
+    #
+    #     Recommended for manual detection in combination with the GUI.
+    #     If multiple searches are performed on the same xs and ys data, it is recommended to
+    #     store the xs and ys data outside of the Analyzer and pass them as arguments to speed up
+    #     the search time. If ys and xs are not provided as arguments, continuous sequence of
+    #     xs and ys data are created on the fly from the recording data every function call.
+    #
+    #     Args:
+    #         point: tuple float (x, y) representing a point to center the search
+    #         radius: x-value radius. A window of [point-radius, point+radius] will be used for the search
+    #         xs: float numpy array representing the x-values of the recording sequence.
+    #             If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
+    #         ys: float numpy array representing the y-values of the recording sequence.
+    #             If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
+    #         channel: int indicating the channel number to analyze. Only required if xs and ys are not provided
+    #         sweeps: list of int indicating the sweeps to analyzer. If left None, all sweeps will be considered
+    #         update_df: bool representing whether to update the mini_df attribute when a mini is found
+    #             If True, any new mini will be added to mini_df attribute
+    #         compare_df: bool representing whether to use the mini_df attribute to check for previously found mini
+    #             If True, any candidate mini will be compared against previously found mini
+    #         **kwargs: see list of parameters in find_single_mini()
+    #
+    #     Returns:
+    #         pandas DataFrame containing the information on search parameters and mini characteristics.
+    #         In addition to the search parameters passed as arguments, the following data are included
+    #         in the result:
+    #             #### list columns here
+    #     """
+    #     if xs is None:
+    #         xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps).flatten()
+    #     if ys is None:
+    #         ys = self.recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps).flatten()
+    #
+    #     # if compare_df is True, pass the mini_df attribute as argument for comparison
+    #     reference = None
+    #     if compare_df:
+    #         reference = self.mini_df
+    #
+    #     mini = self.find_mini_with_criteria(xs=xs,
+    #                                  ys=ys,
+    #                                  xlim=(point[0]-radius, point[0]+radius),
+    #                                  x_sigdig=self.recording.x_sigdig,
+    #                                  sampling_rate=self.recording.sampling_rate,
+    #                                  reference=reference,
+    #                                  channel=channel,
+    #                                  **kwargs
+    #                                  )
+    #     # fill in data from the recordings attribute
+    #     mini['t_unit'] = self.recording.x_unit
+    #     mini['baseline_unit'] = self.recording.channel_units[channel]
+    #     mini['amp_unit'] = self.recording.channel_units[channel]
+    #     mini['rise_unit'] = 'ms' if self.recording.x_unit in ['s', 'seconds', 'second', 'sec'] else '{} E-3'.format(
+    #         self.recording.x_unit)
+    #
+    #     print(mini)
+    #     if update_df:
+    #         self.mini_df = self.mini_df.append(Series(mini),
+    #                                            ignore_index=True,
+    #                                            verify_integrity=True,
+    #                                            sort=True)
+    #     print(self.mini_df)
+    #
+    #     return mini
+    #
 
 
-        ####### calculate decay ########
-        mini['decay_start_idx'] = mini['peak_idx'] # peak = start of decay
-        mini['decay_end_idx'] = min(mini['peak_idx'] + max_points_decay, len(xs))
-        mini['decay_amp'], mini['decay_constant'], mini['decay_scalar'], mini['decay_idx'] = self.calculate_mini_decay(
-            xs =xs, ys=ys, start_idx=mini['decay_start_idx'], end_idx=mini['decay_end_idx'], direction=direction)
-        if mini['decay_constant'] < min_decay:
-            mini['success'] = False
-            mini['failure'] = 'Min decay not met'
-            return mini
-        if mini['decay_constant'] > max_decay:
-            mini['success'] = False
-            mini['failure'] = 'Max decay exceeded'
-            return mini
-
-        print('here')
-        mini['decay_coord_x'] = xs[mini['decay_idx']]
-        mini['decay_coord_y'] = single_exponent_constant(
-            mini['decay_constant'],
-            mini['decay_amp'],
-            mini['decay_constant'],
-            mini['decay_scalar']
-        ) * direction #### add support for compound (add back subtracted baseline)
-
-
-        ####### calculate halfwidth #######
-        mini['halfwidth_start_idx'], mini['halfwidth_end_idx'], mini['halfwidth'] = self.calculate_mini_halfwidth(
-            amp=mini['amp'], xs=xs, ys=ys, start_idx=mini['baseline_idx'], end_idx =mini['end_idx'],
-            peak_idx=mini['peak_idx'], baseline=mini['baseline'], direction=direction)
-        if ['halfwidth'] is None:
-            mini['success'] = False
-            mini['failure'] = 'Halfwidth could not be calculated'
-            return mini
-
-        if mini['halfwidth'] < min_hw:
-            mini['success'] = False
-            mini['failure'] = 'Min halfwidth not met'
-            return mini
-
-        if mini['halfwidth'] > max_hw:
-            mini['success'] = False
-            mini['failure'] = 'Max halfwidth exceeded'
-            return mini
-
-        mini['halfwidth_start_coord_x'] = xs[mini['halfwidth_start_idx']]
-        mini['halfwidth_start_coord_y'] = ys[mini['halfwidth_start_idx']]
-
-        mini['halfwidth_end_coord_x'] = xs[mini['halfwidth_end_idx']]
-        mini['halfwidth_end_coord_y'] = ys[mini['halfwidth_end_idx']]
-        return mini
+    # def find_mini_with_criteria(self,
+    #                             xs,
+    #                             ys,
+    #                             start_idx: int = None,
+    #                             end_idx: int = None,
+    #                             direction: int = 1,
+    #                             **kwargs
+    #                             ):
+    #     """
+    #     searches for a single mini event. Returns a dict containing details of the mini found
+    #         xs: 1D float numpy array - x-values
+    #         ys: 1D float numpy array - y-values
+    #         start_idx: int representing the lower limit of search window in index value
+    #                 - If not None, this parameter takes priority over xlim
+    #         end_idx: int representing the higher limit of search window in index value
+    #                 - If not None, this parameter takes priority over xlim
+    #         direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
+    #
+    #
+    #     returns dict
+    #     """
+    #
+    #     assert start_idx is not None and end_idx is not None, 'insufficient information on xlim'
+    #     assert start_idx < end_idx, 'start_idx > end_idx'
+    #     assert 0 < start_idx < len(xs) and 0 < end_idx <= len(xs), "search window out of bounds"
+    #
+    #     # store search parameters
+    #
+    #
+    #     ######## search for peak #######
+    #     # look for the local extremum
+    #     peak_idx = self.find_peak_recursive(xs, ys, start=start_idx, end=end_idx, direction=direction)
+    #
+    #     # if peak is not found, report failure to find peak
+    #     if peak_idx is None:
+    #         return None
+    #
+    #     # fill the rest of the information
+    #     mini = self.analyze_candidate_mini(xs, ys, peak_idx, direction=direction, **kwargs)
+    #
+    #     # ####### search baseline #######
+    #     # # find baseline/start of event
+    #     # prev_peak_x = np.nan
+    #     # if reference is not None:
+    #     #     try:
+    #     #         # find the peak of the previous mini
+    #     #         # peak x-value must be stored in the column 't'
+    #     #         # check that the channels are the same
+    #     #         prev_peak_x = max(reference.t.where(reference.t < mini['t']).where(reference.channel == channel))
+    #     #         # can be nan if the reference DataFrame is empty
+    #     #     except:
+    #     #         pass
+    #     # if isnan(prev_peak_x):
+    #     #     prev_peak_x = xs[0]
+    #     # mini['baseline_idx'], mini['baseline'] = self.calculate_mini_baseline(peak_idx=mini['peak_idx'],
+    #     #                                                                       ys=ys,
+    #     #                                                                       lag=lag,
+    #     #                                                                       direction=direction,
+    #     #                                                                       stride=-1)
+    #     # if reference is not None and xs[mini['baseline_idx']] < prev_peak_x:
+    #     #     # start of this mini is earlier than the peak of the previous mini - potential compound peak
+    #     #
+    #     #     # insert support for compound peak here:
+    #     #
+    #     #
+    #     #     ######################################
+    #     #
+    #     #     pass
+    #     #
+    #     # # check if baseline calculation was successful
+    #     # if mini['baseline_idx'] is None: # not successful
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'Baseline could not be found'
+    #     #     return mini
+    #     #
+    #     # # store coordinate for start of mini (where the plot meets the baseline)
+    #     # mini['start_coord_x'] = xs[mini['baseline_idx']]
+    #     # mini['start_coord_y'] = ys[mini['baseline_idx']]
+    #     #
+    #     # ####### calculate amplitude #######
+    #     # mini['amp'] = (mini['peak_coord_y'] - mini['baseline']) # signed
+    #     #
+    #     # # check against min_amp and max_amp criteria
+    #     # if mini['amp'] * direction < min_amp:
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'Min amp not met'
+    #     #     return mini
+    #     #
+    #     # if mini['amp'] * direction > max_amp:
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'Max amp exceeded'
+    #     #     return mini
+    #     #
+    #     # ####### calculate end of event #######
+    #     # mini['end_idx'], _ = self.calculate_mini_baseline(peak_idx=mini['peak_idx'],
+    #     #                                                   ys=ys,
+    #     #                                                   lag=lag,
+    #     #                                                   direction=direction,
+    #     #                                                   stride=1)
+    #     # if mini['end_idx'] is None: # not successful
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'End of mini could not be found'
+    #     #     return mini
+    #     #
+    #     # # store the coordinate for the end of mini (where the plot crosses the trailing average)
+    #     # mini['end_coord_x'] = xs[mini['end_idx']]
+    #     # mini['end_coord_y'] = ys[mini['end_idx']]
+    #     #
+    #     # ####### calculate rise #######
+    #     # mini['rise_const'] = (mini['peak_coord_x'] - mini['start_coord_x']) * 1000 # convert to ms
+    #     # print(f'min_rise: {min_rise}')
+    #     # # check against min_rise and max_rise
+    #     # if mini['rise_const'] < min_rise:
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'Min rise not met'
+    #     #     return mini
+    #     #
+    #     # if mini['rise_const'] > max_rise:
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'Max rise exceeded'
+    #     #     return mini
+    #     #
+    #     #
+    #     # ####### calculate decay ########
+    #     # mini['decay_start_idx'] = mini['peak_idx'] # peak = start of decay
+    #     # mini['decay_end_idx'] = min(mini['peak_idx'] + max_points_decay, len(xs))
+    #     # mini['decay_amp'], mini['decay_constant'], mini['decay_scalar'], mini['decay_idx'] = self.calculate_mini_decay(
+    #     #     xs =xs, ys=ys, start_idx=mini['decay_start_idx'], end_idx=mini['decay_end_idx'], direction=direction)
+    #     # if mini['decay_constant'] < min_decay:
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'Min decay not met'
+    #     #     return mini
+    #     # if mini['decay_constant'] > max_decay:
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'Max decay exceeded'
+    #     #     return mini
+    #     #
+    #     # print('here')
+    #     # mini['decay_coord_x'] = xs[mini['decay_idx']]
+    #     # mini['decay_coord_y'] = single_exponent_constant(
+    #     #     mini['decay_constant'],
+    #     #     mini['decay_amp'],
+    #     #     mini['decay_constant'],
+    #     #     mini['decay_scalar']
+    #     # ) * direction #### add support for compound (add back subtracted baseline)
+    #     #
+    #     #
+    #     # ####### calculate halfwidth #######
+    #     # mini['halfwidth_start_idx'], mini['halfwidth_end_idx'], mini['halfwidth'] = self.calculate_mini_halfwidth(
+    #     #     amp=mini['amp'], xs=xs, ys=ys, start_idx=mini['baseline_idx'], end_idx =mini['end_idx'],
+    #     #     peak_idx=mini['peak_idx'], baseline=mini['baseline'], direction=direction)
+    #     # if ['halfwidth'] is None:
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'Halfwidth could not be calculated'
+    #     #     return mini
+    #     #
+    #     # if mini['halfwidth'] < min_hw:
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'Min halfwidth not met'
+    #     #     return mini
+    #     #
+    #     # if mini['halfwidth'] > max_hw:
+    #     #     mini['success'] = False
+    #     #     mini['failure'] = 'Max halfwidth exceeded'
+    #     #     return mini
+    #     #
+    #     # mini['halfwidth_start_coord_x'] = xs[mini['halfwidth_start_idx']]
+    #     # mini['halfwidth_start_coord_y'] = ys[mini['halfwidth_start_idx']]
+    #     #
+    #     # mini['halfwidth_end_coord_x'] = xs[mini['halfwidth_end_idx']]
+    #     # mini['halfwidth_end_coord_y'] = ys[mini['halfwidth_end_idx']]
+    #     return mini
 
     def find_peak_recursive(self,
                             xs,
@@ -922,14 +884,13 @@ class Analyzer():
             return self.find_peak_recursive(xs, ys, start, end - FUDGE, direction)
         return peak_idx
 
-    def calculate_mini_baseline(self,
-                                peak_idx: int,
-                                ys: np.ndarray,
-                                lag: int=100,
-                                direction: int=1,
-                                stride: int=-1) -> tuple:
+    def find_mini_start(self,
+                        peak_idx: int,
+                        ys: np.ndarray,
+                        lag: int = 100,
+                        direction: int = 1) -> tuple:
         """
-        Calculates estimated baseline value and index prior to a mini peak
+        Calculates estimated baseline value and the index of start of a mini event
 
         Args:
             peak_idx: int representing the index at which the candiate mini peak was found in ys array
@@ -939,33 +900,68 @@ class Analyzer():
                 The point at which the mini data crosses the trailing average is considered the start of the mini.
             direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
                 Default 1
-            stride: int {-1, 1}, indicating the direction along the x-axis to search for baseline.
-                -1 for start of mini, 1 for end of mini
-
         Returns:
-            baseline_idx: index within ys estimated to be the baseline
+            idx: index where ys data point reaches baseline (start of mini)
             baseline: estimated baseline value. This is the trailing average of lag data points
                     prior to the baseline_idx in ys
         """
-
-        base_idx = peak_idx - 1 # initialize search at the index previous to the peak
+        # initialize search at the index previous to the peak
+        # left of peak for start of mini
+        idx = peak_idx - 1
 
         # NB: by multiplying the direction, the ys values will always peak in the positive direction
+        if idx < lag:
+                return None, None # there are less than lag data points to the left of starting index
 
-        if base_idx < lag: # there are less than lag data points to average in the y-sequence
-            return None, None
-
-        y_avg = np.mean(ys[base_idx - lag: base_idx] * direction, dtype=np.longdouble) # avg lag data points
-        base_idx += 1 * stride
-        while lag <= base_idx <= len(ys) - lag:
-            y_avg = y_avg + (ys[base_idx - lag] * (-1 * stride) - ys[base_idx] *(-1 * stride)) * direction / (lag) # update trailing avg
+        y_avg = np.mean(ys[idx - lag:idx] * direction) # avg lag data points
+        while lag <= idx <= len(ys) - lag:
+            idx -= 1
+            y_avg = y_avg + (ys[idx - lag] - ys[idx]) * direction / lag # update trailing avg
             # equivalent to np.mean(ys[base_idx-lag: base_idx])
-            if y_avg >= ys[base_idx] * direction: # y-value dips below the estimated baseline
+            if y_avg >= ys[idx] * direction: # y-value dips below the estimated baseline
                 break
-            base_idx += 1 * stride
         else:
             return None, None # could not find baseline until base_idx < lag or base_idx > len(ys) - lag
-        return base_idx, y_avg * direction
+        return idx, y_avg * direction
+
+    def find_mini_end(self,
+                      peak_idx: int,
+                      ys: np.ndarray,
+                      lag: int = 100,
+                      direction: int = 1) -> tuple:
+        """
+        Calculates the baseline value and estimated end index of a mini event
+        Args:
+            peak_idx: int representing the index at which the candiate mini peak was found in ys array
+            ys: 1D numpy array representing the y-value to seearch for mini
+            lag: int representing the number of datapoints averaged to find the trailing average. Default 100
+                The result of the trailing average is used to estamate the baseline.
+                The point at which the mini data crosses the trailing average is considered the start of the mini.
+            direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
+                Default 1
+        Returns:
+            idx: index where ys data point reaches baseline (end of mini)
+            baseline: estimated baseline value. This is the trailing average of lag data points
+                    ahead of idx in ys
+
+        """
+        # initialize search at the index after the peak
+        idx = peak_idx + 1
+
+        # NB: by multiplying the direction, the ys values will always peak in the positive direction
+        if idx > len(ys) - lag:
+                return None, None # there are less than lag data points to the right of the starting index
+
+        y_avg = np.mean(ys[idx:idx + lag] * direction) # avg lag data points
+        while lag <= idx <= len(ys) - lag:
+            y_avg = y_avg + (ys[idx + lag] - ys[idx]) * direction / lag # update trailing avg
+            # equivalent to np.mean(ys[base_idx-lag: base_idx])
+            if y_avg >= ys[idx] * direction: # y-value dips below the estimated baseline
+                break
+            idx += 1
+        else:
+            return None, None # could not find baseline until base_idx < lag or base_idx > len(ys) - lag
+        return idx, y_avg * direction
 
     def calculate_mini_halfwidth(self,
                                  amp: float,
@@ -994,20 +990,26 @@ class Analyzer():
             halfwidth_end_index: int reperesenting the index at which y-value is 50% of the amplitude
             halfwidth: time it takes for the mini to reach 50% of amplitude and return to 50% of amplitude
         """
-        left_idx = np.where(ys[start_idx:peak_idx] * direction <= (amp * 0.5 + baseline) * direction)[0][-1] + start_idx
-        right_idx = np.where(ys[peak_idx:end_idx] * direction <= (amp * 0.5 + baseline) * direction)[0][0] + peak_idx
+        left_idx = np.where(ys[start_idx:peak_idx] * direction <= (amp * 0.5 + baseline) * direction)
+        if len(left_idx[0]):
+            left_idx = left_idx[0][-1] + start_idx
+        else:
+            left_idx = None
+        right_idx = np.where(ys[peak_idx:end_idx] * direction <= (amp * 0.5 + baseline) * direction)
+        if len(right_idx[0]):
+            right_idx = right_idx[0][0] + peak_idx
+        else:
+            right_idx = None
         return left_idx, right_idx, xs[right_idx] - xs[left_idx]  # pick the shortest length
-        # try:
-        #
-        # except:
-        #     return None, None, None # error raised during halfwidth search
+
 
     def calculate_mini_decay(self,
                              xs: np.ndarray,
                              ys: np.ndarray,
                              start_idx: int,
                              end_idx: int,
-                             direction: int = 1):
+                             direction: int = 1,
+                             baseline:float=0.0):
         """
         calculates decay of a mini
 
@@ -1017,6 +1019,7 @@ class Analyzer():
             start_idx: int representing the index to start the fit (should be peak of mini)
             end_idx: int reprsenting the index to end the fit
             direction: int {-1, 1}
+            baseline: float to subtract from ys
 
         Returns:
             a, t, d: float, single exponential function parameters
@@ -1027,8 +1030,8 @@ class Analyzer():
         ########## is it better the constrain a? ##############
 
         x_data = (xs[start_idx:end_idx] - xs[start_idx])*1000
-        print(x_data)
-        y_data = ys[start_idx:end_idx] * direction
+        # print(x_data)
+        y_data = (ys[start_idx:end_idx] - baseline) * direction
 
         # initialize weights for gradient descent
         y_weight = np.empty(len(y_data))
@@ -1042,11 +1045,11 @@ class Analyzer():
                             sigma=y_weight,
                             absolute_sigma=True,
                             maxfev=15000)
-        print(results[0])
+        # print(results[0])
         a = results[0][0]
         t = results[0][1]
         d = results[0][2]
-        print((a, t, d))
+        # print((a, t, d))
         decay_constant_idx = search_index(t, x_data) + start_idx # offset to start_idx
 
         return a, t, d, decay_constant_idx
@@ -1057,54 +1060,396 @@ class Analyzer():
                     delta_x: int = 100,
                     lag: int = 100,
                     min_amp: float = 0.3,
-                    max_amp: float = 1,
-                    peak_req: int = 10,
+                    max_amp: float = np.inf,
+                    decrease_threshold: int = 5,
+                    increase_threshold: int = 5,
                     direction: int = 1,
+                    offset: int=0
                     ):
         """
         uses the delta_x method to find peak - no window
         """
+        ys = ys.copy()
+        plt.plot(xs, ys)
         start_idx = 0
         end_idx = len(ys)
-        peak_idx = start_idx + lag + delta_x
+        decline_counter = 0
+
+        DECLINE_COUNTER_THRESHOLD = 5
+        increase_counter = 0
+        INCREASE_COUNTER_THRESHOLD = 5
+
+        switch = False
+        switch_on_idx = []
+        switch_off_idx = []
+
+        querry_idx = start_idx + lag + delta_x
         if end_idx - start_idx < lag + delta_x:
             return None  # not enough data points to analyze
         y_avg = np.mean(ys[start_idx: start_idx + lag])
+        y_var = np.var(ys[start_idx:start_idx+lag])
+
+        inc_counter = [0]*len(ys)
+        dec_counter = [0]*len(ys)
+        print(y_var)
+        # y_var = sum([(y - y_avg)**2 for y in ys[start_idx:start_idx+lag]])/lag
+        y_std = np.std(ys[start_idx:start_idx + lag])
+
         max_peak_idx = -1
-        while peak_idx < end_idx:
-            while ys[peak_idx] * direction > y_avg * direction + min_amp:
-                if max_peak_idx < 0 or ys[peak_idx] * direction > ys[max_peak_idx] * direction:
-                    max_peak_idx = peak_idx  # update maximum index pointer
-                y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
-                start_idx += 1
-                peak_idx += 1
-            else:
-                if max_peak_idx > 0:
-                    # potential peak found
-                    mini = {'peak_idx': max_peak_idx}
-                    base_idx, baseline = self.calculate_mini_baseline(max_peak_idx,
-                                                                      ys=ys,
-                                                                      lag=lag,
-                                                                      direction=direction,
-                                                                      stride=-1)
-                    if baseline is not None:
-                        mini['baseline'] = baseline
-                        mini['base_idx'] = base_idx
-                        if ys[max_peak_idx] * direction - baseline * direction > max_amp:
-                            mini = {}
-                        else:
-                            self.mini_df = self.mini_df.append(Series(mini),
+        while querry_idx < end_idx:
+            if (ys[querry_idx] - y_avg) * direction > min_amp * 0.36: # try out std #min_amp * 0.36: # inside a potential mini event
+                if decline_counter > DECLINE_COUNTER_THRESHOLD and switch and max_peak_idx > 0:
+                    # user specified compound mini analysis
+                    # sufficiently in negative slope after a local max is found
+                    # consider this as a candidate mini peak, and perform analysis with criteria
+                    mini = self.analyze_candidate_mini(
+                        xs,
+                        ys,
+                        max_peak_idx,
+                        x_sigdig=self.recording.x_sigdig,
+                        direction=direction,
+                        lag=lag,
+                        min_amp=min_amp,
+                        max_amp=max_amp,
+                        offset=offset
+                    )
+                    if mini['success']:
+                        self.mini_df = self.mini_df.append(Series(mini),
                                                            ignore_index=True,
                                                            verify_integrity=True,
                                                            sort=True)
-                        max_peak_idx = -1
-                    else:
-                        mini = {}
-                        max_peak_idx = -1
-            y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
+                        # ys[max_peak_idx:mini['end_idx'] - offset] = ys[
+                        #                                             max_peak_idx:mini['end_idx'] - offset
+                        #                                             ] - single_exponent_constant(
+                        #                     (xs[max_peak_idx:mini['end_idx'] - offset] - xs[max_peak_idx]) * 1000,
+                        #                     mini['decay_A'],
+                        #                     mini['decay_tau'],
+                        #                     0
+                        #                 ) * direction
+                        # ys[int(mini['baseline_idx'] - offset):int(mini['peak_idx'] - offset)] = mini['baseline']
+                    mini = {}
+                    increase_counter = 0 # refresh positive slope tracker
+                    decline_counter = 0 # refresh negative slope tracker
+                    max_peak_idx = -1 # refresh max tracker
+                    switch = False
+                    switch_off_idx.append(querry_idx)
+                elif max_peak_idx < 0 or ys[querry_idx] * direction > ys[max_peak_idx] * direction:
+                    # no max found yet or new max found
+                    max_peak_idx = querry_idx # update max tracker
+                    decline_counter = 0 # refresh negative slope tracker
+                if ys[querry_idx] * direction > ys[querry_idx - 1] * direction: # part of positive slope
+                    increase_counter += 1 # increase positive slope tracker
+                    if increase_counter > INCREASE_COUNTER_THRESHOLD:
+                        switch = True
+                        switch_on_idx.append(querry_idx)
+                elif ys[querry_idx] * direction < ys[querry_idx - 1] * direction: # part of negative slope
+                    decline_counter += 1
+            else: # datapoint is close to baseline, ignore
+                decline_counter = 0 # refresh negative slope tracker
+                increase_counter = 0 # refresh positive slope tracker
+                max_peak_idx = -1
+
+            new_y_avg = y_avg + (ys[start_idx + lag] - ys[start_idx]) / lag
+            # y_var += ((ys[start_idx+lag] - new_y_avg) + (ys[start_idx] - y_avg)) * (ys[start_idx + lag] - ys[start_idx])/lag
+            # if y_var < 0:
+            #     y_var = np.var(ys[start_idx+1:start_idx+lag+1])
+            # y_std = sqrt(y_var)
+            # y_std = np.std(ys[start_idx+1:start_idx + lag + 1])
+            # ys_std[int(start_idx + lag/2)] = y_std
+            dec_counter[querry_idx] = decline_counter
+            inc_counter[querry_idx] = increase_counter
+
+            y_avg = new_y_avg
+            querry_idx += 1
             start_idx += 1
-            peak_idx += 1
-        return None
+
+        plt.plot(xs, [i-8 for i in inc_counter], color='red')
+        plt.plot(xs, [i-8 for i in dec_counter], color='purple')
+        plt.plot(xs, ys, color='blue')
+
+
+        plt.scatter([xs[i] for i in switch_on_idx], [ys[i] for i in switch_on_idx], color='green', marker='o')
+        plt.scatter([xs[i] for i in switch_off_idx], [ys[i] for i in switch_off_idx], color='red', marker='o')
+
+        scatter_x = [xs[int(idx)] for idx in self.mini_df.peak_idx[:]]
+        scatter_y = [ys[int(idx)] for idx in self.mini_df.peak_idx[:]]
+        plt.scatter(scatter_x, scatter_y, c='pink')
+        plt.show()
+        # plt.plot(xs, ys)
+        # plt.fill_between(xs, ys+ys_std, ys-ys_std)
+        # plt.scatter([x for i, x in enumerate(xs) if hits[i]],
+        #             [y for i, y in enumerate(ys) if hits[i]],
+        #          marker='x', color='red')
+        # plt.show()
+            # while ys[peak_idx] * direction > y_avg * direction + min_amp * 0.5 and \
+            #         decline_counter < DECLINE_COUNTER_THRESHOLD:
+            #     if max_peak_idx < 0 or ys[peak_idx] * direction > ys[max_peak_idx] * direction:
+            #         max_peak_idx = peak_idx  # update maximum index pointer
+            #         decline_counter = 0
+            #     if ys[peak_idx] * direction < ys[peak_idx-1] * direction:
+            #         decline_counter += 1 # downward slope
+            #     elif ys[peak_idx] * direction > ys[peak_idx - 1] * direction:
+            #         increase_counter += 1 # upward slope
+            #     y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
+            #     start_idx += 1
+            #     peak_idx += 1
+            # else:
+            #     if max_peak_idx > 0:
+            #         # potential peak found
+            #         mini = self.analyze_candidate_mini(
+            #             xs,
+            #             ys,
+            #             max_peak_idx,
+            #             x_sigdig=self.recording.x_sigdig,
+            #             direction=direction,
+            #             lag=lag,
+            #             min_amp = min_amp,
+            #             max_amp=max_amp,
+            #             offset=offset
+            #         )
+            #         if mini['success']:
+            #             self.mini_df = self.mini_df.append(Series(mini),
+            #                                            ignore_index=True,
+            #                                            verify_integrity=True,
+            #                                            sort=True)
+            #             ys[max_peak_idx:mini['end_idx'] - offset] =  ys[max_peak_idx:mini['end_idx'] - offset]- single_exponent_constant(
+            #                 (xs[max_peak_idx:mini['end_idx'] - offset] - xs[max_peak_idx]) * 1000,
+            #                 mini['decay_A'],
+            #                 mini['decay_tau'],
+            #                 0
+            #             ) * direction
+            #             ys[int(mini['baseline_idx'] - offset):int(mini['peak_idx'] - offset)] = mini['baseline']
+            #         mini = {}
+            #         max_peak_idx = -1
+            # y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
+            # start_idx += 1
+            # peak_idx += 1
+        return ys
+
+    def analyze_candidate_mini(self,
+                               xs,
+                               ys,
+                               peak_idx,
+                               x_sigdig = None,
+                               channel=0,
+                               direction=1,
+                               reference_df=True,
+                               ## parameters defined in GUI ##
+                               lag=100,
+                               min_amp=0.0,
+                               max_amp=np.inf,
+                               min_rise=0.0,
+                               max_rise=np.inf,
+                               min_hw=0.0,
+                               max_hw=np.inf,
+                               min_decay=0.0,
+                               max_decay=np.inf,
+                               max_points_decay=40000,
+                               #################################
+
+                               offset=0,
+                               ):
+        """
+            peak_idx: int - use if reanalyzing an existing peak. Index within the xs data corresponding to a peak.
+                - If provided, the data point at peak_idx is assumed to be the local extremum
+            direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
+            lag: int indicating the number of data points used to calculate the baseline.
+                See calculate_mini_baseline() for algorithm on baseline estimation.
+            direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
+            min_amp: float indicating the minimum amplitude required in a candidate mini.
+            max_amp: float indicating the maximum amplitude accepted in a candidate mini.
+            min_rise: float indicating the minimum rise required in a candidate mini.
+            max_rise: float indicating the maximum rise accepted in a candidate mini.
+            min_hw: float indicating the minimum halfwidth required in a candidate mini.
+                See calculate_mini_halfwidth() for algorithm on halfwidth calculation
+            max_hw: float indicating the maximum halfwidth accepted in a candidate mini.
+                See calculate_mini_halfwidth() for algorithm on halfwidth calculation
+            min_decay: float indicating the minimum decay constant required in a candidate mini.
+                See calculate_mini_decay() for algorithm on decay constant calculation.
+            max_decay: float indicating the maximum decay constant accepted in a candidate mini.
+                See calculate_mini_decay() for algorithm on decay constant calculation.
+            max_decay_points: int indicating the number of data points after peak to consider for decay fit.
+            allow_duplicate: bool indicating whether to accept mini that was already found by the Analyzer.
+                If False, a candidate mini is rejected if the peak is already included in the mini_df attribute
+            reference_df: bool indicating whether to compare the results against previously found minis stored in mini_df.
+                If True, previously found minis will be ignored, and newly found minis will be added to the mini_df
+        """
+        mini = {'direction': direction, 'lag': lag, 'channel': channel, 'min_amp': min_amp, 'max_amp': max_amp,
+                'min_rise': min_rise, 'max_rise': max_rise, 'min_hw': min_hw, 'max_hw': max_hw, 'min_decay': min_decay,
+                'max_decay': max_decay, 'max_points_decay': max_points_decay,
+                'datetime': datetime.now().strftime('%m-%d-%y %H:%M:%S'), 'failure': None, 'success': True,
+                't': xs[peak_idx], 'peak_idx': peak_idx + offset, 'compound':False}
+
+        # extract peak datapoint
+        if x_sigdig is not None:
+            mini['t'] = round(mini['t'], x_sigdig)  # round the x_value of the peak to indicated number of digits
+
+        # check if the peak is duplicate of existing mini data
+        if reference_df:
+            try:
+                if mini['t'] in self.mini_df.t.values:
+                    mini['success'] = False
+                    mini['failure'] = 'Mini was previously found'
+                    return mini
+            except Exception as e:  # if df is empty, will throw an error
+                pass
+
+        # store peak coordinate
+        mini['peak_coord_x'] = xs[peak_idx]
+        mini['peak_coord_y'] = ys[peak_idx]
+
+        ####### search baseline #######
+        # find baseline/start of event
+        prev_peak_idx = None
+        if reference_df and len(self.mini_df.index) > 0:
+            try:
+                # find the peak of the previous mini
+                # peak x-value must be stored in the column 't'
+                # check that the channels are the same
+                prev_peak = max(self.mini_df.loc[(self.mini_df['channel']==channel) & (self.mini_df['t']<mini['t'])].index)
+                prev_peak_t = self.mini_df[prev_peak].t
+                prev_peak_end = self.mini_df[prev_peak_idx].end_coord_x # store end of previous mini
+                if prev_peak_end > mini['t']: # peak is within the decay of another mini:
+                    mini['compound'] = True
+
+                # assume the df is sorted by 't' column
+            except:
+                pass
+        # if not mini['compound']:
+        if not mini['compound']:
+            baseline_idx, mini['baseline'] = self.find_mini_start(peak_idx=peak_idx,
+                                                                                  ys=ys,
+                                                                                  lag=lag,
+                                                                                  direction=direction)
+
+            # check if baseline calculation was successful
+            if baseline_idx is None:  # not successful
+                mini['success'] = False
+                mini['failure'] = 'Baseline could not be found'
+                return mini
+            mini['baseline_idx'] = baseline_idx + offset
+            ####### calculate amplitude #######
+            mini['amp'] = (mini['peak_coord_y'] - mini['baseline'])  # signed
+        else:
+            prev_peak_idx = search_index(prev_peak_t, ys)
+            if prev_peak_idx <0 or prev_peak_idx > len(ys):
+                mini['success'] = False
+                mini['failure'] = 'The compound mini could not be analyzed - need more data points'
+            baseline_idx = np.where(ys[prev_peak_idx:peak_idx] * direction == min(ys[prev_peak_idx:peak_idx] * direction))[0][0] + prev_peak_idx
+            mini['baseline'] = xs[baseline_idx]
+            # find the local minimum between the two peaks
+
+            # extrapolate decay of previous peak at current peak
+            y = single_exponent_constant(xs[peak_idx] - xs[prev_peak_idx], self.mini_df[prev_peak].decay_A,
+                                         self.mini_df[prev_peak].decay_tau, self.mini_df[prev_peak].decay_C) * direction
+
+            mini['amp'] = (mini['peak_coord_y'] - y) # signed
+
+
+
+        # store coordinate for start of mini (where the plot meets the baseline)
+        mini['start_coord_x'] = xs[baseline_idx]
+        mini['start_coord_y'] = ys[baseline_idx]
+
+        if mini['amp'] * direction < min_amp:
+            mini['success'] = False
+            mini['failure'] = 'Min amp not met'
+            return mini
+
+        if mini['amp'] * direction > max_amp:
+            mini['success'] = False
+            mini['failure'] = 'Max amp exceeded'
+            return mini
+
+        ####### calculate end of event #######
+        end_idx, _ = self.find_mini_end(peak_idx=mini['peak_idx'],
+                                                          ys=ys,
+                                                          lag=lag,
+                                                          direction=direction)
+        mini['end_idx'] = end_idx + offset
+        if mini['end_idx'] is None:  # not successful
+            mini['success'] = False
+            mini['failure'] = 'End of mini could not be found'
+            return mini
+
+        # store the coordinate for the end of mini (where the plot crosses the trailing average)
+        mini['end_coord_x'] = xs[end_idx]
+        mini['end_coord_y'] = ys[end_idx]
+
+        ####### calculate rise #######
+        mini['rise_const'] = (mini['peak_coord_x'] - mini['start_coord_x']) * 1000  # convert to ms
+        # print(f'min_rise: {min_rise}')
+        # check against min_rise and max_rise
+        if mini['rise_const'] < min_rise:
+            mini['success'] = False
+            mini['failure'] = 'Min rise not met'
+            return mini
+
+        if mini['rise_const'] > max_rise:
+            mini['success'] = False
+            mini['failure'] = 'Max rise exceeded'
+            return mini
+
+
+        ####### calculate decay ########
+        mini['decay_start_idx'] = mini['peak_idx']  # peak = start of decay
+        mini['decay_end_idx'] = min(mini['peak_idx'] + max_points_decay, len(xs) + offset)
+        mini['decay_A'], mini['decay_tau'], mini['decay_C'], decay_idx = self.calculate_mini_decay(
+            xs=xs, ys=ys, start_idx=peak_idx, end_idx=min(peak_idx + max_points_decay, len(xs)), direction=direction)
+        mini['decay_idx'] = decay_idx + offset
+        if mini['decay_tau'] < min_decay:
+            mini['success'] = False
+            mini['failure'] = 'Min decay not met'
+            return mini
+        if mini['decay_tau'] > max_decay:
+            mini['success'] = False
+            mini['failure'] = 'Max decay exceeded'
+            return mini
+
+        # print('here')
+        try:
+            mini['decay_coord_x'] = xs[decay_idx]
+            mini['decay_coord_x'] = xs[decay_idx]
+            mini['decay_coord_y'] = single_exponent_constant(
+                mini['decay_tau'],
+                mini['decay_A'],
+                mini['decay_tau'],
+                mini['decay_C']
+            ) * direction  #### add support for compound (add back subtracted baseline)
+        except:
+            pass
+
+        ####### calculate halfwidth #######
+        halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
+            amp=mini['amp'], xs=xs, ys=ys, start_idx=baseline_idx, end_idx=end_idx,
+            peak_idx=peak_idx, baseline=mini['baseline'], direction=direction)
+
+        if halfwidth_end_idx is None or halfwidth_start_idx is None:
+            if min_hw>0 and max_hw is not np.inf: # cannot check criteria
+                mini['success'] = False
+                mini['failure'] = 'Halfwidth could not be calculated'
+                return mini
+        else: # halfwidth was successfully found - check against criteria
+            if mini['halfwidth'] < min_hw:
+                mini['success'] = False
+                mini['failure'] = 'Min halfwidth not met'
+                return mini
+
+            if mini['halfwidth'] > max_hw:
+                mini['success'] = False
+                mini['failure'] = 'Max halfwidth exceeded'
+                return mini
+
+            mini['halfwidth_start_idx'] = halfwidth_start_idx + offset
+            mini['halfwidth_end_idx'] = halfwidth_end_idx + offset
+
+
+            mini['halfwidth_start_coord_x'] = xs[halfwidth_start_idx]
+            mini['halfwidth_start_coord_y'] = ys[halfwidth_start_idx]
+
+            mini['halfwidth_end_coord_x'] = xs[halfwidth_end_idx]
+            mini['halfwidth_end_coord_y'] = ys[halfwidth_end_idx]
+        return mini
     def mark_greater_than_baseline(self,
                                    xs,
                                    ys,
@@ -1116,6 +1461,7 @@ class Analyzer():
                                    max_amp: float = np.inf,
                                    direction: int=1):
         hits = [0]*len(ys)
+
         peaks=[]
         peak_idx = start_idx + lag + delta_x
         if end_idx is None:
