@@ -233,6 +233,10 @@ def load():
     test = StyleTab(left, __import__(__name__), interface)
     cp_notebook.add(test, text='test')
 
+    # get reference to widgets
+    for k, v in tab_details['adjust']['module'].widgets.items():
+        widgets[k] = v
+
     # set focus rules
     for key in widgets:
         if type(widgets[key]) == widget.VarEntry:
@@ -305,8 +309,6 @@ def dump_user_setting(filename=None):
         # pymini.pb.initiate()
         d = {}
         for key in widgets.keys():
-            if key == 'adjust_base_sub_mode':
-                print(widgets[key].get())
             try:
                 for ig in ignore:
                     if ig in key:
@@ -316,7 +318,7 @@ def dump_user_setting(filename=None):
             except:
                 d[key] = widgets[key].get()
 
-
+        print('save output:')
         f.write(yaml.safe_dump(d))
         # pymini.pb.clear()
 
