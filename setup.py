@@ -14,6 +14,7 @@ setup(
         'matplotlib',
         'scipy',
         'pyyaml',
+        'pyabf'
 
     ]
 )
