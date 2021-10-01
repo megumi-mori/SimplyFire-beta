@@ -1,6 +1,6 @@
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
-import pymini
+import app
 from DataVisualizer import data_display, trace_display, log_display
 from Backend import interface, analyzer
 changed = True
@@ -30,8 +30,8 @@ def load(parent):
     def apply_parameters(e=None):
         global changed
         for i in parameters:
-            if parameters[i] != pymini.widgets[i].get():
-                changes[i] = pymini.widgets[i].get()
+            if parameters[i] != app.widgets[i].get():
+                changes[i] = app.widgets[i].get()
                 changed = True
 
     # frame = ScrollableOptionFrame(parent)
@@ -55,7 +55,7 @@ def load(parent):
         text='Mini analysis mode'
     )
 
-    pymini.widgets['detector_direction'] = optionframe.insert_label_optionmenu(
+    app.widgets['detector_direction'] = optionframe.insert_label_optionmenu(
         name='detector_direction',
         label='Direction',
         options=['positive', 'negative']
@@ -77,19 +77,19 @@ def load(parent):
         # ('detector_decay_fit_ftol', 'Tolerance for termination by the change of the cost function in Scipy Curvefit', 'float')
     ]
     for i in entries:
-        pymini.widgets[i[0]] = optionframe.insert_label_entry(
+        app.widgets[i[0]] = optionframe.insert_label_entry(
             name=i[0],
             label=i[1],
             validate_type=i[2]
         )
-        pymini.widgets[i[0]].bind('<Return>', apply_parameters, add='+')
-        pymini.widgets[i[0]].bind('<FocusOut>', apply_parameters, add='+')
-        parameters[i[0]] = pymini.widgets[i[0]].get()
-        changes[i[0]] = pymini.widgets[i[0]].get()
+        app.widgets[i[0]].bind('<Return>', apply_parameters, add='+')
+        app.widgets[i[0]].bind('<FocusOut>', apply_parameters, add='+')
+        parameters[i[0]] = app.widgets[i[0]].get()
+        changes[i[0]] = app.widgets[i[0]].get()
 
     # panel = frame.make_panel()
     # Tk.Label(panel, text='Fit decay functions using:').grid(column=0, row=0, sticky='news')
-    # pymini.widgets['detector_decay_func_type'] = widget.VarWidget(name='detector_decay_func_type')
+    # app.widgets['detector_decay_func_type'] = widget.VarWidget(name='detector_decay_func_type')
     #
     # op_frame = Tk.Frame(panel)
     # op_frame.grid(column=0, row=1, sticky='news')
@@ -103,15 +103,15 @@ def load(parent):
     #     # ('Rise-decay', '4') NOT SUPPORTED
     # ]
     # for i, b in enumerate(buttons):
-    #     ttk.Radiobutton(op_frame, text=b[0], variable=pymini.widgets['detector_decay_func_type'].var,
+    #     ttk.Radiobutton(op_frame, text=b[0], variable=app.widgets['detector_decay_func_type'].var,
     #                    value=b[1], command=apply_parameters).grid(column=i, row=0, sticky='news')
     #
-    # pymini.widgets['detector_decay_func_constant'] = frame.insert_label_checkbox(name='detector_decay_func_constant',
+    # app.widgets['detector_decay_func_constant'] = frame.insert_label_checkbox(name='detector_decay_func_constant',
     #                                                                              label='Add a constant',
     #                                                                              onvalue='1',
     #                                                                              offvalue="",
     #                                                                              command=apply_parameters)
-    pymini.widgets['detector_update_events'] = optionframe.insert_label_checkbox(
+    app.widgets['detector_update_events'] = optionframe.insert_label_checkbox(
         name='detector_update_events',
         label='Update graph after each event detection during automated search (will slow down search)',
     )
@@ -148,7 +148,7 @@ def load(parent):
     #     name='data_export',
     #     text='Data Export'
     # )
-    # pymini.widgets['data_export_all'] = frame.insert_label_checkbox(
+    # app.widgets['data_export_all'] = frame.insert_label_checkbox(
     #     name='data_export_all',
     #     label='Export all visible and hidden data?',
     #     onvalue=1,
@@ -180,7 +180,7 @@ def load(parent):
         ('data_display_direction', 'Direction'),
     ]
     for i in boxes:
-        pymini.widgets[i[0]] = optionframe.insert_label_checkbox(
+        app.widgets[i[0]] = optionframe.insert_label_checkbox(
             name=i[0],
             label=i[1],
             command=data_display.show_columns,

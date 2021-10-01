@@ -76,7 +76,7 @@ default_adjust_filter_Lowpass_algorithm: 'Boxcar'
 default_adjust_filter_Highpass_algorithm: 'None'
 
 # Boxcar Filter
-default_adjust_filter_boxcar_kernel : 11
+default_adjust_filter_kernel : 11
 
 # evoked
 default_evoked_target: 'Visible sweeps'
@@ -145,15 +145,9 @@ default_show_start : "1"
 default_show_end : ""
 
 #system
-default_config_user_path :
-  - 'config'
-  - "user_config.yaml"
-default_config_system_path :
-  - 'config'
-  - 'system_config.yaml'
-default_config_keymap_path:
-  - 'config'
-  - 'key_map.yaml'
+default_config_user_path : "user_config.yaml"
+default_config_system_path : 'system_config.yaml'
+default_config_keymap_path: 'key_map.yaml'
 default_config_autoload : 1
 default_config_autosave : 1
 default_config_file_autodir : 1

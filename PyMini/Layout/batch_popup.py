@@ -1,6 +1,6 @@
 import tkinter as Tk
 from tkinter import ttk
-import pymini
+import app
 from utils.widget import DataTable
 
 def load():
@@ -12,9 +12,9 @@ def load():
 
 def create_window():
     global window
-    window = Tk.Toplevel(pymini.root)
+    window = Tk.Toplevel(app.root)
     window.geometry('400x400')
-    pymini.root.attributes('-disabled', True)
+    app.root.attributes('-disabled', True)
     window.focus_set()
     window.protocol('WM_DELETE_WINDOW', _on_close)
 
@@ -54,7 +54,7 @@ def create_window():
 
 
 def _on_close(event=None):
-    pymini.root.attributes('-disabled', False)
+    app.root.attributes('-disabled', False)
     window.withdraw()
 
 

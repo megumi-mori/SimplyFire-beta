@@ -1,6 +1,6 @@
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
-import pymini
+import app
 from Backend import interface
 from DataVisualizer import trace_display
 
@@ -32,17 +32,17 @@ def load(parent):
         ('style_event_pick_offset', 'Pixel offset for selecting event markers', 'int'),
     ]
     for i in entries:
-        pymini.widgets[i[0]] = optionframe.insert_label_entry(
+        app.widgets[i[0]] = optionframe.insert_label_entry(
             name=i[0],
             label=i[1],
             validate_type=i[2]
         )
-        pymini.widgets[i[0]].bind(
+        app.widgets[i[0]].bind(
             '<Return>',
             lambda e, k=[i[0]]: trace_display.apply_styles(k),
             add='+'
         )
-        pymini.widgets[i[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add='+')
+        app.widgets[i[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add='+')
 
     optionframe.insert_button(
         text='Apply',
@@ -67,7 +67,7 @@ def load(parent):
         # ('show_end', 'Event end')
     ]
     for i in boxes:
-        pymini.widgets[i[0]] = optionframe.insert_label_checkbox(
+        app.widgets[i[0]] = optionframe.insert_label_checkbox(
             name = i[0],
             label=i[1],
             onvalue='1',

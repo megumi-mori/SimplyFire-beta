@@ -25,10 +25,20 @@ class OptionFrame(Tk.Frame):
     def get_widget(self, name):
         return self.widgets[name].get_widget()
 
+    def insert_label_widget_panel(self, frame, name, separator=True):
+        """
+        Inserts a frame containing label and a widget.VarWidget
+
+        Note: the frame must contain the widget.VarWidget as an attribute 'widget'
+        """
+        self.insert_panel(frame, separator)
+        self.widgets[name] = frame.widget
+
+
     def insert_label_widget(func):
         def call(
                 self,
-                name,
+                name="",
                 label="",
                 value=None,
                 default=None,
@@ -131,7 +141,8 @@ class OptionFrame(Tk.Frame):
     ):
         panel = self.make_panel(separator=separator)
         label = Tk.Label(panel, text=text, justify=justify)
-        self.titles[name] = label
+        if len(name):
+            self.titles[name] = label
         label.grid(column=0, row=0, sticky='news')
         return label
 

@@ -5,7 +5,7 @@ from utils.scrollable_option_frame import ScrollableOptionFrame, OptionFrame
 from config import config
 from Backend import interface
 from DataVisualizer import trace_display
-import pymini
+import app
 import time
 import gc
 
@@ -36,7 +36,7 @@ def load(parent):
     list_frame.grid(sticky='news')
     frame.insert_panel(list_frame, separator=False)
 
-    pymini.widgets['sweep_picker_offset'] = frame.insert_label_entry(
+    app.widgets['sweep_picker_offset'] = frame.insert_label_entry(
         name='sweep_picker_offset',
         label='Sweep picker search radius (% of x-axis)', #might change to us
         validate_type=('float')
@@ -58,10 +58,10 @@ def show_all():
         if var.get() == 0:
             var.set(1)
             interface.toggle_sweep(i, 1, False)
-            pymini.pb['value'] = i / len(sweep_vars) * 100
-            pymini.pb.update()
+            app.pb['value'] = i / len(sweep_vars) * 100
+            app.pb.update()
     trace_display.canvas.draw()
-    pymini.pb['value'] = 0
+    app.pb['value'] = 0
 
 def show(idx=None, draw=False):
     print(idx)
@@ -98,10 +98,10 @@ def hide_all():
         if var.get() == 1:
             var.set(0)
             interface.toggle_sweep(i, 0, False)
-            pymini.pb['value'] = i/len(sweep_vars) * 100
-            pymini.pb.update()
+            app.pb['value'] = i/len(sweep_vars) * 100
+            app.pb.update()
     trace_display.canvas.draw()
-    pymini.pb['value'] = 0
+    app.pb['value'] = 0
 
 def delete_hidden():
     delete = [i for i, var in enumerate(sweep_vars) if not var.get()]

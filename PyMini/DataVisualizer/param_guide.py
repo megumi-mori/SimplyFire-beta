@@ -1,6 +1,6 @@
 import tkinter as Tk
 from tkinter import ttk
-import pymini
+import app
 from utils import widget
 from utils.widget import NavigationToolbar
 from config import config
@@ -11,7 +11,7 @@ from functools import partial
 import gc
 
 def _on_close():
-    pymini.widgets['window_param_guide'].set(0)
+    app.widgets['window_param_guide'].set(0)
     window.withdraw()
 
 def load():
@@ -23,7 +23,7 @@ def load():
 
 def create_window():
     global window
-    window=Tk.Toplevel(pymini.root)
+    window=Tk.Toplevel(app.root)
     window.protocol('WM_DELETE_WINDOW', _on_close)
     window.title('Parameter guide')
     window.geometry('{}x{}'.format(config.geometry_param_guide[0], config.geometry_param_guide[1]))
@@ -150,8 +150,8 @@ def clear():
         pass
 def plot_trace(xs, ys):
     try:
-        ax.plot(xs, ys, linewidth=pymini.widgets['style_trace_line_width'].get(),
-                c=pymini.widgets['style_trace_line_color'].get())
+        ax.plot(xs, ys, linewidth=app.widgets['style_trace_line_width'].get(),
+                c=app.widgets['style_trace_line_color'].get())
         ax.autoscale(enable=True, axis='both', tight=True)
         ax.relim()
         # canvas.draw()
@@ -161,15 +161,15 @@ def plot_trace(xs, ys):
 
 def plot_baseline_calculation(xs, ys):
     try:
-        ax.plot(xs, ys, linewidth=pymini.widgets['style_trace_line_width'].get(),
-                c=pymini.widgets['style_event_color_start'].get())
+        ax.plot(xs, ys, linewidth=app.widgets['style_trace_line_width'].get(),
+                c=app.widgets['style_event_color_start'].get())
         # canvas.draw()
     except:
         pass
 
 def plot_start(x, y):
     try:
-        ax.scatter(x, y, marker='x', c=pymini.widgets['style_event_color_start'].get())
+        ax.scatter(x, y, marker='x', c=app.widgets['style_event_color_start'].get())
         # canvas.draw()
     except:
         pass
@@ -177,7 +177,7 @@ def plot_start(x, y):
 def plot_peak(x, y):
     try:
         global peak
-        peak = ax.scatter(x, y, marker='o', c=pymini.widgets['style_event_color_peak'].get())
+        peak = ax.scatter(x, y, marker='o', c=app.widgets['style_event_color_peak'].get())
         # canvas.draw()
     except Exception as e:
         print(e)
@@ -185,7 +185,7 @@ def plot_peak(x, y):
 
 def plot_ruler(coord1, coord2):
     try:
-        ax.plot([coord1[0], coord2[0]], [coord1[1], coord2[1]], linewidth = float(pymini.widgets['style_trace_line_width'].get()), c='black')
+        ax.plot([coord1[0], coord2[0]], [coord1[1], coord2[1]], linewidth = float(app.widgets['style_trace_line_width'].get()), c='black')
         # canvas.draw()
     except Exception as e:
         print(e)
@@ -193,8 +193,8 @@ def plot_ruler(coord1, coord2):
 
 def plot_decay_fit(xs, ys):
     # try:
-    ax.plot(xs, ys, linewidth=float(pymini.widgets['style_trace_line_width'].get()),
-            c=pymini.widgets['style_event_color_decay'].get())
+    ax.plot(xs, ys, linewidth=float(app.widgets['style_trace_line_width'].get()),
+            c=app.widgets['style_event_color_decay'].get())
     # canvas.draw()
     # except:
     #     pass
@@ -202,7 +202,7 @@ def plot_decay_fit(xs, ys):
 
 def plot_decay(x, y):
     try:
-        ax.scatter(x, y, marker='x', c=pymini.widgets['style_event_color_decay'].get())
+        ax.scatter(x, y, marker='x', c=app.widgets['style_event_color_decay'].get())
         # canvas.draw()
     except:
         pass

@@ -1,5 +1,5 @@
 from DataVisualizer import trace_display, data_display
-import pymini
+import app
 from Backend import interface
 from config import config
 def initialize():
@@ -166,7 +166,7 @@ def initialize():
     # Global Keys
     #######################################
     for key in config.key_undo:
-        pymini.root.bind(key, interface.undo)
+        app.root.bind(key, interface.undo)
 
 def initialize_param_guide():
     for key in config.key_toolbar_pan:
@@ -224,7 +224,7 @@ def plot_mouse_move(event):
 def plot_event_pick(event):
     global event_pick
     event_pick = True
-    if pymini.widgets['analysis_mode'].get() == 'mini' and pymini.widgets['trace_mode'].get() == 'continuous':
+    if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
         xdata, ydata = event.artist.get_offsets()[event.ind][0]
         if multi_select:
             data_display.table.selection_toggle(str(xdata))
@@ -257,10 +257,10 @@ def plot_mouse_release(event):
         # take care of rect multiselection here
         if event.xdata and event.ydata:
             drag_coord_end = (event.xdata, event.ydata)
-        if pymini.widgets['analysis_mode'].get() == 'mini' and pymini.widgets['trace_mode'].get() == 'continuous':
+        if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
             interface.highlight_events_in_range((drag_coord_start[0], drag_coord_end[0]),
                                              (drag_coord_start[1], drag_coord_end[1]))
-        elif pymini.widgets['trace_mode'].get() == 'overlay':
+        elif app.widgets['trace_mode'].get() == 'overlay':
             interface.highlight_sweep_in_range((drag_coord_start[0], drag_coord_end[0]),
                                              (drag_coord_start[1], drag_coord_end[1]),
                                                draw=True)
@@ -272,10 +272,10 @@ def plot_mouse_release(event):
     if event.button == 3:
         return None
 
-    if pymini.widgets['trace_mode'].get() == 'overlay' and event.xdata is not None:
+    if app.widgets['trace_mode'].get() == 'overlay' and event.xdata is not None:
         # overlay, a trace may have been selected
         interface.select_trace_from_plot(event.xdata, event.ydata)
-    if pymini.widgets['trace_mode'].get() == 'continuous' and event.xdata is not None and pymini.widgets[
+    if app.widgets['trace_mode'].get() == 'continuous' and event.xdata is not None and app.widgets[
         'analysis_mode'].get() == 'mini' and event.button==1:
         interface.pick_event_manual(event.xdata)
 
@@ -283,33 +283,33 @@ def plot_mouse_release(event):
 def scroll_x_key(event, direction):
     global scrolling_x
     # if not scrolling_x:
-    #     trace_display.scroll_x_by(direction * int(pymini.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
-    #                           float(pymini.widgets['navigation_scroll_percent'].get()))
+    #     trace_display.scroll_x_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
+    #                           float(app.widgets['navigation_scroll_percent'].get()))
     if not scrolling_x:
-        scroll_x_repeat(direction * int(pymini.widgets['navigation_mirror_x_scroll'].get()),
-                     int(pymini.widgets['navigation_fps'].get()),
-                     float(pymini.widgets['navigation_scroll_percent'].get()) * navigation_speed)
+        scroll_x_repeat(direction * int(app.widgets['navigation_mirror_x_scroll'].get()),
+                     int(app.widgets['navigation_fps'].get()),
+                     float(app.widgets['navigation_scroll_percent'].get()) * navigation_speed)
     scrolling_x = True
 
 def scroll_y_key(event, direction):
     global scrolling_y
     if not scrolling_y:
-        # trace_display.scroll_y_by(direction * int(pymini.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
-        #                       float(pymini.widgets['navigation_scroll_percent'].get()))
-        scroll_y_repeat(direction * int(pymini.widgets['navigation_mirror_y_scroll'].get()),
-                     int(pymini.widgets['navigation_fps'].get()),
-                     float(pymini.widgets['navigation_scroll_percent'].get()))
+        # trace_display.scroll_y_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
+        #                       float(app.widgets['navigation_scroll_percent'].get()))
+        scroll_y_repeat(direction * int(app.widgets['navigation_mirror_y_scroll'].get()),
+                     int(app.widgets['navigation_fps'].get()),
+                     float(app.widgets['navigation_scroll_percent'].get()))
     scrolling_y = True
 
 def scroll_x_repeat(direction, fps, percent):
     global jobid_x_scroll
-    jobid_x_scroll = pymini.root.after(int(1000 / fps), scroll_x_repeat, direction, fps, percent)
+    jobid_x_scroll = app.root.after(int(1000 / fps), scroll_x_repeat, direction, fps, percent)
     trace_display.scroll_x_by(direction, percent)
     pass
 
 def scroll_y_repeat(direction, fps, percent):
     global jobid_y_scroll
-    jobid_y_scroll = pymini.root.after(int(1000 / fps), scroll_y_repeat, direction, fps, percent)
+    jobid_y_scroll = app.root.after(int(1000 / fps), scroll_y_repeat, direction, fps, percent)
     trace_display.scroll_y_by(direction, percent * navigation_speed)
     pass
 
@@ -318,7 +318,7 @@ def stop_x_scroll(e=None):
     global scrolling_x
     scrolling_x = False
     try:
-        pymini.root.after_cancel(jobid_x_scroll)
+        app.root.after_cancel(jobid_x_scroll)
     except:
         pass
 
@@ -327,7 +327,7 @@ def stop_y_scroll(e=None):
     global scrolling_y
     scrolling_y = False
     try:
-        pymini.root.after_cancel(jobid_y_scroll)
+        app.root.after_cancel(jobid_y_scroll)
     except:
         pass
 
@@ -347,19 +347,19 @@ def stop_all(e=None):
     zooming_x = False
     zooming_y = False
     try:
-        pymini.root.after_cancel(jobid_x_scroll)
+        app.root.after_cancel(jobid_x_scroll)
     except:
         pass
     try:
-        pymini.root.after_cancel(jobid_y_scroll)
+        app.root.after_cancel(jobid_y_scroll)
     except:
         pass
     try:
-        pymini.root.after_cancel(jobid_x_zoom)
+        app.root.after_cancel(jobid_x_zoom)
     except:
         pass
     try:
-        pymini.root.after_cancel(jobid_y_zoom)
+        app.root.after_cancel(jobid_y_zoom)
     except:
         pass
 
@@ -367,13 +367,13 @@ def zoom_x_key(event, direction):
     global zooming_x
     if not zooming_x:
         zoom_x_repeat(direction,
-                      int(pymini.widgets['navigation_fps'].get()),
-                      float(pymini.widgets['navigation_zoom_percent'].get()))
+                      int(app.widgets['navigation_fps'].get()),
+                      float(app.widgets['navigation_zoom_percent'].get()))
     zooming_x = True
 
 def zoom_x_repeat(direction, fps, percent):
     global jobid_x_zoom
-    jobid_x_zoom = pymini.root.after(int(1000/fps), zoom_x_repeat, direction, fps, percent)
+    jobid_x_zoom = app.root.after(int(1000/fps), zoom_x_repeat, direction, fps, percent)
     trace_display.zoom_x_by(direction, percent)
     pass
 
@@ -381,7 +381,7 @@ def stop_x_zoom(e=None):
     global jobid_x_zoom
     global zooming_x
     try:
-        pymini.root.after_cancel(jobid_x_zoom)
+        app.root.after_cancel(jobid_x_zoom)
     except:
         pass
     zooming_x = False
@@ -391,21 +391,21 @@ def zoom_y_key(event, direction):
     if not zooming_y:
         zoom_y_repeat(
             direction,
-            int(pymini.widgets['navigation_fps'].get()),
-            float(pymini.widgets['navigation_zoom_percent'].get())
+            int(app.widgets['navigation_fps'].get()),
+            float(app.widgets['navigation_zoom_percent'].get())
         )
     zooming_y = True
 
 def zoom_y_repeat(direction, fps, percent):
     global jobid_y_zoom
-    jobid_y_zoom = pymini.root.after(int(1000 / fps), zoom_y_repeat, direction, fps, percent)
+    jobid_y_zoom = app.root.after(int(1000 / fps), zoom_y_repeat, direction, fps, percent)
     trace_display.zoom_y_by(direction, percent)
 
 def stop_y_zoom(e=None):
     global jobid_y_zoom
     global zooming_y
     try:
-        pymini.root.after_cancel(jobid_y_zoom)
+        app.root.after_cancel(jobid_y_zoom)
     except:
         pass
     zooming_y = False
@@ -421,12 +421,12 @@ def toolbar_toggle_zoom(event, toolbar):
 # data_display and trace_display data item interaction
 def unselect_key(event):
     data_display.unselect()
-    if pymini.widgets['trace_mode'].get() == 'overlay':
+    if app.widgets['trace_mode'].get() == 'overlay':
         interface.unhighlight_all_sweeps()
     pass
 
 def delete_key(event):
-    if pymini.widgets['analysis_mode'].get() == 'mini':
+    if app.widgets['analysis_mode'].get() == 'mini':
         sel = data_display.table.selection()
         data_display.table.selection_remove(*sel)
         interface.delete_event([i for i in sel])
@@ -436,14 +436,14 @@ def delete_key(event):
         except Exception as e:
             pass
         data_display.table.delete(*sel)
-    if pymini.widgets['trace_mode'].get() == 'overlay':
+    if app.widgets['trace_mode'].get() == 'overlay':
         interface.hide_highlighted_sweep()
     pass
 
 def select_all_key(event):
-    if pymini.widgets['trace_mode'].get() == 'overlay':
+    if app.widgets['trace_mode'].get() == 'overlay':
         interface.highlight_all_sweeps()
-    if pymini.widgets['analysis_mode'].get() == 'mini':
+    if app.widgets['analysis_mode'].get() == 'mini':
         data_display.table_frame.select_all()
     pass
 
@@ -451,9 +451,9 @@ def select_window_key(event=None):
     print('select_window_key!')
     xlim = trace_display.ax.get_xlim()
     ylim = trace_display.ax.get_ylim()
-    if pymini.widgets['analysis_mode'].get() == 'mini' and pymini.widgets['trace_mode'].get() == 'continuous':
+    if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
         interface.highlight_events_in_range(xlim, ylim)
-    elif pymini.widgets['trace_mode'].get() == 'overlay':
+    elif app.widgets['trace_mode'].get() == 'overlay':
         interface.highlight_sweep_in_range(xlim, ylim,
                                            draw=True)
 

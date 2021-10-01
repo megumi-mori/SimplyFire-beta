@@ -1,12 +1,12 @@
 # takes input from the Data Visualizers and takes appropriate action
-import pymini
+import app
 from tkinter import filedialog, messagebox
 import tkinter as Tk
 from DataVisualizer import data_display, log_display, trace_display, param_guide, results_display
 import os
 from Layout import detector_tab, graph_panel, sweep_tab, adjust_tab
 import matplotlib as mpl
-from Backend import analyzer, interpreter
+from Backend import interpreter, analyzer2
 import gc
 import pandas as pd
 import numpy as np
@@ -54,11 +54,12 @@ mini_df = pd.DataFrame(columns = [
     'datetime'  #
 ])
 
+al = analyzer2.Analyzer()
 def get_temp_num():
     global temp_num
     try:
         temp_num += 1
-        return temp_num % int(pymini.widgets['config_undo_stack'].get())
+        return temp_num % int(app.widgets['config_undo_stack'].get())
     except:
         temp_num = 0
         return 0
@@ -66,7 +67,7 @@ def get_temp_num():
 def get_prev_temp_num():
     global temp_num
     try:
-        return temp_num % int(pymini.widgets['config_undo_stack'].get())
+        return temp_num % int(app.widgets['config_undo_stack'].get())
     except:
         return None
 
@@ -86,7 +87,7 @@ def add_undo(task):
     else:
         undo_stack.append([task])
     try:
-        if len(undo_stack) > int(pymini.widgets['config_undo_stack'].get()):
+        if len(undo_stack) > int(app.widgets['config_undo_stack'].get()):
             temp = undo_stack.pop(0)
             del temp
     except:
@@ -95,21 +96,22 @@ def add_undo(task):
     return
 
 def undo(e=None):
-    pymini.pb['value'] = 0
-    pymini.pb.update()
+    print('undo')
+    app.pb['value'] = 0
+    app.pb.update()
     if len(undo_stack) > 0:
         task_stack = undo_stack.pop()
         len_task = len(task_stack)
         for i, task in enumerate(task_stack):
-            pymini.pb['value'] = i / len_task * 100
-            pymini.pb.update()
+            app.pb['value'] = i / len_task * 100
+            app.pb.update()
             task()
             del task
 
         del task_stack
         print(undo_stack)
-    pymini.pb['value'] = 0
-    pymini.pb.update()
+    app.pb['value'] = 0
+    app.pb.update()
 
 
 def configure(key, value):
@@ -123,7 +125,8 @@ def open_trace(fname):
     # trace stored in analyzer
     print('open_trace')
     try:
-        analyzer.open_trace(fname)
+        # al.open_trace(fname)
+        al.open_file(fname)
     except Exception as e:
         print(e)
         messagebox.showerror('Read file error', 'The selected file could not be opened.')
@@ -141,48 +144,49 @@ def open_trace(fname):
 
 
     # update save file directory
-    if pymini.widgets['config_file_autodir'].get() == '1':
+    if app.widgets['config_file_autodir'].get() == '1':
         mpl.rcParams['savefig.directory'] = os.path.split(fname)[0]
 
     # check if channel number is specified by user:
-    if pymini.widgets['force_channel'].get() == '1':
+    if app.widgets['force_channel'].get() == '1':
         try:
-            analyzer.trace_file.set_channel(int(pymini.widgets['force_channel_id'].get()) - 1)  # 1 indexing
+            al.recording.set_channel(int(app.widgets['force_channel_id'].get()))  # 0 indexing
         except Exception as e:
-            print(analyzer.trace_file.channel)
+            print(al.recording.channel)
             print('force_channel id error:{}'.format(e))
+            al.recording.set_channel(0) # force to open the first channel
             pass
 
     trace_display.clear()
     data_display.clear()
 
-    trace_display.ax.set_xlabel(analyzer.trace_file.x_label)
-    trace_display.ax.set_ylabel(analyzer.trace_file.y_label)
+    trace_display.ax.set_xlabel(al.recording.x_label)
+    trace_display.ax.set_ylabel(al.recording.y_label)
 
-    pymini.widgets['trace_info'].set(
+    app.widgets['trace_info'].set(
         '{}: {}Hz : {} channel{}'.format(
-            analyzer.trace_file.fname,
-            analyzer.trace_file.sampling_rate,
-            analyzer.trace_file.channel_count,
-            's' if analyzer.trace_file.channel_count > 1 else ""
+            al.recording.filename,
+            al.recording.sampling_rate,
+            al.recording.channel_count,
+            's' if al.recording.channel_count > 1 else ""
         )
     )
     trace_display.ax.autoscale(enable=True, axis='both', tight=True)
 
-    sweep_tab.populate_list(analyzer.trace_file.sweep_count)
+    sweep_tab.populate_list(al.recording.sweep_count)
 
     print('after populating list: {}'.format(len(sweep_tab.panels)))
 
-    if pymini.widgets['trace_mode'].get() == 'continuous':
+    if app.widgets['trace_mode'].get() == 'continuous':
         plot_continuous()
     else:
         plot_overlay()
 
     param_guide.update()
 
-    if pymini.widgets['force_axis_limit'].get() == '1':
-        trace_display.set_axis_limit('x', (pymini.widgets['min_x'].get(), pymini.widgets['max_x'].get()))
-        trace_display.set_axis_limit('y', (pymini.widgets['min_y'].get(), pymini.widgets['max_y'].get()))
+    if app.widgets['force_axis_limit'].get() == '1':
+        trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
+        trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
 
     graph_panel.y_scrollbar.config(state='normal')
     graph_panel.x_scrollbar.config(state='normal')
@@ -190,25 +194,25 @@ def open_trace(fname):
     trace_display.update_x_scrollbar()
     trace_display.update_y_scrollbar()
 
-    pymini.widgets['channel_option'].clear_options()
+    app.widgets['channel_option'].clear_options()
 
-    for i in range(analyzer.trace_file.channel_count):
-        pymini.widgets['channel_option'].add_command(
-            label='{}: {}'.format(i+1, analyzer.trace_file.channel_labels[i]),
+    for i in range(al.recording.channel_count):
+        app.widgets['channel_option'].add_command(
+            label='{}: {}'.format(i, al.recording.channel_labels[i]),
             command=lambda c=i:_change_channel(c)
         )
     # starting channel was set earlier in the code
-    pymini.widgets['channel_option'].set('{}: {}'.format(analyzer.trace_file.channel + 1, analyzer.trace_file.y_label))
+    app.widgets['channel_option'].set('{}: {}'.format(al.recording.channel, al.recording.y_label))
 
     # trace_display.refresh()
 def _change_channel(num, save_undo=True):
     log_display.log('@ graph_viewer: switch to channel {}'.format(num))
-    if save_undo and num != analyzer.trace_file.channel:
-        add_undo(lambda n=analyzer.trace_file.channel, s=False:_change_channel(n, s))
+    if save_undo and num != al.recording.channel:
+        add_undo(lambda n=al.recording.channel, s=False:_change_channel(n, s))
 
-    analyzer.trace_file.set_channel(num)
-    pymini.widgets['channel_option'].set('{}: {}'.format(analyzer.trace_file.channel + 1, analyzer.trace_file.y_label))
-    if pymini.widgets['trace_mode'].get() == 'continuous':
+    al.recording.set_channel(num)
+    app.widgets['channel_option'].set('{}: {}'.format(al.recording.channel + 1, al.recording.y_label))
+    if app.widgets['trace_mode'].get() == 'continuous':
         plot_continuous(fix_x=True, draw=False)
     else:
         plot_overlay(fix_x=True, draw=False)
@@ -220,7 +224,7 @@ def _change_channel(num, save_undo=True):
     data_display.clear()
 
 
-    xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
+    xs = mini_df.index.where(mini_df['channel'] == al.recording.channel)
     xs = xs.dropna()
     # for x in xs:
     #     data_display.add(mini_df.loc[x].to_dict())
@@ -237,8 +241,8 @@ def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
     if fix_y:
         ylim=trace_display.get_axis_limits('y')
     trace_display.clear()
-    trace_display.plot_trace(analyzer.trace_file.get_xs(mode='continuous'),
-                             analyzer.trace_file.get_ys(mode='continuous'),
+    trace_display.plot_trace(al.recording.get_xs(mode='continuous'),
+                             al.recording.get_ys(mode='continuous'),
                              draw=draw,
                              relim=True)
     if fix_axis:
@@ -249,14 +253,14 @@ def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
     if fix_y:
         trace_display.set_axis_limit('y', ylim)
 
-    xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
+    xs = mini_df.index.where(mini_df['channel'] == al.recording.channel)
     xs = xs.dropna()
     data_display.append(mini_df.loc[xs])
 
     update_event_marker()
 
 def delete_last_sweep():
-    analyzer.trace_file.delete_last_sweep()
+    al.recording.delete_last_sweep()
     sweep_tab.delete_last_sweep()
     trace_display.delete_last_sweep()
 
@@ -267,7 +271,7 @@ def delete_last_sweep():
 def save_events(filename, dataframe=None):
     if dataframe is None:
         dataframe = mini_df
-        pymini.event_filename = filename
+        app.event_filename = filename
     try:
         dataframe.to_csv(filename)
     except:
@@ -287,9 +291,9 @@ def open_events(filename, log=True):
     ])
     try:
         mini_df = pd.read_csv(filename, index_col=0)
-        pymini.event_filename = filename
+        app.event_filename = filename
         data_display.clear()
-        xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
+        xs = mini_df.index.where(mini_df['channel'] == al.recording.channel)
         xs = xs.dropna()
         data_display.append(mini_df.loc[xs])
 
@@ -306,9 +310,9 @@ def restore_events(filename):
         global mini_df
         mini_df = pd.read_csv(filename, index_col=0)
         print(mini_df)
-        pymini.event_filename = filename
+        app.event_filename = filename
         data_display.clear()
-        xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
+        xs = mini_df.index.where(mini_df['channel'] == al.recording.channel)
         xs = xs.dropna()
         data_display.append(mini_df.loc[xs])
 
@@ -343,59 +347,59 @@ def pick_event_manual(x):
     ylim = (min(ylim), max(ylim))
 
     #convert % x-axis to points search using sampling rate?
-    r = int((xlim[1]-xlim[0]) * float(pymini.widgets['detector_search_radius'].get()) / 100 * analyzer.trace_file.sampling_rate)
+    r = int((xlim[1]-xlim[0]) * float(app.widgets['detector_search_radius'].get()) / 100 * al.recording.sampling_rate)
     global mini_df
     xs = trace_display.ax.lines[0].get_xdata()
     ys = trace_display.ax.lines[0].get_ydata()
 
     guide = False
-    if pymini.widgets['window_param_guide'].get() == '1':
+    if app.widgets['window_param_guide'].get() == '1':
         guide = True
         param_guide.clear()
 
     ##### get search window ######
-    start_idx, end_idx = analyzer.find_window(x, r, xs, ys, analyzer.trace_file.sampling_rate, xlim, ylim)
+    start_idx, end_idx = al.find_window(x, r, xs, ys, al.recording.sampling_rate, xlim, ylim)
 
-    direction = {'negative': -1, 'positive': 1}[pymini.widgets['detector_direction'].get()]
-    lag = int(pymini.widgets['detector_points_baseline'].get())
+    direction = {'negative': -1, 'positive': 1}[app.widgets['detector_direction'].get()]
+    lag = int(app.widgets['detector_points_baseline'].get())
     try:
-        max_decay = float(pymini.widgets['detector_max_decay'].get())
+        max_decay = float(app.widgets['detector_max_decay'].get())
     except:
         max_decay = np.inf
     try:
-        max_hw = float(pymini.widgets['detector_max_hw'].get())
+        max_hw = float(app.widgets['detector_max_hw'].get())
     except:
         max_hw = np.inf
     try:
-        max_rise = float(pymini.widgets['detector_max_rise'].get())
+        max_rise = float(app.widgets['detector_max_rise'].get())
     except:
         max_rise = np.inf
 
 
-    data, success = analyzer.filter_mini(
+    data, success = al.filter_mini(
         start_idx,
         end_idx,
         xs,
         ys,
-        x_unit=analyzer.trace_file.x_unit,
-        y_unit=analyzer.trace_file.y_unit,
+        x_unit=al.recording.x_unit,
+        y_unit=al.recording.y_unit,
         direction=direction,
         lag=lag,
-        min_amp=float(pymini.widgets['detector_min_amp'].get()),
-        min_rise=float(pymini.widgets['detector_min_rise'].get()),
+        min_amp=float(app.widgets['detector_min_amp'].get()),
+        min_rise=float(app.widgets['detector_min_rise'].get()),
         max_rise=max_rise,
-        min_hw=float(pymini.widgets['detector_min_hw'].get()),
+        min_hw=float(app.widgets['detector_min_hw'].get()),
         max_hw=max_hw,
-        min_decay=float(pymini.widgets['detector_min_decay'].get()),
+        min_decay=float(app.widgets['detector_min_decay'].get()),
         max_decay=max_decay,
-        max_points_decay=int(pymini.widgets['detector_max_points_decay'].get()),
+        max_points_decay=int(app.widgets['detector_max_points_decay'].get()),
         df=mini_df,
-        x_sigdig=analyzer.trace_file.sampling_rate_sigdig
+        x_sigdig=al.recording.sampling_rate_sigdig
     )
     if guide:
         report_to_param_guide(xs, ys, data)
     if success:
-        data['channel'] = analyzer.trace_file.channel
+        data['channel'] = al.recording.channel
         mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
         data_display.add({key: value for key, value in data.items() if key in data_display.mini_header2config})
         update_event_marker()
@@ -418,43 +422,43 @@ def find_mini_in_range(xlim, ylim):
         param_guide.goto_button.config(state='disabled')
     except:
         pass
-    pymini.pb['value'] = 0
-    pymini.pb.update()
+    app.pb['value'] = 0
+    app.pb.update()
 
     data_display.unselect()
-    lag = int(pymini.widgets['detector_points_baseline'].get())
-    direction = {'negative': -1, 'positive': 1}[pymini.widgets['detector_direction'].get()]
-    search_range = int(pymini.widgets["detector_auto_radius"].get())
+    lag = int(app.widgets['detector_points_baseline'].get())
+    direction = {'negative': -1, 'positive': 1}[app.widgets['detector_direction'].get()]
+    search_range = int(app.widgets["detector_auto_radius"].get())
 
-    min_amp = float(pymini.widgets['detector_min_amp'].get())
+    min_amp = float(app.widgets['detector_min_amp'].get())
 
-    min_rise = float(pymini.widgets['detector_min_rise'].get())
+    min_rise = float(app.widgets['detector_min_rise'].get())
     try:
-        max_rise = float(pymini.widgets['detector_max_rise'].get())
+        max_rise = float(app.widgets['detector_max_rise'].get())
     except:
         max_rise = np.inf
 
-    min_hw = float(pymini.widgets['detector_min_hw'].get())
+    min_hw = float(app.widgets['detector_min_hw'].get())
     try:
-        max_hw = float(pymini.widgets['detector_max_hw'].get())
+        max_hw = float(app.widgets['detector_max_hw'].get())
     except:
         max_hw = np.inf
 
-    max_points_decay = int(pymini.widgets['detector_max_points_decay'].get())
+    max_points_decay = int(app.widgets['detector_max_points_decay'].get())
 
-    min_decay = float(pymini.widgets['detector_min_decay'].get())
+    min_decay = float(app.widgets['detector_min_decay'].get())
     try:
-        max_decay = float(pymini.widgets['detector_max_decay'].get())
+        max_decay = float(app.widgets['detector_max_decay'].get())
     except:
         max_decay = np.inf
 
     xs = trace_display.ax.lines[0].get_xdata()
     ys = trace_display.ax.lines[0].get_ydata()
 
-    x_unit = analyzer.trace_file.x_unit
-    y_unit = analyzer.trace_file.y_unit
+    x_unit = al.recording.x_unit
+    y_unit = al.recording.y_unit
 
-    xlim_idx = (analyzer.search_index(xlim[0], xs), analyzer.search_index(xlim[1], xs))
+    xlim_idx = (al.search_index(xlim[0], xs), al.search_index(xlim[1], xs))
     i=max(xlim_idx[0], lag)
     task_start = i
     task_length = xlim_idx[1] - i
@@ -467,7 +471,7 @@ def find_mini_in_range(xlim, ylim):
     ])
 
     while i < xlim_idx[1]:
-        data, success = analyzer.filter_mini(
+        data, success = al.filter_mini(
             start_idx=i,
             end_idx=min(i+search_range*2, xlim_idx[1]),
             xs=xs,
@@ -485,12 +489,12 @@ def find_mini_in_range(xlim, ylim):
             max_decay=max_decay,
             max_points_decay=max_points_decay,
             df=mini_df,
-            x_sigdig=analyzer.trace_file.sampling_rate_sigdig
+            x_sigdig=al.recording.sampling_rate_sigdig
         )
 
-        pymini.pb['value'] = (i - task_start)/task_length * 100
-        pymini.pb.update()
-        data['channel'] = analyzer.trace_file.channel
+        app.pb['value'] = (i - task_start)/task_length * 100
+        app.pb.update()
+        data['channel'] = al.recording.channel
         if data['peak_idx'] is None:
             i+= search_range
         else:
@@ -512,12 +516,12 @@ def find_mini_in_range(xlim, ylim):
         log_display.param_update(detector_tab.changes)
         detector_tab.changes = {}
         detector_tab.changed = False
-    pymini.pb['value'] = 0
+    app.pb['value'] = 0
 
 
 def select_single_mini(iid):
     data = mini_df.loc[float(iid)]
-    if pymini.widgets['window_param_guide'].get() == '1':
+    if app.widgets['window_param_guide'].get() == '1':
         report_to_param_guide(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear=True)
 
 def select_in_data_display(iid):
@@ -544,12 +548,12 @@ def reanalyze(xs, ys, data, remove_restrict=False):
         param_guide.goto_button.config(state='disabled')
     except:
         pass
-    direction = {'negative': -1, 'positive': 1}[pymini.widgets['detector_direction'].get()]
-    lag = int(pymini.widgets['detector_points_baseline'].get())
-    if pymini.widgets['window_param_guide'].get():
+    direction = {'negative': -1, 'positive': 1}[app.widgets['detector_direction'].get()]
+    lag = int(app.widgets['detector_points_baseline'].get())
+    if app.widgets['window_param_guide'].get():
         param_guide.clear()
     if remove_restrict:
-        if pymini.widgets['window_param_guide'].get():
+        if app.widgets['window_param_guide'].get():
             param_guide.msg_label.insert('Reanalyzing without restrictions.\n')
         min_amp = 0,
         min_rise = 0,
@@ -559,34 +563,34 @@ def reanalyze(xs, ys, data, remove_restrict=False):
         min_decay = 0,
         max_decay = np.inf,
     else:
-        min_amp = float(pymini.widgets['detector_min_amp'].get())
+        min_amp = float(app.widgets['detector_min_amp'].get())
 
-        min_rise = float(pymini.widgets['detector_min_rise'].get())
+        min_rise = float(app.widgets['detector_min_rise'].get())
         try:
-            max_rise = float(pymini.widgets['detector_max_rise'].get())
+            max_rise = float(app.widgets['detector_max_rise'].get())
         except:
             max_rise = np.inf
 
-        min_hw = float(pymini.widgets['detector_min_hw'].get())
+        min_hw = float(app.widgets['detector_min_hw'].get())
         try:
-            max_hw = float(pymini.widgets['detector_max_hw'].get())
+            max_hw = float(app.widgets['detector_max_hw'].get())
         except:
             max_hw = np.inf
 
-        min_decay = float(pymini.widgets['detector_min_decay'].get())
+        min_decay = float(app.widgets['detector_min_decay'].get())
         try:
-            max_decay = float(pymini.widgets['detector_max_decay'].get())
+            max_decay = float(app.widgets['detector_max_decay'].get())
         except:
             max_decay = np.inf
 
-    new_data, success = analyzer.filter_mini(
+    new_data, success = al.filter_mini(
         start_idx=None,
         end_idx=None,
         xs=xs,
         ys=ys,
         peak_idx=data['peak_idx'],
-        x_unit=analyzer.trace_file.x_unit,
-        y_unit=analyzer.trace_file.y_unit,
+        x_unit=al.recording.x_unit,
+        y_unit=al.recording.y_unit,
         direction=direction,
         lag=lag,
         min_amp=min_amp,
@@ -596,11 +600,11 @@ def reanalyze(xs, ys, data, remove_restrict=False):
         max_hw=max_hw,
         min_decay=min_decay,
         max_decay=max_decay,
-        max_points_decay=int(pymini.widgets['detector_max_points_decay'].get()),
+        max_points_decay=int(app.widgets['detector_max_points_decay'].get()),
         df=mini_df,
-        x_sigdig=analyzer.trace_file.sampling_rate_sigdig
+        x_sigdig=al.recording.sampling_rate_sigdig
     )
-    new_data['channel'] = analyzer.trace_file.channel
+    new_data['channel'] = al.recording.channel
     new_data['search_xlim'] = data['search_xlim']
     undo = []
     if success:
@@ -623,7 +627,7 @@ def reanalyze(xs, ys, data, remove_restrict=False):
     undo.append(update_event_marker)
     add_undo(undo)
 
-    if pymini.widgets['window_param_guide'].get():
+    if app.widgets['window_param_guide'].get():
         report_to_param_guide(xs, ys, new_data)
 
     if detector_tab.changed:
@@ -768,7 +772,7 @@ def report_to_param_guide(xs, ys, data, clear=False):
 
 
 def get_column(colname, index = None):
-    if analyzer.trace_file is None:
+    if al.recording is None:
         return None
     if index:
         try:
@@ -776,13 +780,13 @@ def get_column(colname, index = None):
         except:
             return mini_df.loc[index][colname]
     else:
-        xs = mini_df.index.where(mini_df['channel'] == analyzer.trace_file.channel)
+        xs = mini_df.index.where(mini_df['channel'] == al.recording.channel)
         xs = xs.dropna()
         return list(mini_df.loc[xs][colname])
 
 
 def toggle_marker_display(type):
-    if pymini.widgets[type].get():
+    if app.widgets[type].get():
         getattr(trace_display, 'plot_{}'.format(type[5:]))(get_column("{}_coord_x".format(type[5:])),
                                                            get_column('{}_coord_y'.format(type[5:])))
         trace_display.canvas.draw()
@@ -825,13 +829,13 @@ def highlight_events_in_range(xlim=None, ylim=None):
 
     pass
 def update_event_marker():
-    if analyzer.trace_file is None:
+    if al.recording is None:
         return None
-    if pymini.widgets['show_peak'].get():
+    if app.widgets['show_peak'].get():
         trace_display.plot_peak(get_column('peak_coord_x'), get_column('peak_coord_y'))
-    if pymini.widgets['show_start'].get():
+    if app.widgets['show_start'].get():
         trace_display.plot_start(get_column('start_coord_x'), get_column('start_coord_y'))
-    if pymini.widgets['show_decay'].get():
+    if app.widgets['show_decay'].get():
         trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
     trace_display.canvas.draw()
 
@@ -840,7 +844,7 @@ def delete_event(selection):
         selection=[float(i) for i in selection]
         mini_df.drop(selection, axis=0, inplace=True)
         update_event_marker()
-    if pymini.widgets['window_param_guide'].get():
+    if app.widgets['window_param_guide'].get():
         param_guide.clear()
 
 
@@ -856,9 +860,9 @@ def plot_overlay(fix_axis=False, fix_x=False, draw=False):
         xlim = trace_display.get_axis_limits('x')
     trace_display.clear()
     data_display.clear()
-    for i in range(analyzer.trace_file.sweep_count):
-        trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=i),
-                                 analyzer.trace_file.get_ys(mode='overlay', sweep=i),
+    for i in range(al.recording.sweep_count):
+        trace_display.plot_trace(al.recording.get_xs(mode='overlay', sweep=i),
+                                 al.recording.get_ys(mode='overlay', sweep=i),
                                  draw=False,
                                  relim=False,
                                  idx=i)
@@ -878,8 +882,8 @@ def plot_overlay(fix_axis=False, fix_x=False, draw=False):
 
 def toggle_sweep(idx, v, draw=True):
     if v == 1:
-        # trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=idx),
-        #                          analyzer.trace_file.get_ys(mode='overlay', sweep=idx),
+        # trace_display.plot_trace(al.recording.get_xs(mode='overlay', sweep=idx),
+        #                          al.recording.get_ys(mode='overlay', sweep=idx),
         #                          draw=draw,
         #                          relim=False,
         #                          idx=idx)
@@ -891,16 +895,16 @@ def select_trace_from_plot(x, y):
     #called by trace_display during mouse click near trace
     min_d = np.inf
     pick = None
-    offset = int(pymini.widgets['sweep_picker_offset'].get())
+    offset = int(app.widgets['sweep_picker_offset'].get())
     xlim = trace_display.ax.get_xlim()
-    radius = int(abs(xlim[1] - xlim[0]) * offset/100 * analyzer.trace_file.sampling_rate)
+    radius = int(abs(xlim[1] - xlim[0]) * offset/100 * al.recording.sampling_rate)
     ylim = trace_display.ax.get_ylim()
     x2y = (xlim[1] - xlim[0])/(ylim[1] - ylim[0])
     for i, var in enumerate(sweep_tab.sweep_vars):
         if var.get():
             line = trace_display.get_sweep(i)
-            d, idx = analyzer.point_line_min_distance(x, y, offset=radius, xs=line.get_xdata(), ys=line.get_ydata(),
-                                             x2y=x2y, rate=analyzer.trace_file.sampling_rate)
+            d, idx = al.point_line_min_distance(x, y, offset=radius, xs=line.get_xdata(), ys=line.get_ydata(),
+                                             x2y=x2y, rate=al.recording.sampling_rate)
             if d < min_d:
                 min_d = d
                 pick = i
@@ -939,8 +943,8 @@ def highlight_sweep_in_range(xlim=None, ylim=None, draw=True):
         ylim = (ylim[1], ylim[0])
 
     # for sweep in trace_display.sweeps:
-    #     if analyzer.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
-    #                               trace_display.sweeps[sweep].get_ydata(), rate=analyzer.trace_file.sampling_rate):
+    #     if al.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
+    #                               trace_display.sweeps[sweep].get_ydata(), rate=al.recording.sampling_rate):
     #         trace_display.set_highlight_sweep(int(sweep.split('_')[-1]), highlight=True, draw=False)
     for i, s in get_sweep_in_range(xlim, ylim):
         trace_display.set_highlight_sweep(int(i), highlight=True, draw=False)
@@ -951,14 +955,14 @@ def highlight_sweep_in_range(xlim=None, ylim=None, draw=True):
 def get_sweep_in_range(xlim=None, ylim=None):
     ls = []
     for i, sweep in enumerate(trace_display.sweeps):
-        if analyzer.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
-                                  trace_display.sweeps[sweep].get_ydata(), rate=analyzer.trace_file.sampling_rate):
+        if al.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
+                                  trace_display.sweeps[sweep].get_ydata(), rate=al.recording.sampling_rate):
             ls.append((i, sweep))
     return ls
 
 
 def delete_hidden(delete):
-    if len(delete) == analyzer.trace_file.sweep_count:
+    if len(delete) == al.recording.sweep_count:
         messagebox.showerror(message='Must have at least 1 visible trace')
         return None
     if len(mini_df.index) > 0:
@@ -968,10 +972,10 @@ def delete_hidden(delete):
             return None
     count = 0
     for idx in delete:
-        analyzer.trace_file.delete_sweep(idx - count)
+        al.recording.delete_sweep(idx - count)
         count += 1
 
-    sweep_tab.populate_list(analyzer.trace_file.sweep_count)
+    sweep_tab.populate_list(al.recording.sweep_count)
     # should only be called during 'overlay' mode
     plot_overlay(fix_axis=True)
 
@@ -981,11 +985,11 @@ def delete_hidden(delete):
 # Save Trace
 ######################################
 def save_trace_as(fname):
-    c = analyzer.trace_file.channel
-    for i in range(analyzer.trace_file.sweep_count):
+    c = al.recording.channel
+    for i in range(al.recording.sweep_count):
         try:
             ys = trace_display.get_sweep(i).get_ydata()
-            analyzer.trace_file.update_datea(channel=c, sweep=i, data=ys)
+            al.recording.update_datea(channel=c, sweep=i, data=ys)
         except:
             pass
 
@@ -997,86 +1001,70 @@ def save_trace_as(fname):
 
 # update changes made to the y-data in the recording data to the plot
 def update_plot_ys(sweeps):
-    if pymini.widgets['trace_mode'].get() == 'continuous':
-        trace_display.get_sweep(0).set_ydata(analyzer.trace_file.get_ys(mode='continuous'))
+    if app.widgets['trace_mode'].get() == 'continuous':
+        trace_display.get_sweep(0).set_ydata(al.recording.get_ys(mode='continuous'))
     else:
         for s in sweeps:
-            trace_display.get_sweep(s).set_ydata(analyzer.trace_file.get_ys(mode='overlay', sweep=s))
+            trace_display.get_sweep(s).set_ydata(al.recording.get_ys(mode='overlay', sweep=s))
     trace_display.canvas.draw()
 
 def adjust_baseline(all_channels=False, target='All sweeps', mode='mean', xlim=None, fixed_val=None):
-    if analyzer.trace_file is None:
+    if al.recording is None:
         return None
     if all_channels:
-        channels = range(analyzer.trace_file.channel_count)
+        channels = range(al.recording.channel_count)
     else:
-        channels = [analyzer.trace_file.channel]
+        channels = [al.recording.channel]
 
-    xs = None
+    # determine sweeps to apply adjustment
+    plot_mode = app.widgets['trace_mode'].get()
+    target_sweeps = None
+    if plot_mode == 'continuous':
+        target_sweeps = range(al.recording.sweep_count)
+    elif target == 'All sweeps':
+        target_sweeps = range(al.recording.sweep_count)
+    elif target == 'Visible sweeps':
+        target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]
+    elif target == 'Highlighted sweeps':
+        target_sweeps = [i for i in trace_display.highlighted_sweep] # make a getter?
+    if not target_sweeps:
+        return None # no target to be adjusted
 
-    # retrieve y_data
-    # if 'range' mode, also retrieve xs
-    if pymini.widgets['trace_mode'].get() == 'continuous':
-        ys = analyzer.trace_file.get_y_data(mode='continuous', channels=channels)
-        target_sweeps = range(analyzer.trace_file.sweep_count)
-        if mode == 'range':
-            xs = analyzer.trace_file.get_x_data(mode='continuous')
-    else:
-        if target == 'All sweeps':
-            target_sweeps = range(analyzer.trace_file.sweep_count)
-        elif target == 'Visible sweeps':
-            target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()] #check visible sweeps
-        elif target == 'Highlighted sweeps':
-            target_sweeps = [i for i in trace_display.highlighted_sweep]
-        if not target_sweeps:
-            return None # no target to be adjusted
-        # get target data
-        ys = analyzer.trace_file.get_y_data(mode='overlay', channels=channels, sweeps=target_sweeps)
-        if mode == 'range':
-            xs = analyzer.trace_file.get_x_data(mode='overlay', sweeps=[0])
-
-    pymini.pb['value'] = 25
-    pymini.pb.update()
-
-    # baseline = np.zeros((len(channels), len(target_sweeps)))
+    # clean unwanted params
+    if mode != 'range':
+        xlim = None
     if mode != 'fixed':
-        baseline = analyzer.calculate_baseline(ys=ys, xs=xs, xlim=xlim, sampling_rate=analyzer.trace_file.sampling_rate)
-    else:
-        baseline = fixed_val
+        fixed_val = None
 
-    pymini.pb['value'] = 50
-    pymini.pb.update()
-
-    shift_y_data(channels, target_sweeps, ys, baseline, mode=pymini.widgets['trace_mode'].get())
-
-
-    pymini.pb['value'] = 100
-    pymini.pb.update()
-
-
+    # perform adjustment
+    baseline = al.subtract_baseline(plot_mode=plot_mode,
+                               channels=channels, sweeps=target_sweeps, xlim=xlim,
+                               fixed_val=fixed_val)
     update_plot_ys(target_sweeps)
+
+    # save undo functions
     undo_baseline = baseline*(-1)
     add_undo([
-        lambda c=channels, s=target_sweeps, y=None, b=undo_baseline, m=mode: shift_y_data(c,s,y,b,m),
+        lambda b=undo_baseline, m=plot_mode, c=channels, s=target_sweeps: al.shift_y_data(b, m, c, s),
         lambda s=target_sweeps: update_plot_ys(s)
     ])
 
-    pymini.pb['value'] = 0
-    pymini.pb.update()
+    app.pb['value'] = 0
+    app.pb.update()
 
     ###### Log output ######
     log('Baseline adjustment', True)
-    log('Sweeps: {}'.format(analyzer.format_list_indices(target_sweeps)), False)
+    log('Sweeps: {}'.format(analyzer2.format_list_indices(target_sweeps)), False)
     log('Channels: {}'.format(channels), False)
     ########################
     if target == 'fixed':
         log('Subtract a fixed number', False)
         for c in channels:
-            log('Channel {}: {}{}'.format(c, fixed_val, analyzer.trace_file.channel_units[c]), False)
+            log('Channel {}: {}{}'.format(c, fixed_val, al.recording.channel_units[c]), False)
     elif mode == 'mean':
         log('Subtract the mean of all sweeps', False)
-        for c in channels:
-            log('Channel {}: {:.6f}{}'.format(c, baseline[c, 0, 0], analyzer.trace_file.channel_units[c]), False)
+        for i, c in enumerate(channels):
+            log('Channel {}: {:.6f}{}'.format(c, baseline[i, 0, 0], al.recording.channel_units[c]), False)
     elif mode == 'range':
         log('Subtract the mean of range {} from each sweep'.format(xlim), False)
         mean = np.mean(baseline, axis=1, keepdims=True)
@@ -1084,167 +1072,137 @@ def adjust_baseline(all_channels=False, target='All sweeps', mode='mean', xlim=N
         for i,c in enumerate(channels):
             log('Channel {}: mean: {:.6f}{} stdev: {:.6f}'.format(c,
                                                           mean[i, 0, 0],
-                                                          analyzer.trace_file.channel_units[c],
+                                                          al.recording.channel_units[c],
                                                           std[i, 0, 0]),
                 False)
 
-
-
-def shift_y_data(channels, sweeps, ys, baseline, mode='continuous'):
-    if ys is None:
-        ys = analyzer.trace_file.get_y_data(channels=channels, sweeps=sweeps, mode=mode)
-    analyzer.trace_file.set_ydata(channels, sweeps, ys - baseline, mode)
-
 def average_y_data(all_channels=False, target='All sweeps', report_minmax=False, limit_minmax_window=False, hide_all=False):
+    if not al.recording:
+        return None # no recording file open
     if all_channels:
-        channels = range(analyzer.trace_file.channel_count)
+        channels = range(al.recording.channel_count)
     else:
-        channels = [analyzer.trace_file.channel]
-    if pymini.widgets['trace_mode'].get() == 'continuous':
+        channels = [al.recording.channel]
+    if app.widgets['trace_mode'].get() == 'continuous':
         return None
     target_sweeps=[]
 
     if target == 'All sweeps':
-        target_sweeps = range(analyzer.trace_file.sweep_count)
+        target_sweeps = range(al.recording.sweep_count)
     elif target == 'Visible sweeps':
         target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()] #check visible sweeps
     elif target == 'Highlighted sweeps':
         target_sweeps = [i for i in trace_display.highlighted_sweep]
     if not target_sweeps:
         return None # no target to be adjusted
-    ys = analyzer.trace_file.get_y_data(mode='overlay', channels=channels, sweeps=target_sweeps)
 
-    avg_ys = np.zeros((analyzer.trace_file.channel_count, 1, analyzer.trace_file.sweep_points))
-    avg_ys[channels] = analyzer.average_ys(ys)
-    min = None
-    min_std = None
-    max = None
-    max_std = None
-    if limit_minmax_window:
-        xlim = trace_display.ax.get_xlim()
-        if report_minmax:
-            _, min, min_std = analyzer.calculate_sweeps_extremum(ys=ys,
-                                                              xlim=xlim,
-                                                              xs=analyzer.trace_file.get_xs(mode='overlay', sweep=0),
-                                                              sampling_rate=analyzer.trace_file.sampling_rate,
-                                                              mode='min')
-            _, max, max_std = analyzer.calculate_sweeps_extremum(ys=ys,
-                                                              xlim=xlim,
-                                                              xs=analyzer.trace_file.get_xs(mode='overlay', sweep=0),
-                                                              sampling_rate=analyzer.trace_file.sampling_rate,
-                                                              mode='max')
-    else:
-        if report_minmax:
-            min, min_std = analyzer.calculate_sweeps_extremum(ys, mode='min')
-            max, max_std = analyzer.calculate_sweeps_extremum(ys, mode='max')
 
-    analyzer.trace_file.append_sweep(avg_ys)
+
     visible_sweep_list = None
     if hide_all:
         visible_sweep_list = tuple([i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()])
         sweep_tab.hide_all()
+    if report_minmax:
+        xlim = None
+        if limit_minmax_window:
+            xlim = trace_display.ax.get_xlim()
+        mins, mins_std = al.calculate_min_sweeps(plot_mode='overlay', channels=channels, sweeps=target_sweeps, xlim=xlim)
+        maxs, maxs_std = al.calculate_max_sweeps(plot_mode='overlay', channels=channels, sweeps=target_sweeps, xlim=xlim)
+    ys_avg = al.append_average_sweeps(channels=channels, sweeps=target_sweeps)
 
     sweep_tab.populate_list(1, replace=False, prefix='Avg ')
-    trace_display.plot_trace(analyzer.trace_file.get_xs(mode='overlay', sweep=-1),
-                             analyzer.trace_file.get_ys(mode='overlay', sweep=-1),
+    trace_display.plot_trace(al.recording.get_xs(mode='overlay', sweep=-1),
+                             al.recording.get_ys(mode='overlay', sweep=-1),
                              draw=True,
                              relim=False,
-                             idx=analyzer.trace_file.sweep_count-1)
+                             idx=al.recording.sweep_count-1)
 
     # sweep_tab.checkbuttons[-1].invoke()
 
-    if visible_sweep_list:
-        add_undo([
-            delete_last_sweep,
-            lambda s=visible_sweep_list, d=False: sweep_tab.show(s, d),
-            trace_display.canvas.draw,
-            lambda msg='Undo trace averaging', h=True: adjust_tab.log(msg, h)
-        ])
-    else:
-        add_undo([
-            delete_last_sweep,
-            trace_display.canvas.draw,
-            lambda msg='Undo trace averaging', h=True: adjust_tab.log(msg, h)
-        ])
-
+    add_undo([
+        delete_last_sweep,
+        lambda s=visible_sweep_list, d=False: sweep_tab.show(s, d),
+        trace_display.canvas.draw,
+        lambda msg='Undo trace averaging', h=True: log(msg, h)
+    ])
     log('Trace Averaging', True)
-    log('Sweeps {}'.format(analyzer.format_list_indices(target_sweeps)), False)
+    log('Sweeps {}'.format(analyzer2.format_list_indices(target_sweeps)), False)
     log('Channels: {}'.format(channels), False)
     if report_minmax:
         for i,c in enumerate(channels):
             results_display.table_frame.add({
-                'filename': analyzer.trace_file.fname,
+                'filename': al.recording.filename,
                 'channel': c + 1,  # 0 indexing
                 'analysis': 'trace averaging',
-                'min': min[i, 0, 0],
-                'min_unit': analyzer.trace_file.channel_units[c],
-                'min_std': min_std[i, 0, 0],
-                'max': max[i,0,0],
-                'max_unit': analyzer.trace_file.channel_units[c],
-                'max_std': max_std[i,0,0],
+                'min': mins[i, 0, 0],
+                'min_unit': al.recording.channel_units[c],
+                'min_std': mins_std[i, 0, 0],
+                # 'max': maxs[i,0,0],
+                # 'max_unit': al.recording.channel_units[c],
+                # 'max_std': max_std[i,0,0],
             })
             log('Channel {}: min: {:.6f} {} stdev: {:.6f}'.format(c,
-                                                         min[i,0,0],
-                                                         analyzer.trace_file.channel_units[c],
-                                                         min_std[i,0,0]), False)
-            log('           max: {:.6f} {} stdev: {:.6f}'.format(max[i, 0, 0],
-                                                        analyzer.trace_file.channel_units[c],
-                                                        max_std[i, 0, 0]), False)
+                                                         mins[i,0,0],
+                                                         al.recording.channel_units[c],
+                                                         mins_std[i,0,0]), False)
+            log('           max: {:.6f} {} stdev: {:.6f}'.format(maxs[i, 0, 0],
+                                                        al.recording.channel_units[c],
+                                                        maxs_std[i, 0, 0]), False)
 
 
 def filter_y_data(all_channels=False, target='All sweeps', mode='Boxcar', params=None):
     if all_channels:
-        channels = range(analyzer.trace_file.channel_count)
+        channels = range(al.recording.channel_count)
     else:
-        channels = [analyzer.trace_file.channel]
-    if pymini.widgets['trace_mode'].get() == 'continuous':
-        ys = analyzer.trace_file.get_y_data(mode='continuous', channels=channels)
-        target_sweeps = range(analyzer.trace_file.sweep_count)
+        channels = [al.recording.channel]
+    if app.widgets['trace_mode'].get() == 'continuous':
+        ys = al.recording.get_y_data(mode='continuous', channels=channels)
+        target_sweeps = range(al.recording.sweep_count)
     else:
         if target == 'All sweeps':
-            target_sweeps = range(analyzer.trace_file.sweep_count)
+            target_sweeps = range(al.recording.sweep_count)
         elif target == 'Visible sweeps':
             target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()] #check visible sweeps
         elif target == 'Highlighted sweeps':
             target_sweeps = [i for i in trace_display.highlighted_sweep]
         if not target_sweeps:
             return None # no target to be adjusted
-        ys = analyzer.trace_file.get_y_data(mode='overlay', channels=channels, sweeps=target_sweeps)
+        ys = al.recording.get_y_data(mode='overlay', channels=channels, sweeps=target_sweeps)
 
-    pymini.pb['value'] = 25
-    pymini.pb.update()
+    app.pb['value'] = 25
+    app.pb.update()
 
-    if int(pymini.widgets['config_undo_stack'].get()) > 0:
+    if int(app.widgets['config_undo_stack'].get()) > 0:
         ########### Save temp file ##############
         temp_filename = os.path.join(config.DIR, *config.default_temp_path, 'temp_{}.temp'.format(get_temp_num()))
-        analyzer.trace_file.save_ydata(filename=temp_filename,
+        al.recording.save_ydata(filename=temp_filename,
                                        channels=channels,
                                        sweeps=target_sweeps)
         #########################################
-    pymini.pb['value'] = 50
-    pymini.pb.update()
+    app.pb['value'] = 50
+    app.pb.update()
 
     if mode == 'Boxcar':
         kernel = params['kernel']
-        filtered_ys = analyzer.apply_boxcar(kernel, ys)
-    analyzer.trace_file.set_ydata(channels, target_sweeps, filtered_ys, pymini.widgets['trace_mode'].get())
+        filtered_ys = al.apply_boxcar(kernel, ys)
+    al.recording.set_ydata(channels, target_sweeps, filtered_ys, app.widgets['trace_mode'].get())
     update_plot_ys(target_sweeps)
 
-    pymini.pb['value'] = 100
-    pymini.pb.update()
+    app.pb['value'] = 100
+    app.pb.update()
 
-    if int(pymini.widgets['config_undo_stack'].get()) > 0:
+    if int(app.widgets['config_undo_stack'].get()) > 0:
         add_undo([
-            lambda f=temp_filename, c=channels, s=target_sweeps: analyzer.trace_file.load_ydata(f,c,s),
+            lambda f=temp_filename, c=channels, s=target_sweeps: al.recording.load_ydata(f,c,s),
             lambda s=target_sweeps: update_plot_ys(s)
         ])
 
-    pymini.pb['value'] = 0
-    pymini.pb.update()
+    app.pb['value'] = 0
+    app.pb.update()
 
 
     log('Filter trace', header=True)
-    log('Sweeps: {}'.format(analyzer.format_list_indices(target_sweeps)), False)
+    log('Sweeps: {}'.format(al.format_list_indices(target_sweeps)), False)
     log('Channels: {}'.format(channels), False)
 
     log('Algorithm: {}'.format(mode), False)

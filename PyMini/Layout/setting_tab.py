@@ -3,7 +3,7 @@ import tkinter as Tk
 from tkinter import filedialog
 from utils import widget
 from config import  config
-import pymini
+import app
 from tkinter import ttk
 import os
 
@@ -16,9 +16,9 @@ def load(parent):
         d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
                                            defaultextension='.yaml')
         if d:
-            pymini.widgets['config_user_path'].config(state="normal")
-            pymini.widgets['config_user_path'].set(d)
-            pymini.widgets['config_user_path'].config(state='disabled')
+            app.widgets['config_user_path'].config(state="normal")
+            app.widgets['config_user_path'].set(d)
+            app.widgets['config_user_path'].config(state='disabled')
 
 
 
@@ -37,13 +37,13 @@ def load(parent):
         name='config_settings',
         text='Config Auto-save/load'
     )
-    pymini.widgets['config_autoload'] = optionframe.insert_label_checkbox(
+    app.widgets['config_autoload'] = optionframe.insert_label_checkbox(
         name='config_autoload',
         label='Automatically load configurations at the beginning of the next session',
         onvalue='1',
         offvalue=""
     )
-    pymini.widgets['config_autosave'] = optionframe.insert_label_checkbox(
+    app.widgets['config_autosave'] = optionframe.insert_label_checkbox(
         name='config_autosave',
         label='Automatically save configurations at the end of this session',
         onvalue='1',
@@ -62,13 +62,13 @@ def load(parent):
     dir_entry = widget.VarText(
         parent=dir_frame,
         name='config_user_path',
-        value=config.convert_to_path(config.config_user_path),
-        default=config.convert_to_path(config.default_config_user_path)
+        value=config.config_user_path,
+        default=config.default_config_user_path
     )
     print('config user path being loaded to settings {}'.format(config.config_user_path))
     dir_entry.configure(state='disabled', height=2)
     dir_entry.grid(column=0,row=1,sticky='news')
-    pymini.widgets['config_user_path'] = dir_entry
+    app.widgets['config_user_path'] = dir_entry
 
     Tk.Button(
         master=dir_frame,
@@ -77,12 +77,12 @@ def load(parent):
     ).grid(column=1, row=1, sticky='news')
 
     optionframe.insert_button("Save current \nconfig now",
-                              command= lambda e=pymini.widgets['config_user_path'].get():
-                            pymini.dump_user_setting(e))
+                              command= lambda e=app.widgets['config_user_path'].get():
+                            app.dump_user_setting(e))
 
     optionframe.insert_button("Save current \nconfig As...", command=save_config_as)
 
-    optionframe.insert_button("Load config \nfrom file...", command=pymini.load_config)
+    optionframe.insert_button("Load config \nfrom file...", command=app.load_config)
 
     optionframe.insert_button(
         text='Reset to default \nparameters',
@@ -93,14 +93,14 @@ def load(parent):
         name='misc',
         text='Misc'
     )
-    pymini.widgets['config_file_autodir'] = optionframe.insert_label_checkbox(
+    app.widgets['config_file_autodir'] = optionframe.insert_label_checkbox(
         name='config_file_autodir',
         label='Use trace file directory as default export directory (figures, data)',
         onvalue="1",
         offvalue=""
     )
 
-    pymini.widgets['config_undo_stack'] = optionframe.insert_label_entry(
+    app.widgets['config_undo_stack'] = optionframe.insert_label_entry(
         name='config_undo_stack',
         label='Number of steps to store in memory for undo (Experimental)',
     )
@@ -112,7 +112,7 @@ def save_config_as():
 
     if d:
         try:
-            pymini.dump_user_setting(d)
+            app.dump_user_setting(d)
         except:
             save_config_as()
     return d

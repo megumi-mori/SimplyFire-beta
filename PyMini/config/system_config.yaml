@@ -5,5 +5,5 @@
 config_autoload: '1'
 config_autosave: '1'
 config_file_autodir: '1'
-config_undo_stack: '0'
-config_user_path: config\user_config.yaml
+config_undo_stack: '5'
+config_user_path: D:\megum\Documents\GitHub\PyMini-GHD\PyMini\config\user_config.yaml

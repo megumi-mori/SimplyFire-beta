@@ -549,8 +549,9 @@ def calculate_baseline(ys, xs=None, xlim=None, sampling_rate=None):
         ys = np.reshape(ys, (1, ys.shape[0], ys.shape[1]))
     elif len(ys.shape) == 1:
         ys = np.reshape(ys, (1, 1, ys.shape[0]))
-    xs = xs.squeeze()
+
     if xlim:
+        xs = xs.squeeze()
         xlim_idx = (search_index(xlim[0], xs, sampling_rate),
                     search_index(xlim[1], xs, sampling_rate))
         baseline = np.mean(ys[:, :, xlim_idx[0]:xlim_idx[1]], axis=2, keepdims=True)

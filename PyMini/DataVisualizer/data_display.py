@@ -1,7 +1,7 @@
 import tkinter as Tk
 from tkinter import ttk
 from collections import OrderedDict  # Python 3.7+ can use dict
-import pymini
+import app
 from Backend import interface, interpreter
 from utils.widget import DataTable
 
@@ -58,10 +58,10 @@ def set(data):
     table_frame.set(data)
 
 def show_columns():
-    if pymini.widgets['analysis_mode'].get() == 'mini':
+    if app.widgets['analysis_mode'].get() == 'mini':
         table_frame.show_columns(tuple([
                 i for i in mini_header2config
-                if pymini.widgets[mini_header2config[i]].get()
+                if app.widgets[mini_header2config[i]].get()
             ]))
         pass
     else:
@@ -88,7 +88,7 @@ def clear():
 
 def select(e=None):
     selected = table.selection()
-    if pymini.widgets['analysis_mode'].get() == 'mini':
+    if app.widgets['analysis_mode'].get() == 'mini':
         if len(selected) == 1:
             interface.select_single_mini(float(selected[0]))
         interface.highlight_selected_mini([float(i) for i in selected])

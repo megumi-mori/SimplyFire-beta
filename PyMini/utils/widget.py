@@ -4,7 +4,8 @@ from config import config
 from utils import validation
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import yaml
-import pymini
+import app
+import textwrap
 from Backend import interface
 
 
@@ -137,6 +138,46 @@ class VarEntry(VarWidget, Tk.Entry):
         self.focus_set()
         self.prev = value
 
+class LabelVarEntry(Tk.Frame):
+    def __init__(self,
+                 parent,
+                 name=None,
+                 label="",
+                 ** kwargs
+                 ):
+        Tk.Frame.__init__(self, parent)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        # make label (left side of frame)
+        text = textwrap.wrap(label, width=config.default_label_length)
+        text='\n'.join(text)
+        self.label = ttk.Label(self, text=text)
+        self.label.grid(column=0, row=0, sticky='news')
+
+        self.widget = VarEntry(parent=self, name=name, **kwargs)
+        self.widget.grid(row=0, column=1, sticky='ews')
+
+def create_label_var_widget(widget, parent, label="", **kwargs):
+    frame=Tk.Frame(parent)
+    frame.grid_columnconfigure(0, weight=1)
+    frame.grid_rowconfigure(0, weight=1)
+
+    # make label
+    text = textwrap.wrap(label, width=config.default_label_length)
+    text = '\n'.join(text)
+
+    frame.label = ttk.Label(frame, text=text)
+    frame.label.grid(column=0, row=0, sticky='news')
+
+    frame.widget = widget(parent=frame, **kwargs)
+    frame.widget.grid(row=0, column=1, sticky='ews')
+
+    return frame
+
+
+
+
 class VarOptionmenu(VarWidget, ttk.OptionMenu):
     def __init__(
             self,
@@ -168,16 +209,19 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
             self.var,
             value,
             *options,
-            command=self.command_undo,
+            command=self.command,
             **kwargs
         )
 
     def command_undo(self, e=None):
         if self.undo_value == self.get():
+            print('nothing to do')
             return None
         try:
+            self.set_undo()
             self.command(e)
-        except:
+        except Exception as ex:
+            print(ex)
             pass
         #     interface.add_undo([
         #         lambda v=self.undo_value: self.var.set(v),
@@ -361,6 +405,7 @@ class VarLabel(VarWidget, ttk.Label):
     def set(self, value):
         self.config(text = value)
 
+
 class NavigationToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas, parent):
         self.toolitems = [t for t in self.toolitems if t[0] in ('Pan', 'Zoom', 'Save')]
@@ -450,8 +495,8 @@ class DataTable(Tk.Frame):
                 text = text + '{}\t'.format(data[c])
             text = text + '\n'
         try:
-            pymini.root.clipboard_clear()
-            pymini.root.clipboard_append(text)
+            app.root.clipboard_clear()
+            app.root.clipboard_append(text)
         except:
             pass
 

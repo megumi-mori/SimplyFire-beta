@@ -3,7 +3,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.patches import Rectangle
 from matplotlib.animation import FuncAnimation
-import pymini
+import app
 import gc
 
 from Backend import interface, analyzer
@@ -472,9 +472,9 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0):
             pass
 
     sweeps['sweep_{}'.format(idx)], = ax.plot(xs, ys,
-                                              linewidth=pymini.widgets['style_trace_line_width'].get(),
-                                              c=pymini.widgets['style_trace_line_color'].get(),
-                                              animated=False)  # pickradius=int(pymini.widgets['style_event_pick_offset'].get())
+                                              linewidth=app.widgets['style_trace_line_width'].get(),
+                                              c=app.widgets['style_trace_line_color'].get(),
+                                              animated=False)  # pickradius=int(app.widgets['style_event_pick_offset'].get())
     if relim:
         ax.autoscale(enable=True, axis='both', tight=True)
         ax.relim()
@@ -527,7 +527,7 @@ def get_sweep(idx):
 
 def toggle_sweep_highlight(idx, exclusive=True, draw=False):
     global highlighted_sweep
-    c = pymini.widgets['style_trace_line_color'].get()
+    c = app.widgets['style_trace_line_color'].get()
     print(highlighted_sweep)
     if exclusive:
         for l in sweeps:
@@ -545,7 +545,7 @@ def toggle_sweep_highlight(idx, exclusive=True, draw=False):
             pass
     else:
         try:
-            sweeps['sweep_{}'.format(idx)].set_color(pymini.widgets['style_trace_highlight_color'].get())
+            sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_highlight_color'].get())
             highlighted_sweep.append(idx)
         except:
             pass
@@ -556,13 +556,13 @@ def toggle_sweep_highlight(idx, exclusive=True, draw=False):
 def set_highlight_sweep(idx, highlight=True, draw=True):
     if idx not in highlighted_sweep and highlight:
         try:
-            sweeps['sweep_{}'.format(idx)].set_color(pymini.widgets['style_trace_highlight_color'].get())
+            sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_highlight_color'].get())
             highlighted_sweep.append(idx)
         except:
             pass
     elif not highlight and idx in highlighted_sweep:
         try:
-            sweeps['sweep_{}'.format(idx)].set_color(pymini.widgets['style_trace_line_color'].get())
+            sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_line_color'].get())
             highlighted_sweep.remove(idx)
         except Exception as e:
             print('remove highlight : {}'.format(e))
@@ -577,7 +577,7 @@ def plot_highlight(xs, ys):
     except:
         pass
     try:
-        markers['highlight'] = ax.scatter(xs, ys, marker='o', c=pymini.widgets['style_event_color_highlight'].get(),
+        markers['highlight'] = ax.scatter(xs, ys, marker='o', c=app.widgets['style_event_color_highlight'].get(),
                                           alpha=0.5, animated=False)
         # canvas.draw()
     except:
@@ -591,8 +591,8 @@ def plot_peak(xs, ys):
     except Exception as e:
         pass
     try:
-        markers['peak'] = ax.scatter(xs, ys, marker='o', c=pymini.widgets['style_event_color_peak'].get(), picker=True,
-                                     pickradius=int(pymini.widgets['style_event_pick_offset'].get()), animated=False)
+        markers['peak'] = ax.scatter(xs, ys, marker='o', c=app.widgets['style_event_color_peak'].get(), picker=True,
+                                     pickradius=int(app.widgets['style_event_pick_offset'].get()), animated=False)
         # canvas.draw()
     except Exception as e:
         print('plot peak, plotting error:{}'.format(e))
@@ -606,7 +606,7 @@ def plot_start(xs, ys):
     except:
         pass
     try:
-        markers['start'] = ax.scatter(xs, ys, marker='x', c=pymini.widgets['style_event_color_start'].get(),
+        markers['start'] = ax.scatter(xs, ys, marker='x', c=app.widgets['style_event_color_start'].get(),
                                       animated=False)
         # canvas.draw()
     except:
@@ -620,7 +620,7 @@ def plot_decay(xs, ys):
     except:
         pass
     try:
-        markers['decay'] = ax.scatter(xs, ys, marker='x', c=pymini.widgets['style_event_color_decay'].get(),
+        markers['decay'] = ax.scatter(xs, ys, marker='x', c=app.widgets['style_event_color_decay'].get(),
                                       animated=False)
         # canvas.draw()
     except:
@@ -634,7 +634,7 @@ def plot_end(xs, ys):
     except:
         pass
     try:
-        markers['end'] = ax.scatter(xs, ys, marker='x', c=pymini.widgets['style_event_color_end'].get(),
+        markers['end'] = ax.scatter(xs, ys, marker='x', c=app.widgets['style_event_color_end'].get(),
                                     animated=False)
         # canvas.draw()
     except:
@@ -649,21 +649,21 @@ def apply_styles(keys):
         try:
             if k == 'style_trace_line_width':
                 for l in ax.lines:
-                    l.set_linewidth(float(pymini.widgets[k].get()))
+                    l.set_linewidth(float(app.widgets[k].get()))
             if k == 'style_trace_line_color':
                 for l in ax.lines:
-                    l.set_color(pymini.widgets[k].get())
+                    l.set_color(app.widgets[k].get())
             if k == 'style_event_color_peak':
-                markers['peak'].set_color(pymini.widgets[k].get())
+                markers['peak'].set_color(app.widgets[k].get())
             if k == 'style_event_color_start':
-                markers['start'].set_color(pymini.widgets[k].get())
+                markers['start'].set_color(app.widgets[k].get())
             if k == 'style_event_color_decay':
-                markers['decay'].set_color(pymini.widgets[k].get())
+                markers['decay'].set_color(app.widgets[k].get())
             if k == 'style_event_color_highlight':
-                markers['highlight'].set_color(pymini.widgets[k].get())
+                markers['highlight'].set_color(app.widgets[k].get())
             if k == 'style_event_pick_offset':
                 markers['peak'].set_picker(True)
-                markers['peak'].set_pickradius(int(pymini.widgets[k].get()))
+                markers['peak'].set_pickradius(int(app.widgets[k].get()))
         except:
             pass
     canvas.draw()

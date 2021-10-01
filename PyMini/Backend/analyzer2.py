@@ -173,12 +173,12 @@ class Recording():
         Use this function to get x-values for plotting
         mode: string
             continuous, concatenate, or None
-            if continuous, all sweeps are included
         sweep: int
-        channel: int
-            if empty, the current channel in the object is used
+        channel: int if None, defaults to current channel
         xlim: float tuple - [left, right] If None, defaults to all x-values
         """
+        if not channel:
+            channel = self.channel
         if mode == 'continuous':
             return self.get_x_matrix(mode='continuous', channels=[channel], xlim=xlim).flatten()
         return self.get_x_matrix(mode='overlay', sweeps=[sweep], channels=[channel], xlim=xlim).flatten()
@@ -226,6 +226,13 @@ class Recording():
         self.sweep_count += 1
         self.added_sweep_count += 1
 
+    def delete_last_sweep(self):
+        if self.sweep_count == self.original_sweep_count:
+            return None # cannot delete original data
+        self.y_data = self.y_data[:, :-1, :]
+        self.x_data = self.x_data[:, :-1, :]
+        self.sweep_count -= 1
+        self.added_sweep_count -=1
 
 
 ############################################
@@ -238,6 +245,8 @@ class Analyzer():
 
         #initialize dataframes
         self.mini_df = DataFrame()
+
+        self.recording = None
 
     def open_file(self, filename):
         try:
@@ -306,15 +315,12 @@ class Analyzer():
             sweeps = range(self.recording.sweep_count)
         if channels is None:
             channels = range(self.recording.channel_count)
-        result_df = DataFrame({
-            'min':np.min(y_matrix, axis=2).flatten(), # 2D numpy array
-            'file':self.recording.filename,
-            'channel':[c for c in channels for s in sweeps],
-            'sweep':[s for s in sweeps] * len(channels)
-        })
-        return result_df
+        mins = np.min(y_matrix, axis=2, keepdims=True)
+        mins_std = np.std(mins, axis=1, keepdims=True)
 
-    def calculate_max_sweeps(self, plot_mode=None, xs=None, ys=None, channels=None, sweeps=None, xlim=None):
+        return mins, mins_std
+
+    def calculate_max_sweeps(self, plot_mode=None, channels=None, sweeps=None, xlim=None):
         """
         returns maximum y-value from each sweep in each channel
         if the plot_mode is 'overlay', returns the minimum y-value for each sweep
@@ -332,13 +338,9 @@ class Analyzer():
             sweeps = range(self.recording.sweep_count)
         if channels is None:
             channels = range(self.recording.channel_count)
-        result_df = DataFrame({
-            'max': np.max(y_matrix, axis=2).flatten(),  # 2D numpy array
-            'file': self.recording.filename,
-            'channel': [c for c in channels for s in sweeps],
-            'sweep': [s for s in sweeps] * len(channels)
-        })
-        return result_df
+        maxs = np.min(y_matrix, axis=2, keepdims=True)
+        maxs_std = np.std(maxs, axis=1, keepdims=True)
+        return maxs, maxs_std
 
 
     ########################
@@ -407,12 +409,24 @@ class Analyzer():
                                axis=2,
                                keepdims=True)
         result = self.recording.get_y_matrix(mode=plot_mode, channels=channels, sweeps=sweeps) - baseline
-        print(result.shape)
 
         self.recording.replace_y_data(mode=plot_mode, channels=channels, sweeps=sweeps, new_data=result)
 
         return baseline
 
+    def shift_y_data(self, shift, plot_mode='continuous', channels=None, sweeps=None):
+        """
+        shifts y_data by specified amount
+
+        shift: float or array. The dimensions must match dimension: (n_channels, n_sweeps, (1))
+        plot_mode: string {'continuous', 'overlay'}. If continuous, all specified sweeps are concatenated into a 1D array per channel
+        channels: list of int
+        sweeps: list of int
+        """
+        result = self.recording.get_y_matrix(mode=plot_mode, channels=channels, sweeps=sweeps) - shift
+        self.recording.replace_y_data(mode=plot_mode, channels=channels, sweeps=sweeps, new_data=result)
+
+        return None
 
     def filter_sweeps(self, filter='boxcar', params=None, channels=None, sweeps=None):
         """
@@ -1659,3 +1673,28 @@ def search_index(x, l, rate=None):
 
 def single_exponent_constant(x, a, t, d):
     return a * np.exp(-(x) / t) + d
+
+
+def format_list_indices(idx):
+    if len(idx) == 1:
+        return str(idx[0])
+    s = ""
+    for i, n in enumerate(idx):
+        if i == 0:
+            s = str(n)
+        elif i == len(idx) - 1:
+            if n - 1 == idx[-2]:
+                s = '{}..{}'.format(s, n)
+            else:
+                s = '{},{}'.format(s, n)
+        elif n - 1 == idx[i-1] and n+1 == idx[i+1]:
+            #0, [1, 2, 3], 4, 10, 11 --> '0'
+            pass # do nothing
+        elif n-1 == idx[i-1] and n+1 != idx[i+1]:
+            #0, 1, 2, [3, 4, 10], 11 --> '0..4'
+            s = '{}..{}'.format(s, n)
+        elif n-1 != idx[i-1]:
+            #0, 1, 2, 3, [4, 10, 11], 14, 16 --> '0..4,10' -->'0..4,10..11'
+            s = '{},{}'.format(s, n)
+
+    return s

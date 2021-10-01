@@ -7,7 +7,7 @@ if __name__ == '__main__':
     splash.update()
     splash.after(0, splash.destroy)
 
-    import pymini
+    import app
     import Layout
     import utils
     import DataVisualizer
@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     splash.mainloop()
 
-    root = pymini.load()
+    root = app.load()
 
     ### testing purposes:
     # Backend.interface.open_trace('D:\\megum\\Documents\\GitHub\\PyMini\\test_recordings\\20112011-EJC test.abf')
