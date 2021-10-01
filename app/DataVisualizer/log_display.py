@@ -1,7 +1,7 @@
 import tkinter as Tk
 from tkinter import ttk, filedialog, messagebox
 from utils import widget
-import app
+import pymini
 import datetime
 import os
 
@@ -113,5 +113,3 @@ def save():
             messagebox.showerror('Cannot overwrite file', 'A file with the filename already exists. Please choose a different filename.')
             save()
             return
-
-
