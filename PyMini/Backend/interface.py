@@ -156,7 +156,9 @@ def open_trace(fname):
             print('force_channel id error:{}'.format(e))
             al.recording.set_channel(0) # force to open the first channel
             pass
-
+    else:
+        al.recording.set_channel(0)
+        
     trace_display.clear()
     data_display.clear()
 
