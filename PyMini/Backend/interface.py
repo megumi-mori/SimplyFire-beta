@@ -158,7 +158,7 @@ def open_trace(fname):
             pass
     else:
         al.recording.set_channel(0)
-        
+
     trace_display.clear()
     data_display.clear()
 
