@@ -5,7 +5,7 @@ setup(
     author='Megumi Mori GitHub@megumi-mori',
     packages=['PyMini'],
     pakage_dir={'PyMini': 'PyMini'},
-    package_data={'PyMini': ['config/*.yaml', 'img/*.png']},
+    package_data={'PyMini': ['config/*.yaml', 'img/*.png', 'temp/']},
 
     install_requires=[
         'astropy',

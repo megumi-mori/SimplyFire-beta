@@ -1,15 +1,12 @@
 from utils.scrollable_option_frame import ScrollableOptionFrame, OptionFrame
-from tkinter import ttk, StringVar, messagebox
+from tkinter import ttk, StringVar
 import tkinter as Tk
 from config import config
 from utils import widget
-from Backend import analyzer, interface
+from Backend import interface
 
 #### DEBUG
 import tracemalloc
-
-global name
-name = 'adjust'
 
 global widgets
 widgets = {}
@@ -185,18 +182,22 @@ def load(parent):
     global filter_parameter_panels
     filter_parameter_panels = {}
 
-    widgets['adjust_filter_kernel'] = frame.insert_label_entry(
-        name='adjust_filter_kernel',
-        label='Filter kernel',
+    widgets['adjust_filter_width'] = frame.insert_label_entry(
+        name='adjust_filter_width',
+        label='Filter width (kernel)',
         validate_type='int',
         separator=False
     )
-    filter_parameter_panels['kernel'] = widgets['adjust_filter_kernel'].master.master
-    filter_parameter_panels['kernel'].grid_remove()
+    filter_parameter_panels['width'] = widgets['adjust_filter_width'].master.master
+    filter_parameter_panels['width'].grid_remove()
+    # note for future additions:
+    # widgets that takes user input for filtering parameters should be named 'adjust_filter_<param name>'
+    # the value of the widget must be retrievable using widget.get()
+    # the same param name should be used in the algorithm's filter_param_list below
 
     # list the parameters that should be shown for each filtering method
     global filter_param_list
-    filter_param_list = {'Boxcar':['kernel'], 'None':[]}
+    filter_param_list = {'Boxcar':['width'], 'None':[]}
 
     global filter_apply_button
     filter_apply_button = frame.insert_button(
@@ -294,7 +295,8 @@ def _filter(e=None):
     lohi = widgets['adjust_filter_lohi'].get()
     mode = widgets['adjust_filter_{}_algorithm'.format(lohi)].get()
     params = {}
-    if mode == 'Boxcar':
-        params['kernel'] = int(widgets['adjust_filter_boxcar_kernel'].get())
+    for key in filter_param_list[mode]:
+        params[key] = widgets[f'adjust_filter_{key}'].get()
+
     interface.filter_y_data(all_channels, target=widgets['adjust_target'].get(),
                             mode=mode, params=params)

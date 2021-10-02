@@ -4,6 +4,7 @@ from tkinter import filedialog, messagebox
 import tkinter as Tk
 from DataVisualizer import data_display, log_display, trace_display, param_guide, results_display
 import os
+import pkg_resources
 from Layout import detector_tab, graph_panel, sweep_tab, adjust_tab
 import matplotlib as mpl
 from Backend import interpreter, analyzer2
@@ -828,8 +829,6 @@ def highlight_events_in_range(xlim=None, ylim=None):
     data_display.table.selection_set([str(x) for x in xs.index])
 
 
-
-    pass
 def update_event_marker():
     if al.recording is None:
         return None
@@ -1158,53 +1157,45 @@ def filter_y_data(all_channels=False, target='All sweeps', mode='Boxcar', params
     else:
         channels = [al.recording.channel]
     if app.widgets['trace_mode'].get() == 'continuous':
-        ys = al.recording.get_y_data(mode='continuous', channels=channels)
         target_sweeps = range(al.recording.sweep_count)
-    else:
-        if target == 'All sweeps':
-            target_sweeps = range(al.recording.sweep_count)
-        elif target == 'Visible sweeps':
-            target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()] #check visible sweeps
-        elif target == 'Highlighted sweeps':
-            target_sweeps = [i for i in trace_display.highlighted_sweep]
-        if not target_sweeps:
-            return None # no target to be adjusted
-        ys = al.recording.get_y_data(mode='overlay', channels=channels, sweeps=target_sweeps)
+    elif target == 'All sweeps':
+        target_sweeps = range(al.recording.sweep_count)
+    elif target == 'Visible sweeps':
+        target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()] #check visible sweeps
+    elif target == 'Highlighted sweeps':
+        target_sweeps = [i for i in trace_display.highlighted_sweep]
+    if not target_sweeps:
+        return None # no target to be adjusted
 
     app.pb['value'] = 25
     app.pb.update()
 
     if int(app.widgets['config_undo_stack'].get()) > 0:
         ########### Save temp file ##############
-        temp_filename = os.path.join(config.DIR, *config.default_temp_path, 'temp_{}.temp'.format(get_temp_num()))
-        al.recording.save_ydata(filename=temp_filename,
+        temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
+        al.recording.save_y_data(filename=temp_filename,
                                        channels=channels,
                                        sweeps=target_sweeps)
+        add_undo([
+            lambda f=temp_filename, c=channels, s=target_sweeps: al.recording.load_y_data(f, c, s),
+            lambda s=target_sweeps: update_plot_ys(s)
+        ])
         #########################################
     app.pb['value'] = 50
     app.pb.update()
 
-    if mode == 'Boxcar':
-        kernel = params['kernel']
-        filtered_ys = al.apply_boxcar(kernel, ys)
-    al.recording.set_ydata(channels, target_sweeps, filtered_ys, app.widgets['trace_mode'].get())
+    al.filter_sweeps(filter=mode, params=params, channels=channels, sweeps=target_sweeps)
     update_plot_ys(target_sweeps)
 
     app.pb['value'] = 100
     app.pb.update()
-
-    if int(app.widgets['config_undo_stack'].get()) > 0:
-        add_undo([
-            lambda f=temp_filename, c=channels, s=target_sweeps: al.recording.load_ydata(f,c,s),
-            lambda s=target_sweeps: update_plot_ys(s)
-        ])
 
     app.pb['value'] = 0
     app.pb.update()
 
 
     log('Filter trace', header=True)
-    log('Sweeps: {}'.format(al.format_list_indices(target_sweeps)), False)
+    log('Sweeps: {}'.format(analyzer2.format_list_indices(target_sweeps)), False)
     log('Channels: {}'.format(channels), False)
 
     log('Algorithm: {}'.format(mode), False)

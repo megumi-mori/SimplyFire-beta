@@ -109,7 +109,6 @@ class Recording():
         for i,c in enumerate(channels):
             self.y_data[c, sweeps, :] = new_data[i]
 
-
     def get_y_matrix(self, mode='continuous', sweeps=None, channels=None, xlim=None):
         """
         returns a slice of the y_data
@@ -200,6 +199,36 @@ class Recording():
         if mode == 'continuous':
             return self.get_y_matrix(mode='continuous', channels=[channel], xlim=xlim).flatten()
         return self.get_y_matrix(mode=mode, channels=[channel], sweeps=[sweep], xlim=xlim).flatten()
+
+    def save_y_data(self, filename, channels=None, sweeps=None):
+        """
+        saves y_data of specified channels and sweeps in a temporary file
+
+        filename: str name of the file
+        channels: list of int, defaults to all channels if None
+        sweeps: list of int, defaults to all sweeps if None
+        """
+        if not channels:
+            channels = range(self.channel_count)
+        if not sweeps:
+            sweeps = range(self.sweep_count)
+        with open(filename, 'w') as f:
+            for c in channels:
+                for s in sweeps:
+                    f.write(','.join([str(d) for d in self.y_data[c][s]]))
+                    f.write('\n')
+        return None
+
+    def load_y_data(self, filename, channels=None, sweeps=None):
+        if not channels:
+            channels = range(self.channel_count)
+        if not sweeps:
+            sweeps = range(self.sweep_count)
+        with open(filename, 'r') as f:
+            for c in channels:
+                for i in sweeps:
+                    self.y_data[c, i] = np.fromstring(f.readline(), dtype=float, sep=',')
+        return None
 
     def append_sweep(self, new_data, channels=None, fill=0):
         """
@@ -428,16 +457,16 @@ class Analyzer():
 
         return None
 
-    def filter_sweeps(self, filter='boxcar', params=None, channels=None, sweeps=None):
+    def filter_sweeps(self, filter='Boxcar', params=None, channels=None, sweeps=None):
         """
         applies a specified filter to the y-data in specified sweeps and channels
 
-        filter: string {'boxcar'} (more will be added) - name of filter
+        filter: string {'Boxcar'} (more will be added) - name of filter
         params: dict parameters specific to each filter type. See below for more details
         channels: list of int - if None, defaults to all channels
         sweeps: list of int - if None, defaults to all sweeps
 
-        filter 'boxcar':
+        filter 'Boxcar':
             see astropy.convolution.Box1DKernel for more details
             width: int - number of data points to use for boxcar filter
             if only a subset of sweeps are selected, y-values from selected sweeps are stitched together to form a continuous y-data sequence for the purpose of convolution
@@ -447,8 +476,9 @@ class Analyzer():
 
 
         """
-        if filter == 'boxcar':
-            k = Box1DKernel(width=params['width'])
+        if filter == 'Boxcar':
+            width = int(params['width'])
+            k = Box1DKernel(width=width)
             for c in channels:
                 # apply filter
                 ys = self.recording.get_y_matrix(mode='continuous',
@@ -460,8 +490,8 @@ class Analyzer():
                 filtered = np.reshape(filtered, (1, 1, len(filtered)))
 
                 # # even out the edge cases
-                filtered[:, :, :int(params['width']/2)] = ys[:, :, :int(params['width']/2)]
-                filtered[:, :, -int(params['width'] / 2):] = ys[:, :, -int(params['width'] / 2):]
+                filtered[:, :, :int(width/2)] = ys[:, :, :int(width/2)]
+                filtered[:, :, -int(width/ 2):] = ys[:, :, -int(width/ 2):]
 
                 self.recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
         return None
