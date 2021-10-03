@@ -37,53 +37,59 @@ mini_header2config = OrderedDict([
 config2header = OrderedDict([(mini_header2config[key], key) for key in mini_header2config.keys()])
 
 def load(parent):
-    global table_frame
-    table_frame = DataTable(parent)
+    global frame
+    frame = Tk.Frame(parent)
+    frame.grid_columnconfigure(0, weight=1)
+    frame.grid_rowconfigure(0, weight=1)
+
+    global datatable
+    datatable = DataTable(frame)
 
     global table
-    table = table_frame.table
+    table = datatable.table
 
-    table_frame.table.bind('<<TreeviewSelect>>', select)
-    table_frame.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
+    datatable.table.bind('<<TreeviewSelect>>', select)
+    datatable.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
+    datatable.grid(column=0, row=0, sticky='news')
 
-    return table_frame
+    return frame
 
 def add(data):
-    table_frame.add(data)
+    datatable.add(data)
 
 def append(data):
-    table_frame.append(data)
+    datatable.append(data)
 
 def set(data):
-    table_frame.set(data)
+    datatable.set(data)
 
 def show_columns():
     if app.widgets['analysis_mode'].get() == 'mini':
-        table_frame.show_columns(tuple([
+        datatable.show_columns(tuple([
                 i for i in mini_header2config
                 if app.widgets[mini_header2config[i]].get()
             ]))
         pass
     else:
-        # table_frame.show_columns(tuple(trace_header))
+        # datatable.show_columns(tuple(trace_header))
         pass
     fit_columns()
 
 def fit_columns():
-    table_frame.fit_columns()
+    datatable.fit_columns()
 
 def define_columns(columns):
-    table_frame.define_columns(columns)
+    datatable.define_columns(columns)
 
 def add_columns(columns):
     # tuple of column headers
-    table_frame.add_columns(columns)
+    datatable.add_columns(columns)
     for c in columns:
         trace_header.append(c)
 
 
 def clear():
-    table_frame.clear()
+    datatable.clear()
 
 
 def select(e=None):
@@ -95,16 +101,16 @@ def select(e=None):
 
 
 def unselect(e=None):
-    table_frame.unselect()
+    datatable.unselect()
 
 def select_one(iid):
     interface.highlight_selected_mini([float(iid)])
-    table_frame.select(iid)
+    datatable.select(iid)
 
 def delete_one(iid):
     print('data_Display delete one: {}'.format(iid))
     try:
-        table_frame.delete([iid])
+        datatable.delete([iid])
         interface.delete_event([iid])
     except Exception as e:
         print('data_display delete one error: {}'.format(e))

@@ -133,12 +133,19 @@ def load():
     pw_2.add(panel)
     pw_2.paneconfig(panel, height=config.gp_height)
 
+    global data_notebook
     data_notebook = ttk.Notebook(pw_2)
 
-    panel = data_display.load(None)
-    data_notebook.add(panel, text='mini')
-    panel = evoked_data_display.load(None)
-    data_notebook.add(panel, text='evoked')
+    # only show one tab at a time
+    global data_tab_details
+    data_tab_details = {
+        'mini':{'module': data_display, 'text': 'Mini'},
+        'evoked': {'module': evoked_data_display, 'text': 'Evoked'}
+    }
+    for i, t in enumerate(data_tab_details):
+        data_tab_details[t]['tab'] = data_tab_details[t]['module'].load(None)
+        data_notebook.add(data_tab_details[t]['tab'], text=data_tab_details[t]['text'])
+        data_tab_details[t]['index'] = i
 
     pw_2.add(data_notebook)
     dp_notebook.add(pw_2, text='trace')
@@ -174,67 +181,28 @@ def load():
     # Insert custom tabs here to include in the control panel
     #############################################################
 
-    global tab_details
-    tab_details = {
-        'mini':        {
-            'module': detector_tab,
-            'text': 'Mini',
-            'partner': ['evoked']
-        },
-        'evoked':
-        {
-            'module': evoked_tab,
-            'text': 'Evoked',
-            'partner': ['mini']
-        },
-        'continuous':
-       {
-            'module': continuous_tab,
-            'text': 'Cont',
-            'partner': ['overlay']
-        },
-        'overlay':
-        {
-            'module': sweep_tab,
-            'text': 'Sweeps',
-            'partner': ['continuous']
-        },
-        'adjust':
-        {
-            'module': adjust_tab,
-            'text': 'Adjust',
-            'partner': None
-        },
-        'navigation':
-        {
-            'module': navigation_tab,
-            'text': 'Navi',
-            'partner': None
-        },
-        'style':
-        {
-            'module': style_tab,
-            'text': 'Style',
-            'partner': None
-        },
-        'setting':
-        {
-            'module': setting_tab,
-            'text': 'Setting',
-            'partner': None
-        }
+    global cp_tab_details
+    cp_tab_details = {
+        'mini': {'module': detector_tab, 'text': 'Mini', 'partner': ['evoked']},
+        'evoked': {'module': evoked_tab, 'text': 'Evoked', 'partner': ['mini']},
+        'continuous': {'module': continuous_tab, 'text': 'Cont', 'partner': ['overlay']},
+        'overlay': {'module': sweep_tab, 'text': 'Sweeps', 'partner': ['continuous']},
+        'adjust': {'module': adjust_tab, 'text': 'Adjust', 'partner': None},
+        'navigation': {'module': navigation_tab, 'text': 'Navi', 'partner': None},
+        'style':{'module': style_tab, 'text': 'Style', 'partner': None},
+        'setting':{'module': setting_tab, 'text': 'Setting', 'partner': None}
     }
 
-    for i, t in enumerate(tab_details):
-        tab_details[t]['tab'] = tab_details[t]['module'].load(left)
-        cp_notebook.add(tab_details[t]['tab'], text=tab_details[t]['text'])
-        tab_details[t]['index'] = i
+    for i, t in enumerate(cp_tab_details):
+        cp_tab_details[t]['tab'] = cp_tab_details[t]['module'].load(left)
+        cp_notebook.add(cp_tab_details[t]['tab'], text=cp_tab_details[t]['text'])
+        cp_tab_details[t]['index'] = i
     from Layout.style_tab import StyleTab
     test = StyleTab(left, __import__(__name__), interface)
     cp_notebook.add(test, text='test')
 
     # get reference to widgets
-    for k, v in tab_details['adjust']['module'].widgets.items():
+    for k, v in cp_tab_details['adjust']['module'].widgets.items():
         widgets[k] = v
 
     # set focus rules
@@ -280,6 +248,8 @@ def load():
     menu = menubar.load_menubar(root)
     root.config(menu=menu)
 
+    for k, v in menubar.widgets.items():
+        widgets[k] = v
     # set up closing sequence
     root.protocol('WM_DELETE_WINDOW', _on_close)
 

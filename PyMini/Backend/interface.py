@@ -5,7 +5,7 @@ import tkinter as Tk
 from DataVisualizer import data_display, log_display, trace_display, param_guide, results_display
 import os
 import pkg_resources
-from Layout import detector_tab, graph_panel, sweep_tab, adjust_tab
+from Layout import detector_tab, graph_panel, sweep_tab, adjust_tab, menubar
 import matplotlib as mpl
 from Backend import interpreter, analyzer2
 import gc
@@ -15,7 +15,9 @@ from config import config
 
 import time
 
-### this module connects the analyzer and the gui
+# This module is the workhorse of the GUI
+# All functions that connect inputs from the user to processes in the background should pass through here
+# Any functions that require communications between different modules should be done here
 
 mini_df = pd.DataFrame(columns = [
     # panel -- make sure this matches with the config2header dict
@@ -81,7 +83,12 @@ def clear_undo():
         del stack
     undo_stack = []
 
+    # disable the undo command in the menubar
+    menubar.disable_undo()
+
 def add_undo(task):
+    # enable the undo command in the menubar
+    menubar.enable_undo()
     global undo_stack
     if isinstance(task, list):
         undo_stack.append(task)
@@ -113,6 +120,10 @@ def undo(e=None):
         print(undo_stack)
     app.pb['value'] = 0
     app.pb.update()
+
+    # if the stack is empty, disable the undo command in the menubar
+    if len(undo_stack) == 0:
+        menubar.disable_undo()
 
 
 def configure(key, value):
@@ -236,6 +247,8 @@ def _change_channel(num, save_undo=True):
 
 
 def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
+    if not al.recording:
+        return None # no recording open
     if fix_axis:
         xlim = trace_display.get_axis_limits('x')
         ylim = trace_display.get_axis_limits('y')
@@ -268,17 +281,89 @@ def delete_last_sweep():
     trace_display.delete_last_sweep()
 
 ######################################
+# Handling GUI placements
+######################################
+
+global trace_mode
+trace_mode = 'continuous'
+
+def config_cp_tab(tab_name, **kwargs):
+    """
+    use this function to display a hidden tab in the control panel
+
+    Args:
+        tab_name: str tab name must be one of the keys in app.cp_tab_details
+
+    Returns:
+        None
+    """
+    # check if current tab would be replaced by the new tab being displayed
+    try:
+        if kwargs['state'] == 'normal':
+            idx = app.cp_notebook.index('current')
+            if idx in [app.cp_tab_details[tab]['index'] for tab in app.cp_tab_details[tab_name]['partner']]:
+                idx = app.cp_tab_details[tab_name]['index']
+            for partner in app.cp_tab_details[tab_name]['partner']:
+                app.cp_notebook.tab(app.cp_tab_details[partner]['tab'], state='hidden')
+            app.cp_notebook.tab(app.cp_tab_details[tab_name]['tab'], state='normal')
+            app.cp_notebook.select(idx)
+            return
+    except Exception as e:
+        print(e)
+        pass
+    else:
+        app.cp_notebook.tab(app.cp_tab_details[tab_name]['tab'], **kwargs)
+
+def config_data_tab(tab_name, **kwargs):
+    """
+    use this function to enable a disabled tab
+    """
+    print('config data tab')
+    try:
+        if kwargs['state'] == 'normal':
+            print('normal')
+            for key, tab in app.data_tab_details.items():
+                app.data_notebook.tab(tab['tab'], state='hidden')
+            pass
+    except:
+        pass
+    app.data_notebook.tab(app.data_tab_details[tab_name]['tab'], **kwargs)
+    app.data_notebook.select(app.data_tab_details[tab_name]['index'])
+
+    pass
+
+
+######################################
 # Handling mini data
 ######################################
 
-def save_events(filename, dataframe=None):
-    if dataframe is None:
-        dataframe = mini_df
-        app.event_filename = filename
+
+def save_events(e=None):
+    if not app.event_filename:
+        save_events_as()
+        return None
     try:
-        dataframe.to_csv(filename)
+        if len(al.mini_df) > 0:
+            al.mini_df.to_csv(app.event_filename)
+        else:
+            messagebox.showerror('No minis to save')
     except:
         messagebox.showerror('Write error', 'Could not write data to selected filename.')
+    return None
+
+
+def save_events_as(e=None):
+    filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.csv')
+    if filename:
+        try:
+            if len(al.mini_df) > 0:
+                al.mini_df.to_csv(app.event_filename)
+            else:
+                messagebox.showerror('No minis to save')
+        except:
+            messagebox.showerror('Write error', 'Could not write data to selected filename.')
+    return None
+
 
 def open_events(filename, log=True):
     global mini_df
@@ -350,8 +435,8 @@ def pick_event_manual(x):
     ylim = (min(ylim), max(ylim))
 
     #convert % x-axis to points search using sampling rate?
-    r = int((xlim[1]-xlim[0]) * float(app.widgets['detector_search_radius'].get()) / 100 * al.recording.sampling_rate)
-    global mini_df
+    # r = int((xlim[1]-xlim[0]) * float(app.widgets['detector_search_radius'].get()) / 100 * al.recording.sampling_rate)
+    r = (xlim[1]-xlim[0])*float(app.widgets['detector_search_radius'].get())/100
     xs = trace_display.ax.lines[0].get_xdata()
     ys = trace_display.ax.lines[0].get_ydata()
 
@@ -361,60 +446,67 @@ def pick_event_manual(x):
         param_guide.clear()
 
     ##### get search window ######
-    start_idx, end_idx = al.find_window(x, r, xs, ys, al.recording.sampling_rate, xlim, ylim)
+    # start_idx, end_idx = al.find_window(x, r, xs, ys, al.recording.sampling_rate, xlim, ylim)
+    # start_idx, end_dx = analyzer2.calculate_window_around_x(x=x, r=r, xs=xs, ys=ys, xlim=xlim, ylim=ylim,
+    #                                                  sampling_rate=al.recording.sampling_rate)
 
-    direction = {'negative': -1, 'positive': 1}[app.widgets['detector_direction'].get()]
-    lag = int(app.widgets['detector_points_baseline'].get())
-    try:
-        max_decay = float(app.widgets['detector_max_decay'].get())
-    except:
-        max_decay = np.inf
-    try:
-        max_hw = float(app.widgets['detector_max_hw'].get())
-    except:
-        max_hw = np.inf
-    try:
-        max_rise = float(app.widgets['detector_max_rise'].get())
-    except:
-        max_rise = np.inf
+    al.find_mini_manual(xlim=(max(x-r, xlim[0]), min(x+r,xlim[1])), xs=xs, ys=ys, direction=1, reference_df=True)
+    print(al.mini_df) # working
+    # make a way for detector_tab to create a dict of all params
 
 
-    data, success = al.filter_mini(
-        start_idx,
-        end_idx,
-        xs,
-        ys,
-        x_unit=al.recording.x_unit,
-        y_unit=al.recording.y_unit,
-        direction=direction,
-        lag=lag,
-        min_amp=float(app.widgets['detector_min_amp'].get()),
-        min_rise=float(app.widgets['detector_min_rise'].get()),
-        max_rise=max_rise,
-        min_hw=float(app.widgets['detector_min_hw'].get()),
-        max_hw=max_hw,
-        min_decay=float(app.widgets['detector_min_decay'].get()),
-        max_decay=max_decay,
-        max_points_decay=int(app.widgets['detector_max_points_decay'].get()),
-        df=mini_df,
-        x_sigdig=al.recording.sampling_rate_sigdig
-    )
-    if guide:
-        report_to_param_guide(xs, ys, data)
-    if success:
-        data['channel'] = al.recording.channel
-        mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
-        data_display.add({key: value for key, value in data.items() if key in data_display.mini_header2config})
-        update_event_marker()
-        add_undo([
-            lambda iid=data['t']:data_display.delete_one(iid),
-            lambda msg='Undo manual mini detection at {}'.format(x):detector_tab.log(msg)
-        ])
-    if detector_tab.changed:
-        log_display.search_update('Manual')
-        log_display.param_update(detector_tab.changes)
-        detector_tab.changes = {}
-        detector_tab.changed = False
+    # direction = {'negative': -1, 'positive': 1}[app.widgets['detector_direction'].get()]
+    # lag = int(app.widgets['detector_points_baseline'].get())
+    # try:
+    #     max_decay = float(app.widgets['detector_max_decay'].get())
+    # except:
+    #     max_decay = np.inf
+    # try:
+    #     max_hw = float(app.widgets['detector_max_hw'].get())
+    # except:
+    #     max_hw = np.inf
+    # try:
+    #     max_rise = float(app.widgets['detector_max_rise'].get())
+    # except:
+    #     max_rise = np.inf
+    #
+    #
+    # data, success = al.filter_mini(
+    #     start_idx,
+    #     end_idx,
+    #     xs,
+    #     ys,
+    #     x_unit=al.recording.x_unit,
+    #     y_unit=al.recording.y_unit,
+    #     direction=direction,
+    #     lag=lag,
+    #     min_amp=float(app.widgets['detector_min_amp'].get()),
+    #     min_rise=float(app.widgets['detector_min_rise'].get()),
+    #     max_rise=max_rise,
+    #     min_hw=float(app.widgets['detector_min_hw'].get()),
+    #     max_hw=max_hw,
+    #     min_decay=float(app.widgets['detector_min_decay'].get()),
+    #     max_decay=max_decay,
+    #     max_points_decay=int(app.widgets['detector_max_points_decay'].get()),
+    #     df=mini_df,
+    #     x_sigdig=al.recording.sampling_rate_sigdig
+    # )
+    # if guide:
+    #     report_to_param_guide(xs, ys, data)
+    # if success:
+    #     data['channel'] = al.recording.channel
+    #     mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+    #     data_display.add({key: value for key, value in data.items() if key in data_display.mini_header2config})
+    #     update_event_marker()
+    #     add_undo([
+    #         lambda iid=data['t']:data_display.delete_one(iid),
+    #         lambda msg='Undo manual mini detection at {}'.format(x):detector_tab.log(msg)
+    #     ])
+    # if detector_tab.changed:
+    #     log_display.search_update('Manual')
+    #     log_display.param_update(detector_tab.changes)
+    #     detector_tab.changes = {}
+    #     detector_tab.changed = False
 
 
 def find_mini_in_range(xlim, ylim):
@@ -854,6 +946,8 @@ def delete_event(selection):
 #######################################
 
 def plot_overlay(fix_axis=False, fix_x=False, draw=False):
+    if not al.recording:
+        return None # no recording to plot
     if fix_axis:
         xlim = trace_display.get_axis_limits('x')
         ylim = trace_display.get_axis_limits('y')
@@ -986,6 +1080,9 @@ def delete_hidden(delete):
 # Save Trace
 ######################################
 def save_trace_as(fname):
+    """
+    not done
+    """
     c = al.recording.channel
     for i in range(al.recording.sweep_count):
         try:
@@ -1178,7 +1275,8 @@ def filter_y_data(all_channels=False, target='All sweeps', mode='Boxcar', params
                                        sweeps=target_sweeps)
         add_undo([
             lambda f=temp_filename, c=channels, s=target_sweeps: al.recording.load_y_data(f, c, s),
-            lambda s=target_sweeps: update_plot_ys(s)
+            lambda s=target_sweeps: update_plot_ys(s),
+            lambda f=temp_filename: os.remove(f)
         ])
         #########################################
     app.pb['value'] = 50

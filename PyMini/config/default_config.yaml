@@ -76,7 +76,7 @@ default_adjust_filter_Lowpass_algorithm: 'Boxcar'
 default_adjust_filter_Highpass_algorithm: 'None'
 
 # Boxcar Filter
-default_adjust_filter_kernel : 11
+default_adjust_filter_width : 11
 
 # evoked
 default_evoked_target: 'Visible sweeps'

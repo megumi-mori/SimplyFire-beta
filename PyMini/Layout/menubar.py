@@ -1,16 +1,23 @@
 import tkinter as Tk
 from tkinter import ttk, filedialog
 from config import config
-import app
 from utils.widget import VarWidget
 from Backend import interface
 from DataVisualizer import param_guide, data_display, trace_display
 from Layout import detector_tab, batch_popup
 import gc
 
+# initialize variable
 global trace_mode
-trace_mode = None
+trace_mode = 'continuous'
+
+global widgets
+widgets = {}
+
 def _setting_window(event=None):
+    """
+    currently not in use, but use this function to create a pop-up option settings window
+    """
     window = Tk.Toplevel()
 
     frame = Tk.Frame(window, bg='purple')
@@ -22,11 +29,11 @@ def _setting_window(event=None):
 
 def _show_param_guide(event=None):
     try:
-        if app.widgets['window_param_guide'].get() == '1':
+        if widgets['window_param_guide'].get() == '1':
             param_guide.window.focus_set()
             pass
         else:
-            app.widgets['window_param_guide'].set('1')
+            widgets['window_param_guide'].set('1')
             param_guide.load()
     except:
         param_guide.load()
@@ -36,9 +43,7 @@ def ask_open_trace():
     # first time filedialog is taking a while (even when canceling out of dialog)
     fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files', '*.*')])
 
-    if fname:
-        app.trace_filename = fname
-    else:
+    if not fname:
         return None
     interface.open_trace(fname)
 
@@ -52,19 +57,6 @@ def ask_save_trace():
         pass
     else:
         return None
-
-def save_events():
-    if not app.event_filename:
-        save_events_as()
-        return
-    interface.save_events(app.event_filename)
-
-def save_events_as():
-    filename = filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.csv')
-    if filename:
-        interface.save_events(filename)
-        return
-    return
 
 def open_events():
     filename = filedialog.askopenfilename(filetypes=[('event files', '*.event'), ("All files", '*.*')])
@@ -81,6 +73,8 @@ def export_events():
     return
 
 def load_menubar(parent):
+    global widgets
+
     menubar = Tk.Menu(parent)
 
     ##################################
@@ -91,14 +85,19 @@ def load_menubar(parent):
     file_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='File', menu=file_menu)
 
-    file_menu.add_command(label="Open trace", command=ask_open_trace)
+    file_menu.add_command(label="Open trace \t Ctrl+o", command=ask_open_trace)
     file_menu.add_separator()
     file_menu.add_command(label='Open event file', command=open_events)
-    file_menu.add_command(label='Save event file', command=save_events)
-    file_menu.add_command(label='Save event file as...', command=save_events_as)
+    file_menu.add_command(label='Save event file', command=interface.save_events)
+    file_menu.add_command(label='Save event file as...', command=interface.save_events_as)
     file_menu.add_separator()
     file_menu.add_command(label='Export events', command=export_events)
 
+    # Edit menu
+    global edit_menu
+    edit_menu = Tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label='Edit', menu=edit_menu)
+    edit_menu.add_command(label='Undo \t Ctrl+z', command=interface.undo, state='disabled')
 
     # View menu
     global view_menu
@@ -106,7 +105,7 @@ def load_menubar(parent):
     menubar.add_cascade(label='View', menu=view_menu)
     # track trace_mode
     trace_var = Tk.StringVar(parent, 0)
-    app.widgets['trace_mode'] = trace_var
+    widgets['trace_mode'] = trace_var
     view_menu.add_radiobutton(label='Continous', command=_continuous_mode, variable=trace_var, value='continuous')
     view_menu.add_radiobutton(label='Overlay', command=_overlay_mode, variable=trace_var, value='overlay')
 
@@ -115,7 +114,7 @@ def load_menubar(parent):
     menubar.add_cascade(label='Analysis', menu=analysis_menu)
     # track analysis_mode
     analysis_var = Tk.StringVar(parent, 0)
-    app.widgets['analysis_mode'] = analysis_var
+    widgets['analysis_mode'] = analysis_var
     analysis_menu.add_radiobutton(label='Mini', command=_mini_mode, variable=analysis_var, value='mini')
     analysis_menu.add_radiobutton(label='Evoked', command=_evoked_mode, variable=analysis_var, value='evoked')
     analysis_menu.add_separator()
@@ -124,27 +123,19 @@ def load_menubar(parent):
     # Window menu
     window_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='Window', menu=window_menu)
-    app.widgets['window_param_guide'] = VarWidget(name='window_param_guide')
+    widgets['window_param_guide'] = VarWidget(name='window_param_guide')
     window_menu.add_command(label='Parameter-guide', command=_show_param_guide)
-    if app.widgets['window_param_guide'].get() == '1':
+    if widgets['window_param_guide'].get() == '1':
         window_menu.invoke(window_menu.index('Parameter-guide'))
 
     view_menu.invoke({'continuous': 0, 'overlay': 1}[config.trace_mode])
     analysis_menu.invoke({'mini':0, 'evoked':1}[config.analysis_mode])
     return menubar
 
-def display_cp_tab(tab_name):
-    # call this function if a menu command is associated with switching out tabs
-    # indicate the partner of the tab in the app tab setting section
-    idx = app.cp_notebook.index('current')
-    # check if current tab would be replaced by the new tab being displayed
-    if idx in [app.tab_details[tab]['index'] for tab in app.tab_details[tab_name]['partner']]:
-        idx = app.tab_details[tab_name]['index']
-    for partner in app.tab_details[tab_name]['partner']:
-        app.cp_notebook.hide(app.tab_details[partner]['index'])
-    app.cp_notebook.add(app.tab_details[tab_name]['tab'])
-    app.cp_notebook.select(idx)
-
+def disable_undo():
+    edit_menu.entryconfig(0, state='disabled')
+def enable_undo():
+    edit_menu.entryconfig(0, state='normal')
 
 def _continuous_mode(save_undo=True):
     global trace_mode
@@ -152,14 +143,17 @@ def _continuous_mode(save_undo=True):
         interface.add_undo([
             lambda s=False:_overlay_mode(s),
         ])
-    app.widgets['trace_mode'].set('continuous')
-    display_cp_tab('continuous')
+    widgets['trace_mode'].set('continuous')
+
+    # switch to continuous mode tab
+    interface.config_cp_tab('continuous', state='normal')
+
     try:
         interface.plot_continuous(fix_axis=True)
     except:
         pass
-    if app.widgets['analysis_mode'].get() == 'mini':
-        app.cp_notebook.tab(app.tab_details['mini']['index'], state='normal')
+    if widgets['analysis_mode'].get() == 'mini':
+        interface.config_cp_tab('mini', state='normal')
     trace_mode = 'continuous'
 
 
@@ -169,29 +163,31 @@ def _overlay_mode(save_undo=True):
         interface.add_undo([
             lambda d=False:_continuous_mode(d)
         ])
-    app.widgets['trace_mode'].set('overlay')
-    display_cp_tab('overlay')
+    widgets['trace_mode'].set('overlay')
+    interface.config_cp_tab('overlay', state='normal')
     try:
         interface.plot_overlay(fix_axis=True)
     except:
         pass
-    if app.widgets['analysis_mode'].get() == 'mini':
-        app.cp_notebook.tab(app.tab_details['mini']['index'], state='disabled')
+    if widgets['analysis_mode'].get() == 'mini':
+        interface.config_cp_tab('mini', state='disabled')
     trace_mode = 'overlay'
 
 def _mini_mode(e=None):
-    app.widgets['analysis_mode'].set('mini')
-    display_cp_tab('mini')
-    if app.widgets['trace_mode'].get() != 'continuous':
-        app.cp_notebook.tab(app.tab_details['mini']['index'], state='disabled')
-    data_display.clear()
+    widgets['analysis_mode'].set('mini')
+    interface.config_cp_tab('mini', state='normal')
+    if widgets['trace_mode'].get() != 'continuous':
+        interface.config_cp_tab('mini', state='disabled')
+        pass
+    interface.config_data_tab('mini', state='normal')
     detector_tab.populate_data_display()
     interface.update_event_marker()
 
 
 def _evoked_mode(e=None):
-    app.widgets['analysis_mode'].set('evoked')
-    display_cp_tab('evoked')
+    widgets['analysis_mode'].set('evoked')
+    interface.config_cp_tab('evoked', state='normal')
+    interface.config_data_tab('evoked', state='normal')
     trace_display.clear_markers()
 
 

@@ -590,7 +590,8 @@ class Analyzer():
                 Recommended to be less than kernel.
                 Larger strides can speed up the search.
             direction: int
-            **kwargs: see list of parameters in find_single_mini()
+            reference_df: bool whether to check for duplicates in mini_df and update newly found minis to mini_df
+            **kwargs: see list of parameters in analyze_candidate_mini()
 
         Returns:
             pandas DataFrame containing the information on search parameters and mini characteristics.
@@ -639,6 +640,69 @@ class Analyzer():
                 pass
             start_idx += stride
             end_idx = start_idx + kernel
+    def find_mini_manual(self,
+                         xlim: tuple,
+                         xs:np.ndarray=None,
+                         ys:np.ndarray=None,
+                         channel=0,
+                         sweeps=None,
+                         direction=1,
+                         reference_df=True,
+                         **kwargs
+                         ):
+        """
+        Searches for a biggest mini event within xlim
+
+        If ys and xs are not provided as arguments, continuous sequence of
+        xs and ys data are created on the fly from the recording data every function call.
+
+        Args:
+            xlim: float tuple representing the search window limits. [left, right]
+            xs: float numpy array representing the x-values of the recording sequence.
+                If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
+            ys: float numpy array representing the y-values of the recording sequence.
+                If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
+            channel: int indicating the channel number to analyze. Only required if xs and ys are not provided
+            sweeps: list of int indicating the sweeps to analyzer. If left None, all sweeps will be considered
+            direction: int
+            reference_df: bool whether to check for duplicates in mini_df and update newly found minis to mini_df
+            **kwargs: see list of parameters in find_single_mini()
+
+        Returns:
+            pandas DataFrame containing the information on search parameters and mini characteristics.
+            In addition to the search parameters passed as arguments, the following data are included
+            in the result:
+                #### list columns here
+        """
+        if xs is None:
+            xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
+        if ys is None:
+            ys = self.recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
+        try:
+            xlim_idx = (search_index(xlim[0], xs), search_index(xlim[1], xs))
+        except:
+            return None # limits of the search window cannot be determined
+        peak_idx = self.find_peak_recursive(xs, ys, start=xlim_idx[0], end=xlim_idx[1], direction=direction)
+        if peak_idx is not None:
+            mini = self.analyze_candidate_mini(
+                xs=xs,
+                ys=ys,
+                peak_idx=peak_idx,
+                x_sigdig=self.recording.x_sigdig,
+                channel=channel,
+                direction=direction,
+                reference_df=reference_df,
+                **kwargs
+            )
+
+            if reference_df and mini['success']:
+                self.mini_df = self.mini_df.append(Series(mini),
+                                                   ignore_index=True,
+                                                   verify_integrity=True,
+                                                   sort=True)
+                self.mini_df = self.mini_df.sort_values(by='t')
+            return mini
+        return None
 
     # def find_mini_manual(self,
     #                      point: tuple = None,
@@ -1728,3 +1792,74 @@ def format_list_indices(idx):
             s = '{},{}'.format(s, n)
 
     return s
+
+
+def calculate_window_around_x(x:float,
+                              r: float,
+                              xs: np.ndarray,
+                              ys: np.ndarray = None,
+                              xlim: tuple = None,
+                              ylim: tuple = None,
+                              offset: int = 0,
+                              sampling_rate=None):
+    """
+    calculates a window around x-data by radius r, bound by xlim and ylim of axes, given xs and ys data
+
+    Args:
+        x: float x-data to center the window
+        r: float radius around x value to limit the window
+        xs: 1D numpy ndarray or list of float. Used in conjunction with xlim to further limit the window
+        ys: 1D numpy ndarray or list of float. Used in conjunction with ylim to further limit the window
+        xlim: tuple of floats
+        ylim: tuple of floats
+        offset: int used to adjust the returned indices
+        sampling_rate: int the sampling rate of xs
+
+    Returns:
+        start_idx: int - index within xs
+        end_idx: int
+    """
+    x_idx = search_index(x, xs, sampling_rate)
+    start_idx = search_index(x-r, xs, sampling_rate)
+    end_idx = search_index(x+r, xs, sampling_rate)
+
+    # narrow window based on x-axis limits
+    try:
+        xlim_idx = (
+            search_index(xlim[0], xs, sampling_rate),
+            search_index(xlim[1], xs, sampling_rate)
+        )
+    except:
+        xlim_idx=(0, len(xs))
+
+    start_idx = max(start_idx, xlim_idx[0])
+    end_idx = min(end_idx, xlim_idx[1])
+
+    # narrow window based on y-axis limits
+    # if the data goes out of y-lim (assuming data point at x is within ylim)
+    # then the window is narrowed to the nearest data points around x that are within the ylim
+
+    if ylim is not None and ys is not None:
+        y_high = ys[start_idx:end_idx] > ylim[1]
+        y_low = ys[start_idx:end_idx] < ylim[0]
+
+        if sum(y_high) > 0 or sum(y_low) > 0: # there are data points out of ylim bounds
+            i = x_idx - start_idx
+            while i > 0:
+                if y_high[i] or y_low[i]:
+                    break
+                i -= 1
+            start_idx = i
+
+            i = x_idx - start_idx
+            while i < len(y_high) - 1:
+                if y_high[i] or y_low[i]:
+                    break
+                i += 1
+            end_idx = i
+
+    return start_idx + offset, end_idx + offset
+
+
+
+
