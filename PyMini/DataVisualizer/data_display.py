@@ -22,7 +22,7 @@ mini_header2config = OrderedDict([
     ('amp_unit', 'data_display_amplitude'),
     ('decay_const', 'data_display_decay'),
     ('decay_unit', 'data_display_decay'),
-    ('decay_func', 'data_display_decay_func'),
+    # ('decay_func', 'data_display_decay_func'),
     # ('decay_t', 'data_display_decay_time'),
     ('rise_const', 'data_display_rise'),
     ('rise_unit', 'data_display_rise'),

@@ -202,8 +202,9 @@ def load():
     cp_notebook.add(test, text='test')
 
     # get reference to widgets
-    for k, v in cp_tab_details['adjust']['module'].widgets.items():
-        widgets[k] = v
+    for key in ['adjust', 'mini']:
+        for k, v in cp_tab_details[key]['module'].widgets.items():
+            widgets[k] = v
 
     # set focus rules
     for key in widgets:

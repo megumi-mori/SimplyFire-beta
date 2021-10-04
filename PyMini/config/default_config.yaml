@@ -88,22 +88,23 @@ default_evoked_range_right: 1
 
 
 #detector parameters
-default_detector_search_radius : 5.0
-default_detector_auto_radius : 60
-default_detector_direction : 'positive'
-default_detector_min_amp : 0.3
-default_detector_points_baseline : 100
-default_detector_points_search : 300
-default_detector_min_decay : 0
-default_detector_max_decay : 'none'
+default_detector_core_direction : 'positive'
+default_detector_core_search_radius : 5.0
+default_detector_core_auto_radius : 60
+default_detector_core_lag : 100
+default_detector_core_max_points_decay : 40000
+default_detector_core_update_events : 0
+
+default_detector_filter_min_amp : 0.3
+default_detector_filter_max_amp: 'None'
+default_detector_filter_min_decay : 0
+default_detector_filter_max_decay : 'none'
 default_detector_min_auc : 0
-default_detector_min_hw : 0
-default_detector_max_hw : 'None'
-default_detector_min_rise : 0
-default_detector_max_rise : 'None'
-default_detector_max_points_baseline : 1000
-default_detector_max_points_decay : 40000
-default_detector_update_events : 0
+default_detector_filter_min_hw : 0
+default_detector_filter_max_hw : 'None'
+default_detector_filter_min_rise : 0
+default_detector_filter_max_rise : 'None'
+
 default_detector_decay_func_type : '1'
 default_detector_decay_func_constant : "1"
 default_detector_decay_fit_ftol : 1e-08

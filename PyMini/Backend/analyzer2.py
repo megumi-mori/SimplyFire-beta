@@ -6,10 +6,12 @@ from datetime import datetime
 from pyabf import abf
 
 from pandas import DataFrame, Series
+import pandas as pd
 from scipy.optimize import curve_fit
 
 from astropy.convolution import Box1DKernel, convolve
 
+from time import time # debugging
 ##################################################
 # Class to store electrophysiology recording data
 ##################################################
@@ -284,6 +286,7 @@ class Analyzer():
         except:
             pass
         self.recording = Recording(filename)
+        self.mini_df = self.mini_df.iloc[0:0]
         return self.recording
 
     def set_plot_mode(self, plot_mode):
@@ -557,12 +560,15 @@ class Analyzer():
                        xlim=None,
                        xs=None,
                        ys=None,
+                       x_sigdig=6,
+                       sampling_rate=None,
                        channel=0,
                        sweeps=None,
                        kernel=300,
                        stride=150,
                        direction=1,
                        reference_df=True,
+                       progress_bar=None,
                        **kwargs
                        ):
         """
@@ -580,6 +586,8 @@ class Analyzer():
                 If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
             ys: float numpy array representing the y-values of the recording sequence.
                 If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
+            x_sigdig: int number of significant digit for the x-value. Used to round calculations
+            sampling_rate: float - sampling rate of xs
             channel: int indicating the channel number to analyze. Only required if xs and ys are not provided
             sweeps: list of int indicating the sweeps to analyzer. If left None, all sweeps will be considered
             kernel: int representing the number of data points to consider per iteration.
@@ -591,6 +599,8 @@ class Analyzer():
                 Larger strides can speed up the search.
             direction: int
             reference_df: bool whether to check for duplicates in mini_df and update newly found minis to mini_df
+            progress_bar: object pass a progress bar object. The value of the progressbar must be updatable using
+                progress_bar['value'] = int
             **kwargs: see list of parameters in analyze_candidate_mini()
 
         Returns:
@@ -599,51 +609,75 @@ class Analyzer():
             in the result:
                 #### list columns here
         """
+        t0=time()
         if xs is None:
+            print('xs not provided')
             xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
         if ys is None:
+            print('ys not provided')
             ys = self.recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
+        print(f'checking xs and ys: {time()-t0}')
+        t0=time()
         try:
-            xlim_idx = (search_index(xlim[0], xs), search_index(xlim[1], xs))
-        except:
+            xlim_idx = (search_index(xlim[0], xs, sampling_rate), search_index(xlim[1], xs, sampling_rate))
+        except Exception as e:
+            print(f'xlim index exception: {e}')
             xlim_idx = (0, len(xs))
+        print(f'search_idx: {time()-t0}')
+        t0=time()
         start_idx = xlim_idx[0]
         end_idx = start_idx + kernel
-
-        while start_idx < len(xs):
+        df = DataFrame()
+        if progress_bar:
+            total = xlim_idx[1] - xlim_idx[0]
+            start = start_idx
+            progress_bar['value'] = 0
+            progress_bar.update()
+        hits=[]
+        print(f'etc {time()-t0}')
+        while start_idx < xlim_idx[1]:
             peak_idx = self.find_peak_recursive(xs, ys, start=start_idx, end=end_idx, direction=direction)
             if peak_idx is not None:
                 mini = self.analyze_candidate_mini(
                     xs=xs,
                     ys=ys,
                     peak_idx=peak_idx,
-                    x_sigdig=self.recording.x_sigdig,
+                    x_sigdig=x_sigdig,
+                    sampling_rate=sampling_rate,
                     channel=channel,
                     direction=direction,
                     reference_df=reference_df,
                     **kwargs
                 )
-
-                if reference_df and mini['success']:
+                if mini['success']:
                     self.mini_df = self.mini_df.append(Series(mini),
                                                        ignore_index=True,
-                                                       verify_integrity=True,
-                                                       sort=True)
-                    self.mini_df = self.mini_df.sort_values(by='t')
-                   # start_idx = max(peak_idx - 1, start_idx + stride)
+                                                       sort=False)
+                    hits.append(mini['t'])
+                    start_idx = peak_idx + 1
                 else:
-                   #start_idx += stride
-
-                    pass
+                   start_idx += stride
             else:
-                #start_idx += stride
+                start_idx += stride
                 pass
-            start_idx += stride
-            end_idx = start_idx + kernel
+            # start_idx += stride
+            end_idx = min(start_idx + kernel, xlim_idx[1])
+            try:
+                progress_bar['value'] = int((start_idx - start)/total * 100)
+                progress_bar.update()
+            except:
+                pass
+        if reference_df:
+            self.mini_df = self.mini_df.sort_values(by='t')
+        return self.mini_df[self.mini_df['t'].isin(hits)]
+        return df
+
     def find_mini_manual(self,
                          xlim: tuple,
                          xs:np.ndarray=None,
                          ys:np.ndarray=None,
+                         x_sigdig:int=6,
+                         sampling_rate: float=None,
                          channel=0,
                          sweeps=None,
                          direction=1,
@@ -662,6 +696,8 @@ class Analyzer():
                 If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
             ys: float numpy array representing the y-values of the recording sequence.
                 If None, data will be extracted from the recording attribute using the channel and sweeps arguments.
+            x_sigdig: int number of significant digit for the x-value. Used to round calculations
+            sampling_rate: float - sampling rate of xs
             channel: int indicating the channel number to analyze. Only required if xs and ys are not provided
             sweeps: list of int indicating the sweeps to analyzer. If left None, all sweeps will be considered
             direction: int
@@ -679,16 +715,18 @@ class Analyzer():
         if ys is None:
             ys = self.recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
         try:
-            xlim_idx = (search_index(xlim[0], xs), search_index(xlim[1], xs))
+            xlim_idx = (search_index(xlim[0], xs), search_index(xlim[1], xs), sampling_rate)
         except:
             return None # limits of the search window cannot be determined
+
         peak_idx = self.find_peak_recursive(xs, ys, start=xlim_idx[0], end=xlim_idx[1], direction=direction)
         if peak_idx is not None:
             mini = self.analyze_candidate_mini(
                 xs=xs,
                 ys=ys,
                 peak_idx=peak_idx,
-                x_sigdig=self.recording.x_sigdig,
+                x_sigdig=x_sigdig,
+                sampling_rate=sampling_rate,
                 channel=channel,
                 direction=direction,
                 reference_df=reference_df,
@@ -698,8 +736,7 @@ class Analyzer():
             if reference_df and mini['success']:
                 self.mini_df = self.mini_df.append(Series(mini),
                                                    ignore_index=True,
-                                                   verify_integrity=True,
-                                                   sort=True)
+                                                   sort=False)
                 self.mini_df = self.mini_df.sort_values(by='t')
             return mini
         return None
@@ -975,12 +1012,18 @@ class Analyzer():
             peak_idx: int where the peak data point is located
             peak_val: value at peak_idx
         """
-        peak_y = max(ys[start:end] * direction)
-        peaks = np.where(ys[start:end] * direction == peak_y)[0] + start # get list of indices where ys is at peak
-        peak_idx = peaks[int(len(peaks)/2)] # select the middle index of the peak
-        FUDGE = 10 # margin at the edge of search window required to be considered peak (used to avoid edge cases)
+        FUDGE = 10  # margin at the edge of search window required to be considered peak (used to avoid edge cases)
         if end - start < FUDGE * 2:
             return None # the search window is too narrow
+        try:
+            peak_y = max(ys[start:end] * direction)
+        except:
+            print(ys[start:end] * direction)
+            print(ys[start:end])
+            print(len(ys))
+            print(f'peak search error, start:end: {start, end}')
+        peaks = np.where(ys[start:end] * direction == peak_y)[0] + start # get list of indices where ys is at peak
+        peak_idx = peaks[int(len(peaks)/2)] # select the middle index of the peak
 
         # check if the peak is at the edge of the search window
         # if the peak is at the edge, the slope could continue further beyond the window
@@ -1108,12 +1151,13 @@ class Analyzer():
             right_idx = right_idx[0][0] + peak_idx
         else:
             right_idx = None
-        return left_idx, right_idx, xs[right_idx] - xs[left_idx]  # pick the shortest length
+        return left_idx, right_idx, (xs[right_idx] - xs[left_idx])*1000  # pick the shortest length
 
 
     def calculate_mini_decay(self,
                              xs: np.ndarray,
                              ys: np.ndarray,
+                             sampling_rate:float,
                              start_idx: int,
                              end_idx: int,
                              direction: int = 1,
@@ -1158,7 +1202,7 @@ class Analyzer():
         t = results[0][1]
         d = results[0][2]
         # print((a, t, d))
-        decay_constant_idx = search_index(t, x_data) + start_idx # offset to start_idx
+        decay_constant_idx = search_index(t, x_data, sampling_rate) + start_idx # offset to start_idx
 
         return a, t, d, decay_constant_idx
 
@@ -1339,6 +1383,7 @@ class Analyzer():
                                ys,
                                peak_idx,
                                x_sigdig = None,
+                               sampling_rate=None,
                                channel=0,
                                direction=1,
                                reference_df=True,
@@ -1354,12 +1399,16 @@ class Analyzer():
                                max_decay=np.inf,
                                max_points_decay=40000,
                                #################################
-
                                offset=0,
+                               y_unit='mV',
+                               x_unit='s',
+                               **kwargs
                                ):
         """
             peak_idx: int - use if reanalyzing an existing peak. Index within the xs data corresponding to a peak.
                 - If provided, the data point at peak_idx is assumed to be the local extremum
+            x_sigdig: significant digits in x
+            sampling_rate: sampling rate of xs
             direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
             lag: int indicating the number of data points used to calculate the baseline.
                 See calculate_mini_baseline() for algorithm on baseline estimation.
@@ -1387,6 +1436,11 @@ class Analyzer():
                 'max_decay': max_decay, 'max_points_decay': max_points_decay,
                 'datetime': datetime.now().strftime('%m-%d-%y %H:%M:%S'), 'failure': None, 'success': True,
                 't': xs[peak_idx], 'peak_idx': peak_idx + offset, 'compound':False}
+        mini['amp_unit'] = mini['baseline_unit'] =  y_unit
+        if x_unit in ['s', 'sec', 'second', 'seconds']:
+            mini['decay_unit'] = mini['rise_unit'] = mini['halfwidth_unit'] = 'ms'
+        else:
+            mini['decay_unit'] = mini['rise_unit'] = mini['halfwidth_unit'] = x_unit + 'E-3'
 
         # extract peak datapoint
         if x_sigdig is not None:
@@ -1439,7 +1493,7 @@ class Analyzer():
             ####### calculate amplitude #######
             mini['amp'] = (mini['peak_coord_y'] - mini['baseline'])  # signed
         else:
-            prev_peak_idx = search_index(prev_peak_t, ys)
+            prev_peak_idx = search_index(prev_peak_t, ys, sampling_rate)
             if prev_peak_idx <0 or prev_peak_idx > len(ys):
                 mini['success'] = False
                 mini['failure'] = 'The compound mini could not be analyzed - need more data points'
@@ -1464,7 +1518,7 @@ class Analyzer():
             mini['failure'] = 'Min amp not met'
             return mini
 
-        if mini['amp'] * direction > max_amp:
+        if max_amp and mini['amp'] * direction > max_amp:
             mini['success'] = False
             mini['failure'] = 'Max amp exceeded'
             return mini
@@ -1493,7 +1547,7 @@ class Analyzer():
             mini['failure'] = 'Min rise not met'
             return mini
 
-        if mini['rise_const'] > max_rise:
+        if max_rise and mini['rise_const'] > max_rise:
             mini['success'] = False
             mini['failure'] = 'Max rise exceeded'
             return mini
@@ -1501,15 +1555,22 @@ class Analyzer():
 
         ####### calculate decay ########
         mini['decay_start_idx'] = mini['peak_idx']  # peak = start of decay
-        mini['decay_end_idx'] = min(mini['peak_idx'] + max_points_decay, len(xs) + offset)
-        mini['decay_A'], mini['decay_tau'], mini['decay_C'], decay_idx = self.calculate_mini_decay(
-            xs=xs, ys=ys, start_idx=peak_idx, end_idx=min(peak_idx + max_points_decay, len(xs)), direction=direction)
+        # mini['decay_end_idx'] = min(mini['peak_idx'] + max_points_decay, len(xs) + offset)
+        mini['decay_end_idx'] = mini['end_idx']
+        try:
+            mini['decay_A'], mini['decay_const'], mini['decay_C'], decay_idx = self.calculate_mini_decay(
+                xs=xs, ys=ys, start_idx=peak_idx, end_idx=min(peak_idx + max_points_decay, len(xs)), direction=direction,
+            sampling_rate=sampling_rate)
+        except:
+            mini['success'] = False
+            mini['failure'] = 'decay cannot be calculated'
+            return mini
         mini['decay_idx'] = decay_idx + offset
-        if mini['decay_tau'] < min_decay:
+        if mini['decay_const'] < min_decay:
             mini['success'] = False
             mini['failure'] = 'Min decay not met'
             return mini
-        if mini['decay_tau'] > max_decay:
+        if max_decay and mini['decay_tau'] > max_decay:
             mini['success'] = False
             mini['failure'] = 'Max decay exceeded'
             return mini
@@ -1519,31 +1580,30 @@ class Analyzer():
             mini['decay_coord_x'] = xs[decay_idx]
             mini['decay_coord_x'] = xs[decay_idx]
             mini['decay_coord_y'] = single_exponent_constant(
-                mini['decay_tau'],
+                mini['decay_const'],
                 mini['decay_A'],
-                mini['decay_tau'],
+                mini['decay_const'],
                 mini['decay_C']
             ) * direction  #### add support for compound (add back subtracted baseline)
-        except:
+        except Exception as e:
+            print(f'decay coord error: {e}')
             pass
 
         ####### calculate halfwidth #######
         halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
             amp=mini['amp'], xs=xs, ys=ys, start_idx=baseline_idx, end_idx=end_idx,
             peak_idx=peak_idx, baseline=mini['baseline'], direction=direction)
-
         if halfwidth_end_idx is None or halfwidth_start_idx is None:
-            if min_hw>0 and max_hw is not np.inf: # cannot check criteria
-                mini['success'] = False
-                mini['failure'] = 'Halfwidth could not be calculated'
-                return mini
+            mini['success'] = False
+            mini['failure'] = 'Halfwidth could not be calculated'
+            return mini
         else: # halfwidth was successfully found - check against criteria
             if mini['halfwidth'] < min_hw:
                 mini['success'] = False
                 mini['failure'] = 'Min halfwidth not met'
                 return mini
 
-            if mini['halfwidth'] > max_hw:
+            if max_hw and mini['halfwidth'] > max_hw:
                 mini['success'] = False
                 mini['failure'] = 'Max halfwidth exceeded'
                 return mini
@@ -1558,6 +1618,15 @@ class Analyzer():
             mini['halfwidth_end_coord_x'] = xs[halfwidth_end_idx]
             mini['halfwidth_end_coord_y'] = ys[halfwidth_end_idx]
         return mini
+
+    ###################
+    # save/load
+    ####################
+    def load_minis_from_file(self, filename):
+        self.mini_df = pd.read_csv(filename, index_col=0)
+
+
+    ############## others
     def mark_greater_than_baseline(self,
                                    xs,
                                    ys,
@@ -1744,8 +1813,8 @@ def search_index(x, l, rate=None):
     if x > l[-1]:
         return len(l) # out of bounds
     if rate is None:
-        rate = np.mean(l[1:6] - l[0:5]) # estimate recording rate
-    est = int((x - l[0]) / rate)
+        rate = 1/np.mean(l[1:6] - l[0:5]) # estimate recording rate
+    est = int((x - l[0]) * rate)
     if est > len(l): # estimate is out of bounds
         est = len(l) - 1
     if l[est] == x:

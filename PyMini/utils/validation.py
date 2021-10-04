@@ -46,6 +46,29 @@ def validate(validate_type, value):
             pass
     return False
 
+def convert(validate_type, value):
+    if validate_type is None:
+        return value
+    if len(validate_type) == 0:
+        return value
+    types = validate_type.split('/')
+    for type in types:
+        if type == 'string':
+            return value
+        elif type == 'None':
+            if is_na(value):
+                return None
+        else:
+            try:
+                if type == 'float':
+                    return float(value)
+                elif type == 'int':
+                    return int(value)
+            except:
+                pass
+    return value
+
+
 
 
 # def is_auto(s):

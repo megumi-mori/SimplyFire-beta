@@ -7,14 +7,15 @@ changed = True
 changes = {}
 parameters = {}
 
-global name
-name = 'mini'
+global widgets
+widgets = {}
 def find_all():
     interface.find_mini_in_range(trace_display.default_xlim, trace_display.default_ylim)
 
 def find_in_window():
     interface.find_mini_in_range(trace_display.ax.get_xlim(), trace_display.ax.get_ylim())
 def load(parent):
+    global widgets
     ##################################################
     #                    Methods                     #
     ##################################################
@@ -55,38 +56,116 @@ def load(parent):
         text='Mini analysis mode'
     )
 
-    app.widgets['detector_direction'] = optionframe.insert_label_optionmenu(
-        name='detector_direction',
+    # mini analysis core parameters
+    optionframe.insert_title(
+        text='core parameters'
+    )
+    widgets['detector_core_direction'] = optionframe.insert_label_optionmenu(
+        name='detector_core_direction',
         label='Direction',
         options=['positive', 'negative']
     )
-    entries = [
-        ('detector_search_radius', 'Search radius in % of visible x-axis (Manual)', 'float'),
-        ('detector_auto_radius', 'Search radius in number of points (Auto)', 'int'),
-        ('detector_min_amp', 'Minimum amplitude (absolute value) (y-axis unit):', 'float'),# (config param name, Label text, validation type)
-        ('detector_min_decay', 'Minimum decay constant (tau) (ms)', 'float'),
-        ('detector_max_decay','Maximum decay constant (tau) (ms)', 'float/None'),
-        # ('detector_min_auc', 'Minimum area under the curve', 'float'),
-        ('detector_min_hw', 'Minimum halfwidth (ms)', 'float'),
-        ('detector_max_hw', 'Maximum halfwidth (ms)', 'float/None'),
-        ('detector_min_rise', 'Minimum rise constant (ms)', 'float'),
-        ('detector_max_rise', 'Maximum rise constant (ms)', 'float/None'),
-        ('detector_points_baseline', 'Number of data points averaged to find the start of an event:', 'int'),
-        # ('detector_max_points_baseline', 'Maximum data points to consider before peak to find the baseline', 'int'),
-        ('detector_max_points_decay', 'Maximum data points after peak to consider for decay', 'int'),
-        # ('detector_decay_fit_ftol', 'Tolerance for termination by the change of the cost function in Scipy Curvefit', 'float')
-    ]
-    for i in entries:
-        app.widgets[i[0]] = optionframe.insert_label_entry(
-            name=i[0],
-            label=i[1],
-            validate_type=i[2]
-        )
-        app.widgets[i[0]].bind('<Return>', apply_parameters, add='+')
-        app.widgets[i[0]].bind('<FocusOut>', apply_parameters, add='+')
-        parameters[i[0]] = app.widgets[i[0]].get()
-        changes[i[0]] = app.widgets[i[0]].get()
+    # the keys will be used to export parameters to interface during mini search (see extract_mini_parameters())
+    global core_params
+    core_params = {
+        'manual_radius': {'id': 'detector_core_search_radius',
+                          'label': 'Search radius in % of visible x-axis (Manual)', 'validation': 'float', 'conversion':float},
+        'auto_radius': {'id':'detector_core_auto_radius',
+                        'label':'Search window in number of points per iteration (Auto)', 'validation':'int', 'conversion': int},
+        'lag': {'id': 'detector_core_lag',
+                            'label': 'Number of data points averaged to find the start of an event:',
+                            'validation': 'int'},
+        'max_points_decay': {'id': 'detector_core_max_points_decay',
+                             'label': 'Maximum data points after peak to consider for decay', 'validation': 'int'}
+    }
 
+    for k, d in core_params.items():
+        widgets[d['id']] = optionframe.insert_label_entry(
+            name=d['id'],
+            label=d['label'],
+            validate_type=d['validation']
+        )
+        widgets[d['id']].bind('<Return>', apply_parameters, add='+')
+        widgets[d['id']].bind('<FocusOut>', apply_parameters, add='+')
+        parameters[d['id']] = widgets[d['id']].get()
+        changes[d['id']] = widgets[d['id']].get()
+
+    widgets['detector_core_update_events'] = optionframe.insert_label_checkbox(
+        name='detector_core_update_events',
+        label='Update graph after each event detection during automated search (will slow down search)',
+    )
+
+    optionframe.insert_button(
+        text='Apply',
+        command=trace_display.canvas.get_tk_widget().focus_set
+    )
+    optionframe.insert_button(
+        text='Default',
+        command=lambda k='detector_core_': optionframe.default(filter=k)
+    )
+    optionframe.insert_button(
+        text='Find all',
+        command=find_all  # link this later
+    )
+    optionframe.insert_button(
+        text='Delete all',
+        command=None  # link this later
+    )
+    optionframe.insert_button(
+        text='Find in \nwindow',
+        command=find_in_window  # link this later
+    )
+    optionframe.insert_button(
+        text='Delete in \nwindow',
+        command=None  # link this later
+    )
+    # mini filtering (min and max values) options
+    optionframe.insert_title(
+        text='Filtering options'
+    )
+    # the keys will be used to export parameters to interface during mini search (see extract_mini_parameters())
+    global filter_params
+    filter_params={
+        'min_amp': {'id': 'detector_filter_min_amp',
+                    'label':'Minimum amplitude (absolute value) (y-axis unit):',
+                    'validation': 'float', 'conversion':float},
+        'max_amp': {'id': 'detector_filter_max_amp',
+                    'label':'Maximum amplitude (absolute value) (y-axis unit):',
+                    'validation': 'float/None', 'conversion':float},
+        'min_decay': {'id': 'detector_filter_min_decay',
+                      'label': 'Minimum decay constant (tau) (ms)', 'validation': 'float', 'conversion':float},
+        'max_decay': {'id': 'detector_filter_max_decay', 'label': 'Maximum decay constant (tau) (ms)', 'validation':'float/None', 'conversion':float},
+        'min_hw': {'id':'detector_filter_min_hw', 'label':'Minimum halfwidth (ms)', 'validation':'float', 'conversion':float},
+        'max_hw':{'id':'detector_filter_max_hw', 'label':'Maximum halfwidth (ms)', 'validation':'float/None', 'conversion':float},
+        'min_rise':{'id':'detector_filter_min_rise', 'label':'Minimum rise constant (ms)', 'validation':'float', 'conversion':float},
+        'max_rise':{'id':'detector_filter_max_rise', 'label':'Maximum rise constant (ms)', 'validation':'float/None', 'conversion':float},
+    }
+    for k, d in filter_params.items():
+        widgets[d['id']] = optionframe.insert_label_entry(
+            name=d['id'],
+            label=d['label'],
+            validate_type=d['validation']
+        )
+        widgets[d['id']].bind('<Return>', apply_parameters, add='+')
+        widgets[d['id']].bind('<FocusOut>', apply_parameters, add='+')
+        parameters[d['id']] = widgets[d['id']].get()
+        changes[d['id']] = widgets[d['id']].get()
+    optionframe.insert_button(
+        text='Confim',
+        command=trace_display.canvas.get_tk_widget().focus_set
+    )
+    optionframe.insert_button(
+        text='Default',
+        command=lambda k='detector_filter_': optionframe.default(filter=k)
+    )
+    optionframe.insert_button(
+        text='Apply filter\n(all)',
+        command=None,  # link this later,
+    )
+    optionframe.insert_button(
+        text='Apply filter\n(window)',
+        command=None  # link this later
+    )
     # panel = frame.make_panel()
     # Tk.Label(panel, text='Fit decay functions using:').grid(column=0, row=0, sticky='news')
     # app.widgets['detector_decay_func_type'] = widget.VarWidget(name='detector_decay_func_type')
@@ -111,35 +190,8 @@ def load(parent):
     #                                                                              onvalue='1',
     #                                                                              offvalue="",
     #                                                                              command=apply_parameters)
-    app.widgets['detector_update_events'] = optionframe.insert_label_checkbox(
-        name='detector_update_events',
-        label='Update graph after each event detection during automated search (will slow down search)',
-    )
-    optionframe.insert_button(
-        text='Apply',
-        command=trace_display.canvas.get_tk_widget().focus_set
-    )
-    optionframe.insert_button(
-        text='Default',
-        command= lambda k='detector_':optionframe.default(filter=k)
-    )
-    optionframe.insert_button(
-        text='Find all',
-        command= find_all# link this later
-    )
-    optionframe.insert_button(
-        text='Delete all',
-        command=None  # link this later
-    )
-    optionframe.insert_button(
-        text='Find in \nwindow',
-        command=find_in_window  # link this later
-    )
 
-    optionframe.insert_button(
-        text='Delete in \nwindow',
-        command=None  # link this later
-    )
+
 
     ##################################################
     #                  Data Export                   #
@@ -180,7 +232,7 @@ def load(parent):
         ('data_display_direction', 'Direction'),
     ]
     for i in boxes:
-        app.widgets[i[0]] = optionframe.insert_label_checkbox(
+        widgets[i[0]] = optionframe.insert_label_checkbox(
             name=i[0],
             label=i[1],
             command=data_display.show_columns,
@@ -211,9 +263,22 @@ def populate_data_display():
     except: # file not loaded yet
         pass
 
+def extract_mini_parameters():
+    params = {}
+    params['direction'] = {'negative':-1, 'positive':1}[widgets['detector_core_direction'].get()] # convert direction to int value
+    params['update'] = widgets['detector_core_update_events'].get()
+    global core_params
+    global filter_params
+    for k, d in core_params.items():
+        params[k] = widgets[d['id']].get()
+    for k, d in filter_params.items():
+        params[k] = widgets[d['id']].get()
+    return params
+
+
 
 def log(msg, header=True):
     if header:
-        log_display.log('@ {}: {}'.format(name, msg), header)
+        log_display.log('@ {}: {}'.format('mini', msg), header)
     else:
         log_display.log("   {}".format(msg), header)

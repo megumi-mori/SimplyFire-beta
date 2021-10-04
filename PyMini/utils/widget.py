@@ -71,6 +71,7 @@ class VarEntry(VarWidget, Tk.Entry):
             interface=None,
             **kwargs
     ):
+        self.validate_type=validate_type
         VarWidget.__init__(
             self,
             parent=parent,
@@ -86,7 +87,7 @@ class VarEntry(VarWidget, Tk.Entry):
             width=config.entry_width,
             justify=Tk.RIGHT,
         )
-        self.validate_type=validate_type
+
         self.prev = self.get()
         self.validate_type = validate_type
         self.validate(event=None, validation_type=validate_type, undo=False)
@@ -131,8 +132,8 @@ class VarEntry(VarWidget, Tk.Entry):
     def get(self):
         # if validation.is_na(self.var.get()):
         #     return None
-        return self.var.get()
-
+        return validation.convert(self.validate_type, self.var.get())
+        # return self.var.get()
     def undo(self, value):
         self.set(value)
         self.focus_set()
@@ -556,9 +557,10 @@ class DataTable(Tk.Frame):
     def append(self, dataframe):
         for i in dataframe.index:
             try:
-                self.table.insert('', 'end', iid=i,
+                self.table.insert('', 'end', iid=dataframe.loc[i].t,
                                   values=[dataframe.loc[i][k] for k in self.columns])
-            except:
+            except Exception as e:
+                print(f'datatable append{e}')
                 pass
     def set(self, dataframe):
         self.clear()

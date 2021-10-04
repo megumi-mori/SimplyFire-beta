@@ -88,8 +88,8 @@ def load_menubar(parent):
     file_menu.add_command(label="Open trace \t Ctrl+o", command=ask_open_trace)
     file_menu.add_separator()
     file_menu.add_command(label='Open event file', command=open_events)
-    file_menu.add_command(label='Save event file', command=interface.save_events)
-    file_menu.add_command(label='Save event file as...', command=interface.save_events_as)
+    file_menu.add_command(label='Save event file', command=interface.save_events_dialogue)
+    file_menu.add_command(label='Save event file as...', command=interface.save_events_as_dialogue)
     file_menu.add_separator()
     file_menu.add_command(label='Export events', command=export_events)
 
