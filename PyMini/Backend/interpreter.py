@@ -227,11 +227,17 @@ def plot_event_pick(event):
     if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
         xdata, ydata = event.artist.get_offsets()[event.ind][0]
         if multi_select:
-            data_display.table.selection_toggle(str(xdata))
-            data_display.table.see(str(xdata))
+            try:
+                data_display.table.selection_toggle(str(xdata))
+                data_display.table.see(str(xdata))
+            except:
+                data_display.table.selection_toggle(str(round(xdata,interface.al.recording.x_sigdig)))
+                data_display.table.see(str(round(xdata, interface.al.recording.x_sigdig)))
             return
-        print('select event at {}'.format(xdata))
-        data_display.table.selection_set(str(xdata))
+        try:
+            data_display.table.selection_set(str(xdata))
+        except:
+            data_display.table.selection_set(str(round(xdata, interface.al.recording.x_sigdig)))
         # data_display.toggle_one(str(xdata))
 
 def plot_mouse_release(event):

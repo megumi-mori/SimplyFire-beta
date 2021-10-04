@@ -230,6 +230,7 @@ def load(parent):
         # ('data_display_end', 'End time'),
         ('data_display_channel', 'Channel'),
         ('data_display_direction', 'Direction'),
+        ('data_display_compound', 'Compound')
     ]
     for i in boxes:
         widgets[i[0]] = optionframe.insert_label_checkbox(

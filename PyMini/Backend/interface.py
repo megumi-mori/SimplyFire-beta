@@ -56,6 +56,7 @@ mini_df = pd.DataFrame(columns = [
     'datetime'  #
 ])
 
+global al
 al = analyzer2.Analyzer()
 def get_temp_num():
     global temp_num
@@ -437,7 +438,7 @@ def pick_event_manual(x):
                                sampling_rate=al.recording.sampling_rate, channel=al.recording.channel,
                                reference_df=True, y_unit=al.recording.y_unit,
                                x_unit=al.recording.x_unit, **params)
-
+    print(mini)
     if guide:
         report_to_param_guide(xs, ys, mini)
     if mini['success']:
@@ -499,7 +500,6 @@ def find_mini_in_range(xlim, ylim):
         detector_tab.changes = {}
         detector_tab.changed = False
     app.pb['value'] = 0
-
 
 def select_single_mini(iid):
     data = al.mini_df[al.mini_df.t == float(iid)]

@@ -126,6 +126,7 @@ default_data_display_baseline : 1
 default_data_display_baseline_unit : 1
 default_data_display_channel : 1
 default_data_display_direction : 1
+default_data_display_compound: 1
 
 #style
 default_style_trace_line_color : 'black'
