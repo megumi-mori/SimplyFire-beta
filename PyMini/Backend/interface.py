@@ -438,7 +438,6 @@ def pick_event_manual(x):
                                sampling_rate=al.recording.sampling_rate, channel=al.recording.channel,
                                reference_df=True, y_unit=al.recording.y_unit,
                                x_unit=al.recording.x_unit, **params)
-    print(mini)
     if guide:
         report_to_param_guide(xs, ys, mini)
     if mini['success']:
@@ -630,124 +629,57 @@ def report_to_param_guide(xs, ys, data, clear=False):
         param_guide.clear()
 
     direction = data['direction']
-    if data['peak_idx'] is None:
-        param_guide.msg_label.insert('Could not find peak. Make sure the search radius is wide enough (>40 data '
-                                         'points).\n')
-    elif data['peak_coord_x'] is None:
-        param_guide.msg_label.insert('Event already in table. Please select the event marker to see details.\n')
-        data['peak_coord_x'] = xs[data['peak_idx']]
-        data['peak_coord_y'] = ys[data['peak_idx']]
-        param_guide.goto_button.config(state='normal')
-        param_guide.goto_button.config(command=lambda iid=data['peak_coord_x']:data_display.select_one(iid))
-    elif data['baseline'] is None:
-        param_guide.msg_label.insert(
-            'Baseline could not be found. Make sure lag is not '
-            'longer than the start of recording to the start of the mini.\n')
-        param_guide.reanalyze_button.config(state='normal')
-        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False: reanalyze(xs, ys, data, r))
-    elif data['amp'] * direction < data['baseline']:
-        param_guide.msg_label.insert('Peak is within baseline.\n')
-    elif data['amp'] * direction < data['min_amp']:
-        param_guide.msg_label.insert('Amplitude < minimum\n')
-        param_guide.accept_button.config(state='normal')
-        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
-        param_guide.reanalyze_button.config(state='normal')
-        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
-    elif data['base_end_idx'] is None:
-        param_guide.msg_label.insert('End of event not found.\n')
-    elif data['rise_const'] < data['min_rise']:
-        param_guide.msg_label.insert('Rise < minimum\n')
-        param_guide.accept_button.config(state='normal')
-        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
-        param_guide.reanalyze_button.config(state='normal')
-        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
-    elif data['rise_const'] > data['max_rise']:
-        param_guide.msg_label.insert('Rise > maximum\n')
-        param_guide.accept_button.config(state='normal')
-        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
-        param_guide.reanalyze_button.config(state='normal')
-        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
-    elif data['halfwidth'] is None:
-        param_guide.msg_label.insert('Halfwidth unknown\n')
-    elif data['halfwidth'] < data['min_hw']:
-        param_guide.msg_label.insert('Halfwidth < minimum\n')
-        param_guide.accept_button.config(state='normal')
-        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
-        param_guide.reanalyze_button.config(state='normal')
-        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
-    elif data['halfwidth'] > data['max_hw']:
-        param_guide.msg_label.insert('Halfwidth > maximum\n')
-        param_guide.accept_button.config(state='normal')
-        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
-        param_guide.reanalyze_button.config(state='normal')
-        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
-    elif data['decay_fit'] is None:
-        param_guide.msg_label.insert('Decay fit error:\n')
-        param_guide.msg_label.insert('{}\n'.format(data['decay_error']))
-    elif data['decay_const'] < data['min_decay']:
-        param_guide.msg_label.insert('Decay < minimum\n')
-        param_guide.accept_button.config(state='normal')
-        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
-        param_guide.reanalyze_button.config(state='normal')
-        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
-    elif data['decay_const'] > data['max_decay']:
-        param_guide.msg_label.insert('Decay > maximum\n')
-        param_guide.accept_button.config(state='normal')
-        param_guide.accept_button.config(command=lambda xs=xs, ys=ys, data=data, r=True:reanalyze(xs, ys, data, r))
-        param_guide.reanalyze_button.config(state='normal')
-        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False:reanalyze(xs, ys, data, r))
-    else:
-        param_guide.msg_label.insert('Success\n')
-        param_guide.reject_button.config(state='normal')
-        param_guide.reject_button.config(command=lambda iid=data['t']:data_display.delete_one(iid))
-        param_guide.reanalyze_button.config(state='normal')
-        param_guide.reanalyze_button.config(command=lambda xs=xs, ys=ys, data=data, r=False: reanalyze(xs, ys, data, r))
-        param_guide.goto_button.config(state='normal')
-        param_guide.goto_button.config(command=lambda iid=data['peak_coord_x']: data_display.select_one(iid))
-
+    if data['failure']:
+        param_guide.msg_label.insert(data['failure'] + '\n')
     try:
         try:
-            param_guide.plot_trace(xs[int(max(data['base_idx'] - data['lag'], 0)):int(min(data['base_end_idx'] + data['max_points_decay'], len(xs)))],
-                                   ys[int(max(data['base_idx'] - data['lag'], 0)):int(min(data['base_end_idx'] + data['max_points_decay'], len(xs)))])
+            param_guide.plot_trace(xs[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['end_idx'] + data['max_points_decay'], len(xs)))],
+                                       ys[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['end_idx'] + data['max_points_decay'], len(xs)))])
         except Exception as e:
-            param_guide.plot_trace(xs[int(max(data['search_xlim'][0] - data['lag'],0)):int(min(data['search_xlim'][1]+data['lag'], len(xs)))],
-                                   ys[int(max(data['search_xlim'][0] - data['lag'],0)):int(min(data['search_xlim'][1]+data['lag'], len(xs)))])
+            param_guide.plot_trace(xs[int(max(data['peak_idx'] - data['delta_x'] - data['lag'],0)):int(min(data['peak_idx']+data['lag']+data['delta_x'], len(xs)))],
+                                       ys[int(max(data['peak_idx'] - data['delta_x'] - data['lag'],0)):int(min(data['peak_idx']+data['lag']+data['delta_x'], len(xs)))])
             print('exception during plot {}'.format(e))
+
+    # except:
+    #     pass
         param_guide.msg_label.insert(
             'Peak: {:.3f},{:.3f}\n'.format(data['peak_coord_x'], data['peak_coord_y']))
         param_guide.plot_peak(data['peak_coord_x'], data['peak_coord_y'])
 
         param_guide.plot_start(data['start_coord_x'], data['start_coord_y'])
 
+        param_guide.plot_start(xs[data['base_idx'][0]], ys[data['base_idx'][0]])
+        param_guide.plot_start(xs[data['base_idx'][1]], ys[data['base_idx'][1]])
+
         param_guide.plot_ruler((data['peak_coord_x'], data['peak_coord_y']), (data['peak_coord_x'], data['baseline']))
         param_guide.msg_label.insert('Baseline: {:.3f} {}\n'.format(data['baseline'], data['baseline_unit']))
         param_guide.msg_label.insert('Amplitude: {:.3f} {}\n'.format(data['amp'], data['amp_unit']))
 
-        param_guide.ax.set_xlim((xs[int(max(data['base_idx']-data['lag'],0))], xs[int(min(data['base_end_idx']+data['lag'], len(xs)))]))
+        param_guide.ax.set_xlim((xs[int(max(data['start_idx']-data['lag'],0))], xs[int(min(data['end_idx']+data['lag'], len(xs)))]))
 
         param_guide.msg_label.insert('Rise: {:.3f} {}\n'.format(data['rise_const'], data['rise_unit']))
-        param_guide.msg_label.insert('Halfwidth: {:.3f} {}\n'.format(data['halfwidth'], data['halfwidth_unit']))
 
-        param_guide.plot_ruler((xs[data['halfwidth_idx'][0]], data['baseline'] + data['amp'] / 2),
-                                       (xs[data['halfwidth_idx'][1]], data['baseline'] + data['amp'] / 2))
-
-
-        param_guide.plot_ruler((xs[int(max(data['base_idx'] - data['lag'], 0))], data['baseline']),
-                                   (xs[int(min(data['base_end_idx'] + data['lag'], len(xs)))], data['baseline']))
+        param_guide.plot_ruler((xs[int(max(data['start_idx'] - data['lag'], 0))], data['baseline']),
+                                   (xs[int(min(data['end_idx'] + data['lag'], len(xs)))], data['baseline']))
 
 
         x_data = (xs[int(data['peak_idx']):int(min(data['peak_idx'] + data['max_points_decay'], len(xs)))] - xs[int(data['peak_idx'])]) * 1000
-        y_decay = getattr(analyzer, data['decay_func'])(x_data, *data['decay_fit'])
+        y_decay = analyzer2.single_exponent_constant(x_data, data['decay_A'], data['decay_const'], data['decay_C'])
 
         x_data = x_data / 1000 + xs[int(data['peak_idx'])]
-        y_decay = y_decay * data['direction']
+        y_decay = y_decay * data['direction'] + data['baseline']
 
         param_guide.plot_decay_fit(x_data, y_decay)
 
         param_guide.msg_label.insert('Decay: {:.3f} {}\n'.format(data['decay_const'], data['decay_unit']))
         param_guide.plot_decay(data['decay_coord_x'], data['decay_coord_y'])
-        param_guide.msg_label.insert('Decay was fitted using {}\n'.format(data['decay_func']))
-    except:
+        # param_guide.msg_label.insert('Decay was fitted using {}\n'.format(data['decay_func']))
+
+        param_guide.plot_ruler((xs[data['halfwidth_start_idx']], data['baseline'] + data['amp'] / 2),
+                                       (xs[data['halfwidth_end_idx']], data['baseline'] + data['amp'] / 2))
+        param_guide.msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')
+    except Exception as e:
+        print(e)
         pass
 
     param_guide.canvas.draw()

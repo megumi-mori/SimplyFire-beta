@@ -72,8 +72,11 @@ def load(parent):
                           'label': 'Search radius in % of visible x-axis (Manual)', 'validation': 'float', 'conversion':float},
         'auto_radius': {'id':'detector_core_auto_radius',
                         'label':'Search window in number of points per iteration (Auto)', 'validation':'int', 'conversion': int},
+        'delta_x': {'id': 'detector_core_deltax',
+                    'label':'Points before peak for baseline',
+                    'validation':'int'},
         'lag': {'id': 'detector_core_lag',
-                            'label': 'Number of data points averaged to find the start of an event:',
+                            'label': 'Number of data points averaged for baseline:',
                             'validation': 'int'},
         'max_points_decay': {'id': 'detector_core_max_points_decay',
                              'label': 'Maximum data points after peak to consider for decay', 'validation': 'int'}

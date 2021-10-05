@@ -171,7 +171,8 @@ def plot_start(x, y):
     try:
         ax.scatter(x, y, marker='x', c=app.widgets['style_event_color_start'].get())
         # canvas.draw()
-    except:
+    except Exception as e:
+        print(f'plot start error param_guide: {e}')
         pass
 
 def plot_peak(x, y):

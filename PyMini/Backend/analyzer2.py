@@ -11,7 +11,9 @@ from scipy.optimize import curve_fit
 
 from astropy.convolution import Box1DKernel, convolve
 
-from time import time # debugging
+from time import time  # debugging
+
+
 ##################################################
 # Class to store electrophysiology recording data
 ##################################################
@@ -24,7 +26,6 @@ class Recording():
         self.added_sweep_count = 0
         self.sweep_count = 0
         self._open_file(filepath)
-
 
     def _open_file(self, filename):
         print(f'opening {filename}')
@@ -40,9 +41,9 @@ class Recording():
             # sampling rate of the recording
             self.sampling_rate = data.dataRate
             # sampling rate significant digits - used to round calculations
-            self.x_sigdig = len(str(self.sampling_rate))-1
+            self.x_sigdig = len(str(self.sampling_rate)) - 1
             # interval between each x-values (inverse of sampling rate)
-            self.x_interval = 1/self.sampling_rate
+            self.x_interval = 1 / self.sampling_rate
 
             # channel metadata
             self.channel_count = data.channelCount
@@ -71,7 +72,6 @@ class Recording():
             # insert support for other filetypes here
             pass
 
-
     def set_channel(self, channel):
         self.y_label = self.channel_labels[channel]
         self.y_unit = self.channel_units[channel]
@@ -90,25 +90,27 @@ class Recording():
         sweeps: list of int - only used for the 'overlay' plot_mode. If None, defaults to the first N sweeps that match the dimension of the input data
         new_data: new y-values to replace. Must be a 3D float numpy array
         """
-        assert len(new_data.shape)==3, 'Matrix shape mismatch - the input data must be a 3D numpy array'
+        assert len(new_data.shape) == 3, 'Matrix shape mismatch - the input data must be a 3D numpy array'
         if channels is None:
             channels = range(new_data.shape[0])
 
         if mode == 'continuous':
-            assert new_data.shape[2] % self.sweep_points == 0, f'Sweep length mismatch. Each sweep in "continuous" mode must be a multiple of {self.sweep_points} datapoints'
+            assert new_data.shape[
+                       2] % self.sweep_points == 0, f'Sweep length mismatch. Each sweep in "continuous" mode must be a multiple of {self.sweep_points} datapoints'
             if sweeps is None:
-                sweeps = range(int(new_data.shape[2]/self.sweep_points))
+                sweeps = range(int(new_data.shape[2] / self.sweep_points))
 
             new_data = np.reshape(new_data, (len(channels), len(sweeps), self.sweep_points))
 
         elif mode == 'overlay':
-            assert new_data.shape[2] == self.sweep_points, f'Sweep length mismatch. Each sweep in "overlay" mode must be {self.sweep_points} datapoints'
+            assert new_data.shape[
+                       2] == self.sweep_points, f'Sweep length mismatch. Each sweep in "overlay" mode must be {self.sweep_points} datapoints'
             if sweeps is None:
                 sweeps = range(new_data.shape[1])
         else:
             print(f'incorrect mode: {mode}')
             return None
-        for i,c in enumerate(channels):
+        for i, c in enumerate(channels):
             self.y_data[c, sweeps, :] = new_data[i]
 
     def get_y_matrix(self, mode='continuous', sweeps=None, channels=None, xlim=None):
@@ -126,16 +128,19 @@ class Recording():
             sweeps = [i for i in range(self.sweep_count)]
         if mode == 'continuous':
             if xlim:
-                return np.reshape(self.y_data[channels][:, sweeps, :], (len(channels), 1, len(sweeps) * self.sweep_points))[
+                return np.reshape(self.y_data[channels][:, sweeps, :],
+                                  (len(channels), 1, len(sweeps) * self.sweep_points))[
                        :, :, max(0, int(xlim[0] / self.x_interval)):min(self.sweep_count * self.sweep_points,
-                                                                        ceil(xlim[1] / self.x_interval)+1)]
+                                                                        ceil(xlim[1] / self.x_interval) + 1)]
             else:
-                return np.reshape(self.y_data[channels][:, sweeps, :], (len(channels), 1, len(sweeps) * self.sweep_points))[
+                return np.reshape(self.y_data[channels][:, sweeps, :],
+                                  (len(channels), 1, len(sweeps) * self.sweep_points))[
                        :, :, :]
         if mode == 'overlay':
             if xlim:
                 return self.y_data[channels][:, sweeps,
-                       max(0, int(xlim[0] / self.x_interval)):min(self.sweep_count * self.sweep_points, ceil(xlim[1] / self.x_interval) + 1)]
+                       max(0, int(xlim[0] / self.x_interval)):min(self.sweep_count * self.sweep_points,
+                                                                  ceil(xlim[1] / self.x_interval) + 1)]
             return self.y_data[channels][:, sweeps]
 
     def get_x_matrix(self, mode='continuous', sweeps=None, channels=None, xlim=None):
@@ -155,10 +160,11 @@ class Recording():
             mult = np.arange(0, len(sweeps))
             mult = np.reshape(mult, (1, len(sweeps), 1))
             offset = mult * (self.sweep_points * self.x_interval)
-            x_matrix = np.reshape(self.x_data[channels][:, sweeps] + offset, (len(channels), 1, len(sweeps)*self.sweep_points))
+            x_matrix = np.reshape(self.x_data[channels][:, sweeps] + offset,
+                                  (len(channels), 1, len(sweeps) * self.sweep_points))
             if xlim:
                 start_idx = max(0, int(xlim[0] / self.x_interval))
-                end_idx = min(self.sweep_count * self.sweep_points, ceil(xlim[1] / self.x_interval)+1)
+                end_idx = min(self.sweep_count * self.sweep_points, ceil(xlim[1] / self.x_interval) + 1)
                 return x_matrix[:, :, start_idx:end_idx]
             return x_matrix
         if mode == 'overlay':
@@ -245,13 +251,13 @@ class Recording():
             # the dimension matches y_data for np.append()
             self.y_data = np.append(self.y_data, new_data, axis=1)
 
-        else: # the dimension needs to be fixed
+        else:  # the dimension needs to be fixed
             temp_data = np.full((self.channel_count, 1, self.sweep_points), dtype=np.float, fill_value=fill)
-            assert new_data.shape[-1] == self.sweep_points, 'dimension mismatch - the sweep length does not match the existing data'
+            assert new_data.shape[
+                       -1] == self.sweep_points, 'dimension mismatch - the sweep length does not match the existing data'
             new_data_reshape = np.reshape(new_data, (len(channels), 1, self.sweep_points))
             temp_data[channels] = new_data_reshape
             self.y_data = np.append(self.y_data, temp_data, axis=1)
-
 
         self.x_data = np.append(self.x_data, self.x_data[:, -new_data.shape[1]:, :], axis=1)
         self.sweep_count += 1
@@ -259,11 +265,11 @@ class Recording():
 
     def delete_last_sweep(self):
         if self.sweep_count == self.original_sweep_count:
-            return None # cannot delete original data
+            return None  # cannot delete original data
         self.y_data = self.y_data[:, :-1, :]
         self.x_data = self.x_data[:, :-1, :]
         self.sweep_count -= 1
-        self.added_sweep_count -=1
+        self.added_sweep_count -= 1
 
 
 ############################################
@@ -272,9 +278,9 @@ class Recording():
 
 class Analyzer():
     def __init__(self, plot_mode='continuous'):
-        self.plot_mode=plot_mode
+        self.plot_mode = plot_mode
 
-        #initialize dataframes
+        # initialize dataframes
         self.mini_df = DataFrame()
 
         self.recording = None
@@ -292,7 +298,8 @@ class Analyzer():
     def set_plot_mode(self, plot_mode):
         self.plot_mode = plot_mode
 
-    def plot(self, plot_mode=None, channels=None, sweeps=None, xlim=None, ylim=None, color='black', linewidth=2, show=True):
+    def plot(self, plot_mode=None, channels=None, sweeps=None, xlim=None, ylim=None, color='black', linewidth=2,
+             show=True):
         """
         displays a plot of the recording. Use this function to visualize in non-GUI mode
 
@@ -305,16 +312,14 @@ class Analyzer():
         """
         if not plot_mode:
             plot_mode = self.plot_mode
-        x_matrix = self.recording.get_x_matrix(mode=plot_mode, sweeps=sweeps, channels=channels) #2D numpy array
-        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels) #3D numpy array
+        x_matrix = self.recording.get_x_matrix(mode=plot_mode, sweeps=sweeps, channels=channels)  # 2D numpy array
+        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels)  # 3D numpy array
         c_len, s_len, _ = y_matrix.shape
         for c in range(c_len):
             for s in range(s_len):
-                plt.plot(x_matrix[c, s,:], y_matrix[c,s,:], color=color, linewidth=linewidth)
+                plt.plot(x_matrix[c, s, :], y_matrix[c, s, :], color=color, linewidth=linewidth)
 
         # add scatter plot of mini_df here##
-
-
 
         ######################################
 
@@ -342,7 +347,8 @@ class Analyzer():
         """
         if not plot_mode:
             plot_mode = self.plot_mode
-        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels, xlim=xlim)  # 3D numpy array
+        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels,
+                                               xlim=xlim)  # 3D numpy array
         if sweeps is None:
             sweeps = range(self.recording.sweep_count)
         if channels is None:
@@ -365,7 +371,8 @@ class Analyzer():
         """
         if not plot_mode:
             plot_mode = self.plot_mode
-        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels, xlim=xlim)  # 3D numpy array
+        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels,
+                                               xlim=xlim)  # 3D numpy array
         if sweeps is None:
             sweeps = range(self.recording.sweep_count)
         if channels is None:
@@ -373,7 +380,6 @@ class Analyzer():
         maxs = np.min(y_matrix, axis=2, keepdims=True)
         maxs_std = np.std(maxs, axis=1, keepdims=True)
         return maxs, maxs_std
-
 
     ########################
     # Recording Adjustment #
@@ -493,8 +499,8 @@ class Analyzer():
                 filtered = np.reshape(filtered, (1, 1, len(filtered)))
 
                 # # even out the edge cases
-                filtered[:, :, :int(width/2)] = ys[:, :, :int(width/2)]
-                filtered[:, :, -int(width/ 2):] = ys[:, :, -int(width/ 2):]
+                filtered[:, :, :int(width / 2)] = ys[:, :, :int(width / 2)]
+                filtered[:, :, -int(width / 2):] = ys[:, :, -int(width / 2):]
 
                 self.recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
         return None
@@ -518,8 +524,8 @@ class Analyzer():
         """
 
         try:
-            xy_ratio = (xlim[1] - xlim[0])/(ylim[1] - ylim[0]) * height / width
-        except Exception as e: # xlim and/or ylim not specified
+            xy_ratio = (xlim[1] - xlim[0]) / (ylim[1] - ylim[0]) * height / width
+        except Exception as e:  # xlim and/or ylim not specified
             xy_ratio = 1
         if channels is None:
             channels = range(self.recording.channel_count)
@@ -549,8 +555,6 @@ class Analyzer():
         if min_c and min_s:
             return min_c, min_s
         return None, None
-
-
 
     #################
     # Mini Analysis #
@@ -609,22 +613,22 @@ class Analyzer():
             in the result:
                 #### list columns here
         """
-        t0=time()
+        t0 = time()
         if xs is None:
             xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
         if ys is None:
             ys = self.recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
         else:
-            ys = ys.copy() # make a copy to edit
-        print(f'checking xs and ys: {time()-t0}')
-        t0=time()
+            ys = ys.copy()  # make a copy to edit
+        print(f'checking xs and ys: {time() - t0}')
+        t0 = time()
         try:
             xlim_idx = (search_index(xlim[0], xs, sampling_rate), search_index(xlim[1], xs, sampling_rate))
         except Exception as e:
             print(f'xlim index exception: {e}')
             xlim_idx = (0, len(xs))
-        print(f'search_idx: {time()-t0}')
-        t0=time()
+        print(f'search_idx: {time() - t0}')
+        t0 = time()
         start_idx = xlim_idx[0]
         end_idx = start_idx + kernel
         df = DataFrame()
@@ -633,8 +637,8 @@ class Analyzer():
             start = start_idx
             progress_bar['value'] = 0
             progress_bar.update()
-        hits=[]
-        print(f'etc {time()-t0}')
+        hits = []
+        print(f'etc {time() - t0}')
         while start_idx < xlim_idx[1]:
             peak_idx = self.find_peak_recursive(xs, ys, start=start_idx, end=end_idx, direction=direction)
             if peak_idx is not None:
@@ -656,14 +660,14 @@ class Analyzer():
                     hits.append(mini['t'])
                     start_idx = peak_idx + 1
                 else:
-                   start_idx += stride
+                    start_idx += stride
             else:
                 start_idx += stride
                 pass
             # start_idx += stride
             end_idx = min(start_idx + kernel, xlim_idx[1])
             try:
-                progress_bar['value'] = int((start_idx - start)/total * 100)
+                progress_bar['value'] = int((start_idx - start) / total * 100)
                 progress_bar.update()
             except:
                 pass
@@ -674,10 +678,10 @@ class Analyzer():
 
     def find_mini_manual(self,
                          xlim: tuple,
-                         xs:np.ndarray=None,
-                         ys:np.ndarray=None,
-                         x_sigdig:int=6,
-                         sampling_rate: float=None,
+                         xs: np.ndarray = None,
+                         ys: np.ndarray = None,
+                         x_sigdig: int = 6,
+                         sampling_rate: float = None,
                          channel=0,
                          sweeps=None,
                          direction=1,
@@ -719,7 +723,7 @@ class Analyzer():
         try:
             xlim_idx = (search_index(xlim[0], xs), search_index(xlim[1], xs), sampling_rate)
         except:
-            return {'succss':False} # limits of the search window cannot be determined
+            return {'succss': False}  # limits of the search window cannot be determined
 
         peak_idx = self.find_peak_recursive(xs, ys, start=xlim_idx[0], end=xlim_idx[1], direction=direction)
         if peak_idx is not None:
@@ -741,7 +745,7 @@ class Analyzer():
                                                    sort=False)
                 self.mini_df = self.mini_df.sort_values(by='t')
             return mini
-        return {'success':False}
+        return {'success': False}
 
     # def find_mini_manual(self,
     #                      point: tuple = None,
@@ -820,7 +824,6 @@ class Analyzer():
     #
     #     return mini
     #
-
 
     # def find_mini_with_criteria(self,
     #                             xs,
@@ -1016,7 +1019,7 @@ class Analyzer():
         """
         FUDGE = 10  # margin at the edge of search window required to be considered peak (used to avoid edge cases)
         if end - start < FUDGE * 2:
-            return None # the search window is too narrow
+            return None  # the search window is too narrow
         try:
             peak_y = max(ys[start:end] * direction)
         except:
@@ -1024,16 +1027,16 @@ class Analyzer():
             print(ys[start:end])
             print(len(ys))
             print(f'peak search error, start:end: {start, end}')
-        peaks = np.where(ys[start:end] * direction == peak_y)[0] + start # get list of indices where ys is at peak
-        peak_idx = peaks[int(len(peaks)/2)] # select the middle index of the peak
+        peaks = np.where(ys[start:end] * direction == peak_y)[0] + start  # get list of indices where ys is at peak
+        peak_idx = peaks[int(len(peaks) / 2)]  # select the middle index of the peak
 
         # check if the peak is at the edge of the search window
         # if the peak is at the edge, the slope could continue further beyond the window
         # recursively narrow the search window and look for another local extremum within the new window
 
-        if peak_idx < start + FUDGE: # the local extremum is at the left end of the search window
+        if peak_idx < start + FUDGE:  # the local extremum is at the left end of the search window
             return self.find_peak_recursive(xs, ys, start + FUDGE, end, direction)
-        if peak_idx > end - FUDGE: # the local extremum is at the right end of the search window
+        if peak_idx > end - FUDGE:  # the local extremum is at the right end of the search window
             return self.find_peak_recursive(xs, ys, start, end - FUDGE, direction)
         return peak_idx
 
@@ -1041,6 +1044,7 @@ class Analyzer():
                         peak_idx: int,
                         ys: np.ndarray,
                         lag: int = 100,
+                        delta_x: int = 400,
                         direction: int = 1) -> tuple:
         """
         Calculates estimated baseline value and the index of start of a mini event
@@ -1051,6 +1055,8 @@ class Analyzer():
             lag: int representing the number of datapoints averaged to find the trailing average. Default 100
                 The result of the trailing average is used to estamate the baseline.
                 The point at which the mini data crosses the trailing average is considered the start of the mini.
+            delta_x: int representing the number of datapoints before peak to reference as the baseline.
+                Baseline y-value is calculated as: mean of [peak_idx - delta_x - lag:peak_idx - delta_x)
             direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
                 Default 1
         Returns:
@@ -1064,37 +1070,56 @@ class Analyzer():
 
         # NB: by multiplying the direction, the ys values will always peak in the positive direction
         if idx < lag:
-                return None, None # there are less than lag data points to the left of starting index
+            return None, None  # there are less than lag data points to the left of starting index
+
+        # baseline = np.mean(ys[peak_idx - delta_x -lag: peak_idx - delta_x])  # average sometime before the peak
+        #
+        # while idx > lag:
+        #     if ys[idx] * direction <= baseline * direction:
+        #         break
+        #     idx -= 1
+        # else:
+        #     return None, baseline  # couldn't find the corresponding datapoint
+        # return idx, baseline
+
 
         tma = np.mean(ys[idx - lag:idx] * direction) # avg lag data points - trailing moving average
-        cma = np.mean(ys[idx - int(lag/2):idx] * direction) # central moving average
-
-        update_tma=True
-        update_cma=True
-
-        tma_idx = idx
-        cma_idx = idx
-        while lag <= idx:
+        while lag <= lag:
             idx -= 1
-            if update_cma:
-                next_cma = cma + (ys[idx - int(lag/2)] + ys[idx+int(lag/2)]) * direction/ (int(lag/2)*2)
-                if next_cma > cma: # heading backwards in a downwards slope
-                    update_cma = False
-                    cma_idx = idx + 1
-                else:
-                    cma = next_cma
-            if update_tma:
-                tma = tma + (ys[idx - lag] - ys[idx]) * direction / lag # update trailing avg
-                # equivalent to np.mean(ys[base_idx-lag: base_idx])
-                if tma >= ys[idx] * direction: # y-value dips below the estimated baseline
-                    update_tma = False
-                    tma_idx = idx + 1
-            if not update_cma and not update_tma:
-                break
+            tma = tma + (ys[idx - lag] - ys[idx]) * direction / lag # update trailing avg
+            if tma >= ys[idx] * direction:
+                return idx, tma * direction
         else:
-            return None, None # could not find baseline until base_idx < lag or base_idx > len(ys) - lag
-        print(f'cma: {cma_idx}, tma: {tma_idx}')
-        return min(cma_idx, tma_idx), min(tma, cma) * direction
+            return None, None
+
+        # cma = np.mean(ys[idx - int(lag/2):idx] * direction) # central moving average
+        #
+        # update_tma=True
+        # update_cma=True
+        #
+        # tma_idx = idx
+        # cma_idx = idx
+        # while lag <= idx:
+        #     idx -= 1
+        #     if update_cma:
+        #         next_cma = cma + (ys[idx - int(lag/2)] + ys[idx+int(lag/2)]) * direction/ (int(lag/2)*2)
+        #         if next_cma > cma: # heading backwards in a downwards slope
+        #             update_cma = False
+        #             cma_idx = idx + 1
+        #         else:
+        #             cma = next_cma
+        #     if update_tma:
+        #         tma = tma + (ys[idx - lag] - ys[idx]) * direction / lag # update trailing avg
+        #         # equivalent to np.mean(ys[base_idx-lag: base_idx])
+        #         if tma >= ys[idx] * direction: # y-value dips below the estimated baseline
+        #             update_tma = False
+        #             tma_idx = idx + 1
+        #     if not update_cma and not update_tma:
+        #         break
+        # else:
+        #     return None, None # could not find baseline until base_idx < lag or base_idx > len(ys) - lag
+        # print(f'cma: {cma_idx}, tma: {tma_idx}')
+        # return min(cma_idx, tma_idx), min(tma, cma) * direction
 
     def find_mini_end(self,
                       peak_idx: int,
@@ -1122,36 +1147,35 @@ class Analyzer():
 
         # NB: by multiplying the direction, the ys values will always peak in the positive direction
         if idx > len(ys) - lag:
-                return None, None # there are less than lag data points to the right of the starting index
+            return None, None  # there are less than lag data points to the right of the starting index
 
-        tma = np.mean(ys[idx:idx + lag] * direction) # avg lag data points, trailing moving average
-        cma = np.mean(ys[idx - int(lag/2): idx + int(lag/2)]) # central moving average
+        tma = np.mean(ys[idx:idx + lag] * direction)  # avg lag data points, trailing moving average
+        cma = np.mean(ys[idx - int(lag / 2): idx + int(lag / 2)])  # central moving average
 
-        update_tma=True
-        update_cma=True
+        update_tma = True
+        update_cma = True
 
         tma_idx = idx
         cma_idx = idx
         while lag <= idx <= len(ys) - lag:
             if update_cma:
                 next_cma = cma + (ys[idx + int(lag / 2)] - ys[idx - int(lag / 2)]) * direction / (int(lag / 2) * 2)
-                if next_cma > cma: # upward slope
-                    update_cma= False
+                if next_cma > cma:  # upward slope
+                    update_cma = False
                     cma_idx = idx - 1
                 else:
                     cma = next_cma
             if update_tma:
                 tma = tma + (ys[idx + lag] - ys[idx]) * direction / lag  # update trailing avg
                 # equivalent to np.mean(ys[base_idx-lag: base_idx])
-                if tma >= ys[idx] * direction and next_cma >= cma: # y-value dips below the estimated baseline
+                if tma >= ys[idx] * direction and next_cma >= cma:  # y-value dips below the estimated baseline
                     update_tma = False
                     tma_idx = idx - 1
             if not update_cma and not update_tma:
                 break
             idx += 1
         else:
-            return None, None # could not find baseline until base_idx < lag or base_idx > len(ys) - lag
-        print(f'cma: {cma_idx}, tma: {tma_idx}')
+            return None, None  # could not find baseline until base_idx < lag or base_idx > len(ys) - lag
         return max(cma_idx, tma_idx), min(tma, cma) * direction
 
     def calculate_mini_halfwidth(self,
@@ -1160,9 +1184,9 @@ class Analyzer():
                                  ys: np.ndarray,
                                  start_idx: int,
                                  end_idx: int,
-                                 peak_idx:int,
+                                 peak_idx: int,
                                  baseline: float,
-                                 direction: int=1
+                                 direction: int = 1
                                  ):
         """
         calculates the halfwidth of a mini event
@@ -1191,18 +1215,17 @@ class Analyzer():
             right_idx = right_idx[0][0] + peak_idx
         else:
             right_idx = None
-        return left_idx, right_idx, (xs[right_idx] - xs[left_idx])*1000  # pick the shortest length
-
+        return left_idx, right_idx, (xs[right_idx] - xs[left_idx]) * 1000  # pick the shortest length
 
     def calculate_mini_decay(self,
                              xs: np.ndarray,
                              ys: np.ndarray,
-                             sampling_rate:float,
+                             sampling_rate: float,
                              start_idx: int,
-                             end_idx:int,
-                             num_points:int,
+                             end_idx: int,
+                             num_points: int,
                              direction: int = 1,
-                             baseline:float=0.0):
+                             baseline: float = 0.0):
         """
         calculates decay of a mini
 
@@ -1223,11 +1246,10 @@ class Analyzer():
 
         ########## is it better the constrain a? ##############
 
-        x_data = (xs[start_idx:min(start_idx + num_points, len(xs))] - xs[start_idx])*1000
+        x_data = (xs[start_idx:min(start_idx + num_points, len(xs))] - xs[start_idx]) * 1000
         # print(x_data)
         y_data = (ys[start_idx:min(start_idx + num_points, len(xs))] - baseline) * direction
         y_data[end_idx - start_idx:] = 0
-
 
         # initialize weights for gradient descent
         y_weight = np.empty(len(y_data))
@@ -1246,7 +1268,7 @@ class Analyzer():
         t = results[0][1]
         d = results[0][2]
         # print((a, t, d))
-        decay_constant_idx = search_index(t, x_data, sampling_rate) + start_idx # offset to start_idx
+        decay_constant_idx = search_index(t, x_data, sampling_rate) + start_idx  # offset to start_idx
 
         return a, t, d, decay_constant_idx
 
@@ -1260,7 +1282,7 @@ class Analyzer():
                     decrease_threshold: int = 5,
                     increase_threshold: int = 5,
                     direction: int = 1,
-                    offset: int=0
+                    offset: int = 0
                     ):
         """
         uses the delta_x method to find peak - no window
@@ -1283,17 +1305,18 @@ class Analyzer():
         if end_idx - start_idx < lag + delta_x:
             return None  # not enough data points to analyze
         y_avg = np.mean(ys[start_idx: start_idx + lag])
-        y_var = np.var(ys[start_idx:start_idx+lag])
+        y_var = np.var(ys[start_idx:start_idx + lag])
 
-        inc_counter = [0]*len(ys)
-        dec_counter = [0]*len(ys)
+        inc_counter = [0] * len(ys)
+        dec_counter = [0] * len(ys)
         print(y_var)
         # y_var = sum([(y - y_avg)**2 for y in ys[start_idx:start_idx+lag]])/lag
         y_std = np.std(ys[start_idx:start_idx + lag])
 
         max_peak_idx = -1
         while querry_idx < end_idx:
-            if (ys[querry_idx] - y_avg) * direction > min_amp * 0.36: # try out std #min_amp * 0.36: # inside a potential mini event
+            if (ys[
+                    querry_idx] - y_avg) * direction > min_amp * 0.36:  # try out std #min_amp * 0.36: # inside a potential mini event
                 if decline_counter > DECLINE_COUNTER_THRESHOLD and switch and max_peak_idx > 0:
                     # user specified compound mini analysis
                     # sufficiently in negative slope after a local max is found
@@ -1324,25 +1347,25 @@ class Analyzer():
                         #                 ) * direction
                         # ys[int(mini['baseline_idx'] - offset):int(mini['peak_idx'] - offset)] = mini['baseline']
                     mini = {}
-                    increase_counter = 0 # refresh positive slope tracker
-                    decline_counter = 0 # refresh negative slope tracker
-                    max_peak_idx = -1 # refresh max tracker
+                    increase_counter = 0  # refresh positive slope tracker
+                    decline_counter = 0  # refresh negative slope tracker
+                    max_peak_idx = -1  # refresh max tracker
                     switch = False
                     switch_off_idx.append(querry_idx)
                 elif max_peak_idx < 0 or ys[querry_idx] * direction > ys[max_peak_idx] * direction:
                     # no max found yet or new max found
-                    max_peak_idx = querry_idx # update max tracker
-                    decline_counter = 0 # refresh negative slope tracker
-                if ys[querry_idx] * direction > ys[querry_idx - 1] * direction: # part of positive slope
-                    increase_counter += 1 # increase positive slope tracker
+                    max_peak_idx = querry_idx  # update max tracker
+                    decline_counter = 0  # refresh negative slope tracker
+                if ys[querry_idx] * direction > ys[querry_idx - 1] * direction:  # part of positive slope
+                    increase_counter += 1  # increase positive slope tracker
                     if increase_counter > INCREASE_COUNTER_THRESHOLD:
                         switch = True
                         switch_on_idx.append(querry_idx)
-                elif ys[querry_idx] * direction < ys[querry_idx - 1] * direction: # part of negative slope
+                elif ys[querry_idx] * direction < ys[querry_idx - 1] * direction:  # part of negative slope
                     decline_counter += 1
-            else: # datapoint is close to baseline, ignore
-                decline_counter = 0 # refresh negative slope tracker
-                increase_counter = 0 # refresh positive slope tracker
+            else:  # datapoint is close to baseline, ignore
+                decline_counter = 0  # refresh negative slope tracker
+                increase_counter = 0  # refresh positive slope tracker
                 max_peak_idx = -1
 
             new_y_avg = y_avg + (ys[start_idx + lag] - ys[start_idx]) / lag
@@ -1359,10 +1382,9 @@ class Analyzer():
             querry_idx += 1
             start_idx += 1
 
-        plt.plot(xs, [i-8 for i in inc_counter], color='red')
-        plt.plot(xs, [i-8 for i in dec_counter], color='purple')
+        plt.plot(xs, [i - 8 for i in inc_counter], color='red')
+        plt.plot(xs, [i - 8 for i in dec_counter], color='purple')
         plt.plot(xs, ys, color='blue')
-
 
         plt.scatter([xs[i] for i in switch_on_idx], [ys[i] for i in switch_on_idx], color='green', marker='o')
         plt.scatter([xs[i] for i in switch_off_idx], [ys[i] for i in switch_off_idx], color='red', marker='o')
@@ -1377,61 +1399,62 @@ class Analyzer():
         #             [y for i, y in enumerate(ys) if hits[i]],
         #          marker='x', color='red')
         # plt.show()
-            # while ys[peak_idx] * direction > y_avg * direction + min_amp * 0.5 and \
-            #         decline_counter < DECLINE_COUNTER_THRESHOLD:
-            #     if max_peak_idx < 0 or ys[peak_idx] * direction > ys[max_peak_idx] * direction:
-            #         max_peak_idx = peak_idx  # update maximum index pointer
-            #         decline_counter = 0
-            #     if ys[peak_idx] * direction < ys[peak_idx-1] * direction:
-            #         decline_counter += 1 # downward slope
-            #     elif ys[peak_idx] * direction > ys[peak_idx - 1] * direction:
-            #         increase_counter += 1 # upward slope
-            #     y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
-            #     start_idx += 1
-            #     peak_idx += 1
-            # else:
-            #     if max_peak_idx > 0:
-            #         # potential peak found
-            #         mini = self.analyze_candidate_mini(
-            #             xs,
-            #             ys,
-            #             max_peak_idx,
-            #             x_sigdig=self.recording.x_sigdig,
-            #             direction=direction,
-            #             lag=lag,
-            #             min_amp = min_amp,
-            #             max_amp=max_amp,
-            #             offset=offset
-            #         )
-            #         if mini['success']:
-            #             self.mini_df = self.mini_df.append(Series(mini),
-            #                                            ignore_index=True,
-            #                                            verify_integrity=True,
-            #                                            sort=True)
-            #             ys[max_peak_idx:mini['end_idx'] - offset] =  ys[max_peak_idx:mini['end_idx'] - offset]- single_exponent_constant(
-            #                 (xs[max_peak_idx:mini['end_idx'] - offset] - xs[max_peak_idx]) * 1000,
-            #                 mini['decay_A'],
-            #                 mini['decay_tau'],
-            #                 0
-            #             ) * direction
-            #             ys[int(mini['baseline_idx'] - offset):int(mini['peak_idx'] - offset)] = mini['baseline']
-            #         mini = {}
-            #         max_peak_idx = -1
-            # y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
-            # start_idx += 1
-            # peak_idx += 1
+        # while ys[peak_idx] * direction > y_avg * direction + min_amp * 0.5 and \
+        #         decline_counter < DECLINE_COUNTER_THRESHOLD:
+        #     if max_peak_idx < 0 or ys[peak_idx] * direction > ys[max_peak_idx] * direction:
+        #         max_peak_idx = peak_idx  # update maximum index pointer
+        #         decline_counter = 0
+        #     if ys[peak_idx] * direction < ys[peak_idx-1] * direction:
+        #         decline_counter += 1 # downward slope
+        #     elif ys[peak_idx] * direction > ys[peak_idx - 1] * direction:
+        #         increase_counter += 1 # upward slope
+        #     y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
+        #     start_idx += 1
+        #     peak_idx += 1
+        # else:
+        #     if max_peak_idx > 0:
+        #         # potential peak found
+        #         mini = self.analyze_candidate_mini(
+        #             xs,
+        #             ys,
+        #             max_peak_idx,
+        #             x_sigdig=self.recording.x_sigdig,
+        #             direction=direction,
+        #             lag=lag,
+        #             min_amp = min_amp,
+        #             max_amp=max_amp,
+        #             offset=offset
+        #         )
+        #         if mini['success']:
+        #             self.mini_df = self.mini_df.append(Series(mini),
+        #                                            ignore_index=True,
+        #                                            verify_integrity=True,
+        #                                            sort=True)
+        #             ys[max_peak_idx:mini['end_idx'] - offset] =  ys[max_peak_idx:mini['end_idx'] - offset]- single_exponent_constant(
+        #                 (xs[max_peak_idx:mini['end_idx'] - offset] - xs[max_peak_idx]) * 1000,
+        #                 mini['decay_A'],
+        #                 mini['decay_tau'],
+        #                 0
+        #             ) * direction
+        #             ys[int(mini['baseline_idx'] - offset):int(mini['peak_idx'] - offset)] = mini['baseline']
+        #         mini = {}
+        #         max_peak_idx = -1
+        # y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
+        # start_idx += 1
+        # peak_idx += 1
         return ys
 
     def analyze_candidate_mini(self,
                                xs,
                                ys,
                                peak_idx,
-                               x_sigdig = None,
+                               x_sigdig=None,
                                sampling_rate=None,
                                channel=0,
                                direction=1,
                                reference_df=True,
                                ## parameters defined in GUI ##
+                               delta_x=400,
                                lag=100,
                                min_amp=0.0,
                                max_amp=np.inf,
@@ -1475,7 +1498,8 @@ class Analyzer():
             reference_df: bool indicating whether to compare the results against previously found minis stored in mini_df.
                 If True, previously found minis will be ignored, and newly found minis will be added to the mini_df
         """
-        mini = {'direction': direction, 'lag': lag, 'channel': channel, 'min_amp': min_amp, 'max_amp': max_amp,
+        mini = {'direction': direction, 'lag': lag, 'delta_x': delta_x, 'channel': channel, 'min_amp': min_amp,
+                'max_amp': max_amp,
                 'min_rise': min_rise, 'max_rise': max_rise, 'min_hw': min_hw, 'max_hw': max_hw, 'min_decay': min_decay,
                 'max_decay': max_decay, 'max_points_decay': max_points_decay,
                 'datetime': datetime.now().strftime('%m-%d-%y %H:%M:%S'), 'failure': None, 'success': True,
@@ -1485,10 +1509,7 @@ class Analyzer():
             mini['decay_unit'] = mini['rise_unit'] = mini['halfwidth_unit'] = 'ms'
         else:
             mini['decay_unit'] = mini['rise_unit'] = mini['halfwidth_unit'] = x_unit + 'E-3'
-        ######## need to subtract prev peak and extrapolate decay regardless of compound
-        # large peaks will pull the baseline
 
-        pass
         # extract peak datapoint
         if x_sigdig is not None:
             mini['t'] = round(mini['t'], x_sigdig)  # round the x_value of the peak to indicated number of digits
@@ -1507,56 +1528,58 @@ class Analyzer():
         mini['peak_coord_x'] = xs[peak_idx]
         mini['peak_coord_y'] = ys[peak_idx]
 
+        baseline_idx, mini['baseline'] = self.find_mini_start(peak_idx=peak_idx,
+                                                              ys=ys,
+                                                              lag=lag,
+                                                              delta_x=delta_x,
+                                                              direction=direction)
+        base_idx = (peak_idx - delta_x - lag, peak_idx - delta_x)
+        # check if baseline calculation was successful
+        if baseline_idx is None:  # not successful
+            mini['success'] = False
+            mini['failure'] = 'Baseline could not be found'
+            return mini
         ####### search baseline #######
         # find baseline/start of event
         prev_peak_idx = None
+
         if reference_df and len(self.mini_df.index) > 0:
             # try:
-                # find the peak of the previous mini
-                # peak x-value must be stored in the column 't'
-                # check that the channels are the same
+            # find the peak of the previous mini
+            # peak x-value must be stored in the column 't'
+            # check that the channels are the same
             try:
-                prev_peak_idx = max(self.mini_df.loc[(self.mini_df['channel']==channel) & (self.mini_df['t']<mini['t'])].peak_idx)
-                prev_peak_end = self.mini_df[self.mini_df.peak_idx == prev_peak_idx].end_coord_x.tolist()[0] # store end of previous mini
-                if prev_peak_end > mini['t']: # peak is within the decay of another mini:
+                prev_peak_idx = max(self.mini_df[(self.mini_df['channel'] == channel) & (
+                            self.mini_df['t'] < mini['t'])].peak_idx.tolist())
+                prev_mini = self.mini_df[self.mini_df.peak_idx == prev_peak_idx].to_dict(orient='index')
+                prev_mini = prev_mini[list(prev_mini.keys())[0]]
+                if baseline_idx < prev_mini['end_idx'] + lag - offset:
+                    # caught the tail end of trailing avg from prev peak
+                    prev_peak_idx_offset = int(prev_peak_idx) - offset
+                    if prev_peak_idx_offset < 0 or prev_peak_idx > len(ys):  # not sufficient datapoints
+                        mini['success'] = False
+                        mini['failure'] = 'The compound mini could not be analyzed - need more data points'
+                    baseline_idx = np.where(ys[prev_peak_idx_offset:peak_idx] * direction == min(
+                        ys[prev_peak_idx_offset:peak_idx] * direction))[0][0] + prev_peak_idx_offset
+                if prev_mini['end_idx'] > mini['peak_idx'] - lag - delta_x:  # the baseline might be contaminated by
                     mini['compound'] = True
-            except:
+                ######## need to subtract prev peak and extrapolate decay regardless of compound
+                # large peaks will pull the baseline
+                prev_peak = int(prev_mini['peak_idx'] - offset)
+                prev_end = int(prev_mini['end_idx'] - offset)
+                prev_start = int(prev_mini['start_idx'] - offset)
+                ys[prev_peak:prev_end] = ys[prev_peak:prev_end] - single_exponent_constant(
+                    (xs[prev_peak:prev_end] - xs[prev_peak]) * 1000, prev_mini['decay_A'], prev_mini['decay_const'],
+                    prev_mini['decay_C']) * prev_mini['direction'] + prev_mini['baseline']
+                ys[prev_start:prev_peak] = prev_mini['baseline']
+            except Exception as e:
+                print(e)
                 pass
-        if not mini['compound']:
-            baseline_idx, mini['baseline'] = self.find_mini_start(peak_idx=peak_idx,
-                                                                                  ys=ys,
-                                                                                  lag=lag,
-                                                                                  direction=direction)
 
-            # check if baseline calculation was successful
-            if baseline_idx is None:  # not successful
-                mini['success'] = False
-                mini['failure'] = 'Baseline could not be found'
-                return mini
-            mini['baseline_idx'] = baseline_idx + offset
-            ####### calculate amplitude #######
-            mini['amp'] = (mini['peak_coord_y'] - mini['baseline'])  # signed
-        else:
-            prev_peak_idx_offset = int(prev_peak_idx) - offset
-            if prev_peak_idx_offset < 0 or prev_peak_idx > len(ys):
-                mini['success'] = False
-                mini['failure'] = 'The compound mini could not be analyzed - need more data points'
-            baseline_idx = np.where(ys[prev_peak_idx_offset:peak_idx] * direction == min(ys[prev_peak_idx_offset:peak_idx] * direction))[0][0] + prev_peak_idx_offset
-            mini['baseline'] = ys[baseline_idx] - single_exponent_constant(xs[baseline_idx] - xs[prev_peak_idx_offset]*1000,
-                                                                           self.mini_df[self.mini_df.peak_idx == prev_peak_idx].decay_A.tolist()[0],
-                                                                           self.mini_df[self.mini_df.peak_idx == prev_peak_idx].decay_const.tolist()[0],
-                                                                           self.mini_df[self.mini_df.peak_idx == prev_peak_idx].decay_C).tolist()[0]
-            # find the local minimum between the two peaks
-
-            # extrapolate decay of previous peak at current peak
-            y = single_exponent_constant(xs[peak_idx] - xs[prev_peak_idx_offset]*1000,
-                                         self.mini_df[self.mini_df.peak_idx == prev_peak_idx].decay_A.tolist()[0],
-                                         self.mini_df[self.mini_df.peak_idx == prev_peak_idx].decay_const.tolist()[0],
-                                         self.mini_df[self.mini_df.peak_idx == prev_peak_idx].decay_C.tolist()[0]) * direction
-            mini['amp'] = (mini['peak_coord_y'] - y) # signed
-
-
-
+        mini['baseline'] = ys[baseline_idx]
+        mini['start_idx'] = baseline_idx + offset
+        mini['base_idx'] = (base_idx[0] + offset, base_idx[1] + offset)
+        mini['amp'] = (mini['peak_coord_y'] - mini['baseline'])  # signed
         # store coordinate for start of mini (where the plot meets the baseline)
         mini['start_coord_x'] = xs[baseline_idx]
         mini['start_coord_y'] = ys[baseline_idx]
@@ -1573,9 +1596,9 @@ class Analyzer():
 
         ####### calculate end of event #######
         end_idx, _ = self.find_mini_end(peak_idx=mini['peak_idx'],
-                                                          ys=ys,
-                                                          lag=lag,
-                                                          direction=direction)
+                                        ys=ys,
+                                        lag=lag,
+                                        direction=direction)
         mini['end_idx'] = end_idx + offset
         if mini['end_idx'] is None:  # not successful
             mini['success'] = False
@@ -1600,43 +1623,21 @@ class Analyzer():
             mini['failure'] = 'Max rise exceeded'
             return mini
 
-
         ####### calculate decay ########
         mini['decay_start_idx'] = mini['peak_idx']  # peak = start of decay
         # mini['decay_end_idx'] = min(mini['peak_idx'] + max_points_decay, len(xs) + offset)
         mini['decay_end_idx'] = mini['end_idx']
-        if not mini['compound']: #not compound mini
-            try:
-                mini['decay_A'], mini['decay_const'], mini['decay_C'], decay_idx = self.calculate_mini_decay(
-                    xs=xs, ys=ys, start_idx=peak_idx, end_idx=end_idx, num_points=max_points_decay, direction=direction,
+
+        try:
+            mini['decay_A'], mini['decay_const'], mini['decay_C'], decay_idx = self.calculate_mini_decay(
+                xs=xs, ys=ys, start_idx=peak_idx, end_idx=end_idx, num_points=max_points_decay, direction=direction,
                 sampling_rate=sampling_rate, baseline=mini['baseline'])
-            except:
-                mini['success'] = False
-                mini['failure'] = 'decay cannot be calculated'
-                return mini
-            mini['decay_idx'] = decay_idx + offset
+        except:
+            mini['success'] = False
+            mini['failure'] = 'decay cannot be calculated'
+            return mini
+        mini['decay_idx'] = decay_idx + offset
 
-        else:
-            try:
-                decay_end_idx = min(peak_idx + max_points_decay, len(xs))
-                extrapolated_ys = ys[prev_peak_idx_offset:decay_end_idx] - single_exponent_constant(
-                    (xs[prev_peak_idx_offset:decay_end_idx]-xs[prev_peak_idx_offset]) * 1000,
-                    self.mini_df[self.mini_df.prev_peak == prev_peak_idx].decay_A.tolist()[0],
-                    self.mini_df[self.mini_df.prev_peak == prev_peak_idx].decay_tau.tolist()[0],
-                    self.mini_df[self.mini_df.prev_peak == prev_peak_idx].decay_C.tolist()[0]
-                ) * direction
-
-                mini['decay_A'], mini['decay_const'], mini['decay_C'], decay_idx = self.calculate_mini_decay(
-                    xs=xs[prev_peak_idx_offset:decay_end_idx], ys=extrapolated_ys,
-                    start_idx=peak_idx - prev_peak_idx_offset,
-                    end_idx=end_idx - prev_peak_idx_offset, num_points=len(ys) - (peak_idx + prev_peak_idx_offset),
-                    direction=direction, sampling_rate=sampling_rate
-                )
-                decay_idx += peak_idx
-            except:
-                mini['success'] = False
-                mini['failure'] = 'decay cannot be calculated'
-                return mini
         if mini['decay_const'] < min_decay:
             mini['success'] = False
             mini['failure'] = 'Min decay not met'
@@ -1654,7 +1655,7 @@ class Analyzer():
                 mini['decay_A'],
                 mini['decay_const'],
                 mini['decay_C']
-            ) * direction + mini['baseline'] #### add support for compound (add back subtracted baseline)
+            ) * direction + mini['baseline']  #### add support for compound (add back subtracted baseline)
         except Exception as e:
             print(f'decay coord error: {e}')
             pass
@@ -1668,7 +1669,7 @@ class Analyzer():
             mini['success'] = False
             mini['failure'] = 'Halfwidth could not be calculated'
             return mini
-        else: # halfwidth was successfully found - check against criteria
+        else:  # halfwidth was successfully found - check against criteria
             if mini['halfwidth'] < min_hw:
                 mini['success'] = False
                 mini['failure'] = 'Min halfwidth not met'
@@ -1681,7 +1682,6 @@ class Analyzer():
 
             mini['halfwidth_start_idx'] = halfwidth_start_idx + offset
             mini['halfwidth_end_idx'] = halfwidth_end_idx + offset
-
 
             mini['halfwidth_start_coord_x'] = xs[halfwidth_start_idx]
             mini['halfwidth_start_coord_y'] = ys[halfwidth_start_idx]
@@ -1696,7 +1696,6 @@ class Analyzer():
     def load_minis_from_file(self, filename):
         self.mini_df = pd.read_csv(filename, index_col=0)
 
-
     ############## others
     def mark_greater_than_baseline(self,
                                    xs,
@@ -1707,17 +1706,17 @@ class Analyzer():
                                    delta_x: int = 100,
                                    min_amp: float = 0,
                                    max_amp: float = np.inf,
-                                   direction: int=1):
-        hits = [0]*len(ys)
+                                   direction: int = 1):
+        hits = [0] * len(ys)
 
-        peaks=[]
+        peaks = []
         peak_idx = start_idx + lag + delta_x
         if end_idx is None:
             end_idx = len(ys)
         if end_idx - start_idx < lag + delta_x:
             return None  # not enough data points to analyze
         y_avg = np.mean(ys[start_idx: start_idx + lag])
-        ys_avg = [0]*len(ys)
+        ys_avg = [0] * len(ys)
         ys_avg[peak_idx] = y_avg
         max_peak_idx = -1
         while peak_idx < end_idx:
@@ -1739,6 +1738,7 @@ class Analyzer():
             start_idx += 1
             peak_idx += 1
         return hits, peaks, ys_avg
+
     def look_ahead_for_peak(self,
                             ys,
                             start_idx: int = 0,
@@ -1770,20 +1770,20 @@ class Analyzer():
         if end_idx is None:
             end_idx = len(ys)
         if end_idx - start_idx < lag + delta_x:
-            return None # not enough data points to analyze
+            return None  # not enough data points to analyze
         y_avg = np.mean(ys[start_idx: start_idx + lag])
         max_peak_idx = -1
         while peak_idx < end_idx:
             while ys[peak_idx] * direction > y_avg * direction + min_amp:
                 if max_peak_idx < 0 or ys[peak_idx] * direction > ys[max_peak_idx] * direction:
-                    max_peak_idx = peak_idx # update maximum index pointer
+                    max_peak_idx = peak_idx  # update maximum index pointer
                 y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
                 start_idx += 1
                 peak_idx += 1
             else:
                 if max_peak_idx > 0:
-                    if ys[max_peak_idx] * direction > max_amp: # maximum amp reached
-                        max_peak_idx = -1 # clear result
+                    if ys[max_peak_idx] * direction > max_amp:  # maximum amp reached
+                        max_peak_idx = -1  # clear result
                     else:
                         return max_peak_idx
                 y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
@@ -1794,16 +1794,16 @@ class Analyzer():
     def find_mini_3(self,
                     xs,
                     ys,
-                    lag: int=100,
-                    min_amp:float=0.3,
-                    max_amp:float=1,
-                    direction:int=1,
-                    range:int=100):
-        index=0
+                    lag: int = 100,
+                    min_amp: float = 0.3,
+                    max_amp: float = 1,
+                    direction: int = 1,
+                    range: int = 100):
+        index = 0
         length = len(xs)
-        hits= [0] * len(xs)
+        hits = [0] * len(xs)
         while index < length:
-            right_index = int(min(length, index+lag))
+            right_index = int(min(length, index + lag))
             peak_idx = self.find_peak_recursive(xs, ys, start=index, end=right_index, direction=direction)
             if peak_idx:
                 peak = ys[peak_idx]
@@ -1819,13 +1819,11 @@ class Analyzer():
 
             if base and (peak - base) * direction > min_amp:
                 hits[peak_idx] = 1
-                index = int(peak_idx+1)
+                index = int(peak_idx + 1)
             else:
-                index = int(index + lag/4)
+                index = int(index + lag / 4)
 
         return hits
-
-
 
 
 ##############################
@@ -1845,12 +1843,12 @@ def point_line_min_distance(point, xs, ys, sampling_rate, radius=np.inf, xy_rati
 
     returns float distance, int index, float tuple closest point
     """
-    point_idx = int(point[0]*sampling_rate)
+    point_idx = int(point[0] * sampling_rate)
     if radius == np.inf:
         search_xlim = (0, len(xs))
     else:
-        search_xlim = (max(0, int(point_idx - radius*sampling_rate)), # search start index (0 or greater)
-                       min(len(xs), int(point_idx + radius*sampling_rate))) # search end index (len(xs) or less)
+        search_xlim = (max(0, int(point_idx - radius * sampling_rate)),  # search start index (0 or greater)
+                       min(len(xs), int(point_idx + radius * sampling_rate)))  # search end index (len(xs) or less)
     min_d = np.inf
     min_i = None
     for i in range(search_xlim[0], search_xlim[1], 1):
@@ -1860,7 +1858,8 @@ def point_line_min_distance(point, xs, ys, sampling_rate, radius=np.inf, xy_rati
             min_i = i
     if min_i:
         return min_d, min_i, (xs[min_i], ys[min_i])
-    return None, None, None # no match
+    return None, None, None  # no match
+
 
 def euc_distance(point1, point2, xy_ratio):
     """
@@ -1870,7 +1869,8 @@ def euc_distance(point1, point2, xy_ratio):
     point2: float tuple (x,y)
     xy_ratio: float - Used to normalize the weight of x- and y- distances
     """
-    return hypot((point2[0] - point1[0]), (point2[1] - point1[1])*xy_ratio)
+    return hypot((point2[0] - point1[0]), (point2[1] - point1[1]) * xy_ratio)
+
 
 def search_index(x, l, rate=None):
     """
@@ -1880,30 +1880,31 @@ def search_index(x, l, rate=None):
     rate: float - the interval between each x-datapoint (inverse of sampling_rate)
     """
     if x < l[0]:
-        return -1 # out of bounds
+        return -1  # out of bounds
     if x > l[-1]:
-        return len(l) # out of bounds
+        return len(l)  # out of bounds
     if rate is None:
-        rate = 1/np.mean(l[1:6] - l[0:5]) # estimate recording rate
+        rate = 1 / np.mean(l[1:6] - l[0:5])  # estimate recording rate
     est = int((x - l[0]) * rate)
-    if est > len(l): # estimate is out of bounds
+    if est > len(l):  # estimate is out of bounds
         est = len(l) - 1
     if l[est] == x:
         return est
-    if l[est] > x: # estimate is too high
-        while est >= 0: # loop until index hits 0
-            if l[est] <= x: # loop until x-value is reached
+    if l[est] > x:  # estimate is too high
+        while est >= 0:  # loop until index hits 0
+            if l[est] <= x:  # loop until x-value is reached
                 return est
-            est -= 1 # increment down
+            est -= 1  # increment down
         else:
-            return est # out of bounds (-1)
-    elif l[est] < x: # estimated index is too low
-        while est < len(l): # loop until end of list
-            if l[est] >= x: # loop until x-value is reached
+            return est  # out of bounds (-1)
+    elif l[est] < x:  # estimated index is too low
+        while est < len(l):  # loop until end of list
+            if l[est] >= x:  # loop until x-value is reached
                 return est
             est += 1
         else:
-            return est # out of bounds (len(l))
+            return est  # out of bounds (len(l))
+
 
 def single_exponent_constant(x, a, t, d):
     return a * np.exp(-(x) / t) + d
@@ -1921,20 +1922,20 @@ def format_list_indices(idx):
                 s = '{}..{}'.format(s, n)
             else:
                 s = '{},{}'.format(s, n)
-        elif n - 1 == idx[i-1] and n+1 == idx[i+1]:
-            #0, [1, 2, 3], 4, 10, 11 --> '0'
-            pass # do nothing
-        elif n-1 == idx[i-1] and n+1 != idx[i+1]:
-            #0, 1, 2, [3, 4, 10], 11 --> '0..4'
+        elif n - 1 == idx[i - 1] and n + 1 == idx[i + 1]:
+            # 0, [1, 2, 3], 4, 10, 11 --> '0'
+            pass  # do nothing
+        elif n - 1 == idx[i - 1] and n + 1 != idx[i + 1]:
+            # 0, 1, 2, [3, 4, 10], 11 --> '0..4'
             s = '{}..{}'.format(s, n)
-        elif n-1 != idx[i-1]:
-            #0, 1, 2, 3, [4, 10, 11], 14, 16 --> '0..4,10' -->'0..4,10..11'
+        elif n - 1 != idx[i - 1]:
+            # 0, 1, 2, 3, [4, 10, 11], 14, 16 --> '0..4,10' -->'0..4,10..11'
             s = '{},{}'.format(s, n)
 
     return s
 
 
-def calculate_window_around_x(x:float,
+def calculate_window_around_x(x: float,
                               r: float,
                               xs: np.ndarray,
                               ys: np.ndarray = None,
@@ -1960,8 +1961,8 @@ def calculate_window_around_x(x:float,
         end_idx: int
     """
     x_idx = search_index(x, xs, sampling_rate)
-    start_idx = search_index(x-r, xs, sampling_rate)
-    end_idx = search_index(x+r, xs, sampling_rate)
+    start_idx = search_index(x - r, xs, sampling_rate)
+    end_idx = search_index(x + r, xs, sampling_rate)
 
     # narrow window based on x-axis limits
     try:
@@ -1970,7 +1971,7 @@ def calculate_window_around_x(x:float,
             search_index(xlim[1], xs, sampling_rate)
         )
     except:
-        xlim_idx=(0, len(xs))
+        xlim_idx = (0, len(xs))
 
     start_idx = max(start_idx, xlim_idx[0])
     end_idx = min(end_idx, xlim_idx[1])
@@ -1983,7 +1984,7 @@ def calculate_window_around_x(x:float,
         y_high = ys[start_idx:end_idx] > ylim[1]
         y_low = ys[start_idx:end_idx] < ylim[0]
 
-        if sum(y_high) > 0 or sum(y_low) > 0: # there are data points out of ylim bounds
+        if sum(y_high) > 0 or sum(y_low) > 0:  # there are data points out of ylim bounds
             i = x_idx - start_idx
             while i > 0:
                 if y_high[i] or y_low[i]:
@@ -1999,7 +2000,3 @@ def calculate_window_around_x(x:float,
             end_idx = i
 
     return start_idx + offset, end_idx + offset
-
-
-
-

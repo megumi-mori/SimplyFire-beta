@@ -92,6 +92,7 @@ default_detector_core_direction : 'positive'
 default_detector_core_search_radius : 5.0
 default_detector_core_auto_radius : 60
 default_detector_core_lag : 100
+default_detector_core_deltax: 400
 default_detector_core_max_points_decay : 40000
 default_detector_core_update_events : 0
 
