@@ -330,7 +330,7 @@ def config_data_tab(tab_name, **kwargs):
 ######################################
 
 def save_events(filename):
-    al.mini_df.to_csv(filename)
+    al.mini_df.to_csv(filename, index=False)
 
 def save_events_dialogue(e=None):
     if not app.event_filename:
@@ -338,32 +338,30 @@ def save_events_dialogue(e=None):
         return None
     try:
         if len(al.mini_df) > 0:
-            al.mini_df.to_csv(app.event_filename)
+            al.mini_df.to_csv(app.event_filename, index=True)
         else:
-            messagebox.showerror('No minis to save')
+            messagebox.showerror('Error', 'No minis to save')
     except:
         messagebox.showerror('Write error', 'Could not write data to selected filename.')
     return None
 
 
 def save_events_as_dialogue(e=None):
-    filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.csv')
-    if filename:
+    if len(al.mini_df) > 0:
+        filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.csv')
         try:
-            if len(al.mini_df) > 0:
-                al.mini_df.to_csv(app.event_filename)
-            else:
-                messagebox.showerror('No minis to save')
+            al.mini_df.to_csv(filename, index=True)
+            app.event_filename = filename
         except:
             messagebox.showerror('Write error', 'Could not write data to selected filename.')
-    return None
-
+    else:
+        messagebox.showerror('Error', 'No minis to save')
+    return
 
 def open_events(filename, log=True):
     global mini_df
 
-    temp_filename = os.path.join(config.DIR, *config.default_temp_path,
-                                 'temp_{}.temp'.format(get_temp_num()))
+    temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
     save_events(temp_filename)
     add_undo([
         data_display.clear,
@@ -371,20 +369,20 @@ def open_events(filename, log=True):
         lambda msg='Undo open event file':log_display.log(msg),
         update_event_marker,
     ])
-    try:
-        mini_df = pd.read_csv(filename, index_col=0)
-        app.event_filename = filename
-        data_display.clear()
-        xs = mini_df.index.where(mini_df['channel'] == al.recording.channel)
-        xs = xs.dropna()
-        data_display.append(mini_df.loc[xs])
+    al.mini_df = pd.read_csv(filename)
+    app.event_filename = filename
+    data_display.clear()
+    xs = al.mini_df[al.mini_df['channel'] == al.recording.channel]
+    data_display.append(xs)
 
-        update_event_marker()
-        if log:
-            log_display.open_update('mini data: {}'.format(filename))
+    update_event_marker()
+    if log:
+        log_display.open_update('mini data: {}'.format(filename))
+    # try:
 
-    except:
-        messagebox.showerror('Read error', 'Could not read data.')
+    #
+    # except:
+    #     messagebox.showerror('Read error', 'Could not read data.')
 
 def restore_events():
     try:
