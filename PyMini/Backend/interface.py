@@ -361,6 +361,9 @@ def save_events_as_dialogue(e=None):
 
 def open_events(filename, log=True):
     global mini_df
+    if not al.recording:
+        # recording file not open yet
+        messagebox.showerror('Open error', 'Please open a recording file first.')
 
     temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
     save_events(temp_filename)
