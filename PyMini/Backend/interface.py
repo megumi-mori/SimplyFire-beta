@@ -221,7 +221,7 @@ def _change_channel(num, save_undo=True):
         add_undo(lambda n=al.recording.channel, s=False:_change_channel(n, s))
 
     al.recording.set_channel(num)
-    app.widgets['channel_option'].set('{}: {}'.format(al.recording.channel + 1, al.recording.y_label))
+    app.widgets['channel_option'].set('{}: {}'.format(al.recording.channel, al.recording.y_label)) #0 indexing for channel num
     if app.widgets['trace_mode'].get() == 'continuous':
         plot_continuous(fix_x=True, draw=False)
     else:
@@ -232,10 +232,11 @@ def _change_channel(num, save_undo=True):
     trace_display.canvas.draw()
     data_display.clear()
 
-    xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
-    xs = xs.dropna()
-    data_display.set(al.mini_df.loc[xs])
-    update_event_marker()
+    if len(al.mini_df.index) > 0:
+        xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
+        xs = xs.dropna()
+        data_display.set(al.mini_df.loc[xs])
+        update_event_marker()
 
 
 def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
@@ -1052,7 +1053,7 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
         for i,c in enumerate(channels):
             results_display.table_frame.add({
                 'filename': al.recording.filename,
-                'channel': c + 1,  # 0 indexing
+                'channel': c,  # 0 indexing
                 'analysis': 'trace averaging',
                 'min': mins[i, 0, 0],
                 'min_unit': al.recording.channel_units[c],
