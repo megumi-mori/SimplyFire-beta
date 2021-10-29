@@ -1268,7 +1268,7 @@ class Analyzer():
         y_weight[0] = 0.001
 
         # fit
-        results = curve_fit(single_exponent_constant,
+        results = curve_fit(single_exponent,
                             x_data,
                             y_data,
                             sigma=y_weight,
@@ -1277,11 +1277,11 @@ class Analyzer():
         # print(results[0])
         a = results[0][0]
         t = results[0][1]
-        d = results[0][2]
+        # d = results[0][2]
         # print((a, t, d))
         decay_constant_idx = search_index(t, x_data, sampling_rate) + start_idx  # offset to start_idx
 
-        return a, t, d, decay_constant_idx
+        return a, t, decay_constant_idx
 
     def analyze_candidate_mini(self,
                                xs,
@@ -1409,9 +1409,9 @@ class Analyzer():
                 prev_end = int(prev_mini['end_idx'] - offset)
                 prev_start = int(prev_mini['start_idx'] - offset)
                 prev_decay = prev_peak - prev_mini['decay_idx']
-                ys[prev_peak:prev_peak + prev_decay *2] = ys[prev_peak:prev_peak + prev_decay *2] - single_exponent_constant(
-                    (xs[prev_peak:prev_peak + prev_decay *2] - xs[prev_peak]) * 1000, prev_mini['decay_A'], prev_mini['decay_const'],
-                    prev_mini['decay_C']) * prev_mini['direction'] + prev_mini['baseline']
+                ys[prev_peak:prev_peak + prev_decay *2] = ys[prev_peak:prev_peak + prev_decay *2] - single_exponent(
+                    (xs[prev_peak:prev_peak + prev_decay *2] - xs[prev_peak]) * 1000, prev_mini['decay_A'], prev_mini['decay_const'], #prev_mini['decay_C']
+                ) * prev_mini['direction'] + prev_mini['baseline']
                 ys[prev_start:prev_peak] = prev_mini['baseline']
             except Exception as e:
                 print(e)
@@ -1470,7 +1470,7 @@ class Analyzer():
         mini['decay_end_idx'] = mini['end_idx']
 
         try:
-            mini['decay_A'], mini['decay_const'], mini['decay_C'], decay_idx = self.calculate_mini_decay(
+            mini['decay_A'], mini['decay_const'], decay_idx = self.calculate_mini_decay(
                 xs=xs, ys=ys, start_idx=peak_idx, end_idx=end_idx, num_points=max_points_decay, direction=direction,
                 sampling_rate=sampling_rate, baseline=mini['baseline'])
         except:
@@ -1491,11 +1491,11 @@ class Analyzer():
         try:
             mini['decay_coord_x'] = xs[decay_idx]
             mini['decay_coord_x'] = xs[decay_idx]
-            mini['decay_coord_y'] = single_exponent_constant(
+            mini['decay_coord_y'] = single_exponent(
                 mini['decay_const'],
                 mini['decay_A'],
                 mini['decay_const'],
-                mini['decay_C']
+                # mini['decay_C']
             ) * direction + mini['baseline']  #### add support for compound (add back subtracted baseline)
         except Exception as e:
             print(f'decay coord error: {e}')
@@ -1749,6 +1749,9 @@ def search_index(x, l, rate=None):
 
 def single_exponent_constant(x, a, t, d):
     return a * np.exp(-(x) / t) + d
+
+def single_exponent(x, a, t):
+    return a * np.exp(-(x)/t)
 
 
 def format_list_indices(idx):

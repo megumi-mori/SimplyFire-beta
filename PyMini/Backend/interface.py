@@ -663,7 +663,7 @@ def report_to_param_guide(xs, ys, data, clear=False):
 
 
         x_data = (xs[int(data['peak_idx']):int(min(data['peak_idx'] + data['max_points_decay'], len(xs)))] - xs[int(data['peak_idx'])]) * 1000
-        y_decay = analyzer2.single_exponent_constant(x_data, data['decay_A'], data['decay_const'], data['decay_C'])
+        y_decay = analyzer2.single_exponent(x_data, data['decay_A'], data['decay_const'])
 
         x_data = x_data / 1000 + xs[int(data['peak_idx'])]
         y_decay = y_decay * data['direction'] + data['baseline']
