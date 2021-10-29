@@ -73,7 +73,7 @@ def load(parent):
         'auto_radius': {'id':'detector_core_auto_radius',
                         'label':'Search window in number of points per iteration (Auto)', 'validation':'int', 'conversion': int},
         'delta_x': {'id': 'detector_core_deltax',
-                    'label':'Points before peak for baseline',
+                    'label':'Points before peak to estimate baseline (input 0 to ignore this factor)',
                     'validation':'int'},
         'lag': {'id': 'detector_core_lag',
                             'label': 'Number of data points averaged for baseline:',
@@ -92,6 +92,13 @@ def load(parent):
         widgets[d['id']].bind('<FocusOut>', apply_parameters, add='+')
         parameters[d['id']] = widgets[d['id']].get()
         changes[d['id']] = widgets[d['id']].get()
+
+    widgets['detector_compound'] = optionframe.insert_label_checkbox(
+        name='detector_compound',
+        label='Analyze compound minis',
+        onvalue=1,
+        offvalue=0,
+    )
 
     widgets['detector_core_update_events'] = optionframe.insert_label_checkbox(
         name='detector_core_update_events',
@@ -271,6 +278,7 @@ def extract_mini_parameters():
     params = {}
     params['direction'] = {'negative':-1, 'positive':1}[widgets['detector_core_direction'].get()] # convert direction to int value
     params['update'] = widgets['detector_core_update_events'].get()
+    params['compound'] = int(widgets['detector_compound'].get())
     global core_params
     global filter_params
     for k, d in core_params.items():

@@ -94,6 +94,7 @@ default_detector_core_auto_radius : 60
 default_detector_core_lag : 100
 default_detector_core_deltax: 400
 default_detector_core_max_points_decay : 40000
+default_detector_compound: 1
 default_detector_core_update_events : 0
 
 default_detector_filter_min_amp : 0.3

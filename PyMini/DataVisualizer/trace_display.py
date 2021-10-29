@@ -6,7 +6,8 @@ from matplotlib.animation import FuncAnimation
 import app
 import gc
 
-from Backend import interface, analyzer
+from Backend import interface
+import Backend.analyzer2 as analyzer
 from Layout import graph_panel
 
 from DataVisualizer import data_display

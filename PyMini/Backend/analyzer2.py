@@ -1082,15 +1082,26 @@ class Analyzer():
         #     return None, baseline  # couldn't find the corresponding datapoint
         # return idx, baseline
 
+        if delta_x == 0:
+            tma = np.mean(ys[idx - lag:idx])*direction # avg lag data points - trailing moving average
+            while lag <= lag:
+                idx -= 1
+                tma = tma + (ys[idx - lag] - ys[idx]) * direction / lag # update trailing avg
+                if tma >= ys[idx] * direction:
+                    return idx, tma * direction
+            else:
+                return None, None
 
-        tma = np.mean(ys[idx - lag:idx] * direction) # avg lag data points - trailing moving average
-        while lag <= lag:
-            idx -= 1
-            tma = tma + (ys[idx - lag] - ys[idx]) * direction / lag # update trailing avg
+        # estimate baseline using avg data points at delta_x before peak
+        tma = np.mean(ys[peak_idx-delta_x-lag:peak_idx-delta_x])*direction
+        print(tma)
+        while idx > peak_idx - delta_x:
             if tma >= ys[idx] * direction:
-                return idx, tma * direction
+                return idx, tma*direction
+            idx -= 1
         else:
             return None, None
+
 
         # cma = np.mean(ys[idx - int(lag/2):idx] * direction) # central moving average
         #
@@ -1272,178 +1283,6 @@ class Analyzer():
 
         return a, t, d, decay_constant_idx
 
-    def find_mini_2(self,
-                    xs,
-                    ys,
-                    delta_x: int = 100,
-                    lag: int = 100,
-                    min_amp: float = 0.3,
-                    max_amp: float = np.inf,
-                    decrease_threshold: int = 5,
-                    increase_threshold: int = 5,
-                    direction: int = 1,
-                    offset: int = 0
-                    ):
-        """
-        uses the delta_x method to find peak - no window
-        """
-        ys = ys.copy()
-        plt.plot(xs, ys)
-        start_idx = 0
-        end_idx = len(ys)
-        decline_counter = 0
-
-        DECLINE_COUNTER_THRESHOLD = 5
-        increase_counter = 0
-        INCREASE_COUNTER_THRESHOLD = 5
-
-        switch = False
-        switch_on_idx = []
-        switch_off_idx = []
-
-        querry_idx = start_idx + lag + delta_x
-        if end_idx - start_idx < lag + delta_x:
-            return None  # not enough data points to analyze
-        y_avg = np.mean(ys[start_idx: start_idx + lag])
-        y_var = np.var(ys[start_idx:start_idx + lag])
-
-        inc_counter = [0] * len(ys)
-        dec_counter = [0] * len(ys)
-        print(y_var)
-        # y_var = sum([(y - y_avg)**2 for y in ys[start_idx:start_idx+lag]])/lag
-        y_std = np.std(ys[start_idx:start_idx + lag])
-
-        max_peak_idx = -1
-        while querry_idx < end_idx:
-            if (ys[
-                    querry_idx] - y_avg) * direction > min_amp * 0.36:  # try out std #min_amp * 0.36: # inside a potential mini event
-                if decline_counter > DECLINE_COUNTER_THRESHOLD and switch and max_peak_idx > 0:
-                    # user specified compound mini analysis
-                    # sufficiently in negative slope after a local max is found
-                    # consider this as a candidate mini peak, and perform analysis with criteria
-                    mini = self.analyze_candidate_mini(
-                        xs,
-                        ys,
-                        max_peak_idx,
-                        x_sigdig=self.recording.x_sigdig,
-                        direction=direction,
-                        lag=lag,
-                        min_amp=min_amp,
-                        max_amp=max_amp,
-                        offset=offset
-                    )
-                    if mini['success']:
-                        self.mini_df = self.mini_df.append(Series(mini),
-                                                           ignore_index=True,
-                                                           verify_integrity=True,
-                                                           sort=True)
-                        # ys[max_peak_idx:mini['end_idx'] - offset] = ys[
-                        #                                             max_peak_idx:mini['end_idx'] - offset
-                        #                                             ] - single_exponent_constant(
-                        #                     (xs[max_peak_idx:mini['end_idx'] - offset] - xs[max_peak_idx]) * 1000,
-                        #                     mini['decay_A'],
-                        #                     mini['decay_tau'],
-                        #                     0
-                        #                 ) * direction
-                        # ys[int(mini['baseline_idx'] - offset):int(mini['peak_idx'] - offset)] = mini['baseline']
-                    mini = {}
-                    increase_counter = 0  # refresh positive slope tracker
-                    decline_counter = 0  # refresh negative slope tracker
-                    max_peak_idx = -1  # refresh max tracker
-                    switch = False
-                    switch_off_idx.append(querry_idx)
-                elif max_peak_idx < 0 or ys[querry_idx] * direction > ys[max_peak_idx] * direction:
-                    # no max found yet or new max found
-                    max_peak_idx = querry_idx  # update max tracker
-                    decline_counter = 0  # refresh negative slope tracker
-                if ys[querry_idx] * direction > ys[querry_idx - 1] * direction:  # part of positive slope
-                    increase_counter += 1  # increase positive slope tracker
-                    if increase_counter > INCREASE_COUNTER_THRESHOLD:
-                        switch = True
-                        switch_on_idx.append(querry_idx)
-                elif ys[querry_idx] * direction < ys[querry_idx - 1] * direction:  # part of negative slope
-                    decline_counter += 1
-            else:  # datapoint is close to baseline, ignore
-                decline_counter = 0  # refresh negative slope tracker
-                increase_counter = 0  # refresh positive slope tracker
-                max_peak_idx = -1
-
-            new_y_avg = y_avg + (ys[start_idx + lag] - ys[start_idx]) / lag
-            # y_var += ((ys[start_idx+lag] - new_y_avg) + (ys[start_idx] - y_avg)) * (ys[start_idx + lag] - ys[start_idx])/lag
-            # if y_var < 0:
-            #     y_var = np.var(ys[start_idx+1:start_idx+lag+1])
-            # y_std = sqrt(y_var)
-            # y_std = np.std(ys[start_idx+1:start_idx + lag + 1])
-            # ys_std[int(start_idx + lag/2)] = y_std
-            dec_counter[querry_idx] = decline_counter
-            inc_counter[querry_idx] = increase_counter
-
-            y_avg = new_y_avg
-            querry_idx += 1
-            start_idx += 1
-
-        plt.plot(xs, [i - 8 for i in inc_counter], color='red')
-        plt.plot(xs, [i - 8 for i in dec_counter], color='purple')
-        plt.plot(xs, ys, color='blue')
-
-        plt.scatter([xs[i] for i in switch_on_idx], [ys[i] for i in switch_on_idx], color='green', marker='o')
-        plt.scatter([xs[i] for i in switch_off_idx], [ys[i] for i in switch_off_idx], color='red', marker='o')
-
-        scatter_x = [xs[int(idx)] for idx in self.mini_df.peak_idx[:]]
-        scatter_y = [ys[int(idx)] for idx in self.mini_df.peak_idx[:]]
-        plt.scatter(scatter_x, scatter_y, c='pink')
-        plt.show()
-        # plt.plot(xs, ys)
-        # plt.fill_between(xs, ys+ys_std, ys-ys_std)
-        # plt.scatter([x for i, x in enumerate(xs) if hits[i]],
-        #             [y for i, y in enumerate(ys) if hits[i]],
-        #          marker='x', color='red')
-        # plt.show()
-        # while ys[peak_idx] * direction > y_avg * direction + min_amp * 0.5 and \
-        #         decline_counter < DECLINE_COUNTER_THRESHOLD:
-        #     if max_peak_idx < 0 or ys[peak_idx] * direction > ys[max_peak_idx] * direction:
-        #         max_peak_idx = peak_idx  # update maximum index pointer
-        #         decline_counter = 0
-        #     if ys[peak_idx] * direction < ys[peak_idx-1] * direction:
-        #         decline_counter += 1 # downward slope
-        #     elif ys[peak_idx] * direction > ys[peak_idx - 1] * direction:
-        #         increase_counter += 1 # upward slope
-        #     y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
-        #     start_idx += 1
-        #     peak_idx += 1
-        # else:
-        #     if max_peak_idx > 0:
-        #         # potential peak found
-        #         mini = self.analyze_candidate_mini(
-        #             xs,
-        #             ys,
-        #             max_peak_idx,
-        #             x_sigdig=self.recording.x_sigdig,
-        #             direction=direction,
-        #             lag=lag,
-        #             min_amp = min_amp,
-        #             max_amp=max_amp,
-        #             offset=offset
-        #         )
-        #         if mini['success']:
-        #             self.mini_df = self.mini_df.append(Series(mini),
-        #                                            ignore_index=True,
-        #                                            verify_integrity=True,
-        #                                            sort=True)
-        #             ys[max_peak_idx:mini['end_idx'] - offset] =  ys[max_peak_idx:mini['end_idx'] - offset]- single_exponent_constant(
-        #                 (xs[max_peak_idx:mini['end_idx'] - offset] - xs[max_peak_idx]) * 1000,
-        #                 mini['decay_A'],
-        #                 mini['decay_tau'],
-        #                 0
-        #             ) * direction
-        #             ys[int(mini['baseline_idx'] - offset):int(mini['peak_idx'] - offset)] = mini['baseline']
-        #         mini = {}
-        #         max_peak_idx = -1
-        # y_avg = (y_avg * lag + ys[start_idx + lag] - ys[start_idx]) / lag
-        # start_idx += 1
-        # peak_idx += 1
-        return ys
-
     def analyze_candidate_mini(self,
                                xs,
                                ys,
@@ -1456,6 +1295,7 @@ class Analyzer():
                                ## parameters defined in GUI ##
                                delta_x=400,
                                lag=100,
+                               compound=1,
                                min_amp=0.0,
                                max_amp=np.inf,
                                min_rise=0.0,
@@ -1543,7 +1383,7 @@ class Analyzer():
         # find baseline/start of event
         prev_peak_idx = None
 
-        if reference_df and len(self.mini_df.index) > 0:
+        if reference_df and len(self.mini_df.index) > 0 and compound:
             # try:
             # find the peak of the previous mini
             # peak x-value must be stored in the column 't'
@@ -1568,8 +1408,9 @@ class Analyzer():
                 prev_peak = int(prev_mini['peak_idx'] - offset)
                 prev_end = int(prev_mini['end_idx'] - offset)
                 prev_start = int(prev_mini['start_idx'] - offset)
-                ys[prev_peak:prev_end] = ys[prev_peak:prev_end] - single_exponent_constant(
-                    (xs[prev_peak:prev_end] - xs[prev_peak]) * 1000, prev_mini['decay_A'], prev_mini['decay_const'],
+                prev_decay = prev_peak - prev_mini['decay_idx']
+                ys[prev_peak:prev_peak + prev_decay *2] = ys[prev_peak:prev_peak + prev_decay *2] - single_exponent_constant(
+                    (xs[prev_peak:prev_peak + prev_decay *2] - xs[prev_peak]) * 1000, prev_mini['decay_A'], prev_mini['decay_const'],
                     prev_mini['decay_C']) * prev_mini['direction'] + prev_mini['baseline']
                 ys[prev_start:prev_peak] = prev_mini['baseline']
             except Exception as e:
