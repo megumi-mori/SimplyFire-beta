@@ -94,11 +94,33 @@ def load(parent):
         changes[d['id']] = widgets[d['id']].get()
 
     widgets['detector_compound'] = optionframe.insert_label_checkbox(
-        name='detector_compound',
+        name='detector_core_compound',
         label='Analyze compound minis',
         onvalue=1,
         offvalue=0,
+        command=toggle_compound_params # toggles activation state of compound-analysis param widgets
     )
+    global compound_params
+    compound_params = {
+        'extrapolation_length': {'id': 'detector_core_extrapolation_length',
+                          'label': 'Number of points after previous peak to extrapolate decay', 'validation': 'int',
+                          'conversion': int},
+        'p_valley': {'id': 'detector_core_p_valley',
+                        'label': 'Minimum valley size in % of peak amplitude', 'validation': 'int',
+                        'conversion': float},
+    }
+    for k, d in compound_params.items():
+        widgets[d['id']] = optionframe.insert_label_entry(
+            name=d['id'],
+            label=d['label'],
+            validate_type=d['validation']
+        )
+        widgets[d['id']].bind('<Return>', apply_parameters, add='+')
+        widgets[d['id']].bind('<FocusOut>', apply_parameters, add='+')
+        parameters[d['id']] = widgets[d['id']].get()
+        changes[d['id']] = widgets[d['id']].get()
+
+    toggle_compound_params() # set state of compound param widgets
 
     widgets['detector_core_update_events'] = optionframe.insert_label_checkbox(
         name='detector_core_update_events',
@@ -285,9 +307,15 @@ def extract_mini_parameters():
         params[k] = widgets[d['id']].get()
     for k, d in filter_params.items():
         params[k] = widgets[d['id']].get()
+    if params['compound']:
+        for k, d in compound_params.items():
+            params[k] = widgets[d['id']].get()
     return params
 
-
+def toggle_compound_params(e=None):
+    state = {'1':'normal', '0':'disabled'}[widgets['detector_compound'].get()]
+    for k, d in compound_params.items():
+        widgets[d['id']].config(state=state)
 
 def log(msg, header=True):
     if header:

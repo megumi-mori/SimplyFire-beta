@@ -1290,12 +1290,17 @@ class Analyzer():
                                x_sigdig=None,
                                sampling_rate=None,
                                channel=0,
-                               direction=1,
                                reference_df=True,
                                ## parameters defined in GUI ##
+                               direction=1,
                                delta_x=400,
                                lag=100,
+                               max_points_decay=40000,
+                               ## compound parameters defined in GUI ##
                                compound=1,
+                               extrapolation_length=100,
+                               p_valley=50,
+                               ## filtering parameters defined in GUI ##
                                min_amp=0.0,
                                max_amp=np.inf,
                                min_rise=0.0,
@@ -1304,7 +1309,6 @@ class Analyzer():
                                max_hw=np.inf,
                                min_decay=0.0,
                                max_decay=np.inf,
-                               max_points_decay=40000,
                                #################################
                                offset=0,
                                y_unit='mV',
@@ -1391,14 +1395,16 @@ class Analyzer():
             try:
                 prev_peak_idx = max(self.mini_df[(self.mini_df['channel'] == channel) & (
                             self.mini_df['t'] < mini['t'])].peak_idx.tolist())
-                prev_mini = self.mini_df[self.mini_df.peak_idx == prev_peak_idx].to_dict(orient='index')
-                prev_mini = prev_mini[list(prev_mini.keys())[0]]
-                if baseline_idx < prev_mini['end_idx'] + lag - offset:
-                    # caught the tail end of trailing avg from prev peak
-                    prev_peak_idx_offset = int(prev_peak_idx) - offset
+                prev_peak_idx_offset = int(prev_peak_idx) - offset
+                if prev_peak_idx_offset + extrapolation_length > peak_idx:
+                    # current peak is within extrapolation distance from the previous peak
+                    prev_mini = self.mini_df[self.mini_df.peak_idx == prev_peak_idx].to_dict(orient='index')
+                    prev_mini = prev_mini[list(prev_mini.keys())[0]]
+
                     if prev_peak_idx_offset < 0 or prev_peak_idx > len(ys):  # not sufficient datapoints
                         mini['success'] = False
                         mini['failure'] = 'The compound mini could not be analyzed - need more data points'
+
                     baseline_idx = np.where(ys[prev_peak_idx_offset:peak_idx] * direction == min(
                         ys[prev_peak_idx_offset:peak_idx] * direction))[0][0] + prev_peak_idx_offset
                 if prev_mini['end_idx'] > mini['peak_idx'] - lag - delta_x:  # the baseline might be contaminated by
