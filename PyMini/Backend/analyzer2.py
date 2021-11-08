@@ -1418,8 +1418,11 @@ class Analyzer():
 
                     prev_mini = self.mini_df[self.mini_df.peak_idx == prev_peak_idx].to_dict(orient='index')
                     prev_mini = prev_mini[list(prev_mini.keys())[0]]
-                    print('printing p valley')
-                    print((ys[prev_peak_idx_offset] - ys[baseline_idx]) * direction / prev_mini['amp'])
+                    if mini['compound']:
+                        print(1-(ys[prev_peak_idx_offset] - ys[baseline_idx])/prev_mini['amp'])
+                        if 1 - (ys[prev_peak_idx_offset] - ys[baseline_idx])/prev_mini['amp'] > p_valley/100:
+                            mini['success'] = False
+                            mini['failure'] = 'The preceding mini has not decayed to minimum percent valley'
 
                     ######## need to subtract prev peak and extrapolate decay regardless of compound
                     # large peaks will pull the baseline
