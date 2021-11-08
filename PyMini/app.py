@@ -11,6 +11,7 @@ from DataVisualizer import data_display, log_display, evoked_data_display, resul
 
 from utils import widget
 import tracemalloc
+import pkg_resources
 
 
 event_filename = None

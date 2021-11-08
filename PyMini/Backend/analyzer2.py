@@ -1296,10 +1296,12 @@ class Analyzer():
                                delta_x=400,
                                lag=100,
                                max_points_decay=40000,
+                               min_peak2peak=0,
                                ## compound parameters defined in GUI ##
                                compound=1,
                                extrapolation_length=100,
                                p_valley=50,
+                               max_compound_interval=0,
                                ## filtering parameters defined in GUI ##
                                min_amp=0.0,
                                max_amp=np.inf,
@@ -1354,6 +1356,9 @@ class Analyzer():
         else:
             mini['decay_unit'] = mini['rise_unit'] = mini['halfwidth_unit'] = x_unit + 'E-3'
 
+        if sampling_rate is 'auto':
+            sampling_rate = self.recording.sampling_rate
+
         # extract peak datapoint
         if x_sigdig is not None:
             mini['t'] = round(mini['t'], x_sigdig)  # round the x_value of the peak to indicated number of digits
@@ -1387,7 +1392,7 @@ class Analyzer():
         # find baseline/start of event
         prev_peak_idx = None
 
-        if reference_df and len(self.mini_df.index) > 0 and compound:
+        if reference_df and len(self.mini_df.index) > 0:
             # try:
             # find the peak of the previous mini
             # peak x-value must be stored in the column 't'
@@ -1396,29 +1401,36 @@ class Analyzer():
                 prev_peak_idx = max(self.mini_df[(self.mini_df['channel'] == channel) & (
                             self.mini_df['t'] < mini['t'])].peak_idx.tolist())
                 prev_peak_idx_offset = int(prev_peak_idx) - offset
-                if prev_peak_idx_offset + extrapolation_length > peak_idx:
-                    # current peak is within extrapolation distance from the previous peak
+                if prev_peak_idx_offset + min_peak2peak*sampling_rate/1000>peak_idx:
+                    mini['success']=False
+                    mini['failure']='The peak occurs within minimum interval (ms) of the preceding mini'
+                    return mini
+                if compound:
+                    if prev_peak_idx_offset + max_compound_interval*sampling_rate/1000> peak_idx:
+                        # current peak is within set compound interval from the previous peak
+                        mini['compound'] = True
+                        if prev_peak_idx_offset < 0 or prev_peak_idx > len(ys):  # not sufficient datapoints
+                            mini['success'] = False
+                            mini['failure'] = 'The compound mini could not be analyzed - need more data points'
+
+                        baseline_idx = np.where(ys[prev_peak_idx_offset:peak_idx] * direction == min(
+                            ys[prev_peak_idx_offset:peak_idx] * direction))[0][0] + prev_peak_idx_offset
+
                     prev_mini = self.mini_df[self.mini_df.peak_idx == prev_peak_idx].to_dict(orient='index')
                     prev_mini = prev_mini[list(prev_mini.keys())[0]]
+                    print('printing p valley')
+                    print((ys[prev_peak_idx_offset] - ys[baseline_idx]) * direction / prev_mini['amp'])
 
-                    if prev_peak_idx_offset < 0 or prev_peak_idx > len(ys):  # not sufficient datapoints
-                        mini['success'] = False
-                        mini['failure'] = 'The compound mini could not be analyzed - need more data points'
-
-                    baseline_idx = np.where(ys[prev_peak_idx_offset:peak_idx] * direction == min(
-                        ys[prev_peak_idx_offset:peak_idx] * direction))[0][0] + prev_peak_idx_offset
-                if prev_mini['end_idx'] > mini['peak_idx'] - lag - delta_x:  # the baseline might be contaminated by
-                    mini['compound'] = True
-                ######## need to subtract prev peak and extrapolate decay regardless of compound
-                # large peaks will pull the baseline
-                prev_peak = int(prev_mini['peak_idx'] - offset)
-                prev_end = int(prev_mini['end_idx'] - offset)
-                prev_start = int(prev_mini['start_idx'] - offset)
-                prev_decay = prev_peak - prev_mini['decay_idx']
-                ys[prev_peak:prev_peak + prev_decay *2] = ys[prev_peak:prev_peak + prev_decay *2] - single_exponent(
-                    (xs[prev_peak:prev_peak + prev_decay *2] - xs[prev_peak]) * 1000, prev_mini['decay_A'], prev_mini['decay_const'], #prev_mini['decay_C']
-                ) * prev_mini['direction'] + prev_mini['baseline']
-                ys[prev_start:prev_peak] = prev_mini['baseline']
+                    ######## need to subtract prev peak and extrapolate decay regardless of compound
+                    # large peaks will pull the baseline
+                    prev_peak = int(prev_mini['peak_idx'])-offset
+                    prev_end = int(prev_mini['end_idx'])-offset
+                    prev_start = int(prev_mini['start_idx'])-offset
+                    prev_decay = prev_peak - int(prev_mini['decay_idx'])
+                    ys[prev_peak:prev_peak + prev_decay *2] = ys[prev_peak:prev_peak + prev_decay *2] - single_exponent(
+                        (xs[prev_peak:prev_peak + prev_decay *2] - xs[prev_peak]) * 1000, prev_mini['decay_A'], prev_mini['decay_const'], #prev_mini['decay_C']
+                    ) * prev_mini['direction'] + prev_mini['baseline']
+                    ys[prev_start:prev_peak] = prev_mini['baseline']
             except Exception as e:
                 print(e)
                 pass

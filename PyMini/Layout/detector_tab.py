@@ -79,7 +79,9 @@ def load(parent):
                             'label': 'Number of data points averaged for baseline:',
                             'validation': 'int'},
         'max_points_decay': {'id': 'detector_core_max_points_decay',
-                             'label': 'Maximum data points after peak to consider for decay', 'validation': 'int'}
+                             'label': 'Maximum data points after peak to consider for decay', 'validation': 'int'},
+        'min_peak2peak': {'id': 'detector_core_min_peak2peak',
+                          'label':'Minimum interval between peaks (ms)', 'validation':'float'}
     }
 
     for k, d in core_params.items():
@@ -102,12 +104,16 @@ def load(parent):
     )
     global compound_params
     compound_params = {
-        'extrapolation_length': {'id': 'detector_core_extrapolation_length',
-                          'label': 'Number of points after previous peak to extrapolate decay', 'validation': 'int',
-                          'conversion': int},
+        # 'extrapolation_length': {'id': 'detector_core_extrapolation_length',
+        #                   'label': 'Number of points after previous peak to extrapolate decay', 'validation': 'int',
+        #                   'conversion': int},
         'p_valley': {'id': 'detector_core_p_valley',
                         'label': 'Minimum valley size in % of peak amplitude', 'validation': 'int',
                         'conversion': float},
+        'max_compound_interval': {'id': 'detector_core_max_compound_interval',
+                                'label': 'Maximum interval between two peaks to use compound mini analysis (ms)',
+                                'validation':'float', 'conversion': float},
+
     }
     for k, d in compound_params.items():
         widgets[d['id']] = optionframe.insert_label_entry(
