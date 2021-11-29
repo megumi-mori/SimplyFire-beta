@@ -1465,12 +1465,16 @@ class Analyzer():
         self.print_time('amp', show_time)
         ####### calculate end of event #######
 
-        next_peak_idx = self.find_peak_recursive(xs=xs,
-                                             ys=ys,
-                                             start=int(peak_idx),
-                                             end=int(peak_idx+max_compound_interval_idx),
-                                             direction=direction
-                                                 )
+        if compound:
+            next_peak_idx = self.find_peak_recursive(xs=xs,
+                                                     ys=ys,
+                                                     start=int(peak_idx),
+                                                     end=int(peak_idx+max_compound_interval_idx),
+                                                     direction=direction
+                                                     )
+
+        else:
+            next_peak_idx = None
         if next_peak_idx is None:
             print('no next peak found')
             # no next peak
