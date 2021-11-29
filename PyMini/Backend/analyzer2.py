@@ -1292,7 +1292,7 @@ class Analyzer():
                                reference_df=True,
                                ## parameters defined in GUI ##
                                direction=1,
-                               delta_x=400,
+                               delta_x=0,
                                lag=100,
                                max_points_decay=40000,
                                min_peak2peak=0,
@@ -1472,21 +1472,16 @@ class Analyzer():
                                                      end=int(peak_idx+max_compound_interval_idx),
                                                      direction=direction
                                                      )
-
-        else:
-            next_peak_idx = None
-        if next_peak_idx is None:
-            print('no next peak found')
-            # no next peak
-            end_idx, _ = self.find_mini_end(peak_idx=mini['peak_idx'],
-                                            ys=ys,
-                                            lag=lag,
-                                            direction=direction)
-        else:
+        end_idx, _ = self.find_mini_end(peak_idx=mini['peak_idx'],
+                                        ys=ys,
+                                        lag=lag,
+                                        direction=direction)
+        if next_peak_idx is not None:
             # there is next peak
             print('next peak found')
-            end_idx = np.where(ys[peak_idx:next_peak_idx] * direction == min(
+            end_idx_min = np.where(ys[peak_idx:next_peak_idx] * direction == min(
                 ys[peak_idx:next_peak_idx] * direction))[0][0] + peak_idx
+            end_idx = max(end_idx, end_idx_min)
 
         mini['end_idx'] = end_idx + offset
         if mini['end_idx'] is None:  # not successful
