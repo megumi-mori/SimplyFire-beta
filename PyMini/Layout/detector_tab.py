@@ -74,12 +74,18 @@ def load(parent):
                         'label':'Search window in number of points per iteration (Auto)', 'validation':'int', 'conversion': int},
         'delta_x': {'id': 'detector_core_deltax',
                     'label':'Points before peak to estimate baseline (input 0 to ignore this factor)',
-                    'validation':'int'},
+                    'validation':'positive_int/zero',
+                    'conversion': int},
         'lag': {'id': 'detector_core_lag',
-                            'label': 'Number of data points averaged for baseline:',
-                            'validation': 'int'},
-        'max_points_decay': {'id': 'detector_core_max_points_decay',
-                             'label': 'Maximum data points after peak to consider for decay', 'validation': 'int'},
+                            'label': 'Number of data points averaged to find start of mini:',
+                            'validation': 'positive_int',
+                'conversion': int}, # convert to ms later
+        'lag_end': {'id': 'detector_core_lag_end',
+                    'label': 'Number of data points averaged to find end of mini:',
+                    'validation': 'positive_int',
+                    'conversion': int}, # convert to ms later
+        # 'max_points_decay': {'id': 'detector_core_max_points_decay',
+        #                      'label': 'Maximum data points after peak to consider for decay', 'validation': 'int'},
         'min_peak2peak': {'id': 'detector_core_min_peak2peak',
                           'label':'Minimum interval between peaks (ms)', 'validation':'float'}
     }
@@ -108,7 +114,7 @@ def load(parent):
         #                   'label': 'Number of points after previous peak to extrapolate decay', 'validation': 'int',
         #                   'conversion': int},
         'p_valley': {'id': 'detector_core_p_valley',
-                        'label': 'Minimum valley size in % of peak amplitude', 'validation': 'int',
+                        'label': 'Minimum valley size in % of peak amplitude', 'validation': 'float',
                         'conversion': float},
         'max_compound_interval': {'id': 'detector_core_max_compound_interval',
                                 'label': 'Maximum interval between two peaks to use compound mini analysis (ms)',
@@ -310,7 +316,10 @@ def extract_mini_parameters():
     global core_params
     global filter_params
     for k, d in core_params.items():
-        params[k] = widgets[d['id']].get()
+        if 'conversion' in d:
+            params[k] = d['conversion'](widgets[d['id']].get())
+        else:
+            params[k] = widgets[d['id']].get()
     for k, d in filter_params.items():
         params[k] = widgets[d['id']].get()
     if params['compound']:

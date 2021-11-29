@@ -1094,7 +1094,6 @@ class Analyzer():
 
         # estimate baseline using avg data points at delta_x before peak
         tma = np.mean(ys[peak_idx-delta_x-lag:peak_idx-delta_x])*direction
-        print(tma)
         while idx > peak_idx - delta_x:
             if tma >= ys[idx] * direction:
                 return idx, tma*direction
@@ -1344,6 +1343,8 @@ class Analyzer():
             reference_df: bool indicating whether to compare the results against previously found minis stored in mini_df.
                 If True, previously found minis will be ignored, and newly found minis will be added to the mini_df
         """
+
+        show_time = True
         mini = {'direction': direction, 'lag': lag, 'delta_x': delta_x, 'channel': channel, 'min_amp': min_amp,
                 'max_amp': max_amp,
                 'min_rise': min_rise, 'max_rise': max_rise, 'min_hw': min_hw, 'max_hw': max_hw, 'min_decay': min_decay,
@@ -1351,12 +1352,14 @@ class Analyzer():
                 'datetime': datetime.now().strftime('%m-%d-%y %H:%M:%S'), 'failure': None, 'success': True,
                 't': xs[peak_idx], 'peak_idx': peak_idx + offset, 'compound': False, 'amp_unit': y_unit,
                 'baseline_unit': y_unit}
+
+        max_compound_interval_idx = max_compound_interval * sampling_rate/1000
         if x_unit in ['s', 'sec', 'second', 'seconds']:
             mini['decay_unit'] = mini['rise_unit'] = mini['halfwidth_unit'] = 'ms'
         else:
             mini['decay_unit'] = mini['rise_unit'] = mini['halfwidth_unit'] = x_unit + 'E-3'
 
-        if sampling_rate is 'auto':
+        if sampling_rate == 'auto':
             sampling_rate = self.recording.sampling_rate
 
         # extract peak datapoint
@@ -1377,6 +1380,7 @@ class Analyzer():
         mini['peak_coord_x'] = xs[peak_idx]
         mini['peak_coord_y'] = ys[peak_idx]
 
+        self.print_time('setup', show_time)
         baseline_idx, mini['baseline'] = self.find_mini_start(peak_idx=peak_idx,
                                                               ys=ys,
                                                               lag=lag,
@@ -1388,6 +1392,8 @@ class Analyzer():
             mini['success'] = False
             mini['failure'] = 'Baseline could not be found'
             return mini
+
+        self.print_time('baseline', show_time)
         ####### search baseline #######
         # find baseline/start of event
         prev_peak_idx = None
@@ -1398,8 +1404,8 @@ class Analyzer():
             # peak x-value must be stored in the column 't'
             # check that the channels are the same
             try:
-                prev_peak_idx = max(self.mini_df[(self.mini_df['channel'] == channel) & (
-                            self.mini_df['t'] < mini['t'])].peak_idx.tolist())
+                prev_peak_idx = self.mini_df[(self.mini_df['channel'] == channel) & (
+                            self.mini_df['t'] < mini['t'])]['peak_idx'].iat[-1]
                 prev_peak_idx_offset = int(prev_peak_idx) - offset
                 if prev_peak_idx_offset + min_peak2peak*sampling_rate/1000>peak_idx:
                     mini['success']=False
@@ -1416,27 +1422,28 @@ class Analyzer():
                         baseline_idx = np.where(ys[prev_peak_idx_offset:peak_idx] * direction == min(
                             ys[prev_peak_idx_offset:peak_idx] * direction))[0][0] + prev_peak_idx_offset
 
-                    prev_mini = self.mini_df[self.mini_df.peak_idx == prev_peak_idx].to_dict(orient='index')
-                    prev_mini = prev_mini[list(prev_mini.keys())[0]]
-                    if mini['compound']:
-                        print(1-(ys[prev_peak_idx_offset] - ys[baseline_idx])/prev_mini['amp'])
-                        if 1 - (ys[prev_peak_idx_offset] - ys[baseline_idx])/prev_mini['amp'] > p_valley/100:
-                            mini['success'] = False
-                            mini['failure'] = 'The preceding mini has not decayed to minimum percent valley'
-
-                    ######## need to subtract prev peak and extrapolate decay regardless of compound
-                    # large peaks will pull the baseline
-                    prev_peak = int(prev_mini['peak_idx'])-offset
-                    prev_end = int(prev_mini['end_idx'])-offset
-                    prev_start = int(prev_mini['start_idx'])-offset
-                    prev_decay = prev_peak - int(prev_mini['decay_idx'])
-                    ys[prev_peak:prev_peak + prev_decay *2] = ys[prev_peak:prev_peak + prev_decay *2] - single_exponent(
-                        (xs[prev_peak:prev_peak + prev_decay *2] - xs[prev_peak]) * 1000, prev_mini['decay_A'], prev_mini['decay_const'], #prev_mini['decay_C']
-                    ) * prev_mini['direction'] + prev_mini['baseline']
-                    ys[prev_start:prev_peak] = prev_mini['baseline']
+                    # prev_mini = self.mini_df[self.mini_df.peak_idx == prev_peak_idx].to_dict(orient='index')
+                    # prev_mini = prev_mini[list(prev_mini.keys())[0]]
+                    # if mini['compound']:
+                    #     # print(1-(ys[prev_peak_idx_offset] - ys[baseline_idx])/prev_mini['amp'])
+                    #     if 1 - (ys[prev_peak_idx_offset] - ys[baseline_idx])/prev_mini['amp'] > p_valley/100:
+                    #         mini['success'] = False
+                    #         mini['failure'] = 'The preceding mini has not decayed to minimum percent valley'
+                    #
+                    # ######## need to subtract prev peak and extrapolate decay regardless of compound
+                    # # large peaks will pull the baseline
+                    # prev_peak = int(prev_mini['peak_idx'])-offset
+                    # prev_end = int(prev_mini['end_idx'])-offset
+                    # prev_start = int(prev_mini['start_idx'])-offset
+                    # prev_decay = prev_peak - int(prev_mini['decay_idx'])
+                    # # ys[prev_peak:prev_peak + prev_decay *2] = ys[prev_peak:prev_peak + prev_decay *2] - single_exponent(
+                    # #     (xs[prev_peak:prev_peak + prev_decay *2] - xs[prev_peak]) * 1000, prev_mini['decay_A'], prev_mini['decay_const'], #prev_mini['decay_C']
+                    # # ) * prev_mini['direction'] + prev_mini['baseline']
+                    # # ys[prev_start:prev_peak] = prev_mini['baseline']
             except Exception as e:
                 print(e)
                 pass
+        self.print_time('reference', show_time)
 
         mini['baseline'] = ys[baseline_idx]
         mini['start_idx'] = baseline_idx + offset
@@ -1455,12 +1462,28 @@ class Analyzer():
             mini['success'] = False
             mini['failure'] = 'Max amp exceeded'
             return mini
-
+        self.print_time('amp', show_time)
         ####### calculate end of event #######
-        end_idx, _ = self.find_mini_end(peak_idx=mini['peak_idx'],
-                                        ys=ys,
-                                        lag=lag,
-                                        direction=direction)
+
+        next_peak_idx = self.find_peak_recursive(xs=xs,
+                                             ys=ys,
+                                             start=int(peak_idx),
+                                             end=int(peak_idx+max_compound_interval_idx),
+                                             direction=direction
+                                                 )
+        if next_peak_idx is None:
+            print('no next peak found')
+            # no next peak
+            end_idx, _ = self.find_mini_end(peak_idx=mini['peak_idx'],
+                                            ys=ys,
+                                            lag=lag,
+                                            direction=direction)
+        else:
+            # there is next peak
+            print('next peak found')
+            end_idx = np.where(ys[peak_idx:next_peak_idx] * direction == min(
+                ys[peak_idx:next_peak_idx] * direction))[0][0] + peak_idx
+
         mini['end_idx'] = end_idx + offset
         if mini['end_idx'] is None:  # not successful
             mini['success'] = False
@@ -1470,6 +1493,7 @@ class Analyzer():
         # store the coordinate for the end of mini (where the plot crosses the trailing average)
         mini['end_coord_x'] = xs[end_idx]
         mini['end_coord_y'] = ys[end_idx]
+        self.print_time('find end', show_time)
 
         ####### calculate rise #######
         mini['rise_const'] = (mini['peak_coord_x'] - mini['start_coord_x']) * 1000  # convert to ms
@@ -1484,7 +1508,7 @@ class Analyzer():
             mini['success'] = False
             mini['failure'] = 'Max rise exceeded'
             return mini
-
+        self.print_time('rise', show_time)
         ####### calculate decay ########
         mini['decay_start_idx'] = mini['peak_idx']  # peak = start of decay
         # mini['decay_end_idx'] = min(mini['peak_idx'] + max_points_decay, len(xs) + offset)
@@ -1521,7 +1545,7 @@ class Analyzer():
         except Exception as e:
             print(f'decay coord error: {e}')
             pass
-
+        self.print_time('decay', show_time)
         ####### calculate halfwidth #######
         # need to incorporate compound #
         halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
@@ -1550,6 +1574,8 @@ class Analyzer():
 
             mini['halfwidth_end_coord_x'] = xs[halfwidth_end_idx]
             mini['halfwidth_end_coord_y'] = ys[halfwidth_end_idx]
+
+        self.print_time('halfwidth', show_time)
         return mini
 
     ###################
@@ -1686,6 +1712,16 @@ class Analyzer():
                 index = int(index + lag / 4)
 
         return hits
+
+    def print_time(self, msg="", display=True):
+        current_time = time()
+        if display:
+            try:
+                print(f'{msg}\t{current_time - self.time_point}')
+            except:
+                pass
+        self.time_point = current_time
+
 
 
 ##############################

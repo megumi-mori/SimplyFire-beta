@@ -5,6 +5,8 @@ from config import config
 valid_types = [
     "float",
     "int",
+    "positive_zero_int",
+    "positive_nonzero_int",
     "auto",
     "dir",
     "None"
@@ -24,6 +26,14 @@ def validate(validate_type, value):
         elif type == 'int':
             if is_int(value):
                 return True
+        elif type == 'positive_int':
+            if is_int(value):
+                if int(value) > 0:
+                    return True
+        elif type == 'zero':
+            if is_int(value):
+                if int(value) == 0:
+                    return True
         elif type == 'color':
             if colors.is_color_like(value):
                 return True
