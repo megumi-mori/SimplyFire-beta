@@ -1077,7 +1077,7 @@ class Analyzer():
             peak_idx: int - use if reanalyzing an existing peak. Index within the xs data corresponding to a peak.
                 - If provided, the data point at peak_idx is assumed to be the local extremum
             x_sigdig: significant digits in x
-            sampling_rate: sampling rate of xs
+            sampling_rate: sampling rate of xs in Hz
             direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
             lag: int indicating the number of data points used to calculate the baseline.
                 See calculate_mini_baseline() for algorithm on baseline estimation.
@@ -1155,6 +1155,10 @@ class Analyzer():
         # find baseline/start of event
         prev_peak_idx = None
 
+        mini['baseline'] = ys[baseline_idx]
+        mini['start_idx'] = baseline_idx + offset
+        mini['base_idx'] = (base_idx[0] + offset, base_idx[1] + offset)
+
         if reference_df and len(self.mini_df.index) > 0:
             # try:
             # find the peak of the previous mini
@@ -1178,6 +1182,20 @@ class Analyzer():
 
                         baseline_idx = np.where(ys[prev_peak_idx_offset:peak_idx] * direction == min(
                             ys[prev_peak_idx_offset:peak_idx] * direction))[0][0] + prev_peak_idx_offset
+                        # update start_idx
+                        mini['start_idx'] = baseline_idx + offset
+
+                        prev_baseline = self.mini_df[(self.mini_df['peak_idx'] == prev_peak_idx
+                                               & self.mini_df['channel'] == channel)].baseline
+                        prev_decay_const = self.mini_df[(self.mini_df['peak_idx'] == prev_peak_idx
+                                               & self.mini_df['channel'] == channel)].decay_const
+                        prev_decay_A = self.mini_df[(self.mini_df['peak_idx'] == prev_peak_idx
+                                               & self.mini_df['channel'] == channel)].decay_A
+                        mini['baseline'] = single_exponent((peak_idx - prev_peak_idx_offset)/sampling_rate*1000,
+                                                           prev_decay_A,
+                                                           prev_decay_const) * direction + prev_baseline# get the extrapolated baseline value
+
+
 
                     # prev_mini = self.mini_df[self.mini_df.peak_idx == prev_peak_idx].to_dict(orient='index')
                     # prev_mini = prev_mini[list(prev_mini.keys())[0]]
@@ -1202,9 +1220,7 @@ class Analyzer():
                 pass
         self.print_time('reference', show_time)
 
-        mini['baseline'] = ys[baseline_idx]
-        mini['start_idx'] = baseline_idx + offset
-        mini['base_idx'] = (base_idx[0] + offset, base_idx[1] + offset)
+
         mini['amp'] = (mini['peak_coord_y'] - mini['baseline'])  # signed
         # store coordinate for start of mini (where the plot meets the baseline)
         mini['start_coord_x'] = xs[baseline_idx]

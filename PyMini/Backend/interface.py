@@ -650,8 +650,9 @@ def report_to_param_guide(xs, ys, data, clear=False):
 
         param_guide.plot_start(data['start_coord_x'], data['start_coord_y'])
 
-        param_guide.plot_start(xs[data['base_idx'][0]], ys[data['base_idx'][0]])
-        param_guide.plot_start(xs[data['base_idx'][1]], ys[data['base_idx'][1]])
+        if data['base_idx'] is not None:
+            param_guide.plot_start(xs[data['base_idx'][0]], ys[data['base_idx'][0]])
+            param_guide.plot_start(xs[data['base_idx'][1]], ys[data['base_idx'][1]])
 
         param_guide.plot_ruler((data['peak_coord_x'], data['peak_coord_y']), (data['peak_coord_x'], data['baseline']))
         param_guide.msg_label.insert('Baseline: {:.3f} {}\n'.format(data['baseline'], data['baseline_unit']))
