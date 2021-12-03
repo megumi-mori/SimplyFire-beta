@@ -1464,7 +1464,7 @@ class Analyzer():
             return mini
         self.print_time('amp', show_time)
         ####### calculate end of event #######
-
+        next_peak_idx = None
         if compound:
             next_peak_idx = self.find_peak_recursive(xs=xs,
                                                      ys=ys,
