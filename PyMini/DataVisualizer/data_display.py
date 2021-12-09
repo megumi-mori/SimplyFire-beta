@@ -35,7 +35,18 @@ mini_header2config = OrderedDict([
     ('compound', 'data_display_compound')
 ])
 
-config2header = OrderedDict([(mini_header2config[key], key) for key in mini_header2config.keys()])
+
+config2header = OrderedDict([
+    ('data_display_time', ('t')),
+    ('data_display_amplitude', ('amp', 'amp_unit')),
+    ('data_display_decay', ('decay_const', 'decay_unit')),
+    ('data_display_rise', ('rise_const', 'rise_unit')),
+    ('data_display_halfwidth', ('halfwidth', 'halfwidth_unit')),
+    ('data_display_baseline', ('baseline','baseline_unit')),
+    ('data_display_channel', ('channel')),
+    ('data_display_direction', ('direction')),
+    ('data_display_compound', ('compound'))
+])
 
 def load(parent):
     global frame
@@ -43,55 +54,61 @@ def load(parent):
     frame.grid_columnconfigure(0, weight=1)
     frame.grid_rowconfigure(0, weight=1)
 
-    global datatable
-    datatable = DataTable(frame)
+    global dataframe
+    dataframe = DataTable(frame)
 
     global table
-    table = datatable.table
+    table = dataframe.table
 
-    datatable.table.bind('<<TreeviewSelect>>', select)
-    datatable.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
-    datatable.grid(column=0, row=0, sticky='news')
+    dataframe.table.bind('<<TreeviewSelect>>', select)
+    dataframe.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
+    dataframe.grid(column=0, row=0, sticky='news')
 
     return frame
 
 def add(data):
-    datatable.add(data)
+    dataframe.add(data)
 
 def append(data):
-    datatable.append(data)
+    dataframe.append(data)
 
 def set(data):
-    datatable.set(data)
+    dataframe.set(data)
 
-def show_columns():
-    if app.widgets['analysis_mode'].get() == 'mini':
-        datatable.show_columns(tuple([
-                i for i in mini_header2config
-                if app.widgets[mini_header2config[i]].get()
-            ]))
-        pass
-    else:
-        # datatable.show_columns(tuple(trace_header))
-        pass
+def show_columns(columns=None):
+    dataframe.show_columns(tuple([
+       i for i in mini_header2config
+        if mini_header2config[i] in columns
+    ]))
+    # if app.widgets['analysis_mode'].get() == 'mini':
+    #     dataframe.show_columns(tuple([
+    #             i for i in mini_header2config
+    #             if app.widgets[mini_header2config[i]].get()
+    #         ]))
+    #     pass
+    # else:
+    #     # dataframe.show_columns(tuple(trace_header))
+    #     pass
     fit_columns()
 
 def fit_columns():
-    datatable.fit_columns()
+    dataframe.fit_columns()
 
 def define_columns(columns):
-    datatable.define_columns(columns)
+    dataframe.define_columns(columns)
 
 def add_columns(columns):
     # tuple of column headers
-    datatable.add_columns(columns)
+    dataframe.add_columns(columns)
     for c in columns:
         trace_header.append(c)
 
 
 def clear():
-    datatable.clear()
+    dataframe.clear()
 
+def hide():
+    dataframe.hide()
 
 def select(e=None):
     selected = table.selection()
@@ -102,16 +119,17 @@ def select(e=None):
 
 
 def unselect(e=None):
-    datatable.unselect()
+    dataframe.unselect()
 
-def select_one(iid):
-    interface.highlight_selected_mini([float(iid)])
-    datatable.select(iid)
+# def select_one(iid):
+#     raise
+#     interface.highlight_selected_mini([float(iid)])
+#     dataframe.select(iid)
 
 def delete_one(iid):
     print('data_Display delete one: {}'.format(iid))
     try:
-        datatable.delete([iid])
+        dataframe.delete([iid])
         interface.delete_event([iid])
     except Exception as e:
         print('data_display delete one error: {}'.format(e))

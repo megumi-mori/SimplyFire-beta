@@ -2,7 +2,7 @@ from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
 import app
 from DataVisualizer import data_display, trace_display, log_display
-from Backend import interface, analyzer
+from Backend import interface
 changed = True
 changes = {}
 parameters = {}
@@ -22,12 +22,12 @@ def load(parent):
     def _show_all():
         for key in optionframe.get_keys(filter='data_display_'):
             optionframe.widgets[key].set(1)
-        data_display.show_columns()
+        data_display.show_columns(extract_columns2display())
 
     def _hide_all():
         for key in optionframe.get_keys(filter='data_display_'):
             optionframe.widgets[key].set('')
-        data_display.show_columns()
+        data_display.show_columns(extract_columns2display())
     def apply_parameters(e=None):
         global changed
         for i in parameters:
@@ -71,19 +71,18 @@ def load(parent):
         'manual_radius': {'id': 'detector_core_search_radius',
                           'label': 'Search radius in % of visible x-axis (Manual)', 'validation': 'float', 'conversion':float},
         'auto_radius': {'id':'detector_core_auto_radius',
-                        'label':'Search window in number of points per iteration (Auto)', 'validation':'int', 'conversion': int},
+                        'label':'Search window in ms (Auto)', 'validation':'float', 'conversion': float},
         # 'delta_x': {'id': 'detector_core_deltax',
         #             'label':'Points before peak to estimate baseline (input 0 to ignore this factor)',
         #             'validation':'positive_int/zero',
         #             'conversion': int},
-        'lag': {'id': 'detector_core_lag',
-                            'label': 'Number of data points averaged to find start of mini:',
-                            'validation': 'positive_int',
-                'conversion': int}, # convert to ms later
-        'lag_end': {'id': 'detector_core_lag_end',
-                    'label': 'Number of data points averaged to find end of mini:',
-                    'validation': 'positive_int',
-                    'conversion': int}, # convert to ms later
+        'lag_ms': {'id': 'detector_core_lag',
+                            'label': 'Window of data points averaged to find start of mini (ms):',
+                            'validation': 'float', 'conversion':float},
+        'lag_end_ms': {'id': 'detector_core_lag_end',
+                    'label': 'Window of data points averaged to find end of mini (ms):',
+                    'validation': 'float',
+                    'conversion': float}, # convert to ms later
         # 'max_points_decay': {'id': 'detector_core_max_points_decay',
         #                      'label': 'Maximum data points after peak to consider for decay', 'validation': 'int'},
         'min_peak2peak': {'id': 'detector_core_min_peak2peak',
@@ -262,11 +261,12 @@ def load(parent):
         text='Data Table Display'
     )
 
+    global boxes
     boxes = [
         ('data_display_time', 'Peak time'),
         ('data_display_amplitude', 'Amplitude'),
         ('data_display_decay', 'Decay constant'),
-        ('data_display_decay_func', 'Decay function'),
+        # ('data_display_decay_func', 'Decay function'),
         ('data_display_rise', 'Rise duration'),
         ('data_display_halfwidth', 'Halfwidth'),
         ('data_display_baseline', 'Baseline'),
@@ -276,15 +276,19 @@ def load(parent):
         ('data_display_direction', 'Direction'),
         ('data_display_compound', 'Compound')
     ]
+    def apply_columns():
+        data_display.show_columns(extract_columns2display())
+
     for i in boxes:
         widgets[i[0]] = optionframe.insert_label_checkbox(
             name=i[0],
             label=i[1],
-            command=data_display.show_columns,
+            command=apply_columns,
             onvalue='1',
             offvalue=''
         )
 
+    apply_columns()
     optionframe.insert_button(
         text='Show All',
         command=_show_all
@@ -302,7 +306,7 @@ def load(parent):
 
 def populate_data_display():
     try:
-        xs = interface.mini_df.index.where(interface.mini_df['channel'] == analyzer.trace_file.channel)
+        xs = interface.mini_df.index.where(interface.mini_df['channel'] == analyzer2.trace_file.channel)
         xs = xs.dropna()
         data_display.set(interface.mini_df.loc[xs])
     except: # file not loaded yet
@@ -326,6 +330,14 @@ def extract_mini_parameters():
         for k, d in compound_params.items():
             params[k] = widgets[d['id']].get()
     return params
+
+def extract_columns2display():
+    columns = []
+    for b in boxes:
+        if widgets[b[0]].get():
+            columns.append(b[0])
+    print(columns)
+    return columns
 
 def toggle_compound_params(e=None):
     state = {'1':'normal', '0':'disabled'}[widgets['detector_compound'].get()]

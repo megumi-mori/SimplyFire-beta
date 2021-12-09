@@ -568,8 +568,9 @@ class Analyzer():
                        sampling_rate=None,
                        channel=0,
                        sweeps=None,
-                       kernel=300,
-                       stride=150,
+                       auto_radius=None,
+                       kernel=None,
+                       stride=None,
                        direction=1,
                        reference_df=True,
                        progress_bar=None,
@@ -594,7 +595,9 @@ class Analyzer():
             sampling_rate: float - sampling rate of xs
             channel: int indicating the channel number to analyze. Only required if xs and ys are not provided
             sweeps: list of int indicating the sweeps to analyzer. If left None, all sweeps will be considered
-            kernel: int representing the number of data points to consider per iteration.
+            auto_radius: x-axis window to be considered per iteration in ms.
+                If left empty, defaults to the values indicated in kernel and stride parameters
+            kernel: float representing the x-axis window to consider per iteration.
                 The most extreme data point within the kernel will be tested as a candidate mini peak.
                 Should be smaller than the shortest interval between two minis within the recording.
                 Larger kernel size can speed up the search.
@@ -628,6 +631,16 @@ class Analyzer():
             print(f'xlim index exception: {e}')
             xlim_idx = (0, len(xs))
         print(f'search_idx: {time() - t0}')
+
+        if auto_radius is not None:
+            if sampling_rate is None:
+                sampling_rate = 1/np.mean(xs[1:5]-xs[0:4])
+            elif sampling_rate == 'auto':
+                sampling_rate = self.recording.sampling_rate
+            kernel = int(auto_radius/1000*sampling_rate)
+        if stride is None:
+            stride = int(kernel/2)
+
         t0 = time()
         start_idx = xlim_idx[0]
         end_idx = start_idx + kernel
@@ -671,10 +684,10 @@ class Analyzer():
                 progress_bar.update()
             except:
                 pass
-        if reference_df:
+        if reference_df and len(self.mini_df.index) > 0:
             self.mini_df = self.mini_df.sort_values(by='t')
-        return self.mini_df[self.mini_df['t'].isin(hits)]
-        return df
+            return self.mini_df[self.mini_df['t'].isin(hits)]
+        print(self.mini_df)
 
     def find_mini_manual(self,
                          xlim: tuple = None,
@@ -1049,6 +1062,8 @@ class Analyzer():
                                ## parameters defined in GUI ##
                                direction=1,
                                delta_x=0,
+                               lag_ms=None,
+                               lag_end_ms=None,
                                lag=100,
                                lag_end=100,
                                max_points_decay=40000,
@@ -1079,8 +1094,15 @@ class Analyzer():
             x_sigdig: significant digits in x
             sampling_rate: sampling rate of xs in Hz
             direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
+            lag_ms: float representing the x-axis window to be averaged to estimate the baseline and start of the mini.
+                If given, this parameter is prioritized over the lag parameter
+            lag_end_ms: float representing the x-axis window to be averaged to estimate the end of the mini.
+                If given, this parameter is prioritized over the lag_end parameter
             lag: int indicating the number of data points used to calculate the baseline.
                 See calculate_mini_baseline() for algorithm on baseline estimation.
+                If None, lag_ms must be provided
+            lag_end: int indicating the number of data points used to calculate the end of mini
+                If None, lag_end_ms must be provided
             direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
             min_amp: float indicating the minimum amplitude required in a candidate mini.
             max_amp: float indicating the maximum amplitude accepted in a candidate mini.
@@ -1119,6 +1141,11 @@ class Analyzer():
         if sampling_rate == 'auto':
             sampling_rate = self.recording.sampling_rate
 
+        # convert lag_ms and lag_end_ms to lag and lag_end
+        if lag_ms is not None:
+            lag = int(lag_ms/1000*sampling_rate)
+        if lag_end_ms is not None:
+            lag_end = int(lag_ms/1000*sampling_rate)
         # extract peak datapoint
         if x_sigdig is not None:
             mini['t'] = round(mini['t'], x_sigdig)  # round the x_value of the peak to indicated number of digits
