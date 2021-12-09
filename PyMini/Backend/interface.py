@@ -232,11 +232,8 @@ def _change_channel(num, save_undo=True):
     trace_display.canvas.draw()
     data_display.clear()
 
-    if len(al.mini_df.index) > 0:
-        xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
-        xs = xs.dropna()
-        data_display.set(al.mini_df.loc[xs])
-        update_event_marker()
+    populate_data_display()
+    update_event_marker()
 
 
 def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
@@ -266,6 +263,7 @@ def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
     xs = xs.dropna()
     data_display.append(mini_df.loc[xs])
 
+    populate_data_display()
     update_event_marker()
 
 def delete_last_sweep():
@@ -359,26 +357,24 @@ def save_events_as_dialogue(e=None):
         messagebox.showerror('Error', 'No minis to save')
     return
 
-def open_events(filename, log=True):
+def open_events(filename, log=True, undo=True):
     global mini_df
     if not al.recording:
         # recording file not open yet
         messagebox.showerror('Open error', 'Please open a recording file first.')
-
-    temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
-    save_events(temp_filename)
-    add_undo([
-        data_display.clear,
-        lambda f=temp_filename:restore_events(f),
-        lambda msg='Undo open event file':log_display.log(msg),
-        update_event_marker,
-    ])
+    if undo:
+        temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
+        save_events(temp_filename)
+        add_undo([
+            data_display.clear,
+            lambda f=temp_filename, l=False, u=False:open_events(f, l, u),
+            lambda msg='Undo open event file':log_display.log(msg),
+            update_event_marker,
+        ])
     al.mini_df = pd.read_csv(filename)
     app.event_filename = filename
     data_display.clear()
-    xs = al.mini_df[al.mini_df['channel'] == al.recording.channel]
-    data_display.append(xs)
-
+    populate_data_display()
     update_event_marker()
     if log:
         log_display.open_update('mini data: {}'.format(filename))
@@ -388,23 +384,29 @@ def open_events(filename, log=True):
     # except:
     #     messagebox.showerror('Read error', 'Could not read data.')
 
-def restore_events():
-    try:
-        data_display.clear()
-        xs = mini_df.index.where(mini_df['channel'] == al.recording.channel)
-        xs = xs.dropna()
-        data_display.append(mini_df.loc[xs])
-
-        update_event_marker()
-    except Exception as e:
-        print('restore events error: {}'.format(e))
-        pass
+# def restore_events(filename=''):
+#     try:
+#         data_display.clear()
+#         populate_data_display()
+#
+#         update_event_marker()
+#     except Exception as e:
+#         print('restore events error: {}'.format(e))
+#         pass
 
 def export_events(filename):
     #need to think about what columns to export and if/how the user interacts with that decision
     pass
 
-
+def populate_data_display():
+    try:
+        xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
+        xs = xs.dropna()
+        data_display.set(al.mini_df.loc[xs])
+    except Exception as e:
+        print('interface populate_data_display')
+        print(e)
+        pass
 
 #######################################
 # Mini Analysis
@@ -488,7 +490,6 @@ def find_mini_in_range(xlim, ylim):
 
     df = al.find_mini_auto(xlim=xlim, xs=xs, ys=ys, x_sigdig=al.recording.x_sigdig,
                                sampling_rate=al.recording.sampling_rate, channel=al.recording.channel,
-                           kernel=int(params['auto_radius']), stride=int(int(params['auto_radius'])/2),
                       reference_df=True, y_unit=al.recording.y_unit,
                                x_unit=al.recording.x_unit, progress_bar=app.pb, **params)
     update_event_marker()
@@ -507,14 +508,14 @@ def select_single_mini(iid):
     if app.widgets['window_param_guide'].get() == '1':
         report_to_param_guide(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear=True)
 
-def select_in_data_display(iid):
-    print('selecting one: ')
-    data_display.select_one(iid)
-    print('selected one!')
-    data_display.table.update()
-    if len(data_display.selected)<1:
-        print('select again')
-        data_display.select_one(iid)
+# def select_in_data_display(iid):
+#     print('selecting one: ')
+#     data_display.select_one(iid)
+#     print('selected one!')
+#     data_display.table.update()
+#     if len(data_display.selected)<1:
+#         print('select again')
+#         data_display.select_one(iid)
 
 def reanalyze(xs, ys, data, remove_restrict=False):
     global mini_df
@@ -761,6 +762,8 @@ def delete_event(selection):
     if len(selection)>0:
         selection=[float(i) for i in selection]
         # al.mini_df = al.mini_df[al.mini_df.t not in selection]
+        erased = al.mini_df[al.mini_df['t'].isin(selection)]
+
         al.mini_df.drop(al.mini_df.index[al.mini_df['t'].isin(selection)], inplace=True)
         # al.mini_df.drop(selection, axis=1, inplace=True)
         update_event_marker()

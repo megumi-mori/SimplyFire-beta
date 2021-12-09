@@ -180,7 +180,7 @@ def _mini_mode(e=None):
         interface.config_cp_tab('mini', state='disabled')
         pass
     interface.config_data_tab('mini', state='normal')
-    detector_tab.populate_data_display()
+    interface.populate_data_display()
     interface.update_event_marker()
 
 

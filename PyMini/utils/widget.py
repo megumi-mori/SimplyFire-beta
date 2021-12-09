@@ -555,6 +555,8 @@ class DataTable(Tk.Frame):
                           values=[datadict.get(i, None) for i in self.columns])
 
     def append(self, dataframe):
+        if dataframe is None:
+            return None
         for i in dataframe.index:
             try:
                 self.table.insert('', 'end', iid=dataframe.loc[i].t,
@@ -580,13 +582,21 @@ class DataTable(Tk.Frame):
         self.table.selection_remove(*self.table.selection())
         self.table.delete(*self.table.get_children())
 
+    def hide(self):
+        items = self.table.get_children()
+        self.table.detach(*items)
+
+    def unhide(self):
+        items = self.table.get_children()
+
+
     ##### selection control #####
     def unselect(self, event=None):
         self.table.selection_remove(*self.table.selection())
 
     def select(self, iid):
-        self.table.see(str(iid))
         self.table.selection_set(str(iid))
+        self.table.see(str(iid))
 
     def delete(self, iid):
         try:

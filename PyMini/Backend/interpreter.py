@@ -236,8 +236,10 @@ def plot_event_pick(event):
             return
         try:
             data_display.table.selection_set(str(xdata))
+            data_display.table.see(str(xdata))
         except:
             data_display.table.selection_set(str(round(xdata, interface.al.recording.x_sigdig)))
+            data_display.table.see(str(round(xdata, interface.al.recording.x_sigdig)))
         # data_display.toggle_one(str(xdata))
 
 def plot_mouse_release(event):
@@ -450,7 +452,7 @@ def select_all_key(event):
     if app.widgets['trace_mode'].get() == 'overlay':
         interface.highlight_all_sweeps()
     if app.widgets['analysis_mode'].get() == 'mini':
-        data_display.table_frame.select_all()
+        data_display.dataframe.select_all()
     pass
 
 def select_window_key(event=None):
