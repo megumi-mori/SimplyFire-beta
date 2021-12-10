@@ -12,7 +12,7 @@
 #################################################################
 
 # version
-version : 'b0.1.5'
+version : 'b0.1.6'
 
 #aesthetics
 default_geometry :
@@ -112,6 +112,8 @@ default_detector_filter_min_hw : 0
 default_detector_filter_max_hw : 'None'
 default_detector_filter_min_rise : 0
 default_detector_filter_max_rise : 'None'
+default_detector_filter_min_dr: 0
+default_detector_filter_max_dr: 'None'
 
 default_detector_decay_func_type : '1'
 default_detector_decay_func_constant : "1"

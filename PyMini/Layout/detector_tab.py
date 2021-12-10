@@ -14,6 +14,11 @@ def find_all():
 
 def find_in_window():
     interface.find_mini_in_range(trace_display.ax.get_xlim(), trace_display.ax.get_ylim())
+
+def filter_all():
+    interface.filter_mini()
+def filter_in_window():
+    interface.filter_mini(trace_display.ax.get_xlim())
 def load(parent):
     global widgets
     ##################################################
@@ -171,17 +176,19 @@ def load(parent):
     filter_params={
         'min_amp': {'id': 'detector_filter_min_amp',
                     'label':'Minimum amplitude (absolute value) (y-axis unit):',
-                    'validation': 'float', 'conversion':float},
+                    'validation': 'float/None', 'conversion':float},
         'max_amp': {'id': 'detector_filter_max_amp',
                     'label':'Maximum amplitude (absolute value) (y-axis unit):',
                     'validation': 'float/None', 'conversion':float},
         'min_decay': {'id': 'detector_filter_min_decay',
-                      'label': 'Minimum decay constant (tau) (ms)', 'validation': 'float', 'conversion':float},
+                      'label': 'Minimum decay constant (tau) (ms)', 'validation': 'float/None', 'conversion':float},
         'max_decay': {'id': 'detector_filter_max_decay', 'label': 'Maximum decay constant (tau) (ms)', 'validation':'float/None', 'conversion':float},
-        'min_hw': {'id':'detector_filter_min_hw', 'label':'Minimum halfwidth (ms)', 'validation':'float', 'conversion':float},
+        'min_hw': {'id':'detector_filter_min_hw', 'label':'Minimum halfwidth (ms)', 'validation':'float/None', 'conversion':float},
         'max_hw':{'id':'detector_filter_max_hw', 'label':'Maximum halfwidth (ms)', 'validation':'float/None', 'conversion':float},
-        'min_rise':{'id':'detector_filter_min_rise', 'label':'Minimum rise constant (ms)', 'validation':'float', 'conversion':float},
+        'min_rise':{'id':'detector_filter_min_rise', 'label':'Minimum rise constant (ms)', 'validation':'float/None', 'conversion':float},
         'max_rise':{'id':'detector_filter_max_rise', 'label':'Maximum rise constant (ms)', 'validation':'float/None', 'conversion':float},
+        'min_drr':{'id':'detector_filter_min_dr', 'label':'Minimum decay:rise ratio', 'validation':'float/None', 'conversion':float},
+        'max_drr':{'id':'detector_filter_max_dr', 'label':'Maximum decay:rise ratio', 'validation':'float/None', 'conversion':float}
     }
     for k, d in filter_params.items():
         widgets[d['id']] = optionframe.insert_label_entry(
@@ -203,11 +210,11 @@ def load(parent):
     )
     optionframe.insert_button(
         text='Apply filter\n(all)',
-        command=None,  # link this later,
+        command=filter_all,  # link this later,
     )
     optionframe.insert_button(
         text='Apply filter\n(window)',
-        command=None  # link this later
+        command=filter_in_window  # link this later
     )
     # panel = frame.make_panel()
     # Tk.Label(panel, text='Fit decay functions using:').grid(column=0, row=0, sticky='news')
@@ -320,15 +327,37 @@ def extract_mini_parameters():
     global core_params
     global filter_params
     for k, d in core_params.items():
-        if 'conversion' in d:
+        try:
             params[k] = d['conversion'](widgets[d['id']].get())
-        else:
-            params[k] = widgets[d['id']].get()
+        except:
+            if widgets[d['id']].get() == 'None':
+                params[k] = None
+            else:
+                params[k] = widgets[d['id']].get()
     for k, d in filter_params.items():
-        params[k] = widgets[d['id']].get()
+        try:
+            params[k] = d['conversion'](widgets[d['id']].get())
+        except:
+            if widgets[d['id']].get() == 'None':
+                params[k] = None
+            else:
+                params[k] = widgets[d['id']].get()
     if params['compound']:
         for k, d in compound_params.items():
             params[k] = widgets[d['id']].get()
+    return params
+
+def extract_filter_parameters():
+    params={}
+    global filter_params
+    for k, d in filter_params.items():
+        try:
+            params[k] = d['conversion'](widgets[d['id']].get())
+        except:
+            if widgets[d['id']].get() == 'None':
+                params[k] = None
+            else:
+                params[k] = widgets[d['id']].get()
     return params
 
 def extract_columns2display():

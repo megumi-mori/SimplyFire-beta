@@ -1,6 +1,9 @@
 # PyMini
 
 update log
+- Dec 9 2021: vb0.1.6
+  - filtering the mini results option
+  - decay:rise ratio criterion added 
 - Dec 8 2021: vb0.1.5
   - converted mini parameters to ms (instead of number of data points)
   - fixed bug with mini details not being focused when selected via the traceviewer

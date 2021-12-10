@@ -503,6 +503,34 @@ def find_mini_in_range(xlim, ylim):
         detector_tab.changed = False
     app.pb['value'] = 0
 
+def filter_mini(xlim=None):
+    app.pb['value'] = 1
+    temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
+    save_events(temp_filename)
+    add_undo([
+        data_display.clear,
+        lambda f=temp_filename, l=False, u=False:open_events(f, l, u),
+        lambda msg='Undo mini filtering':log_display.log(msg),
+        update_event_marker,
+    ])
+    app.pb.update()
+    params = detector_tab.extract_mini_parameters()
+    app.pb['value']=20
+    app.pb.update()
+    new_df = al.filter_mini(mini_df=None, xlim=xlim, **params)
+    al.mini_df = new_df
+    app.pb['value']=40
+    app.pb.update()
+    data_display.clear()
+    app.pb['value']=60
+    app.pb.update()
+    populate_data_display()
+    app.pb['value']=80
+    app.pb.update()
+    update_event_marker()
+    app.pb['value']=100
+    app.pb['value']=0
+
 def select_single_mini(iid):
     data = al.mini_df[al.mini_df.t == float(iid)]
     if app.widgets['window_param_guide'].get() == '1':
@@ -567,27 +595,7 @@ def reanalyze(xs, ys, data, remove_restrict=False):
         except:
             max_decay = np.inf
 
-    new_data, success = al.filter_mini(
-        start_idx=None,
-        end_idx=None,
-        xs=xs,
-        ys=ys,
-        peak_idx=data['peak_idx'],
-        x_unit=al.recording.x_unit,
-        y_unit=al.recording.y_unit,
-        direction=direction,
-        lag=lag,
-        min_amp=min_amp,
-        min_rise=min_rise,
-        max_rise=max_rise,
-        min_hw=min_hw,
-        max_hw=max_hw,
-        min_decay=min_decay,
-        max_decay=max_decay,
-        max_points_decay=int(app.widgets['detector_max_points_decay'].get()),
-        df=mini_df,
-        x_sigdig=al.recording.sampling_rate_sigdig
-    )
+    new_data, success = al.filter_mini()
     new_data['channel'] = al.recording.channel
     new_data['search_xlim'] = data['search_xlim']
     undo = []
@@ -761,12 +769,8 @@ def update_event_marker():
 def delete_event(selection):
     if len(selection)>0:
         selection=[float(i) for i in selection]
-        # al.mini_df = al.mini_df[al.mini_df.t not in selection]
-        erased = al.mini_df[al.mini_df['t'].isin(selection)]
-
-        al.mini_df.drop(al.mini_df.index[al.mini_df['t'].isin(selection)], inplace=True)
-        # al.mini_df.drop(selection, axis=1, inplace=True)
-        update_event_marker()
+        al.mini_df.drop(al.mini_df.index[al.mini_df['t'].isin(selection)], inplace=True) #### make this in analyzer instead
+        update_event_marker() ##### maybe make this separate
     if app.widgets['window_param_guide'].get():
         param_guide.clear()
 
