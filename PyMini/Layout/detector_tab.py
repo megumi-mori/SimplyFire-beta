@@ -19,6 +19,23 @@ def filter_all():
     interface.filter_mini()
 def filter_in_window():
     interface.filter_mini(trace_display.ax.get_xlim())
+
+def populate_decay_algorithms(e=None):
+    #['% amplitude', 'Sum of squares', 'Scipy Curve Fit'],
+    global decay_params
+    global widgets
+    for k, d in decay_params.items():
+        if d['algorithm'] == e:
+            widgets[d['id']].master.master.grid()
+        else:
+            widgets[d['id']].master.master.grid_remove()
+    if e == '% amplitude':
+        pass
+    elif e == 'Sum of squares':
+        pass
+    elif e == 'Scipy Curve Fit':
+        pass
+    pass
 def load(parent):
     global widgets
     ##################################################
@@ -105,6 +122,69 @@ def load(parent):
         parameters[d['id']] = widgets[d['id']].get()
         changes[d['id']] = widgets[d['id']].get()
 
+    optionframe.insert_title(
+        text='Decay fitting options'
+    )
+    widgets['detector_core_decay_algorithm'] = optionframe.insert_label_optionmenu(
+        name='detector_core_decay_algorithm',
+        label='Decay calculation method:',
+        options=['% amplitude', 'Sum of squares', 'Curve fit'],
+        command=populate_decay_algorithms
+    )
+
+    global decay_params
+    decay_params = {
+        'decay_p_amp': {
+            'id':'detector_core_decay_p_amp',
+            'label':'Percent peak to mark as decay constant (%)',
+            'validation':'float',
+            'conversion':float,
+            'algorithm':'% amplitude'
+        },
+        'decay_ss_min':{
+            'id':'detector_core_decay_ss_min',
+            'label':'Minimum decay constant (ms)',
+            'validation':'float',
+            'conversion':float,
+            'algorithm':'Sum of squares'
+        },
+        'decay_ss_max':{
+            'id':'detector_core_decay_ss_min',
+            'label':'Max decay constant (ms)',
+            'validation':'float',
+            'conversion':float,
+            'algorithm': 'Sum of squares'
+        },
+        'decay_ss_interval':{
+            'id':'detector_core_decay_ss_interval',
+            'label':'Decay constant estimation step (ms)',
+            'validation':'float/auto',
+            'conversion':float,
+            'algorithm': 'Sum of squares'
+        },
+        'decay_best_guess': {
+            'id':'detector_core_decay_best_guess',
+            'label':'Starting seed for exponential decay fit (ms)',
+            'validation':'float',
+            'conversion':float,
+            'algorithm':'Curve fit'
+        }
+    }
+    for k, d in decay_params.items():
+        widgets[d['id']] = optionframe.insert_label_entry(
+            name=d['id'],
+            label=d['label'],
+            validate_type=d['validation']
+        )
+        widgets[d['id']].master.master.grid_remove()
+        widgets[d['id']].bind('<Return>', apply_parameters, add='+')
+        widgets[d['id']].bind('<FocusOut>', apply_parameters, add='+')
+        parameters[d['id']] = widgets[d['id']].get()
+        changes[d['id']] = widgets[d['id']].get()
+    populate_decay_algorithms(widgets['detector_core_decay_algorithm'].get())
+    optionframe.insert_title(
+        text='Compound mini options'
+    )
     widgets['detector_compound'] = optionframe.insert_label_checkbox(
         name='detector_core_compound',
         label='Analyze compound minis',
@@ -138,18 +218,23 @@ def load(parent):
 
     toggle_compound_params() # set state of compound param widgets
 
-    widgets['detector_core_update_events'] = optionframe.insert_label_checkbox(
-        name='detector_core_update_events',
-        label='Update graph after each event detection during automated search (will slow down search)',
-    )
+    # widgets['detector_core_update_events'] = optionframe.insert_label_checkbox(
+    #     name='detector_core_update_events',
+    #     label='Update graph after each event detection during automated search (will slow down search)',
+    # )
 
     optionframe.insert_button(
         text='Apply',
         command=trace_display.canvas.get_tk_widget().focus_set
     )
+
+    def default():
+        optionframe.default(filter = 'detector_core_')
+        populate_decay_algorithms(widgets['detector_core_decay_algorithm'].get())
+
     optionframe.insert_button(
         text='Default',
-        command=lambda k='detector_core_': optionframe.default(filter=k)
+        command=default
     )
     optionframe.insert_button(
         text='Find all',
@@ -324,6 +409,7 @@ def extract_mini_parameters():
     params['direction'] = {'negative':-1, 'positive':1}[widgets['detector_core_direction'].get()] # convert direction to int value
     params['update'] = widgets['detector_core_update_events'].get()
     params['compound'] = int(widgets['detector_compound'].get())
+    params['decay_algorithm'] = widgets['detector_core_decay_algorithm'].get()
     global core_params
     global filter_params
     for k, d in core_params.items():
@@ -342,15 +428,7 @@ def extract_mini_parameters():
                 params[k] = None
             else:
                 params[k] = widgets[d['id']].get()
-    if params['compound']:
-        for k, d in compound_params.items():
-            params[k] = widgets[d['id']].get()
-    return params
-
-def extract_filter_parameters():
-    params={}
-    global filter_params
-    for k, d in filter_params.items():
+    for k,d in decay_params.items():
         try:
             params[k] = d['conversion'](widgets[d['id']].get())
         except:
@@ -358,6 +436,9 @@ def extract_filter_parameters():
                 params[k] = None
             else:
                 params[k] = widgets[d['id']].get()
+    if params['compound']:
+        for k, d in compound_params.items():
+            params[k] = widgets[d['id']].get()
     return params
 
 def extract_columns2display():
@@ -365,7 +446,6 @@ def extract_columns2display():
     for b in boxes:
         if widgets[b[0]].get():
             columns.append(b[0])
-    print(columns)
     return columns
 
 def toggle_compound_params(e=None):

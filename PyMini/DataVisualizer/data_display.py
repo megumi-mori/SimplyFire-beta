@@ -80,15 +80,6 @@ def show_columns(columns=None):
        i for i in mini_header2config
         if mini_header2config[i] in columns
     ]))
-    # if app.widgets['analysis_mode'].get() == 'mini':
-    #     dataframe.show_columns(tuple([
-    #             i for i in mini_header2config
-    #             if app.widgets[mini_header2config[i]].get()
-    #         ]))
-    #     pass
-    # else:
-    #     # dataframe.show_columns(tuple(trace_header))
-    #     pass
     fit_columns()
 
 def fit_columns():

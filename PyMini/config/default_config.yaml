@@ -97,6 +97,13 @@ default_detector_core_deltax: 0
 default_detector_core_max_points_decay : 40000
 default_detector_core_min_peak2peak: 0
 
+default_detector_core_decay_algorithm: '% amplitude'
+default_detector_core_decay_p_amp: 0.37
+default_detector_core_decay_ss_min: 0
+default_detector_core_decay_ss_max: 10
+default_detector_core_decay_ss_interval: 0.01
+default_detector_core_decay_best_guess: 4
+
 default_detector_core_compound: 1
 default_detector_core_extrapolation_length: 100
 default_detector_core_p_valley: 50.0

@@ -1074,6 +1074,13 @@ class Analyzer():
                                extrapolation_length=100,
                                p_valley=50,
                                max_compound_interval=0,
+                               ## decay algorithm parameters ##
+                               decay_algorithm = '% amplitude',
+                               decay_p_amp = 0.37,
+                               decay_ss_min = 0.0,
+                               decay_ss_max = 10,
+                               decay_ss_interval = 0.01,
+                               decay_best_guess = 4,
                                ## filtering parameters defined in GUI ##
                                min_amp=0.0,
                                max_amp=np.inf,
@@ -1465,9 +1472,9 @@ class Analyzer():
         if max_decay is not None:
             mini_df = mini_df[(mini_df['halfwidth'] < max_hw) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if min_drr is not None:
-            mini_df = mini_df[(mini_df['decay_const']/mini_df['rise_const'] > min_dr) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
+            mini_df = mini_df[(mini_df['decay_const']/mini_df['rise_const'] > min_drr) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if max_drr is not None:
-            mini_df = mini_df[(mini_df['decay_const']/mini_df['rise_const'] < max_dr) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
+            mini_df = mini_df[(mini_df['decay_const']/mini_df['rise_const'] < max_drr) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         return mini_df
 
     ###################
