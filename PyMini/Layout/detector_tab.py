@@ -25,16 +25,10 @@ def populate_decay_algorithms(e=None):
     global decay_params
     global widgets
     for k, d in decay_params.items():
-        if d['algorithm'] == e:
+        if e in d['algorithm']:
             widgets[d['id']].master.master.grid()
         else:
             widgets[d['id']].master.master.grid_remove()
-    if e == '% amplitude':
-        pass
-    elif e == 'Sum of squares':
-        pass
-    elif e == 'Scipy Curve Fit':
-        pass
     pass
 def load(parent):
     global widgets
@@ -128,10 +122,9 @@ def load(parent):
     widgets['detector_core_decay_algorithm'] = optionframe.insert_label_optionmenu(
         name='detector_core_decay_algorithm',
         label='Decay calculation method:',
-        options=['% amplitude', 'Sum of squares', 'Curve fit'],
+        options=['% amplitude', 'Sum of squares', 'Curve fit', 'None'],
         command=populate_decay_algorithms
     )
-
     global decay_params
     decay_params = {
         'decay_p_amp': {
@@ -139,35 +132,42 @@ def load(parent):
             'label':'Percent peak to mark as decay constant (%)',
             'validation':'float',
             'conversion':float,
-            'algorithm':'% amplitude'
+            'algorithm':['% amplitude']
         },
         'decay_ss_min':{
             'id':'detector_core_decay_ss_min',
             'label':'Minimum decay constant (ms)',
             'validation':'float',
             'conversion':float,
-            'algorithm':'Sum of squares'
+            'algorithm':['Sum of squares']
         },
         'decay_ss_max':{
-            'id':'detector_core_decay_ss_min',
+            'id':'detector_core_decay_ss_max',
             'label':'Max decay constant (ms)',
             'validation':'float',
             'conversion':float,
-            'algorithm': 'Sum of squares'
+            'algorithm': ['Sum of squares']
         },
         'decay_ss_interval':{
             'id':'detector_core_decay_ss_interval',
             'label':'Decay constant estimation step (ms)',
             'validation':'float/auto',
             'conversion':float,
-            'algorithm': 'Sum of squares'
+            'algorithm': ['Sum of squares']
         },
         'decay_best_guess': {
             'id':'detector_core_decay_best_guess',
             'label':'Starting seed for exponential decay fit (ms)',
             'validation':'float',
             'conversion':float,
-            'algorithm':'Curve fit'
+            'algorithm':['Curve fit']
+        },
+        'decay_max_interval': {
+            'id': 'detector_core_decay_max_interval',
+            'label': 'Maximum x-interval considered for decay (ms)',
+            'validation': 'float',
+            'conversion': float,
+            'algorithm': ['Curve fit', 'Sum of squares', '% amplitude']
         }
     }
     for k, d in decay_params.items():
@@ -407,7 +407,6 @@ def populate_data_display():
 def extract_mini_parameters():
     params = {}
     params['direction'] = {'negative':-1, 'positive':1}[widgets['detector_core_direction'].get()] # convert direction to int value
-    params['update'] = widgets['detector_core_update_events'].get()
     params['compound'] = int(widgets['detector_compound'].get())
     params['decay_algorithm'] = widgets['detector_core_decay_algorithm'].get()
     global core_params
@@ -424,7 +423,7 @@ def extract_mini_parameters():
         try:
             params[k] = d['conversion'](widgets[d['id']].get())
         except:
-            if widgets[d['id']].get() == 'None':
+            if widgets[d['id']].get() == 'None' or widgets[d['id']].get() == '':
                 params[k] = None
             else:
                 params[k] = widgets[d['id']].get()

@@ -532,7 +532,7 @@ def filter_mini(xlim=None):
     app.pb['value']=0
 
 def select_single_mini(iid):
-    data = al.mini_df[al.mini_df.t == float(iid)]
+    data = al.mini_df[al.mini_df.t == float(iid)].squeeze().to_dict()
     if app.widgets['window_param_guide'].get() == '1':
         report_to_param_guide(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear=True)
 
@@ -638,18 +638,17 @@ def add_event(data):
 def report_to_param_guide(xs, ys, data, clear=False):
     if clear:
         param_guide.clear()
-
-    direction = data['direction']
-    if data['failure']:
+    print(data)
+    if data['failure'] is not None:
         param_guide.msg_label.insert(data['failure'] + '\n')
     try:
         try:
-            param_guide.plot_trace(xs[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['end_idx'] + data['max_points_decay'], len(xs)))],
-                                       ys[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['end_idx'] + data['max_points_decay'], len(xs)))])
+            param_guide.plot_trace(xs[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['end_idx'] + data['decay_max_points'], len(xs)))],
+                                       ys[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['end_idx'] + data['decay_max_points'], len(xs)))])
         except Exception as e:
             param_guide.plot_trace(xs[int(max(data['peak_idx'] - data['delta_x'] - data['lag'],0)):int(min(data['peak_idx']+data['lag']+data['delta_x'], len(xs)))],
                                        ys[int(max(data['peak_idx'] - data['delta_x'] - data['lag'],0)):int(min(data['peak_idx']+data['lag']+data['delta_x'], len(xs)))])
-            print('exception during plot {}'.format(e))
+            # print('exception during plot {}'.format(e))
 
     # except:
     #     pass
@@ -675,7 +674,7 @@ def report_to_param_guide(xs, ys, data, clear=False):
                                    (xs[int(min(data['end_idx'] + data['lag'], len(xs)))], data['baseline']))
 
 
-        x_data = (xs[int(data['peak_idx']):int(min(data['peak_idx'] + data['max_points_decay'], len(xs)))] - xs[int(data['peak_idx'])]) * 1000
+        x_data = (xs[int(data['peak_idx']):int(min(data['peak_idx'] + data['decay_max_points'], len(xs)))] - xs[int(data['peak_idx'])]) * 1000
         y_decay = analyzer2.single_exponent(x_data, data['decay_A'], data['decay_const'])
 
         x_data = x_data / 1000 + xs[int(data['peak_idx'])]
@@ -691,7 +690,8 @@ def report_to_param_guide(xs, ys, data, clear=False):
                                        (xs[data['halfwidth_end_idx']], data['baseline'] + data['amp'] / 2))
         param_guide.msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')
     except Exception as e:
-        print(e)
+        param_guide.plot_trace(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
+                               ys[data['xlim_idx'][0]:data['xlim_idx'][1]])
         pass
 
     param_guide.canvas.draw()
@@ -763,7 +763,10 @@ def update_event_marker():
     if app.widgets['show_start'].get():
         trace_display.plot_start(get_column('start_coord_x'), get_column('start_coord_y'))
     if app.widgets['show_decay'].get():
-        trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
+        try:
+            trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
+        except: # decay was not found yet
+            pass
     trace_display.canvas.draw()
 
 def delete_event(selection):

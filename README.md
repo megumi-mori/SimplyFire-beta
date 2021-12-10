@@ -1,6 +1,10 @@
 # PyMini
 
 update log
+- Dec 10 2021:
+  - decay function takes into account the previous mini
+  - still need to plot correctly on the param guide
+  - None option added for decay (for faster analysis?)
 - Dec 9 2021: vb0.1.6
   - filtering the mini results option
   - decay:rise ratio criterion added 
