@@ -1004,7 +1004,24 @@ class Analyzer():
         else:
             right_idx = None
         return left_idx, right_idx, (xs[right_idx] - xs[left_idx]) * 1000  # pick the shortest length
+    def find_first_point_at_p(self,
+                              amp: float,
+                              p:float,
+                              xs: np.ndarray,
+                              ys:np.ndarray,
+                              start_idx:int,
+                              end_idx: int,
+                              percent: float,
+                              baseline: float,
+                              direction: int=1):
+        """
+        traverses xs and ys to find first data point after start_idx and before end_idx that reaches p percent of amplitude
+        from baseline
 
+        amp: amplitude in float. should be positive float
+        """
+        forward = True
+        pass
     def fit_mini_decay(self,
                        xs: np.ndarray,
                        ys: np.ndarray,
@@ -1042,8 +1059,6 @@ class Analyzer():
 
         else:
             y_data = (ys - baseline) * direction  # baseline subtract
-        print(f'end_idx: {end_idx}')
-        print(f'fit mini decay end point: {xs[end_idx]}')
         y_data[end_idx:] = 0
 
         p0 =[1]*2
@@ -1151,6 +1166,7 @@ class Analyzer():
                                extrapolation_length=100,
                                p_valley=50,
                                max_compound_interval=0,
+                               extrapolate_hw=0,
                                ## decay algorithm parameters ##
                                decay_algorithm = '% amplitude',
                                decay_p_amp = 0.37,
@@ -1490,9 +1506,26 @@ class Analyzer():
             self.print_time('decay', show_time)
         ####### calculate halfwidth #######
         # need to incorporate compound #
-        halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
-            amp=mini['amp'], xs=xs, ys=ys, start_idx=baseline_idx, end_idx=end_idx,
-            peak_idx=peak_idx, baseline=mini['baseline'], direction=direction)
+        if compound and mini['compound']:
+            halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
+                amp=mini['amp'], xs=xs, ys=ys, start_idx=baseline_idx, end_idx=end_idx,
+                peak_idx=peak_idx, baseline=mini['baseline'], direction=direction)
+            print('regular')
+        else:
+            halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
+                amp=mini['amp'], xs=xs, ys=ys, start_idx=baseline_idx,
+                # end_idx=peak_idx + decay_max_points,
+                end_idx=end_idx,
+
+                peak_idx=peak_idx, baseline=mini['baseline'], direction=direction
+            )
+            print('else statement')
+        if halfwidth_start_idx is not None and halfwidth_end_idx is None:  # decay doesn't happen long enough?
+            print('end not found')
+            if mini['decay_const'] is not None and extrapolate_hw: # use decay to extrapolate 50% value of decay
+                t = np.log(0.5)*-1*mini['decay_const']/1000
+                halfwidth_end_idx = search_index(xs[peak_idx]+t, xs,sampling_rate)
+                mini['halfwidth'] = (xs[halfwidth_end_idx] - xs[halfwidth_start_idx])*1000
         if halfwidth_end_idx is None or halfwidth_start_idx is None:
             mini['success'] = False
             mini['failure'] = 'Halfwidth could not be calculated'

@@ -102,9 +102,8 @@ def load(parent):
         # 'max_points_decay': {'id': 'detector_core_max_points_decay',
         #                      'label': 'Maximum data points after peak to consider for decay', 'validation': 'int'},
         'min_peak2peak': {'id': 'detector_core_min_peak2peak',
-                          'label':'Minimum interval between peaks (ms)', 'validation':'float'}
+                          'label':'Reject minis closer than (ms):', 'validation':'float'}
     }
-
     for k, d in core_params.items():
         widgets[d['id']] = optionframe.insert_label_entry(
             name=d['id'],
@@ -116,6 +115,14 @@ def load(parent):
         parameters[d['id']] = widgets[d['id']].get()
         changes[d['id']] = widgets[d['id']].get()
 
+    widgets['detector_core_extrapolate_hw'] = optionframe.insert_label_checkbox(
+        name='detector_core_extrapolate_hw',
+        label='Use decay to extrapolate halfwidth',
+        onvalue=1,
+        offvalue=0,
+    )
+    core_params['extrapolate_hw'] = {'id':'detector_core_extrapolate_hw',
+                                         'conversion':int}
     optionframe.insert_title(
         text='Decay fitting options'
     )
@@ -215,6 +222,7 @@ def load(parent):
         widgets[d['id']].bind('<FocusOut>', apply_parameters, add='+')
         parameters[d['id']] = widgets[d['id']].get()
         changes[d['id']] = widgets[d['id']].get()
+
 
     toggle_compound_params() # set state of compound param widgets
 
@@ -448,10 +456,12 @@ def extract_columns2display():
     return columns
 
 def toggle_compound_params(e=None):
-    state = {'1':'normal', '0':'disabled'}[widgets['detector_compound'].get()]
+    state = int(widgets['detector_compound'].get())
     for k, d in compound_params.items():
-        widgets[d['id']].config(state=state)
-
+        if state:
+            widgets[d['id']].master.master.grid()
+        else:
+            widgets[d['id']].master.master.grid_remove()
 def log(msg, header=True):
     if header:
         log_display.log('@ {}: {}'.format('mini', msg), header)
