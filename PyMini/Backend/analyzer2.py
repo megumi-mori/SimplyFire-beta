@@ -854,7 +854,7 @@ class Analyzer():
 
         if delta_x == 0:
             tma = np.mean(ys[idx - lag:idx])*direction # avg lag data points - trailing moving average
-            while lag <= lag:
+            while lag <= idx:
                 idx -= 1
                 tma = tma + (ys[idx - lag] - ys[idx]) * direction / lag # update trailing avg
                 if tma >= ys[idx] * direction:
@@ -928,35 +928,43 @@ class Analyzer():
         # NB: by multiplying the direction, the ys values will always peak in the positive direction
         if idx > len(ys) - lag:
             return None, None  # there are less than lag data points to the right of the starting index
-
-        tma = np.mean(ys[idx:idx + lag] * direction)  # avg lag data points, trailing moving average
-        cma = np.mean(ys[idx - int(lag / 2): idx + int(lag / 2)])  # central moving average
-
-        update_tma = True
-        update_cma = True
-
-        tma_idx = idx
-        cma_idx = idx
-        while lag <= idx <= len(ys) - lag:
-            if update_cma:
-                next_cma = cma + (ys[idx + int(lag / 2)] - ys[idx - int(lag / 2)]) * direction / (int(lag / 2) * 2)
-                if next_cma > cma:  # upward slope
-                    update_cma = False
-                    cma_idx = idx - 1
-                else:
-                    cma = next_cma
-            if update_tma:
-                tma = tma + (ys[idx + lag] - ys[idx]) * direction / lag  # update trailing avg
-                # equivalent to np.mean(ys[base_idx-lag: base_idx])
-                if tma >= ys[idx] * direction and next_cma >= cma:  # y-value dips below the estimated baseline
-                    update_tma = False
-                    tma_idx = idx - 1
-            if not update_cma and not update_tma:
-                break
+        tma = np.mean(ys[idx:idx+lag]) * direction  # avg lag data points - trailing moving average
+        while idx <= len(ys) - lag:
             idx += 1
+            tma = tma + (ys[idx + lag] - ys[idx]) * direction / lag  # update trailing avg
+            if tma >= ys[idx] * direction:
+                return idx, tma * direction
         else:
-            return None, None  # could not find baseline until base_idx < lag or base_idx > len(ys) - lag
-        return max(cma_idx, tma_idx), min(tma, cma) * direction
+            return None, None
+
+        # tma = np.mean(ys[idx:idx + lag] * direction)  # avg lag data points, trailing moving average
+        # cma = np.mean(ys[idx - int(lag / 2): idx + int(lag / 2)])  # central moving average
+        #
+        # update_tma = True
+        # update_cma = True
+        #
+        # tma_idx = idx
+        # cma_idx = idx
+        # while lag <= idx <= len(ys) - lag:
+        #     if update_cma:
+        #         next_cma = cma + (ys[idx + int(lag / 2)] - ys[idx - int(lag / 2)]) * direction / (int(lag / 2) * 2)
+        #         if next_cma > cma:  # upward slope
+        #             update_cma = False
+        #             cma_idx = idx - 1
+        #         else:
+        #             cma = next_cma
+        #     if update_tma:
+        #         tma = tma + (ys[idx + lag] - ys[idx]) * direction / lag  # update trailing avg
+        #         # equivalent to np.mean(ys[base_idx-lag: base_idx])
+        #         if tma >= ys[idx] * direction and next_cma >= cma:  # y-value dips below the estimated baseline
+        #             update_tma = False
+        #             tma_idx = idx - 1
+        #     if not update_cma and not update_tma:
+        #         break
+        #     idx += 1
+        # else:
+        #     return None, None  # could not find baseline until base_idx < lag or base_idx > len(ys) - lag
+        # return max(cma_idx, tma_idx), min(tma, cma) * direction
 
     def calculate_mini_halfwidth(self,
                                  amp: float,
@@ -1034,6 +1042,8 @@ class Analyzer():
 
         else:
             y_data = (ys - baseline) * direction  # baseline subtract
+        print(f'end_idx: {end_idx}')
+        print(f'fit mini decay end point: {xs[end_idx]}')
         y_data[end_idx:] = 0
 
         p0 =[1]*2
@@ -1343,7 +1353,7 @@ class Analyzer():
                     next_peak_idx_df = None
             next_peak_idx_search = self.find_peak_recursive(xs=xs,
                                                      ys=ys,
-                                                     start=int(peak_idx),
+                                                     start=int(peak_idx+min_peak2peak/1000*sampling_rate),
                                                      end=int(peak_idx+max_compound_interval_idx),
                                                      direction=direction
                                                      )
@@ -1366,12 +1376,7 @@ class Analyzer():
             end_idx_min = np.where(ys[peak_idx:next_peak_idx] * direction == min(
                 ys[peak_idx:next_peak_idx] * direction))[0][0] + peak_idx
             end_idx = max(end_idx, end_idx_min)
-
         mini['end_idx'] = end_idx + offset
-        if mini['end_idx'] is None:  # not successful
-            mini['success'] = False
-            mini['failure'] = 'End of mini could not be found'
-            return mini
 
         # store the coordinate for the end of mini (where the plot crosses the trailing average)
         mini['end_coord_x'] = xs[end_idx]
@@ -1405,10 +1410,12 @@ class Analyzer():
             # mini['decay_A'], mini['decay_const'], decay_idx = self.calculate_mini_decay(
             #     xs=xs, ys=ys, start_idx=peak_idx, end_idx=end_idx, num_points=decay_max_points, direction=direction,
             #     sampling_rate=sampling_rate, baseline=mini['baseline'])
-                if next_peak_idx - peak_idx < decay_max_points:
+                if next_peak_idx is not None and next_peak_idx - peak_idx < decay_max_points:
                     decay_end_idx = end_idx - peak_idx
+                    print('found next_peak_idx')
                 else:
                     decay_end_idx = -1
+                print(f'decay end idx: {decay_end_idx}')
                 mini['decay_A'], mini['decay_const'] = self.fit_mini_decay(
                     xs=xs[peak_idx:min(peak_idx+decay_max_points, len(xs))],
                                     ys=ys[peak_idx:min(peak_idx+decay_max_points, len(ys))],
@@ -1428,7 +1435,7 @@ class Analyzer():
                     xs=xs[peak_idx:min(peak_idx + decay_max_points, len(xs))],
                                     ys=ys[peak_idx:min(peak_idx + decay_max_points, len(ys))],
                                     sampling_rate=sampling_rate,
-                                    end_idx=end_idx - peak_idx,
+                                    end_idx=-1,
                                     amplitude=mini['amp'] * direction,
                                     decay_guess=decay_best_guess,
                                     direction=direction,
@@ -1690,13 +1697,13 @@ class Analyzer():
 # Common Helper Functions
 ##############################
     def print_time(self, msg="", display=True):
-        current_time = time()
         if display:
+            current_time = time()
             try:
                 print(f'{msg}\t{current_time - self.time_point}')
             except:
                 pass
-        self.time_point = current_time
+            self.time_point = current_time
 def point_line_min_distance(point, xs, ys, sampling_rate, radius=np.inf, xy_ratio=1):
     """
     finds the minimum distance between x-y plot data and an x-y point

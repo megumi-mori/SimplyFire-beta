@@ -21,5 +21,8 @@ update log
 - Nov 29 2021: vb0.1.2
     - added a way to look forward when searching for minis
     - might need to update so that the future mini is analyzed for amplitude (reject if too low)
-    
+  
+# things to look out for
+- 21930008 at 33.5s - noisy decay, halfwidth requires short lag
+  - try fixing this by going further than 'end' if not compound? 
 
