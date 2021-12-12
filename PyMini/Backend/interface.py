@@ -362,7 +362,7 @@ def open_events(filename, log=True, undo=True):
     if not al.recording:
         # recording file not open yet
         messagebox.showerror('Open error', 'Please open a recording file first.')
-    if undo:
+    if undo and int(app.widgets['config_undo_stack'].get()) > 0:
         temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
         save_events(temp_filename)
         add_undo([
@@ -505,14 +505,15 @@ def find_mini_in_range(xlim, ylim):
 
 def filter_mini(xlim=None):
     app.pb['value'] = 1
-    temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
-    save_events(temp_filename)
-    add_undo([
-        data_display.clear,
-        lambda f=temp_filename, l=False, u=False:open_events(f, l, u),
-        lambda msg='Undo mini filtering':log_display.log(msg),
-        update_event_marker,
-    ])
+    if int(app.widgets['config_undo_stack'].get()) > 0:
+        temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
+        save_events(temp_filename)
+        add_undo([
+            data_display.clear,
+            lambda f=temp_filename, l=False, u=False:open_events(f, l, u),
+            lambda msg='Undo mini filtering':log_display.log(msg),
+            update_event_marker,
+        ])
     app.pb.update()
     params = detector_tab.extract_mini_parameters()
     app.pb['value']=20
@@ -641,56 +642,75 @@ def report_to_param_guide(xs, ys, data, clear=False):
     if data['failure'] is not None:
         param_guide.msg_label.insert(data['failure'] + '\n')
     try:
-        try:
-            param_guide.plot_trace(xs[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['peak_idx'] + data['decay_max_points'], len(xs)))],
-                                       ys[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['peak_idx'] + data['decay_max_points'], len(xs)))])
-        except Exception as e:
-            print('exception during plot {}'.format(e))
-    #
-    # except:
-    #     pass
-        param_guide.msg_label.insert(
-            'Peak: {:.3f},{:.3f}\n'.format(data['peak_coord_x'], data['peak_coord_y']))
+        param_guide.plot_search(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
+            ys[data['xlim_idx'][0]:data['xlim_idx'][1]],)
+
+        start = int(min(max(data['start_idx'] - data['lag'] - data['delta_x'], 0), data['xlim_idx'][0]))
+        if data['compound']:
+            start = min(start, int(data['prev_peak_idx']))
+        end = int(max(min(data['peak_idx'] + data['decay_max_points'], len(xs)), data['xlim_idx'][1]))
+        param_guide.plot_recording(
+            xs[start:end],
+            ys[start:end],
+        )
+
+        param_guide.msg_label.insert(f"Peak: {data['peak_coord_x']:.3f},{data['peak_coord_y']:.3f}\n")
         param_guide.plot_peak(data['peak_coord_x'], data['peak_coord_y'])
+
 
         param_guide.plot_start(data['start_coord_x'], data['start_coord_y'])
 
-        if data['base_idx'] is not None:
-            param_guide.plot_start(xs[data['base_idx'][0]], ys[data['base_idx'][0]])
-            param_guide.plot_start(xs[data['base_idx'][1]], ys[data['base_idx'][1]])
+        if data['base_idx'] is not None and not data['compound']:
+            param_guide.plot_base_range(
+                xs[int(data['base_idx'][0]):int(data['base_idx'][1])],
+                ys[int(data['base_idx'][0]):int(data['base_idx'][1])]
+            )
 
-        param_guide.plot_ruler((data['peak_coord_x'], data['peak_coord_y']), (data['peak_coord_x'], data['baseline']))
+        param_guide.plot_amplitude((data['peak_coord_x'], data['peak_coord_y']), data['baseline'])
+
         param_guide.msg_label.insert('Baseline: {:.3f} {}\n'.format(data['baseline'], data['baseline_unit']))
         param_guide.msg_label.insert('Amplitude: {:.3f} {}\n'.format(data['amp'], data['amp_unit']))
-
-        param_guide.ax.set_xlim((xs[int(max(data['start_idx']-data['lag'],0))], xs[int(min(data['end_idx']+data['lag'], len(xs)))]))
-
         param_guide.msg_label.insert('Rise: {:.3f} {}\n'.format(data['rise_const'], data['rise_unit']))
 
-        param_guide.plot_ruler((xs[int(max(data['start_idx'] - data['lag'], 0))], data['baseline']),
-                                   (xs[int(min(data['end_idx'] + data['lag'], len(xs)))], data['baseline']))
-
-
-        x_data = (xs[int(data['peak_idx']):int(min(data['peak_idx'] + data['decay_max_points'], len(xs)))] - xs[int(data['peak_idx'])]) * 1000
-        y_decay = analyzer2.single_exponent(x_data, data['decay_A'], data['decay_const'])
-
-        x_data = x_data / 1000 + xs[int(data['peak_idx'])]
-        y_decay = y_decay * data['direction'] + data['baseline']
-
-        param_guide.plot_decay_fit(x_data, y_decay)
+        if not data['compound']:
+            param_guide.plot_base_simple(xs[int(data['start_idx'])], xs[end], data['baseline'])
+        else:
+            param_guide.plot_base_extrapolate(
+                xs=xs[int(data['prev_peak_idx']):int(min(data['prev_peak_idx']+data['decay_max_points'], len(xs)))],
+                A=data['prev_decay_A'],
+                decay=data['prev_decay_const']/1000,
+                baseline=data['prev_baseline'],
+                direction=data['direction']
+            )
+            pass
 
         param_guide.msg_label.insert('Decay: {:.3f} {}\n'.format(data['decay_const'], data['decay_unit']))
-        param_guide.plot_decay(data['decay_coord_x'], data['decay_coord_y'])
-        # param_guide.msg_label.insert('Decay was fitted using {}\n'.format(data['decay_func']))
+        param_guide.msg_label.insert(f'Decay:rise ratio: {data["decay_const"]/data["rise_const"]}')
+        # param_guide.plot_ruler((xs[int(max(data['start_idx'] - data['lag'], 0))], data['baseline']),
+        #                            (xs[int(min(data['end_idx'] + data['lag'], len(xs)))], data['baseline']))
+        #
+        #
+        # x_data = (xs[int(data['peak_idx']):int(min(data['peak_idx'] + data['decay_max_points'], len(xs)))] - xs[int(data['peak_idx'])]) * 1000
+        # y_decay = analyzer2.single_exponent(x_data, data['decay_A'], data['decay_const'])
+        #
+        # x_data = x_data / 1000 + xs[int(data['peak_idx'])]
+        # y_decay = y_decay * data['direction'] + data['baseline']
+        #
+        # param_guide.plot_decay_fit(x_data, y_decay)
+        #
 
-        param_guide.plot_ruler((xs[data['halfwidth_start_idx']], data['baseline'] + data['amp'] / 2),
-                                       (xs[data['halfwidth_end_idx']], data['baseline'] + data['amp'] / 2))
-        param_guide.msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')
+        # param_guide.plot_decay(data['decay_coord_x'], data['decay_coord_y'])
+        # # param_guide.msg_label.insert('Decay was fitted using {}\n'.format(data['decay_func']))
+        #
+        # param_guide.plot_ruler((xs[data['halfwidth_start_idx']], data['baseline'] + data['amp'] / 2),
+        #                                (xs[data['halfwidth_end_idx']], data['baseline'] + data['amp'] / 2))
+        # param_guide.msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')
     except Exception as e:
-        param_guide.plot_trace(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
-                               ys[data['xlim_idx'][0]:data['xlim_idx'][1]])
+        print(e)
+        # param_guide.plot_trace(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
+        #                        ys[data['xlim_idx'][0]:data['xlim_idx'][1]])
         pass
-
+    param_guide.ax.legend()
     param_guide.canvas.draw()
 
 
@@ -762,11 +782,13 @@ def update_event_marker():
     if app.widgets['show_decay'].get():
         try:
             trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
-        except: # decay was not found yet
+        except Exception as e: # decay was not found yet
+            print(f'update event marker {e}')
             pass
     trace_display.canvas.draw()
 
 def delete_event(selection):
+    print(al.mini_df)
     if len(selection)>0:
         selection=[float(i) for i in selection]
         al.mini_df.drop(al.mini_df.index[al.mini_df['t'].isin(selection)], inplace=True) #### make this in analyzer instead

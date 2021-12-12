@@ -1,6 +1,11 @@
 # PyMini
 
 update log
+- Dec 11 2021:
+  - speed tests - got rid of some algo for the sake of speed
+  - legend in param_guide
+  - tracking of previous mini in auto mode
+  - need to check speed for dataframe access - use of indexing seemed to have made things slower
 - Dec 10 2021:
   - decay function takes into account the previous mini
   - still need to plot correctly on the param guide

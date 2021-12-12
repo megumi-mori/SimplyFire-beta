@@ -1,6 +1,7 @@
 import tkinter as Tk
 from tkinter import ttk
 import app
+from Backend import analyzer2
 from utils import widget
 from utils.widget import NavigationToolbar
 from config import config
@@ -148,42 +149,88 @@ def clear():
         gc.collect()
     except:
         pass
-def plot_trace(xs, ys):
+
+def plot_trace(xs, ys, label=None):
+    if label is None:
+        label = 'Recording'
     try:
         ax.plot(xs, ys, linewidth=app.widgets['style_trace_line_width'].get(),
-                c=app.widgets['style_trace_line_color'].get())
+                c=app.widgets['style_trace_line_color'].get(), label=label)
         ax.autoscale(enable=True, axis='both', tight=True)
         ax.relim()
         # canvas.draw()
     except Exception as e:
         print('plot_trace error {}'.format(e))
         pass
+def plot_recording(xs, ys):
+    ax.plot(xs, ys, linewidth=app.widgets['style_trace_line_width'].get(),
+            c=app.widgets['style_trace_line_color'].get(),
+            label='Recording')
+    ax.autoscale(enable=True,axis='both',tight=True)
+    ax.relim()
+
+def plot_search(xs, ys):
+    ax.plot(xs, ys, linewidth=1,
+            c='blue',
+            alpha=0.1,
+            label='Search range')
+
 
 def plot_baseline_calculation(xs, ys):
     try:
         ax.plot(xs, ys, linewidth=app.widgets['style_trace_line_width'].get(),
-                c=app.widgets['style_event_color_start'].get())
+                c=app.widgets['style_event_color_start'].get(), label='baseline')
         # canvas.draw()
     except:
         pass
 
 def plot_start(x, y):
     try:
-        ax.scatter(x, y, marker='x', c=app.widgets['style_event_color_start'].get())
+        ax.scatter(x, y, marker='x', c=app.widgets['style_event_color_start'].get(),
+                   label='Event start')
         # canvas.draw()
     except Exception as e:
         print(f'plot start error param_guide: {e}')
         pass
 
+def plot_base_range(xs, ys):
+    ax.plot(xs, ys, linewidth=1,
+            c='pink',
+            alpha=0.5,
+            label='Baseline sample')
+
 def plot_peak(x, y):
     try:
         global peak
-        peak = ax.scatter(x, y, marker='o', c=app.widgets['style_event_color_peak'].get())
+        peak = ax.scatter(x, y, marker='o', c=app.widgets['style_event_color_peak'].get(),
+                          label='Peak')
         # canvas.draw()
     except Exception as e:
         print(e)
         pass
 
+def plot_amplitude(peak_coord, baseline):
+    ax.plot([peak_coord[0], peak_coord[0]], [peak_coord[1], baseline],
+            linewidth = app.widgets['style_trace_line_width'].get(),
+            c='black',
+            # label='Amplitude'
+            )
+
+def plot_base_simple(start_x, end_x, baseline):
+    ax.plot([start_x, end_x], [baseline, baseline],
+            linewidth = app.widgets['style_trace_line_width'].get(),
+            c='black',
+            # label='Baseline'
+            )
+
+def plot_base_extrapolate(xs, A, decay, baseline, direction):
+    ax.plot(xs, analyzer2.single_exponent(xs-xs[0], A, decay) * direction + baseline,
+            linewidth=2,
+            c='blue',
+            alpha=0.1,
+            label='Prev decay'
+            )
+    pass
 def plot_ruler(coord1, coord2):
     try:
         ax.plot([coord1[0], coord2[0]], [coord1[1], coord2[1]], linewidth = float(app.widgets['style_trace_line_width'].get()), c='black')
