@@ -616,7 +616,7 @@ class Analyzer():
             in the result:
                 #### list columns here
         """
-        show_time = True
+        show_time = False
         self.print_time('start auto', show_time)
         if xs is None:
             xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
@@ -645,7 +645,6 @@ class Analyzer():
 
         start_idx = xlim_idx[0]
         end_idx = start_idx + kernel
-        df = DataFrame()
         if progress_bar:
             total = xlim_idx[1] - xlim_idx[0]
             start = start_idx
@@ -673,13 +672,10 @@ class Analyzer():
                 if mini['success']:
                     self.print_time('pre append', show_time)
                     mini['xlim_idx']=(start_idx,end_idx)
-                    self.mini_df = self.mini_df.append(Series(mini,
-                                                              name=f'{mini["channel"]}_{mini["peak_idx"]}'),
-                                                       sort=False)
-                    hits.append(mini['t'])
+                    hits.append(mini)
                     start_idx = peak_idx + 1
                     prev_peak = mini
-                    self.print_time('append mini', show_time)
+                    self.print_time('do append mini', show_time)
                 else:
                     if mini['failure'] == 'Mini was previously found':
                         # make sure the failure code matches here
@@ -705,10 +701,11 @@ class Analyzer():
             except:
                 pass
             self.print_time('end iter', show_time)
-        if reference_df and len(self.mini_df.index) > 0:
-            self.mini_df = self.mini_df.sort_values(by='t')
-            return self.mini_df[self.mini_df['t'].isin(hits)]
-        print(self.mini_df)
+        new_df = DataFrame.from_dict(hits)
+        if reference_df:
+            self.mini_df = self.mini_df.append(new_df) # indexing is NOT UNIQUE
+        return new_df
+
 
     def find_mini_manual(self,
                          xlim: tuple = None,
@@ -781,8 +778,8 @@ class Analyzer():
             )
             mini['xlim_idx'] = xlim_idx
             if reference_df and mini['success']:
-                self.mini_df = self.mini_df.append(Series(mini,
-                                                   name= f'{mini["channel"]}_{mini["peak_idx"]}'),
+                self.mini_df = self.mini_df.append(Series(mini),
+                                                   ignore_index=True,
                                                    sort=False)
                 self.mini_df = self.mini_df.sort_values(by='t')
             return mini
@@ -1321,7 +1318,7 @@ class Analyzer():
         mini['start_idx'] = baseline_idx + offset
         mini['base_idx'] = (base_idx[0] + offset, base_idx[1] + offset)
 
-        if reference_df and len(self.mini_df.index) > 0:
+        if reference_df and len(self.mini_df.index) > 0 or prev_peak is not None:
             # try:
             # find the peak of the previous mini
             # peak x-value must be stored in the column 't'
@@ -1335,9 +1332,11 @@ class Analyzer():
                             prev_peak_idx = max(prev_peak_idx)
                         except:
                             pass
-                    prev_peak = self.mini_df.loc[[f'{channel}_{int(prev_peak_idx)}']].squeeze().to_dict()
+                    prev_peak = self.mini_df.loc[(self.mini_df['peak_idx'] == prev_peak_idx) &
+                                                 (self.mini_df['channel'] == channel)].squeeze().to_dict()
                 prev_peak_idx_offset = int(prev_peak['peak_idx']) - offset
                 self.print_time('reference search', show_time)
+
                 if prev_peak_idx_offset + min_peak2peak*sampling_rate/1000>peak_idx:
                     mini['success']=False
                     mini['failure']='The peak occurs within minimum interval (ms) of the preceding mini'
