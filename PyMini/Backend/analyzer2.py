@@ -1157,9 +1157,7 @@ class Analyzer():
                                direction=1,
                                delta_x=0,
                                lag_ms=None,
-                               lag_end_ms=None,
                                lag=100,
-                               lag_end=100,
                                min_peak2peak=0,
                                ## compound parameters defined in GUI ##
                                compound=1,
@@ -1201,13 +1199,9 @@ class Analyzer():
             direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
             lag_ms: float representing the x-axis window to be averaged to estimate the baseline and start of the mini.
                 If given, this parameter is prioritized over the lag parameter
-            lag_end_ms: float representing the x-axis window to be averaged to estimate the end of the mini.
-                If given, this parameter is prioritized over the lag_end parameter
             lag: int indicating the number of data points used to calculate the baseline.
                 See calculate_mini_baseline() for algorithm on baseline estimation.
                 If None, lag_ms must be provided
-            lag_end: int indicating the number of data points used to calculate the end of mini
-                If None, lag_end_ms must be provided
             direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
             min_amp: float indicating the minimum amplitude required in a candidate mini.
             max_amp: float indicating the maximum amplitude accepted in a candidate mini.
@@ -1229,16 +1223,14 @@ class Analyzer():
 
         """
 
-        show_time = False
+        show_time = True
         # perform conversions
         if sampling_rate == 'auto':
             sampling_rate = self.recording.sampling_rate
 
-        # convert lag_ms and lag_end_ms to lag and lag_end
+        # convert lag_ms to lag
         if lag_ms is not None:
             lag = int(lag_ms/1000*sampling_rate)
-        if lag_end_ms is not None:
-            lag_end = int(lag_ms/1000*sampling_rate)
         if decay_max_interval is not None:
             decay_max_points = int(decay_max_interval/100*sampling_rate)
         # initiate mini data dict
@@ -1307,6 +1299,7 @@ class Analyzer():
                             self.mini_df['t'] < mini['t'])]['peak_idx'].iat[-1]
                 prev_peak = self.mini_df.loc[(self.mini_df['peak_idx'] == prev_peak_idx)]
                 prev_peak_idx_offset = int(prev_peak_idx) - offset
+                self.print_time('reference search', show_time)
                 if prev_peak_idx_offset + min_peak2peak*sampling_rate/1000>peak_idx:
                     mini['success']=False
                     mini['failure']='The peak occurs within minimum interval (ms) of the preceding mini'
@@ -1332,6 +1325,7 @@ class Analyzer():
                         mini['baseline'] = single_exponent((peak_idx - prev_peak_idx_offset)/sampling_rate*1000,
                                                            mini['prev_decay_A'],
                                                            mini['prev_decay_const']) * direction + mini['prev_baseline']# get the extrapolated baseline value
+                        self.print_time('reference extrapolation', show_time)
             except Exception as e:
                 pass
                 # print(f'analyze candidate mini reference_df {e}')
@@ -1382,16 +1376,14 @@ class Analyzer():
                 else:
                     next_peak_idx = next_peak_idx_search # if both are None, then next_peak_idx is also None
 
-        end_idx, _ = self.find_mini_end(peak_idx=mini['peak_idx'],
-                                        ys=ys,
-                                        lag=lag_end,
-                                        direction=direction)
         if next_peak_idx is not None:
             # there is next peak
             # print('next peak found')
-            end_idx_min = np.where(ys[peak_idx:next_peak_idx] * direction == min(
+            end_idx = np.where(ys[peak_idx:next_peak_idx] * direction == min(
                 ys[peak_idx:next_peak_idx] * direction))[0][0] + peak_idx
-            end_idx = max(end_idx, end_idx_min)
+        else:
+            end_idx = min(peak_idx + decay_max_points, len(xs))
+
         mini['end_idx'] = end_idx + offset
 
         # store the coordinate for the end of mini (where the plot crosses the trailing average)
@@ -1422,21 +1414,12 @@ class Analyzer():
 
         # try:
         if decay_algorithm == 'Curve fit':
-            if mini['compound']:
-            # mini['decay_A'], mini['decay_const'], decay_idx = self.calculate_mini_decay(
-            #     xs=xs, ys=ys, start_idx=peak_idx, end_idx=end_idx, num_points=decay_max_points, direction=direction,
-            #     sampling_rate=sampling_rate, baseline=mini['baseline'])
-                if next_peak_idx is not None and next_peak_idx - peak_idx < decay_max_points:
-                    decay_end_idx = end_idx - peak_idx
-                    print('found next_peak_idx')
-                else:
-                    decay_end_idx = -1
-                print(f'decay end idx: {decay_end_idx}')
+            try:
                 mini['decay_A'], mini['decay_const'] = self.fit_mini_decay(
                     xs=xs[peak_idx:min(peak_idx+decay_max_points, len(xs))],
                                     ys=ys[peak_idx:min(peak_idx+decay_max_points, len(ys))],
                                     sampling_rate=sampling_rate,
-                                    end_idx=decay_end_idx,
+                                    end_idx=end_idx - peak_idx, # short for compound, all available data for non compound
                                     amplitude=mini['amp']*direction,
                                     decay_guess=decay_best_guess,
                                     direction=direction,
@@ -1446,18 +1429,17 @@ class Analyzer():
                                     prev_mini_t=mini['prev_t'],
                     prev_mini_baseline=mini['prev_baseline']
                                 )
-            else:
+            except:
                 mini['decay_A'], mini['decay_const'] = self.fit_mini_decay(
                     xs=xs[peak_idx:min(peak_idx + decay_max_points, len(xs))],
-                                    ys=ys[peak_idx:min(peak_idx + decay_max_points, len(ys))],
-                                    sampling_rate=sampling_rate,
-                                    end_idx=-1,
-                                    amplitude=mini['amp'] * direction,
-                                    decay_guess=decay_best_guess,
-                                    direction=direction,
-                                    baseline=mini['baseline'],
-                                    )
-
+                    ys=ys[peak_idx:min(peak_idx + decay_max_points, len(ys))],
+                    sampling_rate=sampling_rate,
+                    end_idx=end_idx - peak_idx,  # short for compound, all available data for non compound
+                    amplitude=mini['amp'] * direction,
+                    decay_guess=decay_best_guess,
+                    direction=direction,
+                    baseline=mini['baseline'],
+                )
         elif decay_algorithm == 'None':
             mini['decay_A'] = None
             mini['decay_const'] = None
@@ -1510,18 +1492,13 @@ class Analyzer():
             halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
                 amp=mini['amp'], xs=xs, ys=ys, start_idx=baseline_idx, end_idx=end_idx,
                 peak_idx=peak_idx, baseline=mini['baseline'], direction=direction)
-            print('regular')
         else:
             halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
                 amp=mini['amp'], xs=xs, ys=ys, start_idx=baseline_idx,
-                # end_idx=peak_idx + decay_max_points,
-                end_idx=end_idx,
-
+                end_idx=peak_idx + decay_max_points,
                 peak_idx=peak_idx, baseline=mini['baseline'], direction=direction
             )
-            print('else statement')
         if halfwidth_start_idx is not None and halfwidth_end_idx is None:  # decay doesn't happen long enough?
-            print('end not found')
             if mini['decay_const'] is not None and extrapolate_hw: # use decay to extrapolate 50% value of decay
                 t = np.log(0.5)*-1*mini['decay_const']/1000
                 halfwidth_end_idx = search_index(xs[peak_idx]+t, xs,sampling_rate)

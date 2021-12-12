@@ -643,13 +643,11 @@ def report_to_param_guide(xs, ys, data, clear=False):
         param_guide.msg_label.insert(data['failure'] + '\n')
     try:
         try:
-            param_guide.plot_trace(xs[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['end_idx'] + data['decay_max_points'], len(xs)))],
-                                       ys[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['end_idx'] + data['decay_max_points'], len(xs)))])
+            param_guide.plot_trace(xs[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['peak_idx'] + data['decay_max_points'], len(xs)))],
+                                       ys[int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0)):int(min(data['peak_idx'] + data['decay_max_points'], len(xs)))])
         except Exception as e:
-            param_guide.plot_trace(xs[int(max(data['peak_idx'] - data['delta_x'] - data['lag'],0)):int(min(data['peak_idx']+data['lag']+data['delta_x'], len(xs)))],
-                                       ys[int(max(data['peak_idx'] - data['delta_x'] - data['lag'],0)):int(min(data['peak_idx']+data['lag']+data['delta_x'], len(xs)))])
-            # print('exception during plot {}'.format(e))
-
+            print('exception during plot {}'.format(e))
+    #
     # except:
     #     pass
         param_guide.msg_label.insert(

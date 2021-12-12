@@ -95,12 +95,6 @@ def load(parent):
         'lag_ms': {'id': 'detector_core_lag',
                             'label': 'Window of data points averaged to find start of mini (ms):',
                             'validation': 'float', 'conversion':float},
-        'lag_end_ms': {'id': 'detector_core_lag_end',
-                    'label': 'Window of data points averaged to find end of mini (ms):',
-                    'validation': 'float',
-                    'conversion': float}, # convert to ms later
-        # 'max_points_decay': {'id': 'detector_core_max_points_decay',
-        #                      'label': 'Maximum data points after peak to consider for decay', 'validation': 'int'},
         'min_peak2peak': {'id': 'detector_core_min_peak2peak',
                           'label':'Reject minis closer than (ms):', 'validation':'float'}
     }
