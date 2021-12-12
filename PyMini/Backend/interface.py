@@ -638,7 +638,6 @@ def add_event(data):
 def report_to_param_guide(xs, ys, data, clear=False):
     if clear:
         param_guide.clear()
-    print(data)
     if data['failure'] is not None:
         param_guide.msg_label.insert(data['failure'] + '\n')
     try:

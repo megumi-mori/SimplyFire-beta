@@ -652,6 +652,7 @@ class Analyzer():
             progress_bar.update()
         hits = []
         print(f'etc {time() - t0}')
+        prev_peak = None
         while start_idx < xlim_idx[1]:
             peak_idx = self.find_peak_recursive(xs, ys, start=start_idx, end=end_idx, direction=direction)
             if peak_idx is not None:
@@ -664,6 +665,7 @@ class Analyzer():
                     channel=channel,
                     direction=direction,
                     reference_df=reference_df,
+                    prev_peak = prev_peak,
                     **kwargs
                 )
                 if mini['success']:
@@ -673,8 +675,15 @@ class Analyzer():
                                                        sort=False)
                     hits.append(mini['t'])
                     start_idx = peak_idx + 1
+                    prev_peak = mini
                 else:
-                    start_idx += stride
+                    if mini['failure'] == 'Mini was previously found':
+                        # make sure the failure code matches here
+                        prev_peak = mini
+                        start_idx = peak_idx + 1
+                    else:
+                        start_idx += stride
+
             else:
                 start_idx += stride
                 pass
@@ -741,7 +750,7 @@ class Analyzer():
             if xlim is None:
                 return {'success':False, 'failure':'insufficient info'}
             try:
-                xlim_idx = (search_index(xlim[0], xs), search_index(xlim[1], xs), sampling_rate)
+                xlim_idx = (search_index(xlim[0], xs, sampling_rate), search_index(xlim[1], xs, sampling_rate))
             except:
                 return {'success': False, 'failure':'xlim could not be found'}  # limits of the search window cannot be determined
 
@@ -1155,6 +1164,7 @@ class Analyzer():
                                reanalyze=False,
                                ## parameters defined in GUI ##
                                direction=1,
+                               delta_x_ms=None,
                                delta_x=0,
                                lag_ms=None,
                                lag=100,
@@ -1189,6 +1199,9 @@ class Analyzer():
                                offset=0,
                                y_unit='mV',
                                x_unit='s',
+                               ##################################
+                               prev_peak_idx=None,
+                               prev_peak=None,
                                **kwargs
                                ):
         """
@@ -1197,6 +1210,8 @@ class Analyzer():
             x_sigdig: significant digits in x
             sampling_rate: sampling rate of xs in Hz
             direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
+            delta_x_ms: float, prioritized
+            delta_x: int
             lag_ms: float representing the x-axis window to be averaged to estimate the baseline and start of the mini.
                 If given, this parameter is prioritized over the lag parameter
             lag: int indicating the number of data points used to calculate the baseline.
@@ -1232,7 +1247,9 @@ class Analyzer():
         if lag_ms is not None:
             lag = int(lag_ms/1000*sampling_rate)
         if decay_max_interval is not None:
-            decay_max_points = int(decay_max_interval/100*sampling_rate)
+            decay_max_points = int(decay_max_interval/1000*sampling_rate)
+        if delta_x_ms is not None:
+            delta_x = int(delta_x_ms/1000*sampling_rate)
         # initiate mini data dict
         mini = {'direction': direction, 'lag': lag, 'delta_x': delta_x, 'channel': channel, 'min_amp': min_amp,
                 'max_amp': max_amp,
@@ -1254,9 +1271,11 @@ class Analyzer():
             mini['t'] = round(mini['t'], x_sigdig)  # round the x_value of the peak to indicated number of digits
 
         # check if the peak is duplicate of existing mini data
-        if reference_df:
+        if reference_df and not reanalyze:
             try:
-                if mini['t'] in self.mini_df.t.values and not reanalyze:
+                if mini['t'] in self.mini_df.t.values:
+                    mini = self.mini_df.loc[(self.mini_df['t'] == mini['t']) &
+                                                 (self.mini_df['channel'] == channel)].squeeze().to_dict()
                     mini['success'] = False
                     mini['failure'] = 'Mini was previously found'
                     return mini
@@ -1283,8 +1302,6 @@ class Analyzer():
         self.print_time('baseline', show_time)
         ####### search baseline #######
         # find baseline/start of event
-        prev_peak_idx = None
-
         mini['baseline'] = ys[baseline_idx]
         mini['start_idx'] = baseline_idx + offset
         mini['base_idx'] = (base_idx[0] + offset, base_idx[1] + offset)
@@ -1295,9 +1312,12 @@ class Analyzer():
             # peak x-value must be stored in the column 't'
             # check that the channels are the same
             try:
-                prev_peak_idx = self.mini_df[(self.mini_df['channel'] == channel) & (
-                            self.mini_df['t'] < mini['t'])]['peak_idx'].iat[-1]
-                prev_peak = self.mini_df.loc[(self.mini_df['peak_idx'] == prev_peak_idx)]
+                if prev_peak is None:
+                    if prev_peak_idx is None:
+                        prev_peak_idx = self.mini_df[(self.mini_df['channel'] == channel) & (
+                                self.mini_df['t'] < mini['t'])]['peak_idx'].iat[-1]
+                    prev_peak = self.mini_df.loc[(self.mini_df['peak_idx'] == prev_peak_idx) &
+                                                 (self.mini_df['channel'] == channel)]
                 prev_peak_idx_offset = int(prev_peak_idx) - offset
                 self.print_time('reference search', show_time)
                 if prev_peak_idx_offset + min_peak2peak*sampling_rate/1000>peak_idx:
@@ -1354,8 +1374,8 @@ class Analyzer():
         if compound:
             next_peak_idx = self.find_peak_recursive(xs=xs,
                                                      ys=ys,
-                                                     start=int(peak_idx+min_peak2peak/1000*sampling_rate),
-                                                     end=int(peak_idx+max_compound_interval_idx),
+                                                     start=int(min(peak_idx+min_peak2peak/1000*sampling_rate, len(ys)-1)),
+                                                     end=int(min(peak_idx+max_compound_interval_idx, len(ys)-1)),
                                                      direction=direction
                                                      )
 
@@ -1365,7 +1385,7 @@ class Analyzer():
             end_idx = np.where(ys[peak_idx:next_peak_idx] * direction == min(
                 ys[peak_idx:next_peak_idx] * direction))[0][0] + peak_idx
         else:
-            end_idx = min(peak_idx + decay_max_points, len(xs))
+            end_idx = min(peak_idx + decay_max_points, len(xs)-1)
 
         mini['end_idx'] = end_idx + offset
 
