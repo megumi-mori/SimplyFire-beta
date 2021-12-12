@@ -1352,29 +1352,12 @@ class Analyzer():
         ####### calculate end of event #######
         next_peak_idx = None
         if compound:
-            next_peak_idx_df = None
-            next_peak_idx_search = None
-            if reference_df and len(self.mini_df.index) > 0:
-                try:
-                    next_peak_idx_df = self.mini_df[(self.mini_df['channel'] == channel) & (
-                            self.mini_df['t'] > mini['t'])]['peak_idx'].iat[0]
-                    next_peak_idx_df = int(next_peak_idx_df) - offset
-                except:
-                    next_peak_idx_df = None
-            next_peak_idx_search = self.find_peak_recursive(xs=xs,
+            next_peak_idx = self.find_peak_recursive(xs=xs,
                                                      ys=ys,
                                                      start=int(peak_idx+min_peak2peak/1000*sampling_rate),
                                                      end=int(peak_idx+max_compound_interval_idx),
                                                      direction=direction
                                                      )
-            # take the closer peak
-            try:
-                next_peak_idx = min(next_peak_idx_search, next_peak_idx_df)
-            except:
-                if next_peak_idx_df is None:
-                    next_peak_idx = next_peak_idx_search #take the not None value
-                else:
-                    next_peak_idx = next_peak_idx_search # if both are None, then next_peak_idx is also None
 
         if next_peak_idx is not None:
             # there is next peak
