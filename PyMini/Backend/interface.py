@@ -656,10 +656,9 @@ def report_to_param_guide(xs, ys, data, clear=False):
         param_guide.clear()
     if data['failure'] is not None:
         param_guide.msg_label.insert(data['failure'] + '\n')
+    param_guide.plot_search(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
+                            ys[data['xlim_idx'][0]:data['xlim_idx'][1]], )
     try:
-        param_guide.plot_search(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
-            ys[data['xlim_idx'][0]:data['xlim_idx'][1]],)
-
         start = int(min(max(data['start_idx'] - data['lag'] - data['delta_x'], 0), data['xlim_idx'][0]))
         if data['compound']:
             start = min(start, int(data['prev_peak_idx']))
@@ -668,21 +667,26 @@ def report_to_param_guide(xs, ys, data, clear=False):
             xs[start:end],
             ys[start:end],
         )
-
+        param_guide.plot_start(data['start_coord_x'], data['start_coord_y'])
+    except: # start not found
+        pass
+    try:
         param_guide.msg_label.insert(f"Peak: {data['peak_coord_x']:.3f},{data['peak_coord_y']:.3f}\n")
         param_guide.plot_peak(data['peak_coord_x'], data['peak_coord_y'])
+        param_guide.plot_amplitude((data['peak_coord_x'], data['peak_coord_y']), data['baseline'])
+    except: # peak not found
+        pass
 
 
-        param_guide.plot_start(data['start_coord_x'], data['start_coord_y'])
-
+    try:
         if data['base_idx'] is not None and not data['compound']:
             param_guide.plot_base_range(
                 xs[int(data['base_idx'][0]):int(data['base_idx'][1])],
                 ys[int(data['base_idx'][0]):int(data['base_idx'][1])]
             )
-
-        param_guide.plot_amplitude((data['peak_coord_x'], data['peak_coord_y']), data['baseline'])
-
+    except:
+        pass
+    try:
         param_guide.msg_label.insert('Baseline: {:.3f} {}\n'.format(data['baseline'], data['baseline_unit']))
         param_guide.msg_label.insert('Amplitude: {:.3f} {}\n'.format(data['amp'], data['amp_unit']))
         param_guide.msg_label.insert('Rise: {:.3f} {}\n'.format(data['rise_const'], data['rise_unit']))
@@ -700,7 +704,7 @@ def report_to_param_guide(xs, ys, data, clear=False):
             pass
 
         param_guide.msg_label.insert('Decay: {:.3f} {}\n'.format(data['decay_const'], data['decay_unit']))
-        param_guide.msg_label.insert(f'Decay:rise ratio: {data["decay_const"]/data["rise_const"]}')
+        param_guide.msg_label.insert(f'Decay:rise ratio: {data["decay_const"]/data["rise_const"]}\n')
 
         param_guide.plot_decay_fit(xs[int(data['peak_idx']):end],
                                    data['decay_A'],
@@ -708,15 +712,13 @@ def report_to_param_guide(xs, ys, data, clear=False):
                                    data['baseline'],
                                    data['direction'])
         param_guide.plot_decay_point(data['decay_coord_x'], data['decay_coord_y'])
-        param_guide.plot_halfwidth((xs[int(data['halfwidth_start_idx'])], ys[int(data['halfwidth_start_idx'])]),
-                                   (xs[int(data['halfwidth_end_idx'])], ys[int(data['halfwidth_end_idx'])]))
-        # param_guide.plot_ruler((xs[data['halfwidth_start_idx']], data['baseline'] + data['amp'] / 2),
-        #                                (xs[data['halfwidth_end_idx']], data['baseline'] + data['amp'] / 2))
-        # param_guide.msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')
     except Exception as e:
         print(e)
-        # param_guide.plot_trace(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
-        #                        ys[data['xlim_idx'][0]:data['xlim_idx'][1]])
+    try:
+        param_guide.plot_halfwidth((xs[int(data['halfwidth_start_idx'])], ys[int(data['halfwidth_start_idx'])]),
+                                   (xs[int(data['halfwidth_end_idx'])], ys[int(data['halfwidth_end_idx'])]))
+        param_guide.msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')
+    except:
         pass
     param_guide.show_legend()
     param_guide.canvas.draw()

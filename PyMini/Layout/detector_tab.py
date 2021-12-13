@@ -125,7 +125,8 @@ def load(parent):
     widgets['detector_core_decay_algorithm'] = optionframe.insert_label_optionmenu(
         name='detector_core_decay_algorithm',
         label='Decay calculation method:',
-        options=['% amplitude', 'Sum of squares', 'Curve fit', 'None'],
+        # options=['% amplitude', 'Sum of squares', 'Curve fit', 'None'],
+        options=['Curve fit'],
         command=populate_decay_algorithms
     )
     global decay_params
