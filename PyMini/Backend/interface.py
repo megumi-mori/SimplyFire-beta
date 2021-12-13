@@ -656,8 +656,11 @@ def report_to_param_guide(xs, ys, data, clear=False):
         param_guide.clear()
     if data['failure'] is not None:
         param_guide.msg_label.insert(data['failure'] + '\n')
-    param_guide.plot_search(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
+    try:
+        param_guide.plot_search(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
                             ys[data['xlim_idx'][0]:data['xlim_idx'][1]], )
+    except:
+        pass
     try:
         start = int(min(max(data['start_idx'] - data['lag'] - data['delta_x'], 0), data['xlim_idx'][0]))
         if data['compound']:
@@ -690,7 +693,9 @@ def report_to_param_guide(xs, ys, data, clear=False):
         param_guide.msg_label.insert('Baseline: {:.3f} {}\n'.format(data['baseline'], data['baseline_unit']))
         param_guide.msg_label.insert('Amplitude: {:.3f} {}\n'.format(data['amp'], data['amp_unit']))
         param_guide.msg_label.insert('Rise: {:.3f} {}\n'.format(data['rise_const'], data['rise_unit']))
-
+    except:
+        pass
+    try:
         if not data['compound']:
             param_guide.plot_base_simple(xs[int(data['start_idx'])], xs[end], data['baseline'])
         else:
@@ -702,7 +707,9 @@ def report_to_param_guide(xs, ys, data, clear=False):
                 direction=data['direction']
             )
             pass
-
+    except:
+        pass
+    try:
         param_guide.msg_label.insert('Decay: {:.3f} {}\n'.format(data['decay_const'], data['decay_unit']))
         param_guide.msg_label.insert(f'Decay:rise ratio: {data["decay_const"]/data["rise_const"]}\n')
 
