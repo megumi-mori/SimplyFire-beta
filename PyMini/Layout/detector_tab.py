@@ -20,6 +20,8 @@ def filter_all():
 def filter_in_window():
     interface.filter_mini(trace_display.ax.get_xlim())
 
+def delete_in_window():
+    interface.delete_events_in_range(trace_display.ax.get_xlim())
 def populate_decay_algorithms(e=None):
     #['% amplitude', 'Sum of squares', 'Scipy Curve Fit'],
     global decay_params
@@ -244,7 +246,7 @@ def load(parent):
     )
     optionframe.insert_button(
         text='Delete all',
-        command=None  # link this later
+        command=interface.delete_all_events
     )
     optionframe.insert_button(
         text='Find in \nwindow',
@@ -252,7 +254,7 @@ def load(parent):
     )
     optionframe.insert_button(
         text='Delete in \nwindow',
-        command=None  # link this later
+        command=delete_in_window
     )
     # mini filtering (min and max values) options
     optionframe.insert_title(

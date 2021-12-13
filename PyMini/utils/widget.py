@@ -69,6 +69,7 @@ class VarEntry(VarWidget, Tk.Entry):
             default=None,
             validate_type=None,
             interface=None,
+            width=None,
             **kwargs
     ):
         self.validate_type=validate_type
@@ -80,11 +81,13 @@ class VarEntry(VarWidget, Tk.Entry):
             default=default,
             interface=interface
         )
+        if width is None:
+            width = config.entry_width
         Tk.Entry.__init__(
             self,
             master=parent,
             textvariable=self.var,
-            width=config.entry_width,
+            width=width,
             justify=Tk.RIGHT,
         )
 

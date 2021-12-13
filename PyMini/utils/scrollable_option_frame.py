@@ -223,16 +223,18 @@ class OptionFrame(Tk.Frame):
     #     width = self.winfo_width()
     #     button.config(width=int(width/2))#, wraplength= int(width / 2) - 4)
 
-    def default(self, keys=None, filter=None):
+    def default(self, keys=None, filter=None, widgets=None):
+        if widgets is None:
+            widgets = self.widgets
         if keys is None:
-            keys = self.widgets.keys()
+            keys = widgets.keys()
         if filter is not None:
             for key in keys:
                 if filter in key:
-                    self.widgets[key].set_to_default()
+                    widgets[key].set_to_default()
             return
         for key in keys:
-            self.widgets[key].set_to_default()
+            widgets[key].set_to_default()
 
     def get_value(self, key):
         return self.widgets[key].get()

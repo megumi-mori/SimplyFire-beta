@@ -203,7 +203,7 @@ def load():
     cp_notebook.add(test, text='test')
 
     # get reference to widgets
-    for key in ['adjust', 'mini']:
+    for key in ['adjust', 'mini', 'style']:
         for k, v in cp_tab_details[key]['module'].widgets.items():
             widgets[k] = v
 

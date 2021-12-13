@@ -983,7 +983,7 @@ class Analyzer():
         #     return None, None  # could not find baseline until base_idx < lag or base_idx > len(ys) - lag
         # return max(cma_idx, tma_idx), min(tma, cma) * direction
 
-    def calculate_mini_halfwidth(self,
+    def find_mini_halfwidth(self,
                                  amp: float,
                                  xs: np.ndarray,
                                  ys: np.ndarray,
@@ -1028,7 +1028,7 @@ class Analyzer():
             right_idx = right_idx[0][0] + peak_idx
         else:
             right_idx = None
-        return left_idx, right_idx, (xs[right_idx] - xs[left_idx]) * 1000  # pick the shortest length
+        return left_idx, right_idx  # pick the shortest length
     def find_first_point_at_p(self,
                               amp: float,
                               p:float,
@@ -1517,49 +1517,47 @@ class Analyzer():
         ####### calculate halfwidth #######
         # need to incorporate compound #
         if compound and mini['compound']:
-            halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
+            halfwidth_start_idx, halfwidth_end_idx = self.find_mini_halfwidth(
                 amp=mini['amp'], xs=xs[baseline_idx:end_idx], ys=ys[baseline_idx:end_idx],
                 peak_idx=peak_idx-baseline_idx, baseline=mini['baseline'], direction=direction,
                 prev_mini_t=mini['prev_t'], prev_mini_decay=mini['prev_decay_const'], prev_mini_A=mini['prev_decay_A'],
                 prev_mini_baseline=mini['prev_baseline']
             )
-            halfwidth_start_idx += baseline_idx
-            halfwidth_end_idx += baseline_idx
         else:
-            halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
+            halfwidth_start_idx, halfwidth_end_idx = self.find_mini_halfwidth(
                 amp=mini['amp'], xs=xs[baseline_idx:end_idx], ys=ys[baseline_idx:end_idx],
                 peak_idx=peak_idx-baseline_idx, baseline=mini['baseline'], direction=direction
             )
-            halfwidth_start_idx += baseline_idx
-            halfwidth_end_idx += baseline_idx
         if halfwidth_start_idx is not None and halfwidth_end_idx is None:  # decay doesn't happen long enough?
             if mini['decay_const'] is not None and extrapolate_hw: # use decay to extrapolate 50% value of decay
                 t = np.log(0.5)*-1*mini['decay_const']/1000
-                halfwidth_end_idx = search_index(xs[peak_idx]+t, xs,sampling_rate)
-                mini['halfwidth'] = (xs[halfwidth_end_idx] - xs[halfwidth_start_idx])*1000
+                halfwidth_end_idx = search_index(xs[peak_idx]+t, xs[baseline_idx:],sampling_rate)
         if halfwidth_end_idx is None or halfwidth_start_idx is None:
             mini['success'] = False
             mini['failure'] = 'Halfwidth could not be calculated'
             return mini
-        else:  # halfwidth was successfully found - check against criteria
-            if mini['halfwidth'] < min_hw:
-                mini['success'] = False
-                mini['failure'] = 'Min halfwidth not met'
-                return mini
+        halfwidth_end_idx += baseline_idx
+        halfwidth_start_idx += baseline_idx
+        mini['halfwidth'] = (xs[int(halfwidth_end_idx)] - xs[int(halfwidth_start_idx)]) * 1000
 
-            if max_hw and mini['halfwidth'] > max_hw:
-                mini['success'] = False
-                mini['failure'] = 'Max halfwidth exceeded'
-                return mini
+        if mini['halfwidth'] < min_hw:
+            mini['success'] = False
+            mini['failure'] = 'Min halfwidth not met'
+            return mini
 
-            mini['halfwidth_start_idx'] = halfwidth_start_idx + offset
-            mini['halfwidth_end_idx'] = halfwidth_end_idx + offset
+        if max_hw and mini['halfwidth'] > max_hw:
+            mini['success'] = False
+            mini['failure'] = 'Max halfwidth exceeded'
+            return mini
 
-            mini['halfwidth_start_coord_x'] = xs[halfwidth_start_idx]
-            mini['halfwidth_start_coord_y'] = ys[halfwidth_start_idx]
+        mini['halfwidth_start_idx'] = halfwidth_start_idx + offset
+        mini['halfwidth_end_idx'] = halfwidth_end_idx + offset
 
-            mini['halfwidth_end_coord_x'] = xs[halfwidth_end_idx]
-            mini['halfwidth_end_coord_y'] = ys[halfwidth_end_idx]
+        mini['halfwidth_start_coord_x'] = xs[halfwidth_start_idx]
+        mini['halfwidth_start_coord_y'] = ys[halfwidth_start_idx]
+
+        mini['halfwidth_end_coord_x'] = xs[halfwidth_end_idx]
+        mini['halfwidth_end_coord_y'] = ys[halfwidth_end_idx]
         self.print_time('halfwidth', show_time)
 
         ###### calculate decay:rise ratio #####

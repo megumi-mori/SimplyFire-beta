@@ -189,6 +189,9 @@ def center_plot_on(x, y):
 
     new_xlim = xlim
     new_ylim = ylim
+    print('center plot on')
+    print(x)
+    print(y)
 
     if xlim[0] < x < xlim[1] and ylim[0] < y < ylim[1]:
         return None
@@ -578,7 +581,9 @@ def plot_highlight(xs, ys):
     except:
         pass
     try:
-        markers['highlight'] = ax.scatter(xs, ys, marker='o', c=app.widgets['style_event_color_highlight'].get(),
+        markers['highlight'], = ax.plot(xs, ys, marker='o', c=app.widgets['style_event_highlight_color'].get(),
+                                          markersize=app.widgets['style_event_highlight_size'].get(),
+                                       linestyle='None',
                                           alpha=0.5, animated=False)
         # canvas.draw()
     except:
@@ -592,8 +597,9 @@ def plot_peak(xs, ys):
     except Exception as e:
         pass
     try:
-        markers['peak'] = ax.scatter(xs, ys, marker='o', c=app.widgets['style_event_color_peak'].get(), picker=True,
-                                     pickradius=int(app.widgets['style_event_pick_offset'].get()), animated=False)
+        markers['peak'] = ax.scatter(xs, ys, marker='o', c=app.widgets['style_event_peak_color'].get(), picker=True,
+                                     s=float(app.widgets['style_event_peak_size'].get())**2,
+                                     pickradius=float(app.widgets['style_event_pick_offset'].get()), animated=False)
         # canvas.draw()
     except Exception as e:
         print('plot peak, plotting error:{}'.format(e))
@@ -607,7 +613,9 @@ def plot_start(xs, ys):
     except:
         pass
     try:
-        markers['start'] = ax.scatter(xs, ys, marker='x', c=app.widgets['style_event_color_start'].get(),
+        markers['start'], = ax.plot(xs, ys, marker='x', c=app.widgets['style_event_start_color'].get(),
+                                      markersize=app.widgets['style_event_start_size'].get(),
+                                      linestyle='None',
                                       animated=False)
         # canvas.draw()
     except:
@@ -621,7 +629,9 @@ def plot_decay(xs, ys):
     except:
         pass
     try:
-        markers['decay'] = ax.scatter(xs, ys, marker='x', c=app.widgets['style_event_color_decay'].get(),
+        markers['decay'], = ax.plot(xs, ys, marker='x', c=app.widgets['style_event_decay_color'].get(),
+                                      markersize=app.widgets['style_event_decay_size'].get(),
+                                      linestyle='None',
                                       animated=False)
         # canvas.draw()
     except:
@@ -635,7 +645,7 @@ def plot_end(xs, ys):
     except:
         pass
     try:
-        markers['end'] = ax.scatter(xs, ys, marker='x', c=app.widgets['style_event_color_end'].get(),
+        markers['end'], = ax.plot(xs, ys, marker='x', c=app.widgets['style_event_color_end'].get(),
                                     animated=False)
         # canvas.draw()
     except:
@@ -643,9 +653,7 @@ def plot_end(xs, ys):
 
 
 def apply_styles(keys):
-    styles = ['style_trace_line_width', 'style_trace_line_color', 'style_event_color_peak', 'style_event_color_start',
-              'style_event_color_end', 'style_event_color_decay', 'style_event_color_highlight',
-              'style_trace_highlight_color']
+    print(keys)
     for k in keys:
         try:
             if k == 'style_trace_line_width':
@@ -654,18 +662,27 @@ def apply_styles(keys):
             if k == 'style_trace_line_color':
                 for l in ax.lines:
                     l.set_color(app.widgets[k].get())
-            if k == 'style_event_color_peak':
+            if k == 'style_event_peak_color':
                 markers['peak'].set_color(app.widgets[k].get())
-            if k == 'style_event_color_start':
+            if k == 'style_event_peak_size':
+                markers['peak'].set_sizes([float(app.widgets[k].get())**2])
+            if k == 'style_event_start_color':
                 markers['start'].set_color(app.widgets[k].get())
-            if k == 'style_event_color_decay':
+            if k == 'style_event_start_size':
+                markers['start'].set_markersize(app.widgets[k].get())
+            if k == 'style_event_decay_color':
                 markers['decay'].set_color(app.widgets[k].get())
-            if k == 'style_event_color_highlight':
+            if k == 'style_event_decay_size':
+                markers['decay'].set_markersize(app.widgets[k].get())
+            if k == 'style_event_highlight_color':
                 markers['highlight'].set_color(app.widgets[k].get())
+            if k == 'style_event_highlight_size':
+                markers['highlight'].set_markersize(app.widgets[k].get())
             if k == 'style_event_pick_offset':
-                markers['peak'].set_picker(True)
-                markers['peak'].set_pickradius(int(app.widgets[k].get()))
-        except:
+                print('set picker')
+                markers['peak'].set_picker(float(app.widgets[k].get()))
+        except Exception as e:
+            print(f'trace display apply styles error {e}')
             pass
     canvas.draw()
 

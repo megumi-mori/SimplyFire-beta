@@ -120,7 +120,7 @@ def unselect(e=None):
 def delete_one(iid):
     print('data_Display delete one: {}'.format(iid))
     try:
-        dataframe.delete([iid])
+        # dataframe.delete([iid])
         interface.delete_event([iid])
     except Exception as e:
         print('data_display delete one error: {}'.format(e))

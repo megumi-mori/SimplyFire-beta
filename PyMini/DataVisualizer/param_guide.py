@@ -191,14 +191,14 @@ def plot_search(xs, ys):
 def plot_baseline_calculation(xs, ys):
     try:
         ax.plot(xs, ys, linewidth=app.widgets['style_trace_line_width'].get(),
-                c=app.widgets['style_event_color_start'].get(), label='baseline')
+                c=app.widgets['style_event_start_color'].get(), label='baseline')
         # canvas.draw()
     except:
         pass
 
 def plot_start(x, y):
     try:
-        ax.scatter(x, y, marker='x', c=app.widgets['style_event_color_start'].get(),
+        ax.scatter(x, y, marker='x', c=app.widgets['style_event_start_color'].get(),
                    label='Event start')
         # canvas.draw()
     except Exception as e:
@@ -214,7 +214,8 @@ def plot_base_range(xs, ys):
 def plot_peak(x, y):
     try:
         global peak
-        peak = ax.scatter(x, y, marker='o', c=app.widgets['style_event_color_peak'].get(),
+        peak = ax.scatter(x, y, marker='o', c=app.widgets['style_event_peak_color'].get(),
+                          s=float(app.widgets['style_event_peak_size'].get())**2,
                           label='Peak')
         # canvas.draw()
     except Exception as e:
@@ -255,11 +256,11 @@ def plot_decay_fit(xs, A, decay, baseline, direction):
     # try:
     ax.plot(xs, analyzer2.single_exponent(xs-xs[0], A, decay)*direction + baseline,
             linewidth=app.widgets['style_trace_line_width'].get(),
-            c=app.widgets['style_event_color_decay'].get(),
+            c=app.widgets['style_event_decay_color'].get(),
             label='Decay fit')
 
 def plot_decay_point(x, y):
-    ax.scatter(x, y, marker='x', c=app.widgets['style_event_color_decay'].get(),
+    ax.scatter(x, y, marker='x', c=app.widgets['style_event_decay_color'].get(),
                label='t=decay constant')
 
 def plot_halfwidth(coord1, coord2):

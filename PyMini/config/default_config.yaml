@@ -150,12 +150,17 @@ default_style_trace_line_color : 'black'
 default_style_trace_line_width : 0.25
 default_major_tick : 'auto'
 default_minor_tick : 'auto'
-default_style_event_color_peak : 'yellow'
-default_style_event_color_start : 'red'
-default_style_event_color_end : 'purple'
-default_style_event_color_decay : 'blue'
-default_style_event_color_highlight: 'red'
-default_style_trace_highlight_color : 'red'
+default_style_event_peak_color : 'green'
+default_style_event_peak_size : 5
+default_style_event_start_color : 'red'
+default_style_event_start_size: 5
+default_style_event_decay_color: 'blue'
+default_style_event_decay_size: 5
+default_style_event_highlight_color: 'red'
+default_style_event_highlight_size: 5
+default_style_trace_highlight_color: 'red'
+default_style_trace_highlight_width: 0.25
+
 default_style_event_pick_offset : 0
 
 default_show_peak : "1"
