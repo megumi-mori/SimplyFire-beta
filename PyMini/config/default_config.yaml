@@ -90,10 +90,10 @@ default_evoked_range_right: 1
 #detector parameters
 default_detector_core_direction : 'positive'
 default_detector_core_search_radius : 5.0
-default_detector_core_auto_radius : 10
+default_detector_core_auto_radius : 80
 default_detector_core_lag : 10
-default_detector_core_deltax_ms: 3
-default_detector_core_min_peak2peak: 0
+default_detector_core_deltax_ms: 0
+default_detector_core_min_peak2peak: 5
 
 default_detector_core_decay_algorithm: 'Curve fit'
 default_detector_core_decay_p_amp: 0.37
@@ -101,7 +101,7 @@ default_detector_core_decay_ss_min: 0
 default_detector_core_decay_ss_max: 10
 default_detector_core_decay_ss_interval: 0.01
 default_detector_core_decay_best_guess: 4
-default_detector_core_decay_max_interval : 10
+default_detector_core_decay_max_interval : 25
 
 default_detector_core_compound: 1
 default_detector_core_extrapolation_length: 100
