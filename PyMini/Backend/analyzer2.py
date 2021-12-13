@@ -703,7 +703,11 @@ class Analyzer():
             self.print_time('end iter', show_time)
         new_df = DataFrame.from_dict(hits)
         if reference_df:
-            self.mini_df = self.mini_df.append(new_df) # indexing is NOT UNIQUE
+            if len(self.mini_df.index)>0:
+                self.mini_df = pd.concat([self.mini_df,new_df]) # indexing is NOT UNIQUE
+                print(self.mini_df)
+            else:
+                self.mini_df = new_df
         return new_df
 
 
@@ -1342,6 +1346,7 @@ class Analyzer():
                             prev_peak_idx = max(prev_peak_idx)
                         except:
                             pass
+
                     prev_peak = self.mini_df.loc[(self.mini_df['peak_idx'] == prev_peak_idx) &
                                                  (self.mini_df['channel'] == channel)].squeeze().to_dict()
                 prev_peak_idx_offset = int(prev_peak['peak_idx']) - offset
@@ -1365,8 +1370,6 @@ class Analyzer():
                         # find where the 'min' valley value is before previous peak
                         baseline_idx = np.where(ys[prev_peak_idx_offset:peak_idx] * direction == min(
                             ys[prev_peak_idx_offset:peak_idx] * direction))[0][0] + prev_peak_idx_offset
-
-
 
                         mini['prev_baseline'] = prev_peak['baseline']
                         mini['prev_decay_const'] = prev_peak['decay_const']
