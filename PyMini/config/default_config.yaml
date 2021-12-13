@@ -95,7 +95,7 @@ default_detector_core_lag : 10
 default_detector_core_deltax_ms: 3
 default_detector_core_min_peak2peak: 0
 
-default_detector_core_decay_algorithm: '% amplitude'
+default_detector_core_decay_algorithm: 'Curve fit'
 default_detector_core_decay_p_amp: 0.37
 default_detector_core_decay_ss_min: 0
 default_detector_core_decay_ss_max: 10
