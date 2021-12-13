@@ -1012,7 +1012,7 @@ class Analyzer():
             halfwidth_end_index: int reperesenting the index at which y-value is 50% of the amplitude
             halfwidth: time it takes for the mini to reach 50% of amplitude and return to 50% of amplitude
         """
-        if prev_mini_t is not None:
+        if prev_mini_A is not None:
             prev_mini_t_ms = prev_mini_t * 1000
             y_data = ys * direction - single_exponent((xs * 1000 - prev_mini_t_ms), prev_mini_A,
                                                   prev_mini_decay) - prev_mini_baseline * direction
