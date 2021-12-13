@@ -791,8 +791,11 @@ def delete_event(selection):
     print(al.mini_df)
     if len(selection)>0:
         selection=[float(i) for i in selection]
-        al.mini_df.drop(al.mini_df.index[al.mini_df['t'].isin(selection)], inplace=True) #### make this in analyzer instead
+        al.mini_df = al.mini_df[(~al.mini_df['t'].isin(selection)) | (al.mini_df['channel'] != al.recording.channel)]
+        data_display.table.selection_remove(*selection)
+        data_display.table.delete(*selection)
         update_event_marker() ##### maybe make this separate
+    print(al.mini_df)
     if app.widgets['window_param_guide'].get():
         param_guide.clear()
 

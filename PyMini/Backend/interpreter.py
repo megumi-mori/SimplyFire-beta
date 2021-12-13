@@ -436,14 +436,7 @@ def unselect_key(event):
 def delete_key(event):
     if app.widgets['analysis_mode'].get() == 'mini':
         sel = data_display.table.selection()
-        data_display.table.selection_remove(*sel)
         interface.delete_event([i for i in sel])
-        data_display.table.update()
-        try:
-            data_display.table.selection_set(table.next(sel[-1]))
-        except Exception as e:
-            pass
-        data_display.table.delete(*sel)
     if app.widgets['trace_mode'].get() == 'overlay':
         interface.hide_highlighted_sweep()
     pass
