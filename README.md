@@ -5,7 +5,10 @@ update log
   - during auto, appending each new mini to dataframe was taking too much time
     - make list, append the set at the end to save time
     - indexing is NOT UNIQUE
-  - 
+  - add undo for deleting
+  - make 'delete mini' buttons functional
+  - better param_guide plotting
+  - update style tab for sleeker UI --> needs more work
 - Dec 11 2021:
   - speed tests - got rid of some algo for the sake of speed
   - legend in param_guide
