@@ -987,11 +987,13 @@ class Analyzer():
                                  amp: float,
                                  xs: np.ndarray,
                                  ys: np.ndarray,
-                                 start_idx: int,
-                                 end_idx: int,
                                  peak_idx: int,
                                  baseline: float,
-                                 direction: int = 1
+                                 direction: int = 1,
+                                 prev_mini_t:float=None,
+                                 prev_mini_A: float=None,
+                                 prev_mini_decay: float=None,
+                                 prev_mini_baseline: float=None,
                                  ):
         """
         calculates the halfwidth of a mini event
@@ -1010,12 +1012,18 @@ class Analyzer():
             halfwidth_end_index: int reperesenting the index at which y-value is 50% of the amplitude
             halfwidth: time it takes for the mini to reach 50% of amplitude and return to 50% of amplitude
         """
-        left_idx = np.where(ys[start_idx:peak_idx] * direction <= (amp * 0.5 + baseline) * direction)
+        if prev_mini_t is not None:
+            prev_mini_t_ms = prev_mini_t * 1000
+            y_data = ys * direction - single_exponent((xs * 1000 - prev_mini_t_ms), prev_mini_A,
+                                                  prev_mini_decay) - prev_mini_baseline * direction
+        else:
+            y_data = (ys - baseline) * direction
+        left_idx = np.where(y_data[:peak_idx] <= (amp * 0.5) * direction)
         if len(left_idx[0]):
-            left_idx = left_idx[0][-1] + start_idx
+            left_idx = left_idx[0][-1]
         else:
             left_idx = None
-        right_idx = np.where(ys[peak_idx:end_idx] * direction <= (amp * 0.5 + baseline) * direction)
+        right_idx = np.where(y_data[peak_idx:] <= (amp * 0.5) * direction)
         if len(right_idx[0]):
             right_idx = right_idx[0][0] + peak_idx
         else:
@@ -1510,14 +1518,20 @@ class Analyzer():
         # need to incorporate compound #
         if compound and mini['compound']:
             halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
-                amp=mini['amp'], xs=xs, ys=ys, start_idx=baseline_idx, end_idx=end_idx,
-                peak_idx=peak_idx, baseline=mini['baseline'], direction=direction)
+                amp=mini['amp'], xs=xs[baseline_idx:end_idx], ys=ys[baseline_idx:end_idx],
+                peak_idx=peak_idx-baseline_idx, baseline=mini['baseline'], direction=direction,
+                prev_mini_t=mini['prev_t'], prev_mini_decay=mini['prev_decay_const'], prev_mini_A=mini['prev_decay_A'],
+                prev_mini_baseline=mini['prev_baseline']
+            )
+            halfwidth_start_idx += baseline_idx
+            halfwidth_end_idx += baseline_idx
         else:
             halfwidth_start_idx, halfwidth_end_idx, mini['halfwidth'] = self.calculate_mini_halfwidth(
-                amp=mini['amp'], xs=xs, ys=ys, start_idx=baseline_idx,
-                end_idx=peak_idx + decay_max_points,
-                peak_idx=peak_idx, baseline=mini['baseline'], direction=direction
+                amp=mini['amp'], xs=xs[baseline_idx:end_idx], ys=ys[baseline_idx:end_idx],
+                peak_idx=peak_idx-baseline_idx, baseline=mini['baseline'], direction=direction
             )
+            halfwidth_start_idx += baseline_idx
+            halfwidth_end_idx += baseline_idx
         if halfwidth_start_idx is not None and halfwidth_end_idx is None:  # decay doesn't happen long enough?
             if mini['decay_const'] is not None and extrapolate_hw: # use decay to extrapolate 50% value of decay
                 t = np.log(0.5)*-1*mini['decay_const']/1000
