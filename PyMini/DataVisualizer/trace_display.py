@@ -189,9 +189,7 @@ def center_plot_on(x, y):
 
     new_xlim = xlim
     new_ylim = ylim
-    print('center plot on')
-    print(x)
-    print(y)
+
 
     if xlim[0] < x < xlim[1] and ylim[0] < y < ylim[1]:
         return None
