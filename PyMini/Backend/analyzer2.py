@@ -1557,7 +1557,13 @@ class Analyzer():
             return mini
         halfwidth_end_idx += baseline_idx
         halfwidth_start_idx += baseline_idx
+
+        if halfwidth_end_idx >= len(xs):
+            mini['success'] = False
+            mini['failure'] = 'Halfwidth out of bounds'
+            return mini
         mini['halfwidth'] = (xs[int(halfwidth_end_idx)] - xs[int(halfwidth_start_idx)]) * 1000
+
 
         if mini['halfwidth'] < min_hw:
             mini['success'] = False

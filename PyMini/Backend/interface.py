@@ -17,44 +17,44 @@ from time import time
 # This module is the workhorse of the GUI
 # All functions that connect inputs from the user to processes in the background should pass through here
 # Any functions that require communications between different modules should be done here
-
-mini_df = pd.DataFrame(columns = [
-    # panel -- make sure this matches with the config2header dict
-    # = analyzer generates the data
-    't',  #
-    'amp',  #
-    'amp_unit',  #
-    'decay_const', #
-    'decay_unit', #
-    'decay_func', #
-    'rise_const',  #
-    'rise_unit',  #
-    'halfwidth', #
-    'halfwidth_unit', #
-    'baseline',  #
-    'baseline_unit',  #
-            #'auc',
-    't_start',  #
-    't_end',  #
-    'channel',  #
-    # plot
-    'peak_idx', #
-    'peak_coord_x',  # (x,y) #
-    'peak_coord_y',  #
-    'decay_coord_x',
-    'decay_coord_y',
-    'start_coord_x',  #
-    'start_coord_y',  #
-    'start_idx',  #
-    'end_coord_x',  #
-    'end_coord_y',  #
-    'end_idx',  #
-    'decay_fit', #
-
-    # data
-
-    'datetime'  #
-])
+#
+# mini_df = pd.DataFrame(columns = [
+#     # panel -- make sure this matches with the config2header dict
+#     # = analyzer generates the data
+#     't',  #
+#     'amp',  #
+#     'amp_unit',  #
+#     'decay_const', #
+#     'decay_unit', #
+#     'decay_func', #
+#     'rise_const',  #
+#     'rise_unit',  #
+#     'halfwidth', #
+#     'halfwidth_unit', #
+#     'baseline',  #
+#     'baseline_unit',  #
+#             #'auc',
+#     't_start',  #
+#     't_end',  #
+#     'channel',  #
+#     # plot
+#     'peak_idx', #
+#     'peak_coord_x',  # (x,y) #
+#     'peak_coord_y',  #
+#     'decay_coord_x',
+#     'decay_coord_y',
+#     'start_coord_x',  #
+#     'start_coord_y',  #
+#     'start_idx',  #
+#     'end_coord_x',  #
+#     'end_coord_y',  #
+#     'end_idx',  #
+#     'decay_fit', #
+#
+#     # data
+#
+#     'datetime'  #
+# ])
 
 global al
 al = analyzer2.Analyzer()
@@ -259,9 +259,11 @@ def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
     if fix_y:
         trace_display.set_axis_limit('y', ylim)
 
-    xs = mini_df.index.where(mini_df['channel'] == al.recording.channel)
-    xs = xs.dropna()
-    data_display.append(mini_df.loc[xs])
+    if len(al.mini_df.index)>0:
+        xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
+        xs = xs.dropna()
+
+        data_display.append(al.mini_df.loc[xs])
 
     populate_data_display()
     update_event_marker()
