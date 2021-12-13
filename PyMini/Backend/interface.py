@@ -676,7 +676,7 @@ def report_to_param_guide(xs, ys, data, clear=False):
             param_guide.plot_base_simple(xs[int(data['start_idx'])], xs[end], data['baseline'])
         else:
             param_guide.plot_base_extrapolate(
-                xs=xs[int(data['prev_peak_idx']):int(min(data['prev_peak_idx']+data['decay_max_points'], len(xs)))],
+                xs=xs[int(data['prev_peak_idx']):end],
                 A=data['prev_decay_A'],
                 decay=data['prev_decay_const']/1000,
                 baseline=data['prev_baseline'],
@@ -686,22 +686,15 @@ def report_to_param_guide(xs, ys, data, clear=False):
 
         param_guide.msg_label.insert('Decay: {:.3f} {}\n'.format(data['decay_const'], data['decay_unit']))
         param_guide.msg_label.insert(f'Decay:rise ratio: {data["decay_const"]/data["rise_const"]}')
-        # param_guide.plot_ruler((xs[int(max(data['start_idx'] - data['lag'], 0))], data['baseline']),
-        #                            (xs[int(min(data['end_idx'] + data['lag'], len(xs)))], data['baseline']))
-        #
-        #
-        # x_data = (xs[int(data['peak_idx']):int(min(data['peak_idx'] + data['decay_max_points'], len(xs)))] - xs[int(data['peak_idx'])]) * 1000
-        # y_decay = analyzer2.single_exponent(x_data, data['decay_A'], data['decay_const'])
-        #
-        # x_data = x_data / 1000 + xs[int(data['peak_idx'])]
-        # y_decay = y_decay * data['direction'] + data['baseline']
-        #
-        # param_guide.plot_decay_fit(x_data, y_decay)
-        #
 
-        # param_guide.plot_decay(data['decay_coord_x'], data['decay_coord_y'])
-        # # param_guide.msg_label.insert('Decay was fitted using {}\n'.format(data['decay_func']))
-        #
+        param_guide.plot_decay_fit(xs[int(data['peak_idx']):end],
+                                   data['decay_A'],
+                                   data['decay_const']/1000,
+                                   data['baseline'],
+                                   data['direction'])
+        param_guide.plot_decay_point(data['decay_coord_x'], data['decay_coord_y'])
+        param_guide.plot_halfwidth((xs[int(data['halfwidth_start_idx'])], ys[int(data['halfwidth_start_idx'])]),
+                                   (xs[int(data['halfwidth_end_idx'])], ys[int(data['halfwidth_end_idx'])]))
         # param_guide.plot_ruler((xs[data['halfwidth_start_idx']], data['baseline'] + data['amp'] / 2),
         #                                (xs[data['halfwidth_end_idx']], data['baseline'] + data['amp'] / 2))
         # param_guide.msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')

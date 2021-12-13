@@ -239,18 +239,18 @@ def plot_ruler(coord1, coord2):
         print(e)
         pass
 
-def plot_decay_fit(xs, ys):
+def plot_decay_fit(xs, A, decay, baseline, direction):
     # try:
-    ax.plot(xs, ys, linewidth=float(app.widgets['style_trace_line_width'].get()),
-            c=app.widgets['style_event_color_decay'].get())
-    # canvas.draw()
-    # except:
-    #     pass
+    ax.plot(xs, analyzer2.single_exponent(xs-xs[0], A, decay)*direction + baseline,
+            linewidth=app.widgets['style_trace_line_width'].get(),
+            c=app.widgets['style_event_color_decay'].get(),
+            label='Decay fit')
 
+def plot_decay_point(x, y):
+    ax.scatter(x, y, marker='x', c=app.widgets['style_event_color_decay'].get(),
+               label='t=decay constant')
 
-def plot_decay(x, y):
-    try:
-        ax.scatter(x, y, marker='x', c=app.widgets['style_event_color_decay'].get())
-        # canvas.draw()
-    except:
-        pass
+def plot_halfwidth(coord1, coord2):
+    ax.plot([coord1[0], coord2[0]], [coord1[1],coord2[1]],
+            linewidth=app.widgets['style_trace_line_width'].get(),
+            c='black')
