@@ -703,7 +703,7 @@ def report_to_param_guide(xs, ys, data, clear=False):
         # param_guide.plot_trace(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
         #                        ys[data['xlim_idx'][0]:data['xlim_idx'][1]])
         pass
-    param_guide.ax.legend()
+    param_guide.show_legend()
     param_guide.canvas.draw()
 
 

@@ -35,16 +35,28 @@ def create_window():
     window.grid_rowconfigure(0, weight=1)
     window.grid_columnconfigure(0, weight=1)
 
+    # notebook_frame = Tk.Frame(
+    #     window
+    # )
+    # notebook_frame
+    # notebook_frame.grid(column=0, row=0, sticky='news')
+    notebook = ttk.Notebook(window)
+    notebook.grid(column=0, row=0, sticky='news')
     pw = Tk.PanedWindow(
         window,
+        # notebook_frame,
         orient=Tk.VERTICAL,
         showhandle=True,
         sashrelief=Tk.SUNKEN,
         handlesize=config.default_pw_handlesize
     )
-    pw.grid(column=0, row=0, sticky='news')
-
-    frame = Tk.Frame(pw, bg='red')
+    notebook.add(pw, text='Panel')
+    # pw.grid(column=0, row=0, sticky='news')
+    #
+    frame = Tk.Frame(
+        pw,
+        bg='red'
+    )
     fig = Figure()
     fig.set_tight_layout(True)
     frame.grid(column=0, row=0, sticky='news')
@@ -194,7 +206,7 @@ def plot_start(x, y):
         pass
 
 def plot_base_range(xs, ys):
-    ax.plot(xs, ys, linewidth=1,
+    ax.plot(xs, ys, linewidth=3,
             c='pink',
             alpha=0.5,
             label='Baseline sample')
@@ -254,3 +266,9 @@ def plot_halfwidth(coord1, coord2):
     ax.plot([coord1[0], coord2[0]], [coord1[1],coord2[1]],
             linewidth=app.widgets['style_trace_line_width'].get(),
             c='black')
+
+def show_legend():
+    ax.legend(frameon=False)
+
+def hide_legend():
+    ax.legend().set_visible(False)
