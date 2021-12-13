@@ -1,6 +1,8 @@
 # PyMini
 
 update log
+- need:
+  - baseline take in to account decay extrapolation of previous mini
 - Dec 12 2021:
   - during auto, appending each new mini to dataframe was taking too much time
     - make list, append the set at the end to save time

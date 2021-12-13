@@ -880,7 +880,7 @@ class Analyzer():
                 return None, None
 
         # estimate baseline using avg data points at delta_x before peak
-        tma = np.mean(ys[peak_idx-delta_x-lag:peak_idx-delta_x])*direction
+        tma = np.mean(ys[int(peak_idx-delta_x-lag/2):int(peak_idx-delta_x+lag/2)])*direction
         while idx > peak_idx - delta_x:
             if tma >= ys[idx] * direction:
                 return idx, tma*direction
@@ -1308,23 +1308,25 @@ class Analyzer():
                                                               lag=lag,
                                                               delta_x=delta_x,
                                                               direction=direction)
-        if baseline_idx is None:  # not successful
-            mini['success'] = False
-            mini['failure'] = 'Baseline could not be found'
-            return mini
+
 
         if delta_x is None or delta_x == 0:
             base_idx = (baseline_idx - lag, baseline_idx)
         else:
-            base_idx = (peak_idx - delta_x - lag, peak_idx - delta_x)
-        # check if baseline calculation was successful
+            base_idx = (int(peak_idx - delta_x - lag/2), int(peak_idx - delta_x+lag/2))
+        mini['base_idx'] = (base_idx[0] + offset, base_idx[1] + offset)
 
+        # check if baseline calculation was successful
+        if baseline_idx is None:  # not successful
+            mini['success'] = False
+            mini['failure'] = 'Baseline could not be found'
+            return mini
         self.print_time('baseline', show_time)
         ####### search baseline #######
         # find baseline/start of event
         mini['baseline'] = ys[baseline_idx]
         mini['start_idx'] = baseline_idx + offset
-        mini['base_idx'] = (base_idx[0] + offset, base_idx[1] + offset)
+
 
         if reference_df and len(self.mini_df.index) > 0 or prev_peak is not None:
             # try:
@@ -1360,19 +1362,30 @@ class Analyzer():
                             mini['success'] = False
                             mini['failure'] = 'The compound mini could not be analyzed - need more data points'
 
+                        # find where the 'min' valley value is before previous peak
                         baseline_idx = np.where(ys[prev_peak_idx_offset:peak_idx] * direction == min(
                             ys[prev_peak_idx_offset:peak_idx] * direction))[0][0] + prev_peak_idx_offset
-                        # update start_idx
-                        mini['start_idx'] = baseline_idx + offset
+
+
 
                         mini['prev_baseline'] = prev_peak['baseline']
                         mini['prev_decay_const'] = prev_peak['decay_const']
                         mini['prev_decay_A'] = prev_peak['decay_A']
-                        mini['baseline'] = single_exponent((peak_idx - prev_peak_idx_offset)/sampling_rate*1000,
+
+                        # extrapolate start from previous decay
+                        y_decay = single_exponent((xs[baseline_idx:peak_idx+1]-xs[prev_peak_idx_offset])*1000, mini['prev_decay_A'], mini['prev_decay_const'])  + mini['prev_baseline'] * direction
+                        baseline_idx = np.where(y_decay >= ys[baseline_idx:peak_idx+1]*direction)[0][-1] + baseline_idx
+
+                        # update start_idx
+                        mini['start_idx'] = baseline_idx + offset
+                        # extrapolate baseline at peak from previous decay
+                        mini['baseline'] = single_exponent((xs[peak_idx] - xs[prev_peak_idx_offset])*1000,
                                                            mini['prev_decay_A'],
                                                            mini['prev_decay_const']) * direction + mini['prev_baseline']# get the extrapolated baseline value
                         self.print_time('reference extrapolation', show_time)
-            except:
+            except Exception as e:
+                print('decay extrapolation')
+                print(e)
                 pass
         self.print_time('reference', show_time)
 
@@ -1516,6 +1529,7 @@ class Analyzer():
             self.print_time('decay', show_time)
         ####### calculate halfwidth #######
         # need to incorporate compound #
+        mini['halfwidth_start_coord_y'] = mini['halfwidth_end_coord_y'] = None
         if compound and mini['compound']:
             halfwidth_start_idx, halfwidth_end_idx = self.find_mini_halfwidth(
                 amp=mini['amp'], xs=xs[baseline_idx:end_idx], ys=ys[baseline_idx:end_idx],
@@ -1528,10 +1542,12 @@ class Analyzer():
                 amp=mini['amp'], xs=xs[baseline_idx:end_idx], ys=ys[baseline_idx:end_idx],
                 peak_idx=peak_idx-baseline_idx, baseline=mini['baseline'], direction=direction
             )
+
         if halfwidth_start_idx is not None and halfwidth_end_idx is None:  # decay doesn't happen long enough?
             if mini['decay_const'] is not None and extrapolate_hw: # use decay to extrapolate 50% value of decay
                 t = np.log(0.5)*-1*mini['decay_const']/1000
                 halfwidth_end_idx = search_index(xs[peak_idx]+t, xs[baseline_idx:],sampling_rate)
+
         if halfwidth_end_idx is None or halfwidth_start_idx is None:
             mini['success'] = False
             mini['failure'] = 'Halfwidth could not be calculated'
@@ -1554,11 +1570,21 @@ class Analyzer():
         mini['halfwidth_end_idx'] = halfwidth_end_idx + offset
 
         mini['halfwidth_start_coord_x'] = xs[halfwidth_start_idx]
-        mini['halfwidth_start_coord_y'] = ys[halfwidth_start_idx]
-
         mini['halfwidth_end_coord_x'] = xs[halfwidth_end_idx]
-        mini['halfwidth_end_coord_y'] = ys[halfwidth_end_idx]
-        self.print_time('halfwidth', show_time)
+
+        if compound and mini['compound']:
+            mini['halfwidth_start_coord_y'] = single_exponent((xs[halfwidth_start_idx] - mini['prev_t']) * 1000,
+                                                              mini['prev_decay_A'],
+                                                              mini['prev_decay_const']
+                                                              ) * direction + mini['prev_baseline'] + 0.5 * \
+                                              mini['amp']
+            mini['halfwidth_end_coord_y'] = single_exponent((xs[halfwidth_end_idx] - mini['prev_t']) * 1000,
+                                                            mini['prev_decay_A'],
+                                                            mini['prev_decay_const']
+                                                            ) * direction + mini['prev_baseline'] + 0.5 * mini[
+                                                'amp']
+        else:
+            mini['halfwidth_start_coord_y'] = mini['halfwidth_end_coord_y'] = mini['baseline'] + 0.5 * mini['amp']
 
         ###### calculate decay:rise ratio #####
         if decay_algorithm != 'None':

@@ -680,14 +680,17 @@ def report_to_param_guide(xs, ys, data, clear=False):
     except: # peak not found
         pass
 
+    print('about to plot base idx')
 
     try:
+        print('plot base idx')
         if data['base_idx'] is not None and not data['compound']:
             param_guide.plot_base_range(
                 xs[int(data['base_idx'][0]):int(data['base_idx'][1])],
                 ys[int(data['base_idx'][0]):int(data['base_idx'][1])]
             )
-    except:
+    except Exception as e:
+        print(f'base idx plotting exception {e}')
         pass
     try:
         param_guide.msg_label.insert('Baseline: {:.3f} {}\n'.format(data['baseline'], data['baseline_unit']))
@@ -722,8 +725,8 @@ def report_to_param_guide(xs, ys, data, clear=False):
     except Exception as e:
         print(e)
     try:
-        param_guide.plot_halfwidth((xs[int(data['halfwidth_start_idx'])], ys[int(data['halfwidth_start_idx'])]),
-                                   (xs[int(data['halfwidth_end_idx'])], ys[int(data['halfwidth_end_idx'])]))
+        param_guide.plot_halfwidth((data['halfwidth_start_coord_x'], data['halfwidth_start_coord_y']),
+                                   (data['halfwidth_end_coord_x'], data['halfwidth_end_coord_y']))
         param_guide.msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')
     except:
         pass
