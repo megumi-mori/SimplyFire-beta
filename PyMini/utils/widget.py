@@ -560,10 +560,14 @@ class DataTable(Tk.Frame):
     def append(self, dataframe):
         if dataframe is None:
             return None
-        for i in dataframe.index:
+        total = len(dataframe.index)
+        dataframe=dataframe[[k for k in self.columns]]
+        for i, (idx, row) in enumerate(dataframe.iterrows()):
             try:
-                self.table.insert('', 'end', iid=dataframe.loc[i].t,
-                                  values=[dataframe.loc[i][k] for k in self.columns])
+                self.table.insert('', 'end', iid=row['t'],
+                                  values=[row[k] for k in self.columns])
+                app.pb['value'] = i/total*100
+                app.pb.update()
             except Exception as e:
                 print(f'datatable append{e}')
                 pass
