@@ -480,6 +480,22 @@ class DataTable(Tk.Frame):
         for key in config.key_deselect:
             self.table.bind(key, self.unselect)
 
+        self.menu = Tk.Menu(self.table, tearoff=0)
+
+        self.table.bind("<Button-3>", self.popup)
+
+    def popup(self, event):
+        try:
+            self.menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.menu.grab_release()
+
+    def add_menu_command(self, **kwargs):
+        """
+        adds a command to right-click menu
+        use **kwargs for tkinter.Menu.add_command kwargs
+        """
+        self.menu.add_command(**kwargs)
     #     self.table.bind('<Button-3>', self.get_element)
     #
     # def get_element(self, e):
@@ -494,6 +510,22 @@ class DataTable(Tk.Frame):
             text = text + '{}\t'.format(c)
         text = text + '\n'
         for i in selected:
+            data = self.table.set(i)
+            for c in self.columns:
+                text = text + '{}\t'.format(data[c])
+            text = text + '\n'
+        try:
+            app.root.clipboard_clear()
+            app.root.clipboard_append(text)
+        except:
+            pass
+    def copy_all(self, event=None):
+        items = self.table.get_children()
+        text = ""
+        for c in self.columns:
+            text = text + '{}\t'.format(c)
+        text = text + '\n'
+        for i in items:
             data = self.table.set(i)
             for c in self.columns:
                 text = text + '{}\t'.format(data[c])
@@ -611,6 +643,12 @@ class DataTable(Tk.Frame):
         except:
             pass
         self.table.delete(*[str(i) for i in iid])
+
+    def delete_selected(self):
+        selection = self.table.selection()
+        self.table.selection_remove(*selection)
+        self.table.delete(*selection)
+        pass
 
 
 

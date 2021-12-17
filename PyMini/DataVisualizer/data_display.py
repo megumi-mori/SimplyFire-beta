@@ -64,6 +64,10 @@ def load(parent):
     dataframe.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
     dataframe.grid(column=0, row=0, sticky='news')
 
+    dataframe.add_menu_command(label='Copy (Ctrl+c)', command=dataframe.copy)
+    dataframe.add_menu_command(label='Select all (Ctrl+a)', command=dataframe.select_all)
+
+
     return frame
 
 def add(data):

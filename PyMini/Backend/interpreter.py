@@ -1,4 +1,4 @@
-from DataVisualizer import trace_display, data_display
+from DataVisualizer import trace_display, data_display, results_display
 import app
 from Backend import interface
 from config import config
@@ -29,9 +29,6 @@ def initialize():
 
     for key in config.key_select_all:
         bind_key(key, press_function=select_all_key, target=trace_display.canvas.get_tk_widget())
-
-    for key in config.key_copy:
-        bind_key(key, press_function=copy, target=trace_display.canvas.get_tk_widget())
 
     for key in config.key_select_window:
         bind_key_dp(key, press_function=select_window_key)
@@ -178,6 +175,7 @@ def initialize_param_guide():
 def bind_key_dp(key, press_function=None, release_function=None):
     bind_key(key, press_function, release_function, data_display.table)
     bind_key(key, press_function, release_function, trace_display.canvas.get_tk_widget())
+    bind_key(key, press_function, release_function, results_display.table)
 
 def bind_key_pg(key, press_function=None, release_function=None):
     bind_key(key, press_function, release_function, param_guide.canvas.get_tk_widget())
@@ -434,11 +432,17 @@ def unselect_key(event):
     pass
 
 def delete_key(event):
-    if app.widgets['analysis_mode'].get() == 'mini':
+    focus = app.root.focus_get()
+    if focus == data_display.dataframe.table or focus == trace_display.canvas:
         sel = data_display.table.selection()
         interface.delete_event([i for i in sel])
-    if app.widgets['trace_mode'].get() == 'overlay':
-        interface.hide_highlighted_sweep()
+        return None
+    if focus == results_display.dataframe.table:
+        results_display.dataframe.delete_selected()
+        return None
+
+    # if app.widgets['trace_mode'].get() == 'overlay':
+    #     interface.hide_highlighted_sweep()
     pass
 
 def select_all_key(event):
@@ -457,6 +461,3 @@ def select_window_key(event=None):
     elif app.widgets['trace_mode'].get() == 'overlay':
         interface.highlight_sweep_in_range(xlim, ylim,
                                            draw=True)
-
-def copy(event=None):
-    data_display.table_frame.copy()

@@ -91,7 +91,7 @@ def load():
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)
 
-    root.bind(config.key_reset_focus, lambda e: data_display.table.focus_set())
+    # root.bind(config.key_reset_focus, lambda e: data_display.table.focus_set())
 
     global widgets
 
@@ -141,7 +141,7 @@ def load():
     global data_tab_details
     data_tab_details = {
         'mini':{'module': data_display, 'text': 'Mini'},
-        'evoked': {'module': evoked_data_display, 'text': 'Evoked'}
+        # 'evoked': {'module': evoked_data_display, 'text': 'Evoked'}
     }
     for i, t in enumerate(data_tab_details):
         data_tab_details[t]['tab'] = data_tab_details[t]['module'].load(None)

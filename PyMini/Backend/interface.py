@@ -1150,7 +1150,7 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
     log('Channels: {}'.format(channels), False)
     if report_minmax:
         for i,c in enumerate(channels):
-            results_display.table_frame.add({
+            results_display.dataframe.add({
                 'filename': al.recording.filename,
                 'channel': c,  # 0 indexing
                 'analysis': 'trace averaging',

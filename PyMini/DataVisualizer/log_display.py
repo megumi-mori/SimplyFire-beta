@@ -74,8 +74,7 @@ def log(msg, header=True):
 def copy():
     app.root.clipboard_clear()
     app.root.clipboard_append(log_text.get())
-    print(log_text.get())
-    app.root.update()
+    # app.root.update()
 
 def user_update(e=None):
     log_text.insert(Tk.END, '{} @user: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), log_entry.get()))
