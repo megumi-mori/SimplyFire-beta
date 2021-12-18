@@ -782,16 +782,16 @@ def highlight_events_in_range(xlim=None, ylim=None):
         xlim = (xlim[1], xlim[0])
     if ylim and ylim[0] > ylim[1]:
         ylim = (ylim[1], ylim[0])
-    if len(mini_df.index) == 0:
+    if al.mini_df.shape[0] == 0:
         return None
-    xs = mini_df
+    mini_df = al.mini_df[al.mini_df['channel'] == al.recording.channel]
     if xlim:
-        xs = xs.loc[mini_df.index > xlim[0]]
-        xs = xs.loc[xs.index < xlim[1]]
+        mini_df = mini_df[al.mini_df['t'] > xlim[0]]
+        mini_df = mini_df[mini_df['t'] < xlim[1]]
     if ylim:
-        xs = xs.loc[xs['peak_coord_y'] > ylim[0]]
-        xs = xs.loc[xs['peak_coord_y'] < ylim[1]]
-    data_display.table.selection_set([str(x) for x in xs.index])
+        mini_df = mini_df[mini_df['peak_coord_y'] > ylim[0]]
+        mini_df = mini_df[mini_df['peak_coord_y'] < ylim[1]]
+    data_display.table.selection_set([str(x) for x in mini_df['t']])
 
 
 def update_event_marker():

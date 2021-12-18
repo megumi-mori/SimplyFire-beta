@@ -433,7 +433,7 @@ def unselect_key(event):
 
 def delete_key(event):
     focus = app.root.focus_get()
-    if focus == data_display.dataframe.table or focus == trace_display.canvas:
+    if focus == data_display.dataframe.table or focus == trace_display.canvas.get_tk_widget():
         data_display.delete_selected()
         return None
     if focus == results_display.dataframe.table:
