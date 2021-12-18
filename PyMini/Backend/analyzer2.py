@@ -1377,10 +1377,12 @@ class Analyzer():
 
                         # extrapolate start from previous decay
                         y_decay = single_exponent((xs[baseline_idx:peak_idx+1]-xs[prev_peak_idx_offset])*1000, mini['prev_decay_A'], mini['prev_decay_const'])  + mini['prev_baseline'] * direction
-                        baseline_idx = np.where(y_decay >= ys[baseline_idx:peak_idx+1]*direction)[0][-1] + baseline_idx
+                        baseline_idx_ex = np.where(y_decay >= ys[baseline_idx:peak_idx+1]*direction)[0][-1] + baseline_idx
+                        print(baseline_idx_ex)
 
+                        baseline_idx_min = np.where(ys[prev_peak_idx_offset:peak_idx]*direction == min(ys[prev_peak_idx_offset:peak_idx] * direction))[0][0]+prev_peak_idx_offset
                         # update start_idx
-                        mini['start_idx'] = baseline_idx + offset
+                        mini['start_idx'] = max(baseline_idx_ex, baseline_idx_min) + offset
                         # extrapolate baseline at peak from previous decay
                         mini['baseline'] = single_exponent((xs[peak_idx] - xs[prev_peak_idx_offset])*1000,
                                                            mini['prev_decay_A'],
@@ -1396,8 +1398,8 @@ class Analyzer():
 
         mini['amp'] = (mini['peak_coord_y'] - mini['baseline'])  # signed
         # store coordinate for start of mini (where the plot meets the baseline)
-        mini['start_coord_x'] = xs[baseline_idx]
-        mini['start_coord_y'] = ys[baseline_idx]
+        mini['start_coord_x'] = xs[mini['start_idx']]
+        mini['start_coord_y'] = ys[mini['start_idx']]
 
         if (mini['amp'] * direction) < min_amp:
             mini['success'] = False
