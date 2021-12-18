@@ -7,7 +7,7 @@ from config import config
 
 from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navigation_tab, \
     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab
-from DataVisualizer import data_display, log_display, evoked_data_display, results_display
+from DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display
 
 from utils import widget
 import tracemalloc
@@ -141,7 +141,7 @@ def load():
     global data_tab_details
     data_tab_details = {
         'mini':{'module': data_display, 'text': 'Mini'},
-        # 'evoked': {'module': evoked_data_display, 'text': 'Evoked'}
+        'evoked': {'module': evoked_data_display, 'text': 'Evoked'}
     }
     for i, t in enumerate(data_tab_details):
         data_tab_details[t]['tab'] = data_tab_details[t]['module'].load(None)
