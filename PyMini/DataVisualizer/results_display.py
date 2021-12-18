@@ -26,9 +26,9 @@ def load(parent):
     ttk.Button(button_frame, text='Reset columns', command=erase).grid(column=1, row=0)
     ttk.Button(button_frame, text='Fit columns', command=dataframe.fit_columns).grid(column=2, row=0)
 
-    dataframe.menu.add_command(label='Copy (Ctrl+c)', command=dataframe.copy)
+    dataframe.menu.add_command(label='Copy selection (Ctrl+c)', command=dataframe.copy)
     dataframe.menu.add_command(label='Select all (Ctrl+a)', command=dataframe.select_all)
-    dataframe.menu.add_command(label='Delete (Del)', command=dataframe.delete_selected)
+    dataframe.menu.add_command(label='Delete (Del)', command = delete_selected)
     dataframe.menu.add_separator()
     dataframe.menu.add_command(label='Clear data', command=dataframe.clear)
     dataframe.menu.add_command(label='Reset columns', command=erase)
@@ -42,3 +42,8 @@ def fit_columns():
 
 def erase(event=None):
     dataframe.define_columns(tuple(columns), sort=False)
+
+def delete_selected(e=None):
+    dataframe.delete_selected()
+    # if len(dataframe.table.get_children()) == 0:
+    #     dataframe.menu.entryconfig(0, state=Tk.DISABLED)

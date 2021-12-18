@@ -1,9 +1,11 @@
+import tkinter
 import tkinter as Tk
 from tkinter import ttk
 from collections import OrderedDict  # Python 3.7+ can use dict
 import app
 from Backend import interface, interpreter
 from utils.widget import DataTable
+from DataVisualizer import results_display
 
 
 
@@ -64,14 +66,21 @@ def load(parent):
     dataframe.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
     dataframe.grid(column=0, row=0, sticky='news')
 
-    dataframe.add_menu_command(label='Copy (Ctrl+c)', command=dataframe.copy)
-    dataframe.add_menu_command(label='Select all (Ctrl+a)', command=dataframe.select_all)
+    dataframe.menu.add_command(label='Copy selection (Ctrl+c)', command=dataframe.copy)
+    dataframe.menu.add_command(label='Select all (Ctrl+a)', command=dataframe.select_all)
+    dataframe.menu.add_command(label='Delete selected (Del)', command=delete_selected)
+    dataframe.menu.add_separator()
+    dataframe.menu.add_command(label='Clear data', command=interface.delete_all_events)
+    dataframe.menu.add_command(label='Report statistics', command=report, state=Tk.DISABLED)
+    dataframe.menu.add_command(label='Fit columns', command=dataframe.fit_columns)
+
 
 
     return frame
 
 def add(data):
     dataframe.add(data)
+    dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
 
 def append(data):
     dataframe.append(data)
@@ -80,10 +89,12 @@ def set(data):
     dataframe.set(data)
 
 def show_columns(columns=None):
-    dataframe.show_columns(tuple([
+    columns = tuple([
        i for i in mini_header2config
         if mini_header2config[i] in columns
-    ]))
+    ])
+    dataframe.show_columns(columns)
+    dataframe.columns=columns
     fit_columns()
 
 def fit_columns():
@@ -98,10 +109,15 @@ def add_columns(columns):
     for c in columns:
         trace_header.append(c)
 
-
 def clear():
     dataframe.clear()
+    dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
 
+def delete_selected():
+    sel = dataframe.table.selection()
+    interface.delete_event([i for i in sel])
+    if len(dataframe.table.get_children()) == 0:
+        dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
 def hide():
     dataframe.hide()
 
@@ -129,3 +145,40 @@ def delete_one(iid):
     except Exception as e:
         print('data_display delete one error: {}'.format(e))
         pass
+
+def report(event=None):
+    if interface.al.mini_df.shape[0] == 0:
+        return None
+    mini_df = interface.al.mini_df[interface.al.mini_df['channel']==interface.al.recording.channel]
+    print(mini_df)
+    data = {
+        'filename': interface.al.recording.filename,
+        'analysis': 'mini',
+        'num_minis': mini_df.shape[0]
+    }
+    if 'amp' in dataframe.columns:
+        data['amp'] = mini_df['amp'].mean()
+        data['amp_unit']= mini_df['amp_unit'][0]
+        data['amp_std']= mini_df['amp'].std()
+    if 'decay_const' in dataframe.columns:
+        data['decay_const'] = mini_df['decay_const'].mean()
+        data['decay_unit'] = mini_df['decay_unit'][0]
+        data['decay_std'] = mini_df['decay_const'].std()
+    if 'rise_const' in dataframe.columns:
+        data['rise_const'] = mini_df['rise_const'].mean()
+        data['rise_unit'] = mini_df['rise_unit'][0]
+        data['decay_std'] = mini_df['rise_const'].std()
+    if 'halfwidth' in dataframe.columns:
+        data['halfwidth'] = mini_df['halfwidth'].mean()
+        data['halfwidth_unit'] = mini_df['halfwidth_unit'][0]
+        data['halfwidth_std'] = mini_df['halfwidth'].std()
+    if 'baseline' in dataframe.columns:
+        data['baseline'] = mini_df['baseline'].mean()
+        data['baseline_unit'] = mini_df['baseline_unit'][0]
+        data['baseline_std'] = mini_df['baseline'].std()
+    if 'channel' in dataframe.columns:
+        data['channel'] = interface.al.recording.channel
+    if 'compound' in dataframe.columns:
+        data['num_compound'] = mini_df['compound'].sum()
+
+    results_display.dataframe.add(data)

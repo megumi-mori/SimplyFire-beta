@@ -847,6 +847,8 @@ def delete_events_in_range(xlim, undo=True):
                (al.mini_df['channel'] == al.recording.channel)].t.values
     delete_event(selection, undo=undo)
 def delete_all_events(undo=True):
+    if al.mini_df.shape[0] == 0:
+        return None
     if int(app.widgets['config_undo_stack'].get()) > 0 and undo:
     ########## Save temp file ##############
         temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
@@ -856,10 +858,12 @@ def delete_all_events(undo=True):
             lambda f=temp_filename, l=False, u=False, a=True: open_events(filename=f, log=l, undo=u, append=a),
             lambda f=temp_filename:os.remove(f)
         ])
-    al.mini_df = al.mini_df[al.mini_df['channel']!=al.recording.channel]
-    data_display.clear()
-    update_event_marker()
-
+    try:
+        al.mini_df = al.mini_df[al.mini_df['channel']!=al.recording.channel]
+        data_display.clear()
+        update_event_marker()
+    except:
+        pass
 
 
 
@@ -1157,9 +1161,9 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
                 'min': mins[i, 0, 0],
                 'min_unit': al.recording.channel_units[c],
                 'min_std': mins_std[i, 0, 0],
-                # 'max': maxs[i,0,0],
-                # 'max_unit': al.recording.channel_units[c],
-                # 'max_std': max_std[i,0,0],
+                'max': maxs[i,0,0],
+                'max_unit': al.recording.channel_units[c],
+                'max_std': maxs_std[i,0,0],
             })
             log('Channel {}: min: {:.6f} {} stdev: {:.6f}'.format(c,
                                                          mins[i,0,0],

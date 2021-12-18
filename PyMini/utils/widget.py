@@ -503,17 +503,16 @@ class DataTable(Tk.Frame):
 
     def copy(self, event=None):
         selected = self.table.selection()
-        if len(selected) == 0:
-            return None
         text = ""
         for c in self.columns:
-            text = text + '{}\t'.format(c)
-        text = text + '\n'
-        for i in selected:
-            data = self.table.set(i)
-            for c in self.columns:
-                text = text + '{}\t'.format(data[c])
-            text = text + '\n'
+            text = f'{text}{c}\t'
+        text = text[:-1] + '\n'
+        if len(selected) > 0:
+            for i in selected:
+                data = self.table.set(i)
+                for c in self.columns:
+                    text = text + '{}\t'.format(data[c])
+                text = text[:-1] + '\n'
         try:
             app.root.clipboard_clear()
             app.root.clipboard_append(text)
@@ -608,9 +607,10 @@ class DataTable(Tk.Frame):
         self.append(dataframe)
 
     def fit_columns(self, event=None):
-        w = int(self.table.winfo_width()/len(self.columns))
-        for i in self.displaycolumns:
-            self.table.column(i, width=w)
+        if len(self.columns)>0:
+            w = int(self.table.winfo_width()/len(self.columns))
+            for i in self.displaycolumns:
+                self.table.column(i, width=w)
 
     def show_columns(self, columns):
         self.displaycolumns=columns

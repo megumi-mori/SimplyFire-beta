@@ -373,8 +373,6 @@ def load(parent):
         ('data_display_direction', 'Direction'),
         ('data_display_compound', 'Compound')
     ]
-    def apply_columns():
-        data_display.show_columns(extract_columns2display())
 
     for i in boxes:
         widgets[i[0]] = optionframe.insert_label_checkbox(
@@ -394,12 +392,9 @@ def load(parent):
         text='Hide All',
         command=_hide_all
     )
-    optionframe.insert_button(
-        text='Fit columns',
-        command=data_display.fit_columns
-    )
-
     return frame
+def apply_columns():
+    data_display.show_columns(extract_columns2display())
 
 def populate_data_display():
     try:
