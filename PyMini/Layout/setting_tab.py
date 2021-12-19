@@ -76,16 +76,16 @@ def load(parent):
         command=_ask_dirname
     ).grid(column=1, row=1, sticky='news')
 
-    optionframe.insert_button("Save current \nconfig now",
+    optionframe.insert_button("Save",
                               command= lambda e=app.widgets['config_user_path'].get():
                             app.dump_user_setting(e))
 
-    optionframe.insert_button("Save current \nconfig As...", command=save_config_as)
+    optionframe.insert_button("Save As...", command=save_config_as)
 
-    optionframe.insert_button("Load config \nfrom file...", command=app.load_config)
+    optionframe.insert_button("Load", command=app.load_config)
 
     optionframe.insert_button(
-        text='Reset to default \nparameters',
+        text='Default',
         command=optionframe.default
     )
 
