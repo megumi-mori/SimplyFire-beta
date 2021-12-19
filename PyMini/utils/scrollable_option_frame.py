@@ -14,16 +14,8 @@ class OptionFrame(Tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.widgets = {}
-        self.buttons = {}
-        self.labels = {}
-        self.titles = {}
-        self.variables = {}
         self.num_row = 0
         self.col_button = 0
-
-    def get_widget(self, name):
-        return self.widgets[name].get_widget()
 
     def insert_label_widget_panel(self, frame, name, separator=True):
         """
@@ -32,7 +24,6 @@ class OptionFrame(Tk.Frame):
         Note: the frame must contain the widget.VarWidget as an attribute 'widget'
         """
         self.insert_panel(frame, separator)
-        self.widgets[name] = frame.widget
 
 
     def insert_label_widget(func):
@@ -51,11 +42,10 @@ class OptionFrame(Tk.Frame):
             frame.grid_rowconfigure(0, weight=1)
             wrapped_label = textwrap.wrap(label, width=config.default_label_length)
             text='\n'.join(wrapped_label)
-            self.labels[name] = ttk.Label(frame, text=text)
-            self.labels[name].grid(column=0, row=0, sticky='news')
+            label = ttk.Label(frame, text=text)
+            label.grid(column=0, row=0, sticky='news')
             frame.grid(column=0,row=0, sticky='news')
             w = func(self, parent=frame, name = name, value=value, default=default, interface=interface,**kwargs)
-            self.widgets[name] = w
             return w
         return call
     #
@@ -141,8 +131,6 @@ class OptionFrame(Tk.Frame):
     ):
         panel = self.make_panel(separator=separator)
         label = Tk.Label(panel, text=text, justify=justify)
-        if len(name):
-            self.titles[name] = label
         label.grid(column=0, row=0, sticky='news')
         return label
 
@@ -207,8 +195,6 @@ class OptionFrame(Tk.Frame):
 
         b.grid(column=self.col_button, row=0, sticky='news')
 
-        self.buttons[text] = b
-
         if self.col_button > 0:
             self.col_button = 0
         else:
@@ -224,8 +210,6 @@ class OptionFrame(Tk.Frame):
     #     button.config(width=int(width/2))#, wraplength= int(width / 2) - 4)
 
     def default(self, keys=None, filter=None, widgets=None):
-        if widgets is None:
-            widgets = self.widgets
         if keys is None:
             keys = widgets.keys()
         if filter is not None:
@@ -235,28 +219,6 @@ class OptionFrame(Tk.Frame):
             return
         for key in keys:
             widgets[key].set_to_default()
-
-    def get_value(self, key):
-        return self.widgets[key].get()
-
-    def set_value(self, key, value):
-        self.widgets[key].set(value)
-
-    def set_all(self, value, keys=None, filter=None):
-        if keys is None:
-            keys = self.widgets.keys()
-        if filter is not None:
-            for key in keys:
-                if filter in key:
-                    self.widgets[key].set(value)
-            return
-        for key in keys:
-            self.widgets[key].set(value)
-
-    def get_keys(self, filter=None):
-        if filter:
-            return [key for key in self.widgets if filter in key]
-        return self.widgets.keys()
 
 
 class ScrollableOptionFrame(Tk.Frame):
@@ -307,11 +269,6 @@ class ScrollableOptionFrame(Tk.Frame):
         #     self.frame.grid(column=0, row=0, sticky='news')
         #     self.frame.grid_columnconfigure(0, weight=1)
 
-        self.widgets = {}
-        self.buttons = {}
-        self.labels = {}
-        self.titles = {}
-        self.variables = {}
         self.num_row = 0
         self.col_button = 0
 
