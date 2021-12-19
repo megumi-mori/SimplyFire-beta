@@ -191,7 +191,7 @@ def load(parent):
     )
 
     app.widgets['force_channel_id'] = widget.VarEntry(
-        parent=channel_frame.widgets['force_channel']._nametowidget(channel_frame.widgets['force_channel'].winfo_parent()),
+        parent=app.widgets['force_channel'].master,
         name='force_channel_id',
         validate_type='int'
     )
