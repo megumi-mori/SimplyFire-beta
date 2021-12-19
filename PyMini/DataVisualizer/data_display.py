@@ -6,6 +6,7 @@ import app
 from Backend import interface, interpreter
 from utils.widget import DataTable
 from DataVisualizer import results_display
+from config import config
 
 
 
@@ -62,6 +63,9 @@ def load(parent):
     global table
     table = dataframe.table
 
+    for key in config.key_delete:
+        table.bind(key, delete_selected, add=None)
+
     dataframe.table.bind('<<TreeviewSelect>>', select)
     dataframe.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
     dataframe.grid(column=0, row=0, sticky='news')
@@ -74,8 +78,6 @@ def load(parent):
     dataframe.menu.add_command(label='Report statistics', command=report, state=Tk.DISABLED)
     dataframe.menu.add_command(label='Fit columns', command=dataframe.fit_columns)
 
-
-
     return frame
 
 def add(data):
@@ -84,6 +86,8 @@ def add(data):
 
 def append(data):
     dataframe.append(data)
+    if data.shape[0]>0:
+        dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
 
 def set(data):
     dataframe.set(data)
@@ -98,6 +102,7 @@ def show_columns(columns=None):
     fit_columns()
 
 def fit_columns():
+    print('fit columns mini')
     dataframe.fit_columns()
 
 def define_columns(columns):
@@ -113,11 +118,12 @@ def clear():
     dataframe.clear()
     dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
 
-def delete_selected():
-    sel = dataframe.table.selection()
-    interface.delete_event([i for i in sel])
-    if len(dataframe.table.get_children()) == 0:
-        dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
+def delete_selected(e=None):
+    if app.widgets['analysis_mode'].get() == 'mini':
+        sel = dataframe.table.selection()
+        interface.delete_event([i for i in sel])
+        if len(dataframe.table.get_children()) == 0:
+            dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
 def hide():
     dataframe.hide()
 

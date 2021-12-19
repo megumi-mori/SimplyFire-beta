@@ -1,4 +1,4 @@
-from DataVisualizer import trace_display, data_display, results_display
+from DataVisualizer import trace_display, data_display, results_display, evoked_data_display
 import app
 from Backend import interface
 from config import config
@@ -25,7 +25,7 @@ def initialize():
         bind_key(key, press_function=unselect_key, target=trace_display.canvas.get_tk_widget())
 
     for key in config.key_delete:
-        bind_key_dp(key, press_function=delete_key)
+        bind_key(key, press_function=data_display.delete_selected, target=trace_display.canvas.get_tk_widget())
 
     for key in config.key_select_all:
         bind_key(key, press_function=select_all_key, target=trace_display.canvas.get_tk_widget())
@@ -176,6 +176,7 @@ def bind_key_dp(key, press_function=None, release_function=None):
     bind_key(key, press_function, release_function, data_display.table)
     bind_key(key, press_function, release_function, trace_display.canvas.get_tk_widget())
     bind_key(key, press_function, release_function, results_display.table)
+    bind_key(key, press_function, release_function, evoked_data_display.table)
 
 def bind_key_pg(key, press_function=None, release_function=None):
     bind_key(key, press_function, release_function, param_guide.canvas.get_tk_widget())
@@ -433,8 +434,16 @@ def unselect_key(event):
 
 def delete_key(event):
     focus = app.root.focus_get()
-    if focus == data_display.dataframe.table or focus == trace_display.canvas.get_tk_widget():
+    print('delete key')
+    print(focus)
+    if focus == data_display.dataframe.table:
         data_display.delete_selected()
+        return None
+    if focus == trace_display.canvas.get_tk_widget() and app.widgets['analysis_mode'].get() == 'mini':
+        data_display.delete_selected()
+        return None
+    if focus == evoked_data_display.dataframe.table:
+        evoked_data_display.delete_selected()
         return None
     if focus == results_display.dataframe.table:
         results_display.dataframe.delete_selected()
@@ -445,14 +454,13 @@ def delete_key(event):
     pass
 
 def select_all_key(event):
-    if app.widgets['trace_mode'].get() == 'overlay':
-        interface.highlight_all_sweeps()
-    if app.widgets['analysis_mode'].get() == 'mini':
+    # if app.widgets['trace_mode'].get() == 'overlay':
+    #     interface.highlight_all_sweeps()
+    if app.widgets['analysis_mode'].get() == 'mini' and app.root.focus_get() == trace_display.canvas.get_tk_widget():
         data_display.dataframe.select_all()
     pass
 
 def select_window_key(event=None):
-    print('select_window_key!')
     xlim = trace_display.ax.get_xlim()
     ylim = trace_display.ax.get_ylim()
     if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':

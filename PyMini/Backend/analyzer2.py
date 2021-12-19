@@ -347,15 +347,14 @@ class Analyzer():
         """
         if not plot_mode:
             plot_mode = self.plot_mode
-        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels,
-                                               xlim=xlim)  # 3D numpy array
         if sweeps is None:
             sweeps = range(self.recording.sweep_count)
         if channels is None:
             channels = range(self.recording.channel_count)
+        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels,
+                                               xlim=xlim)  # 3D numpy array
         mins = np.min(y_matrix, axis=2, keepdims=True)
         mins_std = np.std(mins, axis=1, keepdims=True)
-
         return mins, mins_std
 
     def calculate_max_sweeps(self, plot_mode=None, channels=None, sweeps=None, xlim=None):
@@ -377,7 +376,7 @@ class Analyzer():
             sweeps = range(self.recording.sweep_count)
         if channels is None:
             channels = range(self.recording.channel_count)
-        maxs = np.min(y_matrix, axis=2, keepdims=True)
+        maxs = np.max(y_matrix, axis=2, keepdims=True)
         maxs_std = np.std(maxs, axis=1, keepdims=True)
         return maxs, maxs_std
 
@@ -1378,7 +1377,6 @@ class Analyzer():
                         # extrapolate start from previous decay
                         y_decay = single_exponent((xs[baseline_idx:peak_idx+1]-xs[prev_peak_idx_offset])*1000, mini['prev_decay_A'], mini['prev_decay_const'])  + mini['prev_baseline'] * direction
                         baseline_idx_ex = np.where(y_decay >= ys[baseline_idx:peak_idx+1]*direction)[0][-1] + baseline_idx
-                        print(baseline_idx_ex)
 
                         baseline_idx_min = np.where(ys[prev_peak_idx_offset:peak_idx]*direction == min(ys[prev_peak_idx_offset:peak_idx] * direction))[0][0]+prev_peak_idx_offset
                         # update start_idx

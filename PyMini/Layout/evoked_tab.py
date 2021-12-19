@@ -4,8 +4,16 @@ from config import config
 from tkinter import ttk, StringVar
 import tkinter as Tk
 from utils import widget
+from Backend import interface
+from DataVisualizer import trace_display, evoked_data_display
+from Layout import sweep_tab
+import pandas as pd
 
 def load(parent):
+
+    global widgets
+    widgets = {}
+
     frame = ScrollableOptionFrame(parent)
     optionframe = frame.frame
     optionframe.insert_title(
@@ -13,13 +21,13 @@ def load(parent):
         text='Evoked analysis mode',
         separator=True
     )
-    app.widgets['evoked_target'] = optionframe.insert_label_optionmenu(
+    widgets['evoked_target'] = optionframe.insert_label_optionmenu(
         name='evoked_target',
         label='Apply calculation to: ',
         options=['All sweeps', 'Visible sweeps', 'Highlighted sweeps'],
         separator=False
     )
-    app.widgets['evoked_channel'] = optionframe.insert_label_checkbox(
+    widgets['evoked_channel'] = optionframe.insert_label_checkbox(
         name='evoked_channel',
         label='Calculate visible channel only',
         onvalue='1',
@@ -30,7 +38,7 @@ def load(parent):
     window_option_panel.grid_columnconfigure(0, weight=1)
     window_option_panel.config(bg='blue')
     optionframe.insert_panel(window_option_panel)
-    app.widgets['evoked_window_mode'] = StringVar(window_option_panel, config.evoked_window_mode)
+    widgets['evoked_window_mode'] = StringVar(window_option_panel, config.evoked_window_mode)
 
     window_option_panel.insert_widget(
         Tk.Label(master=window_option_panel, text='Calculate using data from:')
@@ -41,7 +49,7 @@ def load(parent):
         text='Entire sweep',
         value='all',
         command=_select_evoked_window_mode,
-        variable=app.widgets['evoked_window_mode']
+        variable=widgets['evoked_window_mode']
 
     )
     window_option_panel.insert_widget(all_button)
@@ -51,7 +59,7 @@ def load(parent):
         text='Visible window',
         value='visible',
         command=_select_evoked_window_mode,
-        variable=app.widgets['evoked_window_mode']
+        variable=widgets['evoked_window_mode']
 
     )
     window_option_panel.insert_widget(visible_button)
@@ -61,7 +69,7 @@ def load(parent):
         text='Manually defined range:',
         value='manual',
         command=_select_evoked_window_mode,
-        variable=app.widgets['evoked_window_mode']
+        variable=widgets['evoked_window_mode']
     )
     window_option_panel.insert_widget(manual_button)
 
@@ -69,19 +77,19 @@ def load(parent):
     panel.grid_columnconfigure(0, weight=1)
     panel.grid_columnconfigure(1, weight=1)
 
-    app.widgets['evoked_range_left'] = widget.VarEntry(
+    widgets['evoked_range_left'] = widget.VarEntry(
         parent=panel,
         name='evoked_range_left',
         validate_type='float'
     )
-    app.widgets['evoked_range_left'].grid(column=0, row=0, sticky='news')
+    widgets['evoked_range_left'].grid(column=0, row=0, sticky='news')
 
-    app.widgets['evoked_range_right'] = widget.VarEntry(
+    widgets['evoked_range_right'] = widget.VarEntry(
         parent=panel,
         name='evoked_range_right',
         validate_type='float'
     )
-    app.widgets['evoked_range_right'].grid(column=1, row=0, sticky='news')
+    widgets['evoked_range_right'].grid(column=1, row=0, sticky='news')
 
     window_option_panel.insert_widget(panel)
 
@@ -91,6 +99,11 @@ def load(parent):
         text='Min/Max',
         separator=False
     )
+    optionframe.insert_button(
+        text='Calculate Min/Max',
+        command=calculate_min_max
+    )
+
 
     return frame
 
@@ -106,4 +119,43 @@ def _select_evoked_window_mode(e=None):
     if app.widgets['evoked_window_mode'].get() == 'manual':
         app.widgets['evoked_range_left'].config(state='normal')
         app.widgets['evoked_range_right'].config(state='normal')
+    pass
+
+def calculate_min_max(e=None):
+    target = widgets['evoked_target'].get()
+    if target == 'All sweeps':
+        target_sweeps = range(al.recording.sweep_count)
+    elif target == 'Visible sweeps':
+        target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]  # check visible sweeps
+    elif target == 'Highlighted sweeps':
+        target_sweeps = [i for i in trace_display.highlighted_sweep]
+    limit_channel = widgets['evoked_channel'].get()
+    if limit_channel:
+        channels = [interface.al.recording.channel]
+    else:
+        channels = range(interface.al.recording.channel_count)
+    window = widgets['evoked_window_mode'].get()
+
+    if window == 'all':
+        xlim = None
+    elif window == "visible":
+        xlim = trace_display.ax.get_xlim()
+    elif window == 'manual':
+        xlim = (float(widgets['evoked_range_left'].get()), float(widgets['evoked_range_right'].get()))
+
+    mins, mins_std = interface.al.calculate_min_sweeps(plot_mode='overlay', channels=channels, sweeps=target_sweeps, xlim=xlim)
+    maxs, maxs_std = interface.al.calculate_max_sweeps(plot_mode='overlay', channels=channels, sweeps=target_sweeps,
+                                                       xlim=xlim)
+    print(mins.shape)
+    for i, c in enumerate(channels):
+        for j, s in enumerate(target_sweeps):
+            evoked_data_display.add({
+                'channel': c,
+                'sweep': s,
+                'min': mins[i, j, 0],
+                'min_unit': interface.al.recording.y_unit,
+                'max': maxs[i, j, 0],
+                'max_unit': interface.al.recording.y_unit
+            })
+
     pass

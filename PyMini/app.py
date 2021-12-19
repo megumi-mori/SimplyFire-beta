@@ -140,8 +140,8 @@ def load():
     # only show one tab at a time
     global data_tab_details
     data_tab_details = {
-        'mini':{'module': data_display, 'text': 'Mini'},
-        'evoked': {'module': evoked_data_display, 'text': 'Evoked'}
+        'mini':{'module': data_display, 'text': 'Data'},
+        'evoked': {'module': evoked_data_display, 'text': 'Data'}
     }
     for i, t in enumerate(data_tab_details):
         data_tab_details[t]['tab'] = data_tab_details[t]['module'].load(None)
@@ -184,10 +184,10 @@ def load():
 
     global cp_tab_details
     cp_tab_details = {
-        'mini': {'module': detector_tab, 'text': 'Mini', 'partner': ['evoked']},
-        'evoked': {'module': evoked_tab, 'text': 'Evoked', 'partner': ['mini']},
-        'continuous': {'module': continuous_tab, 'text': 'Cont', 'partner': ['overlay']},
-        'overlay': {'module': sweep_tab, 'text': 'Sweeps', 'partner': ['continuous']},
+        'mini': {'module': detector_tab, 'text': 'Analysis', 'partner': ['evoked']},
+        'evoked': {'module': evoked_tab, 'text': 'Analysis', 'partner': ['mini']},
+        'continuous': {'module': continuous_tab, 'text': 'View', 'partner': ['overlay']},
+        'overlay': {'module': sweep_tab, 'text': 'View', 'partner': ['continuous']},
         'adjust': {'module': adjust_tab, 'text': 'Adjust', 'partner': None},
         'navigation': {'module': navigation_tab, 'text': 'Navi', 'partner': None},
         'style':{'module': style_tab, 'text': 'Style', 'partner': None},
@@ -199,11 +199,11 @@ def load():
         cp_notebook.add(cp_tab_details[t]['tab'], text=cp_tab_details[t]['text'])
         cp_tab_details[t]['index'] = i
     from Layout.style_tab import StyleTab
-    test = StyleTab(left, __import__(__name__), interface)
-    cp_notebook.add(test, text='test')
+    # test = StyleTab(left, __import__(__name__), interface)
+    # cp_notebook.add(test, text='test')
 
     # get reference to widgets
-    for key in ['adjust', 'mini', 'style']:
+    for key in ['adjust', 'mini', 'style', 'evoked']:
         for k, v in cp_tab_details[key]['module'].widgets.items():
             widgets[k] = v
 
@@ -261,6 +261,7 @@ def load():
     # # finalize the data viewer - table
     root.update()
     data_display.fit_columns()
+    evoked_data_display.fit_columns()
 
 
 

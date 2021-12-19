@@ -6,6 +6,7 @@ from Backend import interface
 from DataVisualizer import param_guide, data_display, trace_display
 from Layout import detector_tab, batch_popup
 import gc
+import app
 
 # initialize variable
 global trace_mode

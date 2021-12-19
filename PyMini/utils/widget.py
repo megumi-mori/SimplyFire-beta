@@ -472,17 +472,20 @@ class DataTable(Tk.Frame):
         self.table.configure(xscrollcommand=hsb.set)
 
         for key in config.key_copy:
-            self.table.bind(key, self.copy)
+            self.table.bind(key, self.copy, add="+")
 
         for key in config.key_select_all:
-            self.table.bind(key, self.select_all)
+            self.table.bind(key, self.select_all, add="+")
 
         for key in config.key_deselect:
-            self.table.bind(key, self.unselect)
+            self.table.bind(key, self.unselect, add="+")
+
+        for key in config.key_delete:
+            self.table.bind(key, self.delete_selected, add="+")
 
         self.menu = Tk.Menu(self.table, tearoff=0)
 
-        self.table.bind("<Button-3>", self.popup)
+        self.table.bind("<Button-3>", self.popup, add="+")
 
     def popup(self, event):
         try:
@@ -591,11 +594,11 @@ class DataTable(Tk.Frame):
     def append(self, dataframe):
         if dataframe is None:
             return None
-        total = len(dataframe.index)
+        total = dataframe.shape[0]
         dataframe=dataframe[[k for k in self.columns]]
         for i, (idx, row) in enumerate(dataframe.iterrows()):
             try:
-                self.table.insert('', 'end', iid=row['t'],
+                self.table.insert('', 'end', iid=row[self.iid_header],
                                   values=[row[k] for k in self.columns])
                 app.pb['value'] = i/total*100
                 app.pb.update()
@@ -644,11 +647,11 @@ class DataTable(Tk.Frame):
             pass
         self.table.delete(*[str(i) for i in iid])
 
-    def delete_selected(self):
+    def delete_selected(self, e=None):
         selection = self.table.selection()
         self.table.selection_remove(*selection)
         self.table.delete(*selection)
-        pass
+        return selection
 
 
 

@@ -322,6 +322,8 @@ def config_data_tab(tab_name, **kwargs):
         pass
     app.data_notebook.tab(app.data_tab_details[tab_name]['tab'], **kwargs)
     app.data_notebook.select(app.data_tab_details[tab_name]['index'])
+    app.root.update()
+    app.data_tab_details[tab_name]['module'].fit_columns()
 
     pass
 
@@ -381,7 +383,7 @@ def open_events(filename, log=True, undo=True, append=False):
     else:
         df = pd.read_csv(filename)
         al.mini_df = al.mini_df.append(df)
-        data_display.append(df)
+        data_display.append(df[df.channel == al.recording.channel])
     update_event_marker()
     if log:
         log_display.open_update('mini data: {}'.format(filename))
@@ -1120,8 +1122,6 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
     if not target_sweeps:
         return None # no target to be adjusted
 
-
-
     visible_sweep_list = None
     if hide_all:
         visible_sweep_list = tuple([i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()])
@@ -1152,16 +1152,18 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
     log('Trace Averaging', True)
     log('Sweeps {}'.format(analyzer2.format_list_indices(target_sweeps)), False)
     log('Channels: {}'.format(channels), False)
+    print(mins)
+    print(np.mean(mins[0], axis=0, keepdims=False))
     if report_minmax:
         for i,c in enumerate(channels):
             results_display.dataframe.add({
                 'filename': al.recording.filename,
                 'channel': c,  # 0 indexing
                 'analysis': 'trace averaging',
-                'min': mins[i, 0, 0],
+                'min': np.mean(mins[i], axis=0, keepdims=False)[0],
                 'min_unit': al.recording.channel_units[c],
                 'min_std': mins_std[i, 0, 0],
-                'max': maxs[i,0,0],
+                'max': np.mean(maxs[i], axis=0, keepdims=False)[0],
                 'max_unit': al.recording.channel_units[c],
                 'max_std': maxs_std[i,0,0],
             })
@@ -1224,7 +1226,6 @@ def filter_y_data(all_channels=False, target='All sweeps', mode='Boxcar', params
 
     log('Algorithm: {}'.format(mode), False)
     log('Parameters: {}'.format(str(params)), False)
-
 
 
 #####################
