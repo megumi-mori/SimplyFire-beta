@@ -1,9 +1,11 @@
-from tkinter import Frame
-class BaseModule():
+from utils.scrollable_option_frame import ScrollableOptionFrame
+
+class BaseModule(ScrollableOptionFrame):
     name = 'base_module'
 
-    def __init__(self, root, interface):
-        self.root = root
+    def __init__(self, parent, app, interface):
+        super().__init__(parent)
+        self.app=app
         self.interface = interface
 
     def log(self, msg, header=True):

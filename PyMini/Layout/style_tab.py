@@ -1,4 +1,6 @@
+import tkinter
 import tkinter as Tk
+from tkinter import ttk
 
 from config import config
 from utils.scrollable_option_frame import ScrollableOptionFrame
@@ -8,8 +10,26 @@ from Backend import interface
 from DataVisualizer import trace_display
 from tkinter import ttk
 
+from Layout.base_module import BaseModule
+
 global widgets
 widgets = {}
+
+
+class StyleTab(BaseModule):
+    def __init__(self, parent, app, interface):
+        super().__init__(parent, app, interface)
+
+
+        # self.frame.insert_title(text='Main plot style')
+        ttk.Label(self.frame, text='Main plot style', anchor=Tk.CENTER).grid(column=0, row=0, sticky='news')
+
+
+
+
+
+
+
 
 def load(parent):
 
@@ -168,15 +188,3 @@ def apply_styles(e=None):
     global entries
     trace_display.apply_styles(entries)
 
-from Layout.base_module import BaseModule
-class StyleTab(BaseModule, ScrollableOptionFrame):
-    name = 'style'
-
-    def __init__(self, master, root, interface):
-        BaseModule.__init__(self, root, interface)
-        ScrollableOptionFrame.__init__(self, master)
-
-        self.frame.insert_title(
-            name='plot_style',
-            text='Graph Style'
-        )
