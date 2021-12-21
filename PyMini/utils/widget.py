@@ -455,7 +455,7 @@ class PseudoFrame():
         return yaml.safe_dump(self.data)
 
 class DataTable(Tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, bindings=None):
         super().__init__(parent)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -471,22 +471,29 @@ class DataTable(Tk.Frame):
         hsb.grid(column=0, row=1, sticky='ew')
         self.table.configure(xscrollcommand=hsb.set)
 
-        for key in config.key_copy:
-            self.table.bind(key, self.copy, add="+")
-
-        for key in config.key_select_all:
-            self.table.bind(key, self.select_all, add="+")
-
-        for key in config.key_deselect:
-            self.table.bind(key, self.unselect, add="+")
-
-        for key in config.key_delete:
-            self.table.bind(key, self.delete_selected, add="+")
+        if bindings is None:
+            bindings = ('copy', 'select all', 'deselect', 'delete')
+        if 'copy' in bindings:
+            for key in config.key_copy:
+                self.table.bind(key, self.copy, add="+")
+        if 'select all' in bindings:
+            for key in config.key_select_all:
+                self.table.bind(key, self.select_all, add="+")
+        if 'deselect' in bindings:
+            for key in config.key_deselect:
+                self.table.bind(key, self.unselect, add="+")
+        if 'delete' in bindings:
+            for key in config.key_delete:
+                self.table.bind(key, self.delete_selected, add="+")
 
         self.menu = Tk.Menu(self.table, tearoff=0)
 
         self.table.bind("<Button-3>", self.popup, add="+")
-
+    def remove_binding(self, type=''):
+        if type == 'delete':
+            for key in config.key_delete:
+                self.table.bind(key)
+            print('remove binding')
     def popup(self, event):
         try:
             self.menu.tk_popup(event.x_root, event.y_root)
@@ -595,16 +602,19 @@ class DataTable(Tk.Frame):
         if dataframe is None:
             return None
         total = dataframe.shape[0]
-        dataframe=dataframe[[k for k in self.columns]]
-        for i, (idx, row) in enumerate(dataframe.iterrows()):
-            try:
-                self.table.insert('', 'end', iid=row[self.iid_header],
-                                  values=[row[k] for k in self.columns])
-                app.pb['value'] = i/total*100
-                app.pb.update()
-            except Exception as e:
-                print(f'datatable append{e}')
-                pass
+        try:
+            dataframe=dataframe[[k for k in self.columns]]
+            for i, (idx, row) in enumerate(dataframe.iterrows()):
+                try:
+                    self.table.insert('', 'end', iid=row[self.iid_header],
+                                      values=[row[k] for k in self.columns])
+                    app.pb['value'] = i/total*100
+                    app.pb.update()
+                except Exception as e:
+                    print(f'datatable append{e}')
+                    pass
+        except:
+            pass
     def set(self, dataframe):
         self.clear()
         self.append(dataframe)

@@ -13,6 +13,9 @@ from utils import widget
 import tracemalloc
 import pkg_resources
 
+from PIL import Image, ImageTk
+import os
+
 
 event_filename = None
 widgets = {}
@@ -92,6 +95,10 @@ def load():
     root.grid_columnconfigure(0, weight=1)
 
     # root.bind(config.key_reset_focus, lambda e: data_display.table.focus_set())
+
+    IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
+    global arrow_img
+    arrow_img = Image.open(os.path.join(IMG_DIR, 'arrow.png'))
 
     global widgets
 
