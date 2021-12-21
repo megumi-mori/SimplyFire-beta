@@ -295,8 +295,8 @@ class VarText(VarWidget, Tk.Text):
             self,
             parent,
             name="",
-            value=None,
-            default=None,
+            value="",
+            default="",
             lock=False,
             interface=None,
             **kwargs
@@ -541,7 +541,7 @@ class DataTable(Tk.Frame):
     def select_all(self, event=None):
         self.table.selection_set(self.table.get_children())
 
-    def define_columns(self, columns, sort=True, iid_header=None, stretch=Tk.NO):
+    def define_columns(self, columns, sort=True, iid_header=None, stretch=False):
         # columns should be in tuple to avoid mutation
         self.table.config(displaycolumns=())
         self.table.config(columns=columns, show='headings')
@@ -584,11 +584,11 @@ class DataTable(Tk.Frame):
         except:
             pass
 
-    def add(self, datadict): # data in the form of a dict
+    def add(self, datadict, parent='', index='end'): # data in the form of a dict
         new_columns = [key for key in datadict if key not in self.columns]
         if new_columns:
             self.add_columns(new_columns)
-        self.table.insert('', 'end', iid=datadict.get(self.iid_header, None),
+        self.table.insert(parent, index, iid=datadict.get(self.iid_header, None),
                           values=[datadict.get(i, None) for i in self.columns])
 
     def append(self, dataframe):
