@@ -1,5 +1,5 @@
 import tkinter as Tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import app
 from utils.widget import DataTable, VarText
 from PIL import Image, ImageTk
@@ -146,7 +146,7 @@ def create_window():
     menubar.add_cascade(label='File', menu=file_menu)
     window.config(menu=menubar)
     file_menu.add_command(label="Open batch protocol \t Ctrl+o", command=ask_open_batch)
-    file_menu.add_commad(label="Save batch protocol as \t Ctrl+s", command=ask_save_batch)
+    file_menu.add_command(label="Save batch protocol as \t Ctrl+s", command=ask_save_batch)
     window.update()
 
 
@@ -178,7 +178,7 @@ def _add_command(event=None):
     global command_table
 
     sel = command_table.table.selection()
-    protocol_table.table.insert('', 'end', values = command_table.table.item(*sel, 'values'), tag='selectable')
+    protocol_table.table.insert('', 'end', values = (command_table.table.item(*sel, 'values')[0][1:],), tag='selectable')
 
     command_table.table.selection_remove(*command_table.table.selection())
 
@@ -209,7 +209,13 @@ def _move_down_command(event=None):
     pass
 
 def ask_open_batch(event=None):
+    fname = filedialog.askopenfilename(title='Open', filetypes=[('protocol files', "*.prt"), ('All files', '*.*')])
     pass
 
 def ask_save_batch(event=None):
+    # fname = filedialog.asksaveasfilename(title='Save As...', filetypes=[('protocol files', "*.prt"), ('All files', '*.*0')], defaultextension='.prt')
+    global protocol_table
+    commands = protocol_table.table.get_children()
+    print(commands)
+
     pass
