@@ -13,25 +13,25 @@ def load(parent):
         trace_display.set_axis_limit(
             axis='x',
             lim=(
-                optionframe.get_value('min_x'),
-                optionframe.get_value('max_x')
+                app.widgets['min_x'].get(),
+                app.widgets['max_x'].get()
             )
         )
         trace_display.set_axis_limit(
             axis='y',
             lim=(
-                optionframe.get_value('min_y'),
-                optionframe.get_value('max_y')
+                app.widgets['min_y'].get(),
+                app.widgets['max_y'].get()
             )
         )
         trace_display.canvas.draw()
         pass
 
     def default_axis_parameters():
-        optionframe.set_value('min_x', 'auto')
-        optionframe.set_value('max_x', 'auto')
-        optionframe.set_value('min_y', 'auto')
-        optionframe.set_value('max_y', 'auto')
+        app.widgets['min_x'].set('auto')
+        app.widgets['max_x'].set('auto')
+        app.widgets['min_y'].set('auto')
+        app.widgets['max_y'].set('auto')
         pass
 
     def default_nav_parameters():
@@ -40,11 +40,11 @@ def load(parent):
 
     def get_current_axes():
         xlim = trace_display.get_axis_limits('x')
-        optionframe.set_value('min_x', xlim[0])
-        optionframe.set_value('max_x', xlim[1])
+        app.widgets['min_x'].set(xlim[0])
+        app.widgets['max_x'].set(xlim[1])
         ylim = trace_display.get_axis_limits('y')
-        optionframe.set_value('min_y', ylim[0])
-        optionframe.set_value('max_y', ylim[1])
+        app.widgets['min_y'].set(ylim[0])
+        app.widgets['max_y'].set(ylim[1])
         pass
 
     ##################################################

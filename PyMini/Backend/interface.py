@@ -351,7 +351,12 @@ def save_events_dialogue(e=None):
 
 def save_events_as_dialogue(e=None):
     if len(al.mini_df) > 0:
-        filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.csv')
+        try:
+            initialfilename = al.recording.filename.split('.')[0] + '.event'
+        except:
+            initialfilename = app.event_filename
+        filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.event',
+                                              initialfile=initialfilename)
         try:
             al.mini_df.to_csv(filename, index=True)
             app.event_filename = filename
@@ -387,6 +392,8 @@ def open_events(filename, log=True, undo=True, append=False):
     update_event_marker()
     if log:
         log_display.open_update('mini data: {}'.format(filename))
+    app.pb['value']=0
+    app.pb.update()
     # try:
 
     #

@@ -13,6 +13,8 @@ def load(parent):
         to_=20,
         command=lambda e: set_fontsize(int(float(e))))
     w.grid(column=0, row=1, sticky='news')
+    global s
+    s = ttk.Style()
     # config.change_fontsize(e))
     return frame
 
@@ -26,6 +28,6 @@ def set_fontsize(fontsize):
     for f in fonts:
         def_font = font.nametofont(f)
         def_font.configure(size=fontsize)
-
+        s.configure('Treeview', rowheight=int(fontsize*2))
 
 

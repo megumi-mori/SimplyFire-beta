@@ -93,6 +93,7 @@ def load():
 
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)
+    root.lift()
 
     # root.bind(config.key_reset_focus, lambda e: data_display.table.focus_set())
 
@@ -138,6 +139,7 @@ def load():
 
     # must set up a graph object that can 'refresh' and 'plot' etc
     panel = graph_panel.load(None)
+    root.update()
     pw_2.add(panel)
     pw_2.paneconfig(panel, height=config.gp_height)
 
@@ -269,8 +271,6 @@ def load():
     root.update()
     data_display.fit_columns()
     evoked_data_display.fit_columns()
-
-
 
     return root
 

@@ -16,6 +16,7 @@ if __name__ == '__main__':
     splash.mainloop()
 
     root = app.load()
+    # splash.destroy()
 
     ### testing purposes:
     # Backend.interface.open_trace('D:\\megum\\Documents\\GitHub\\PyMini\\test_recordings\\20112011-EJC test.abf')
