@@ -4,7 +4,7 @@ from config import config
 from utils.widget import VarWidget
 from Backend import interface
 from DataVisualizer import param_guide, data_display, trace_display
-from Layout import detector_tab, batch_popup
+from Layout import detector_tab
 import gc
 import app
 
@@ -111,6 +111,7 @@ def load_menubar(parent):
     view_menu.add_radiobutton(label='Overlay', command=_overlay_mode, variable=trace_var, value='overlay')
 
     # Analysis menu
+    global analysis_menu
     analysis_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='Analysis', menu=analysis_menu)
     # track analysis_mode
@@ -119,7 +120,7 @@ def load_menubar(parent):
     analysis_menu.add_radiobutton(label='Mini', command=_mini_mode, variable=analysis_var, value='mini')
     analysis_menu.add_radiobutton(label='Evoked', command=_evoked_mode, variable=analysis_var, value='evoked')
     analysis_menu.add_separator()
-    analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
+
 
     # Window menu
     window_menu = Tk.Menu(menubar, tearoff=0)

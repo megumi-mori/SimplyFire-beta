@@ -2,10 +2,26 @@ import tkinter as Tk
 import tkinter.filedialog
 from tkinter import ttk, filedialog
 import app
-from utils.widget import DataTable, VarText
+from Backend import interface
+from Layout import menubar, adjust_tab
+from utils.widget import DataTable, VarText, VarLabel
 import os
 from PIL import Image, ImageTk
+def change_mode(mode):
+    # 0 for mini 1 for evoked
+    menubar.view_menu.invoke(mode)
+    menubar.analysis_menu.invoke(mode)
+    pass
 
+
+command_dict = {
+    'Analyze mini': lambda m=0:change_mode(m),
+    'Analyze evoked': lambda m=1: change_mode(m),
+    'Save event file': interface.save_events,
+    'Apply baseline adjustment':   adjust_tab.adjust_baseline,
+    'Apply trace averaging': adjust_tab.average_trace,
+    'Apply filter': adjust_tab.filter
+}
 def load():
     try:
         window.deiconify()
@@ -39,11 +55,20 @@ def create_window():
     protocol_frame = ttk.Frame(window)
     notebook.add(protocol_frame, text='Commands')
     protocol_frame.grid_columnconfigure(0, weight=1)
-    protocol_frame.grid_rowconfigure(0, weight=1)
+    protocol_frame.grid_rowconfigure(1, weight=1)
+
+    protocol_save_frame = ttk.Frame(protocol_frame)
+    protocol_save_frame.grid(column=0, row=0, sticky='news')
+    protocol_save_frame.grid_columnconfigure(0, weight=1)
+    protocol_save_frame.grid_columnconfigure(1, weight=1)
+    ttk.Button(protocol_save_frame, text='Import Protocol', command=ask_open_batch).grid(column=0, row=0, sticky='e')
+    ttk.Button(protocol_save_frame, text='Export Protocol', command=ask_save_batch).grid(column=1, row=0, sticky='w')
+
 
     protocol_editor_frame = ttk.Frame(protocol_frame)
-    protocol_editor_frame.grid(row=0, column=0, sticky='news')
+    protocol_editor_frame.grid(row=1, column=0, sticky='news')
     protocol_editor_frame.grid_columnconfigure(0, weight=1)
+    protocol_editor_frame.grid_columnconfigure(2, weight=1)
     protocol_editor_frame.grid_rowconfigure(0, weight=1)
 
     global command_table
@@ -69,11 +94,7 @@ def create_window():
     command_table.add({'Commands': 'adjustment tab'})
     command_table.table.item('adjustment tab', open=True)
 
-
-
-    ###########
-    #Menubar
-    ###########
+    # Menubar
     command_table.table.insert(parent='menubar', index='end', iid='open trace file', values=('\tOpen trace file',), tag='selectable')
     command_table.table.insert(parent='menubar', index='end', iid='open event file', values=('\tOpen event file',), tag='selectable')
     command_table.table.insert(parent='menubar', index='end', iid='save events file', values=('\tSave event file',), tag='selectable')
@@ -82,9 +103,7 @@ def create_window():
     command_table.table.insert(parent='menubar', index='end', iid='evoked mode',
                                 values=('\tAnalyze evoked',), tag='selectable')
 
-    ########
     # Mini analysis tab
-    ########
     command_table.table.insert(parent='mini analysis tab', index='end', iid='find in window',
                           values=('\tFind in window',), tag='selectable')
     command_table.table.insert(parent='mini analysis tab', index='end', iid='find all',
@@ -94,16 +113,11 @@ def create_window():
     command_table.table.insert(parent='mini analysis tab', index='end', iid='delete all',
                           values=('\tDelete all',), tag='selectable')
 
-    #########
-    #Evoked analysis tab
-    #########
+    # Evoked analysis tab
     command_table.table.insert(parent='evoked analysis tab', index='end', iid='min/max',
                           values=('\tMin/Max',), tag='selectable')
 
-
-    ########
     # Adjustment tab
-    ########
     command_table.table.insert(parent='adjustment tab', index='end', iid='baseline adjustment',
                                 values=('\tApply baseline adjustment',), tag='selectable')
     command_table.table.insert(parent='adjustment tab', index='end', iid='trace averaging',
@@ -113,7 +127,7 @@ def create_window():
     command_table.table.column("#0", stretch=False, width=40)
     command_table.table.column(0, stretch=True)
 
-
+    # editor buttons
     middle_button_frame = Tk.Frame(protocol_editor_frame)
     middle_button_frame.grid(column=1, row=0, sticky='news')
     middle_button_frame.grid_rowconfigure(0, weight=1)
@@ -140,6 +154,7 @@ def create_window():
     down_button.config(image=down_button.image)
     down_button.grid(column=0, row=5, sticky='news')
 
+    # protocol list
     global protocol_table
     protocol_table = DataTable(protocol_editor_frame)
     protocol_table.table.configure(selectmode='none', show='tree headings')
@@ -149,7 +164,7 @@ def create_window():
     protocol_table.table.bind('<Button-1>', _on_click, add='+')
 
     protocol_navigation_frame = ttk.Frame(protocol_frame)
-    protocol_navigation_frame.grid(column=0, row=1, sticky='news')
+    protocol_navigation_frame.grid(column=0, row=2, sticky='news')
     protocol_navigation_frame.grid_rowconfigure(0, weight=1)
     protocol_navigation_frame.grid_columnconfigure(0, weight=1)
 
@@ -163,80 +178,77 @@ def create_window():
     file_frame = ttk.Frame(window)
     notebook.add(file_frame, text='File List')
     file_frame.grid_columnconfigure(1, weight=1)
-    file_frame.grid_rowconfigure(1, weight=1)
-    list_frame = ttk.Frame(file_frame)
-    list_frame.grid(row=1, column=0, sticky='news')
-    list_frame.grid_rowconfigure(1, weight=1)
-    list_frame.grid_columnconfigure(1, weight=1)
+    file_frame.grid_rowconfigure(2, weight=1)
 
+    # Import and export buttons
+    file_save_frame = ttk.Frame(file_frame)
+    file_save_frame.grid(column=1, row=0, sticky='news')
+    file_save_frame.grid_columnconfigure(0, weight=1)
+    file_save_frame.grid_columnconfigure(1, weight=1)
+    ttk.Button(file_save_frame, text='Import list', command=ask_import_file).grid(column=0, row=0, sticky='ne')
+    ttk.Button(file_save_frame, text='Export list').grid(column=1, row=0, sticky='nw')
 
-
-
-    ##################
-    # Path selection #
-    ##################
-    ttk.Label(master=list_frame,
-              text='Base directory path:').grid(column=0, row=0, sticky='news')
+    # Path selection
+    ttk.Label(master=file_frame,
+              text='Base directory path:').grid(column=0, row=1, sticky='news')
     global path_entry
-    path_entry = VarText(parent=list_frame,
+    path_entry = VarText(parent=file_frame,
         value="",
         default="")
-    path_entry.grid(column=1, row=0, sticky='news')
+    path_entry.grid(column=1, row=1, sticky='news')
     path_entry.configure(state='disabled', height=2)
-    path_button_frame = ttk.Frame(list_frame)
-    path_button_frame.grid(column=2, row=0, sticky='news')
+    path_button_frame = ttk.Frame(file_frame)
+    path_button_frame.grid(column=2, row=1, sticky='news')
     ttk.Button(master=path_button_frame, text='Browse', command=ask_path).grid(column=0, row=0, sticky='nw')
     ttk.Button(master=path_button_frame, text='Clear', command=path_entry.clear).grid(column=0, row=1, sticky='nw')
 
-    ######################
-    # Filename selection #
-    ######################
-    ttk.Label(list_frame, text='File path list:').grid(column=0, row=1, sticky='nw')
+    # Filename selection
+    ttk.Label(file_frame, text='File path list:').grid(column=0, row=2, sticky='nw')
     global file_entry
-    file_entry = VarText(parent=list_frame,
+    file_entry = VarText(parent=file_frame,
                               value="",
                               default="")
-    file_entry.grid(column=1, row=1, sticky='news')
-    file_button_frame = ttk.Frame(list_frame)
-    file_button_frame.grid(column=2, row=1, sticky='news')
+    file_entry.grid(column=1, row=2, sticky='news')
+    file_button_frame = ttk.Frame(file_frame)
+    file_button_frame.grid(column=2, row=2, sticky='news')
     file_button_frame.grid_rowconfigure(0, weight=1)
     file_button_frame.grid_rowconfigure(2, weight=1)
-
     ttk.Button(file_button_frame, text='Add', command=ask_add_files).grid(column=0, row=0, sticky='s')
     ttk.Button(file_button_frame, text='Clear').grid(column=0, row=1)
-    # next_button = ttk.Button(protocol_navigation_frame, text='Next', command=lambda e=1:notebook.select(e))
-    # next_button.grid(column=0, row=0, sticky='e')
 
-    import_export_frame = ttk.Frame(list_frame)
-    import_export_frame.grid(column=1, row=2, sticky='news')
-    ttk.Button(import_export_frame, text='Import list', command=ask_import_file).grid(column=0, row=0, sticky='n')
-    ttk.Button(import_export_frame, text='Export list').grid(column=1, row=0, sticky='n')
+    # Navigation buttons
 
+    ttk.Button(file_frame, text='Next', command=lambda e=2:notebook.select(e)).grid(column=2, row=3, sticky='e')
+    ttk.Button(file_frame, text='Previous', command=lambda e=0: notebook.select(e)).grid(column=0, row=3, sticky='w')
 
+    ######################
+    # Batch Processor #
+    ###################
 
+    batch_frame = ttk.Frame(window)
+    notebook.add(batch_frame, text='Process')
+    batch_frame.grid_columnconfigure(0, weight=1)
+    batch_frame.grid_rowconfigure(1, weight=1)
 
+    control_frame = ttk.Frame(batch_frame)
+    control_frame.grid(column=0, row=0, sticky='news')
+    control_frame.grid_columnconfigure(0, weight=1)
+    control_frame.grid_columnconfigure(1, weight=1)
+    global start_button
+    start_button = ttk.Button(control_frame, text='START', command=process_batch)
+    start_button.grid(column=0, row=0, sticky='n')
+    global stop_button
+    stop_button = ttk.Button(control_frame, text='STOP', command=process_batch)
+    stop_button.grid(column=1, row=0, sticky='n')
+    stop_button.config(state='disabled')
 
+    global batch_log
+    batch_log = VarText(parent=batch_frame, value="Progress...", default="Progress...")
+    batch_log.grid(column=0, row=1, sticky='news')
 
-    ##########
-    # Menu bar
-    ##########
-    menubar = Tk.Menu(window)
-    file_menu = Tk.Menu(menubar, tearoff=0)
-    menubar.add_cascade(label='File', menu=file_menu)
-    window.config(menu=menubar)
-
-    global protocol_fname
-    protocol_fname = None
-
-    file_menu.add_command(label="Open protocol \t Ctrl+o", command=ask_open_batch)
-    file_menu.add_command(label="Save protocol as \t Ctrl+Shift+s", command=ask_save_batch)
-    file_menu.add_command(label="Save protocol as \t Ctrl+s", command=save_batch)
-    window.bind('<Control-o>', ask_open_batch)
-    window.bind('<Control-s>', save_batch)
-    window.bind('<Control-Shift-s>', ask_save_batch)
-
-    window.update()
-
+    global progress_message
+    progress_message = VarLabel(batch_frame, value="Processing 0/0 files. At 0/0 steps", default="Processing 0/0 files. At 0/0 steps")
+    progress_message.grid(column=0, row=2)
 
 def _on_close(event=None):
     app.root.attributes('-disabled', False)
@@ -314,7 +326,8 @@ def ask_add_files(event=None):
     else:
         filenames=tkinter.filedialog.askopenfilenames(filetypes=[('abf files','*.abf'), ('event files', '*.event'), ("All files", '*.*')])
     global file_entry
-    filenames = "\n".join(filenames)+'\n'
+    filenames = "\n".join(filenames)
+    filenames = filenames + '\n'
     file_entry.insert(Tk.END, filenames)
     window.lift()
 
@@ -351,3 +364,39 @@ def ask_save_batch(event=None):
         save_batch()
     else:
         return None
+
+
+def process_batch(event=None):
+    global window
+    window.protocol("WM_DELETE_WINDOW", disable_event)
+    global start_button
+    start_button.config(state='disabled')
+    global stop_button
+    stop_button.config(state='normal')
+    app.root.attributes('-disabled', True)
+
+    global protocol_table
+    commands = [protocol_table.table.item(i, 'values')[0] for i in protocol_table.table.get_children()]
+    global file_entry
+    files = file_entry.get().split('\n')
+    print(files)
+    print(f'len files: {len(files)}')
+    global path_entry
+    basedir = path_entry.get()
+
+    for f in files:
+        try:
+            interface.open_trace(f)
+            for c in commands:
+                command_dict[c]()
+        except:
+            batch_log.insert(Tk.END, f'could not open {f}')
+            
+    app.root.attributes('-disabled', False)
+    stop_button.config(state='disabled')
+    start_button.config(state='normal')
+    window.protocol("WM_DELETE_WINDOW", window.destroy)
+    pass
+
+def disable_event():
+    pass

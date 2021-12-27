@@ -6,7 +6,7 @@ from Backend import interpreter, interface
 from config import config
 
 from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navigation_tab, \
-    sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab
+    sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup
 from DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display
 
 from utils import widget
@@ -258,6 +258,8 @@ def load():
     # set up menubar
     menu = menubar.load_menubar(root)
     root.config(menu=menu)
+
+    menubar.analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
 
     for k, v in menubar.widgets.items():
         widgets[k] = v

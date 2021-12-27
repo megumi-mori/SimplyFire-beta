@@ -93,7 +93,7 @@ def load(parent):
 
     frame.insert_button(
         text='Apply',
-        command=_adjust_baseline
+        command=adjust_baseline
     )
 
     # set baseline adjustment method to saved option
@@ -127,7 +127,7 @@ def load(parent):
     )
     frame.insert_button(
         text='Apply',
-        command=_average_trace
+        command=average_trace
     )
     frame.insert_separator()
 
@@ -202,7 +202,7 @@ def load(parent):
     global filter_apply_button
     filter_apply_button = frame.insert_button(
         text='Apply',
-        command=_filter
+        command=filter
     )
 
     _populate_filter_algorithm_choices()
@@ -249,7 +249,7 @@ def _select_baseline_mode(e=None, undo=True):
         widgets['adjust_fixed'].config(state='normal')
 
 
-def _adjust_baseline(e=None):
+def adjust_baseline(e=None):
     all_channels = True
     if widgets['adjust_channel'].get():
         all_channels = False
@@ -272,7 +272,7 @@ def _adjust_baseline(e=None):
 
 
 #### Trace Averaging #####
-def _average_trace(e=None):
+def average_trace(e=None):
     if widgets['adjust_channel'].get():
         all_channels = False
     else:
@@ -286,7 +286,7 @@ def _average_trace(e=None):
 
 
 #### Filtering #####
-def _filter(e=None):
+def filter(e=None):
     if widgets['adjust_channel'].get():
         all_channels = False
     else:
