@@ -126,7 +126,7 @@ def create_window():
     command_table.table.insert(parent='mini analysis tab', index='end', iid='find all',
                           values=('\tFind all',), tag='selectable')
     command_table.table.insert(parent='mini analysis tab', index='end', iid='report mini',
-                               values=('\tReport statistics (mini)'))
+                               values=('\tReport statistics (mini)',), tag='selectable')
 
 
     # Evoked analysis tab
