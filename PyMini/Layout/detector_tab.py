@@ -3,6 +3,7 @@ from utils.scrollable_option_frame import ScrollableOptionFrame
 import app
 from DataVisualizer import data_display, trace_display, log_display
 from Backend import interface
+from threading import Thread
 changed = True
 changes = {}
 parameters = {}
@@ -10,10 +11,46 @@ parameters = {}
 global widgets
 widgets = {}
 def find_all():
+    global stop_button
+    stop_button.config(state = 'normal')
+    global find_all_button
+    find_all_button.config(state='disabled')
+    global find_in_window_button
+    find_in_window_button.config(state='disabled')
+
+    t = Thread(target=start_find_all_process())
+    t.start()
+
+def stop():
+    interface.interrupt_analyzer()
+    pass
+def start_find_all_process():
     interface.find_mini_in_range(trace_display.default_xlim, trace_display.default_ylim)
+    global stop_button
+    stop_button.config(state='disabled')
+    global find_all_button
+    find_all_button.config(state='normal')
+    global find_in_window_button
+    find_in_window_button.config(state='normal')
 
 def find_in_window():
+    global stop_button
+    stop_button.config(state='normal')
+    global find_all_button
+    find_all_button.config(state='disabled')
+    global find_in_window_button
+    find_in_window_button.config(state='disabled')
+    t = Thread(target=start_find_all_process())
+    t.start()
+
+def start_find_in_window_process():
     interface.find_mini_in_range(trace_display.ax.get_xlim(), trace_display.ax.get_ylim())
+    global stop_button
+    stop_button.config(state='disabled')
+    global find_all_button
+    find_all_button.config(state='normal')
+    global find_in_window_button
+    find_in_window_button.config(state='normal')
 
 def filter_all():
     interface.filter_mini()
@@ -38,13 +75,17 @@ def load(parent):
     #                    Methods                     #
     ##################################################
     def _show_all():
-        for key in optionframe.get_keys(filter='data_display_'):
-            optionframe.widgets[key].set(1)
+        global widgets
+        for key in widgets:
+            if key[:13] == 'data_display_':
+                widgets[key].set(1)
         data_display.show_columns(extract_columns2display())
 
     def _hide_all():
-        for key in optionframe.get_keys(filter='data_display_'):
-            optionframe.widgets[key].set('')
+        global widgets
+        for key in widgets:
+            if key[:13] == 'data_display_':
+                widgets[key].set('')
         data_display.show_columns(extract_columns2display())
     def apply_parameters(e=None):
         global changed
@@ -241,7 +282,8 @@ def load(parent):
         text='Default',
         command=default
     )
-    optionframe.insert_button(
+    global find_all_button
+    find_all_button = optionframe.insert_button(
         text='Find all',
         command=find_all  # link this later
     )
@@ -249,7 +291,8 @@ def load(parent):
         text='Delete all',
         command=interface.delete_all_events
     )
-    optionframe.insert_button(
+    global find_in_window_button
+    find_in_window_button = optionframe.insert_button(
         text='Find in \nwindow',
         command=find_in_window  # link this later
     )
@@ -257,9 +300,15 @@ def load(parent):
         text='Delete in \nwindow',
         command=delete_in_window
     )
+    global stop_button
+    stop_button = optionframe.insert_button(
+        text='STOP',
+        command=stop
+    )
+    stop_button.config(state='disabled')
     global report_button
     report_button = optionframe.insert_button(
-        text='Report statistics',
+        text='Report \nstatistics',
         command=data_display.report,
     )
     report_button.config(state='disabled')
@@ -304,14 +353,18 @@ def load(parent):
         text='Default',
         command=lambda k='detector_filter_': optionframe.default(filter=k)
     )
-    optionframe.insert_button(
+    global filter_all_button
+    filter_all_button = optionframe.insert_button(
         text='Apply filter\n(all)',
-        command=filter_all,  # link this later,
+        command=filter_all,
     )
-    optionframe.insert_button(
+    # filter_all_button.config(state='disabled')
+    global filter_in_window_button
+    filter_in_window_button = optionframe.insert_button(
         text='Apply filter\n(window)',
-        command=filter_in_window  # link this later
+        command=filter_in_window
     )
+    # filter_in_window_button.config(state='disabled')
     # panel = frame.make_panel()
     # Tk.Label(panel, text='Fit decay functions using:').grid(column=0, row=0, sticky='news')
     # app.widgets['detector_decay_func_type'] = widget.VarWidget(name='detector_decay_func_type')

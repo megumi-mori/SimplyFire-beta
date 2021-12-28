@@ -12,6 +12,7 @@ import gc
 import pandas as pd
 import numpy as np
 from config import config
+from threading import Thread
 
 from time import time
 # This module is the workhorse of the GUI
@@ -470,6 +471,8 @@ def pick_event_manual(x):
         detector_tab.changes = {}
         detector_tab.changed = False
 
+def interrupt_analyzer():
+    al.stop = True
 
 def find_mini_in_range(xlim, ylim):
     try:
@@ -486,8 +489,13 @@ def find_mini_in_range(xlim, ylim):
     data_display.unselect()
     print(f'data_display.unselect(): {time()-t0}')
     t0=time()
-    xs = trace_display.ax.lines[0].get_xdata()
-    ys = trace_display.ax.lines[0].get_ydata()
+    try:
+        xs = trace_display.ax.lines[0].get_xdata()
+        ys = trace_display.ax.lines[0].get_ydata()
+    except:
+        app.pb['value'] = 0
+        app.pb.update()
+        return
     print(f'get xs, ys: {time()-t0}')
     t0=time()
     # temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
@@ -520,6 +528,7 @@ def find_mini_in_range(xlim, ylim):
         detector_tab.changes = {}
         detector_tab.changed = False
     app.pb['value'] = 0
+    app.pb.update()
 
 def filter_mini(xlim=None):
     app.pb['value'] = 1
@@ -828,8 +837,7 @@ def delete_event(selection, undo=True):
                 lambda f=temp_filename: os.remove(f)
             ])
         al.mini_df = al.mini_df[(~al.mini_df['t'].isin(selection)) | (al.mini_df['channel'] != al.recording.channel)]
-        data_display.table.selection_remove(*selection)
-        data_display.table.delete(*selection)
+        data_display.delete(selection)
         update_event_marker() ##### maybe make this separate
     if app.widgets['window_param_guide'].get():
         param_guide.clear()

@@ -85,15 +85,27 @@ def add(data):
     dataframe.add(data)
     dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
     detector_tab.report_button.config(state='normal')
+    # detector_tab.filter_all_button.config(state='normal')
+    # detector_tab.filter_in_window_button.config(state='normal')
 
 def append(data):
     dataframe.append(data)
     if data.shape[0]>0:
         dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
         detector_tab.report_button.config(state='normal')
+        # detector_tab.filter_all_button.config(state='normal')
+        # detector_tab.filter_in_window_button.config(state='normal')
+
 
 def set(data):
     dataframe.set(data)
+    if data.shape[0]>0:
+        dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
+        detector_tab.report_button.config(state='normal')
+        # detector_tab.filter_all_button.config(state='normal')
+        # detector_tab.filter_in_window_button.config(state='normal')
+
+
 
 def show_columns(columns=None):
     columns = tuple([
@@ -121,14 +133,15 @@ def clear():
     dataframe.clear()
     dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
     detector_tab.report_button.config(state='disabled')
+    # detector_tab.filter_all_button.config(state='disabled')
+    # detector_tab.filter_in_window_button.config(state='disabled')
 
 def delete_selected(e=None):
     if app.widgets['analysis_mode'].get() == 'mini':
         sel = dataframe.table.selection()
         interface.delete_event([i for i in sel])
-        if len(dataframe.table.get_children()) == 0:
-            dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
-            detector_tab.report_button.config(state='disabled')
+
+
 def hide():
     dataframe.hide()
 
@@ -156,6 +169,16 @@ def delete_one(iid):
     except Exception as e:
         print('data_display delete one error: {}'.format(e))
         pass
+
+def delete(selection):
+    global table
+    table.selection_remove(*selection)
+    table.delete(*selection)
+    if len(dataframe.table.get_children()) == 0:
+        dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
+        detector_tab.report_button.config(state='disabled')
+        # detector_tab.filter_all_button.config(state='disabled')
+        # detector_tab.filter_in_window_button.config(state='disabled')
 
 def report(event=None):
     if interface.al.mini_df.shape[0] == 0:

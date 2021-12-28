@@ -559,6 +559,13 @@ class Analyzer():
     # Mini Analysis #
     #################
 
+    def interrupt(self):
+        """
+        used to interrupt the while loop in find_mini_auto
+        only use when the find_mini_auto is threaded
+        """
+        self.stop = True
+
     def find_mini_auto(self,
                        xlim=None,
                        xs=None,
@@ -617,6 +624,7 @@ class Analyzer():
         """
         show_time = False
         self.print_time('start auto', show_time)
+        self.stop=False
         if xs is None:
             xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
         if ys is None:
@@ -651,7 +659,7 @@ class Analyzer():
             progress_bar.update()
         hits = []
         prev_peak = None
-        while start_idx < xlim_idx[1]:
+        while start_idx < xlim_idx[1] and not self.stop:
             peak_idx = self.find_peak_recursive(xs, ys, start=start_idx, end=end_idx, direction=direction)
             self.print_time('find peak', show_time)
             if peak_idx is not None:
