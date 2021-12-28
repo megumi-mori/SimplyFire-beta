@@ -330,7 +330,7 @@ class VarText(VarWidget, Tk.Text):
             self.config(state='normal')
         self.delete(1.0, Tk.END)
         self.insert(1.0, value)
-        self.var.set(value)
+        # self.var.set(value)
         if disable:
             self.config(state='disabled')
 
@@ -352,10 +352,12 @@ class VarText(VarWidget, Tk.Text):
             disable = True
             self.config(state='normal')
         Tk.Text.insert(self, *args, **kwargs)
-        self.var.set(Tk.Text.get(self,1.0, Tk.END))
+        # self.var.set(Tk.Text.get(self,1.0, Tk.END))
         if disable:
             self.config(state='disabled')
 
+    # def get(self):
+    #     return Tk.Text.get(self, 1.0, Tk.END)
 
 class VarScale(VarWidget, ttk.Scale):
     def __init__(

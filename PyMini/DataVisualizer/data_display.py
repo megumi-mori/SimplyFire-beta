@@ -4,6 +4,7 @@ from tkinter import ttk
 from collections import OrderedDict  # Python 3.7+ can use dict
 import app
 from Backend import interface, interpreter
+from Layout import detector_tab
 from utils.widget import DataTable
 from DataVisualizer import results_display
 from config import config
@@ -83,11 +84,13 @@ def load(parent):
 def add(data):
     dataframe.add(data)
     dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
+    detector_tab.report_button.config(state='normal')
 
 def append(data):
     dataframe.append(data)
     if data.shape[0]>0:
         dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
+        detector_tab.report_button.config(state='normal')
 
 def set(data):
     dataframe.set(data)
@@ -117,6 +120,7 @@ def add_columns(columns):
 def clear():
     dataframe.clear()
     dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
+    detector_tab.report_button.config(state='disabled')
 
 def delete_selected(e=None):
     if app.widgets['analysis_mode'].get() == 'mini':
@@ -124,6 +128,7 @@ def delete_selected(e=None):
         interface.delete_event([i for i in sel])
         if len(dataframe.table.get_children()) == 0:
             dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
+            detector_tab.report_button.config(state='disabled')
 def hide():
     dataframe.hide()
 

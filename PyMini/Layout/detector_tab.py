@@ -257,6 +257,12 @@ def load(parent):
         text='Delete in \nwindow',
         command=delete_in_window
     )
+    global report_button
+    report_button = optionframe.insert_button(
+        text='Report statistics',
+        command=data_display.report,
+    )
+    report_button.config(state='disabled')
     # mini filtering (min and max values) options
     optionframe.insert_title(
         text='Filtering options'
