@@ -65,7 +65,6 @@ def load(parent):
         value=config.config_user_path,
         default=config.default_config_user_path
     )
-    print('config user path being loaded to settings {}'.format(config.config_user_path))
     dir_entry.configure(state='disabled', height=2)
     dir_entry.grid(column=0,row=1,sticky='news')
     app.widgets['config_user_path'] = dir_entry
