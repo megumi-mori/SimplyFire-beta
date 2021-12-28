@@ -135,9 +135,7 @@ def configure(key, value):
 
 def open_trace(fname):
     # trace stored in analyzer
-    print('open_trace')
     try:
-        # al.open_trace(fname)
         al.open_file(fname)
     except Exception as e:
         print(e)
@@ -166,10 +164,8 @@ def open_trace(fname):
             pass
     else:
         al.recording.set_channel(0)
-
     trace_display.clear()
     data_display.clear()
-
     trace_display.ax.set_xlabel(al.recording.x_label)
     trace_display.ax.set_ylabel(al.recording.y_label)
 
