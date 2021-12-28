@@ -32,6 +32,7 @@ def _on_close():
     """
     print('closing')
     if widgets['config_autosave'].get():
+        dump_user_setting()
         try:
             dump_user_setting()
         except:
@@ -281,7 +282,7 @@ def dump_user_setting(filename=None):
     ignore = ['config_', '_log', 'temp_']
     print('Writing out configuration variables....')
     if filename is None:
-        filename = widgets['config_user_path'].get()
+        filename = widgets['config_user_path'].var.get()
     with open(filename, 'w') as f:
         print('writing dump user config {}'.format(filename))
         f.write("#################################################################\n")
