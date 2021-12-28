@@ -3,10 +3,14 @@ import tkinter.filedialog
 from tkinter import ttk, filedialog
 import app
 from Backend import interface
-from Layout import menubar, adjust_tab
+from Layout import menubar, adjust_tab, detector_tab
+from DataVisualizer import data_display
 from utils.widget import DataTable, VarText, VarLabel
 import os
 from PIL import Image, ImageTk
+import yaml
+from threading import Thread
+
 def change_mode(mode):
     # 0 for mini 1 for evoked
     menubar.view_menu.invoke(mode)
@@ -18,11 +22,20 @@ command_dict = {
     'Analyze mini': lambda m=0:change_mode(m),
     'Analyze evoked': lambda m=1: change_mode(m),
     'Save event file': interface.save_events,
+
+    'Find all': detector_tab.find_all,
+    'Find in window': detector_tab.find_in_window,
+    'Delete all': interface.delete_all_events,
+    'Delete in window': detector_tab.delete_in_window,
+    'Report statistics (mini)':data_display.report,
+
     'Apply baseline adjustment':   adjust_tab.adjust_baseline,
     'Apply trace averaging': adjust_tab.average_trace,
     'Apply filter': adjust_tab.filter
 }
 def load():
+    global stop
+    stop = False
     try:
         window.deiconify()
         print('recalling window')
@@ -95,8 +108,8 @@ def create_window():
     command_table.table.item('adjustment tab', open=True)
 
     # Menubar
-    command_table.table.insert(parent='menubar', index='end', iid='open trace file', values=('\tOpen trace file',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='open event file', values=('\tOpen event file',), tag='selectable')
+    # command_table.table.insert(parent='menubar', index='end', iid='open trace file', values=('\tOpen trace file',), tag='selectable')
+    # command_table.table.insert(parent='menubar', index='end', iid='open event file', values=('\tOpen event file',), tag='selectable')
     command_table.table.insert(parent='menubar', index='end', iid='save events file', values=('\tSave event file',), tag='selectable')
     command_table.table.insert(parent='menubar', index='end', iid='mini mode', values=('\tAnalyze mini',),
                                 tag='selectable')
@@ -104,14 +117,17 @@ def create_window():
                                 values=('\tAnalyze evoked',), tag='selectable')
 
     # Mini analysis tab
+    command_table.table.insert(parent='mini analysis tab', index='end', iid='delete in window',
+                               values=('\tDelete in window',), tag='selectable')
+    command_table.table.insert(parent='mini analysis tab', index='end', iid='delete all',
+                               values=('\tDelete all',), tag='selectable')
     command_table.table.insert(parent='mini analysis tab', index='end', iid='find in window',
                           values=('\tFind in window',), tag='selectable')
     command_table.table.insert(parent='mini analysis tab', index='end', iid='find all',
                           values=('\tFind all',), tag='selectable')
-    command_table.table.insert(parent='mini analysis tab', index='end', iid='delete in window',
-                          values=('\tDelete in window',), tag='selectable')
-    command_table.table.insert(parent='mini analysis tab', index='end', iid='delete all',
-                          values=('\tDelete all',), tag='selectable')
+    command_table.table.insert(parent='mini analysis tab', index='end', iid='report mini',
+                               values=('\tReport statistics (mini)'))
+
 
     # Evoked analysis tab
     command_table.table.insert(parent='evoked analysis tab', index='end', iid='min/max',
@@ -186,7 +202,7 @@ def create_window():
     file_save_frame.grid_columnconfigure(0, weight=1)
     file_save_frame.grid_columnconfigure(1, weight=1)
     ttk.Button(file_save_frame, text='Import list', command=ask_import_file).grid(column=0, row=0, sticky='ne')
-    ttk.Button(file_save_frame, text='Export list').grid(column=1, row=0, sticky='nw')
+    ttk.Button(file_save_frame, text='Export list', command=ask_export_file).grid(column=1, row=0, sticky='nw')
 
     # Path selection
     ttk.Label(master=file_frame,
@@ -205,9 +221,7 @@ def create_window():
     # Filename selection
     ttk.Label(file_frame, text='File path list:').grid(column=0, row=2, sticky='nw')
     global file_entry
-    file_entry = VarText(parent=file_frame,
-                              value="",
-                              default="")
+    file_entry = Tk.Text(master=file_frame)
     file_entry.grid(column=1, row=2, sticky='news')
     file_button_frame = ttk.Frame(file_frame)
     file_button_frame.grid(column=2, row=2, sticky='news')
@@ -231,16 +245,18 @@ def create_window():
     batch_frame.grid_rowconfigure(1, weight=1)
 
     control_frame = ttk.Frame(batch_frame)
-    control_frame.grid(column=0, row=0, sticky='news')
+    control_frame.grid(column=0, row=2, sticky='news')
     control_frame.grid_columnconfigure(0, weight=1)
     control_frame.grid_columnconfigure(1, weight=1)
     global start_button
-    start_button = ttk.Button(control_frame, text='START', command=process_batch)
-    start_button.grid(column=0, row=0, sticky='n')
+    start_button = ttk.Button(control_frame, text='START', command=process_start)
+    start_button.grid(column=1, row=0, sticky='ne')
+    ttk.Button(control_frame, text='Previous', command=lambda e=1: notebook.select(e)).grid(column=0, row=0, sticky='w')
     global stop_button
-    stop_button = ttk.Button(control_frame, text='STOP', command=process_batch)
-    stop_button.grid(column=1, row=0, sticky='n')
-    stop_button.config(state='disabled')
+    stop_button = ttk.Button(control_frame, text='STOP', command=process_interrupt)
+    stop_button.grid(column=2, row=0, sticky='ne')
+    stop_button.grid_forget()
+    # stop_button.config(state='disabled')
 
     global batch_log
     batch_log = VarText(parent=batch_frame, value="Progress...", default="Progress...")
@@ -332,9 +348,27 @@ def ask_add_files(event=None):
     window.lift()
 
 def ask_import_file(event=None):
+    fname = filedialog.askopenfilename(title='Open', filetypes=[('yaml files', '*.yaml'), ('All files', '*.*')])
+    window.lift()
+    with open(fname) as f:
+        data = yaml.safe_load(f)
+    global path_entry
+    global file_entry
+    path_entry.set(data['path_entry'])
+    file_entry.delete(1.0, Tk.END)
+    file_entry.insert(1.0, data['file_entry'])
     pass
 
 def ask_export_file(event=None):
+    window.lift()
+    fname = filedialog.asksaveasfilename(title='Save As...', filetypes=[('yaml files', '*.yaml'), ('All files','*.*')], defaultextension='.yaml')
+    global path_entry
+    global file_entry
+    with open(fname, 'w') as f:
+        f.write(yaml.safe_dump({
+            'path_entry': path_entry.get(),
+            'file_entry': file_entry.get(1.0, Tk.END)
+        }))
     pass
 def ask_open_batch(event=None):
     fname = filedialog.askopenfilename(title='Open', filetypes=[('protocol files', "*.prt"), ('All files', '*.*')])
@@ -365,37 +399,59 @@ def ask_save_batch(event=None):
     else:
         return None
 
+def process_interrupt(event=None):
+    global stop
+    stop = True
+
+def process_start(event=None):
+    global start_button
+    start_button.grid_forget()
+    global stop_button
+    stop_button.grid(column=2, row=0, sticky='ne')
+    global stop
+    stop = False
+
+    t = Thread(target=process_batch)
+    t.start()
 
 def process_batch(event=None):
     global window
     window.protocol("WM_DELETE_WINDOW", disable_event)
-    global start_button
-    start_button.config(state='disabled')
-    global stop_button
-    stop_button.config(state='normal')
     app.root.attributes('-disabled', True)
 
     global protocol_table
     commands = [protocol_table.table.item(i, 'values')[0] for i in protocol_table.table.get_children()]
     global file_entry
-    files = file_entry.get().split('\n')
+    files = file_entry.get(1.0, Tk.END).split('\n')
     print(files)
     print(f'len files: {len(files)}')
     global path_entry
     basedir = path_entry.get()
-
+    global stop
     for f in files:
+        if stop:
+            break
         try:
-            interface.open_trace(f)
-            for c in commands:
-                command_dict[c]()
+            if f:
+                interface.open_trace(f)
+                for c in commands:
+                    print(c)
+                    if c == 'Save event file':
+                        event_fname = os.path.splitext(f)[1].split('.')[0]+'.event'
+                        interface.save_events(event_fname)
+                        pass
+                    else:
+                        command_dict[c]()
         except:
             batch_log.insert(Tk.END, f'could not open {f}')
-            
+    stop = False
     app.root.attributes('-disabled', False)
-    stop_button.config(state='disabled')
-    start_button.config(state='normal')
     window.protocol("WM_DELETE_WINDOW", window.destroy)
+    global stop_button
+    stop_button.grid_forget()
+    global start_button
+    start_button.grid(column=1, row=0, sticky='ne')
+
     pass
 
 def disable_event():
