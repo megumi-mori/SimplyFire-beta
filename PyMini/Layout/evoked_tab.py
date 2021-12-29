@@ -26,7 +26,7 @@ def load(parent):
         label='Apply calculation to: ',
         options=['All sweeps', 'Visible sweeps', 'Highlighted sweeps'],
         separator=False
-    )
+    ) #2
     widgets['evoked_channel'] = optionframe.insert_label_checkbox(
         name='evoked_channel',
         label='Calculate visible channel only',
@@ -34,10 +34,10 @@ def load(parent):
         offvalue="",
         separator=False
     )
-    window_option_panel = OptionFrame(optionframe)
+    window_panel = optionframe.make_panel(separator=False)
+    window_option_panel = OptionFrame(window_panel)
     window_option_panel.grid_columnconfigure(0, weight=1)
-    window_option_panel.config(bg='blue')
-    optionframe.insert_panel(window_option_panel)
+    window_option_panel.grid(column=0, row=0, sticky='news')
     widgets['evoked_window_mode'] = StringVar(window_option_panel, config.evoked_window_mode)
 
     window_option_panel.insert_widget(
@@ -94,23 +94,29 @@ def load(parent):
     window_option_panel.insert_widget(panel)
 
 
-    optionframe.insert_title(
+
+    min_max_title =optionframe.insert_title(
         name='min_max',
         text='Min/Max',
         separator=False
-    )
+    ) #5
     optionframe.insert_button(
         text='Calculate Min/Max',
         command=calculate_min_max
     )
-    optionframe.insert_separator()
+
+    # optionframe.insert_separator().master #7
     optionframe.insert_title(
         name='data',
         text='Data Display',
         separator=False
     )
     optionframe.insert_button(
-        text='Fit columns',
+        text='Reset\ndata',
+        command=evoked_data_display.reset
+    )
+    optionframe.insert_button(
+        text='Fit\ncolumns',
         command=evoked_data_display.dataframe.fit_columns
     )
 

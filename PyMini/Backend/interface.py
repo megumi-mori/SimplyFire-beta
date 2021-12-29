@@ -2,7 +2,7 @@
 import app
 from tkinter import filedialog, messagebox
 import tkinter as Tk
-from DataVisualizer import data_display, log_display, trace_display, param_guide, results_display
+from DataVisualizer import data_display, log_display, trace_display, param_guide, results_display, evoked_data_display
 import os
 import pkg_resources
 from Layout import detector_tab, graph_panel, sweep_tab, adjust_tab, menubar
@@ -167,6 +167,7 @@ def open_trace(fname):
         al.recording.set_channel(0)
     trace_display.clear()
     data_display.clear()
+    evoked_data_display.clear()
     trace_display.ax.set_xlabel(al.recording.x_label)
     trace_display.ax.set_ylabel(al.recording.y_label)
 

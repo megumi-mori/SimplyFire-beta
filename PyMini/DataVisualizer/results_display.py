@@ -2,7 +2,7 @@ from utils.widget import DataTable
 import tkinter as Tk
 from tkinter import ttk
 
-columns = ['filename', 'analysis','channel']
+default_columns = ['filename', 'analysis','channel']
 
 def load(parent):
 
@@ -17,7 +17,7 @@ def load(parent):
     global table
     table = dataframe.table
 
-    dataframe.define_columns(tuple(columns), sort=False)
+    dataframe.define_columns(tuple(default_columns), sort=False)
 
     button_frame=Tk.Frame(frame)
     button_frame.grid(row=1, column=0, sticky='news')
@@ -41,7 +41,7 @@ def fit_columns():
     pass
 
 def erase(event=None):
-    dataframe.define_columns(tuple(columns), sort=False)
+    dataframe.define_columns(tuple(default_columns), sort=False)
 
 def delete_selected(e=None):
     dataframe.delete_selected()

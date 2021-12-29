@@ -2,7 +2,7 @@ from utils.widget import DataTable
 import tkinter as Tk
 from Backend import interface
 
-trace_header = [
+default_columns = [
     'sweep',
     'channel'
 ]
@@ -15,7 +15,7 @@ def load(parent=None):
 
     global dataframe
     dataframe = DataTable(frame)
-    dataframe.define_columns(tuple(trace_header))
+    dataframe.define_columns(tuple(default_columns))
     dataframe.grid(column=0, row=0, sticky='news')
 
     global table
@@ -56,4 +56,11 @@ def export_data(filename):
         for i in items:
             f.write(','.join(dataframe.table.item(i, 'values')))
             f.write('\n')
-    pass
+def reset():
+    dataframe.clear()
+    dataframe.define_columns(tuple(default_columns))
+
+
+def clear():
+    dataframe.clear()
+

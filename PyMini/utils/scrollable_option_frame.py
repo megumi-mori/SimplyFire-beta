@@ -162,10 +162,13 @@ class OptionFrame(Tk.Frame):
 
     def insert_separator(self):
 
-        ttk.Separator(self, orient='horizontal').grid(row=self.num_row, column=0, sticky='news')
+        s = ttk.Separator(self, orient='horizontal')
+        s.grid(row=self.num_row, column=0, sticky='news')
 
         self.num_row += 1
         self.col_button = 0
+
+        return s
 
     def isolate_button(self):
         self.col_button = 0
