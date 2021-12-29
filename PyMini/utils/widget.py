@@ -665,6 +665,13 @@ class DataTable(Tk.Frame):
         self.table.delete(*selection)
         return selection
 
-
+    def export(self, filename):
+        with open(filename, 'w') as f:
+            items = self.table.get_children()
+            f.write(','.join(self.columns))
+            f.write('\n')
+            for i in items:
+                f.write(','.join(self.table.item(i, 'values')))
+                f.write('\n')
 
 

@@ -46,3 +46,14 @@ def append(data):
     dataframe.append(data)
     # if data.shape[0]>0:
     #     dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
+
+def export_data(filename):
+    global dataframe
+    with open(filename, 'w') as f:
+        items = dataframe.table.get_children()
+        f.write(','.join(dataframe.columns))
+        f.write('\n')
+        for i in items:
+            f.write(','.join(dataframe.table.item(i, 'values')))
+            f.write('\n')
+    pass

@@ -451,6 +451,10 @@ def load(parent):
         text='Hide All',
         command=_hide_all
     )
+    optionframe.insert_button(
+        text='Fit Columns',
+        command=data_display.dataframe.fit_columns
+    )
     return frame
 def apply_columns():
     data_display.show_columns(extract_columns2display())

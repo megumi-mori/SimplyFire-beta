@@ -3,7 +3,7 @@ from tkinter import ttk, filedialog
 from config import config
 from utils.widget import VarWidget
 from Backend import interface
-from DataVisualizer import param_guide, data_display, trace_display
+from DataVisualizer import param_guide, data_display, trace_display, evoked_data_display, results_display
 from Layout import detector_tab
 import gc
 import app
@@ -67,12 +67,25 @@ def open_events():
     return
 
 def export_events():
-    filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('All files', "*.*")])
+    filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('All files', "*.*")], defaultextension='.csv',
+                                              initialfile= interface.al.recording.filename.split('.')[0]+'_mini.csv')
     if filename:
         interface.export_events(filename)
         return
     return
 
+def export_evoked():
+    filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('ALl files', '*.*')], defaultextension='.csv',
+                                              initialfile= interface.al.recording.filename.split('.')[0]+'_evoked.csv')
+    evoked_data_display.dataframe.export(filename)
+    pass
+
+def export_results():
+    filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('ALl files', '*.*')],
+                                            defaultextension='.csv',
+                                            initialfile='results.csv')
+    results_display.dataframe.export(filename)
+    pass
 def load_menubar(parent):
     global widgets
 
@@ -91,8 +104,13 @@ def load_menubar(parent):
     file_menu.add_command(label='Open event file', command=open_events)
     file_menu.add_command(label='Save event file', command=interface.save_events_dialogue)
     file_menu.add_command(label='Save event file as...', command=interface.save_events_as_dialogue)
-    file_menu.add_separator()
     file_menu.add_command(label='Export events', command=export_events)
+
+    file_menu.add_separator()
+    file_menu.add_command(label='Export evoked analysis', command=export_evoked)
+
+    file_menu.add_command(label='Export results', command=export_results)
+
 
     # Edit menu
     global edit_menu

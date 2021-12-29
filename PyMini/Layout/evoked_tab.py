@@ -41,7 +41,7 @@ def load(parent):
     widgets['evoked_window_mode'] = StringVar(window_option_panel, config.evoked_window_mode)
 
     window_option_panel.insert_widget(
-        Tk.Label(master=window_option_panel, text='Calculate using data from:')
+        Tk.Label(master=window_option_panel, text='Calculate using data from (overlay only):')
     )
 
     all_button = ttk.Radiobutton(
@@ -103,7 +103,16 @@ def load(parent):
         text='Calculate Min/Max',
         command=calculate_min_max
     )
-
+    optionframe.insert_separator()
+    optionframe.insert_title(
+        name='data',
+        text='Data Display',
+        separator=False
+    )
+    optionframe.insert_button(
+        text='Fit columns',
+        command=evoked_data_display.dataframe.fit_columns
+    )
 
     return frame
 
@@ -123,12 +132,15 @@ def _select_evoked_window_mode(e=None):
 
 def calculate_min_max(e=None):
     target = widgets['evoked_target'].get()
-    if target == 'All sweeps':
-        target_sweeps = range(al.recording.sweep_count)
-    elif target == 'Visible sweeps':
-        target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]  # check visible sweeps
-    elif target == 'Highlighted sweeps':
-        target_sweeps = [i for i in trace_display.highlighted_sweep]
+    if app.widgets['trace_mode'].get() == 'continuous':
+        target_sweeps = range(interface.al.recording.sweep_count)
+    else:
+        if target == 'All sweeps':
+            target_sweeps = range(interface.al.recording.sweep_count)
+        elif target == 'Visible sweeps':
+            target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]  # check visible sweeps
+        elif target == 'Highlighted sweeps':
+            target_sweeps = [i for i in trace_display.highlighted_sweep]
     limit_channel = widgets['evoked_channel'].get()
     if limit_channel:
         channels = [interface.al.recording.channel]
@@ -143,10 +155,11 @@ def calculate_min_max(e=None):
     elif window == 'manual':
         xlim = (float(widgets['evoked_range_left'].get()), float(widgets['evoked_range_right'].get()))
 
-    mins, mins_std = interface.al.calculate_min_sweeps(plot_mode='overlay', channels=channels, sweeps=target_sweeps, xlim=xlim)
-    maxs, maxs_std = interface.al.calculate_max_sweeps(plot_mode='overlay', channels=channels, sweeps=target_sweeps,
+    mins, mins_std = interface.al.calculate_min_sweeps(plot_mode=app.widgets['trace_mode'].get(), channels=channels, sweeps=target_sweeps, xlim=xlim)
+    maxs, maxs_std = interface.al.calculate_max_sweeps(plot_mode=app.widgets['trace_mode'].get(), channels=channels, sweeps=target_sweeps,
                                                        xlim=xlim)
-    print(mins.shape)
+    if app.widgets['trace_mode'].get() == 'continuous':
+        target_sweeps=[0]
     for i, c in enumerate(channels):
         for j, s in enumerate(target_sweeps):
             evoked_data_display.add({
