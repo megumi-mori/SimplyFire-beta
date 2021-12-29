@@ -407,10 +407,6 @@ def open_events(filename, log=True, undo=True, append=False):
 #         print('restore events error: {}'.format(e))
 #         pass
 
-def export_events(filename):
-    #need to think about what columns to export and if/how the user interacts with that decision
-    pass
-
 def populate_data_display():
     try:
         xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)

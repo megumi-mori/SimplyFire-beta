@@ -516,13 +516,13 @@ class DataTable(Tk.Frame):
     def copy(self, event=None):
         selected = self.table.selection()
         text = ""
-        for c in self.columns:
+        for c in self.displaycolumns:
             text = f'{text}{c}\t'
         text = text[:-1] + '\n'
         if len(selected) > 0:
             for i in selected:
                 data = self.table.set(i)
-                for c in self.columns:
+                for c in self.displaycolumns:
                     text = text + '{}\t'.format(data[c])
                 text = text[:-1] + '\n'
         try:
@@ -668,10 +668,11 @@ class DataTable(Tk.Frame):
     def export(self, filename):
         with open(filename, 'w') as f:
             items = self.table.get_children()
-            f.write(','.join(self.columns))
+            f.write(','.join(self.displaycolumns))
             f.write('\n')
             for i in items:
-                f.write(','.join(self.table.item(i, 'values')))
+                data = self.table.set(i)
+                f.write(','.join([data[c] for c in self.displaycolumns]))
                 f.write('\n')
 
 

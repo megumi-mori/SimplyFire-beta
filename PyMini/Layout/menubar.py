@@ -70,7 +70,7 @@ def export_events():
     filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('All files', "*.*")], defaultextension='.csv',
                                               initialfile= interface.al.recording.filename.split('.')[0]+'_mini.csv')
     if filename:
-        interface.export_events(filename)
+        data_display.dataframe.export(filename)
         return
     return
 
