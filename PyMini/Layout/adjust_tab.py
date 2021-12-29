@@ -24,7 +24,7 @@ def load(parent):
     global widgets
     widgets['adjust_target'] = frame.insert_label_optionmenu(
         name='adjust_target',
-        label='Apply adjustment to:',
+        label='Apply adjustment to (overlay mode only):',
         options=['All sweeps', 'Visible sweeps', 'Highlighted sweeps'],
         separator=False
     )
