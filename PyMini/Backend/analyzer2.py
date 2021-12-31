@@ -712,7 +712,6 @@ class Analyzer():
         if reference_df:
             if len(self.mini_df.index)>0:
                 self.mini_df = pd.concat([self.mini_df,new_df]) # indexing is NOT UNIQUE
-                print(self.mini_df)
             else:
                 self.mini_df = new_df
         return new_df

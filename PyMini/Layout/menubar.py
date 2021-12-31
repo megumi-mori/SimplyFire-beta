@@ -202,6 +202,8 @@ def _mini_mode(e=None):
     interface.config_data_tab('mini', state='normal')
     interface.populate_data_display()
     interface.update_event_marker()
+    app.pb['value'] = 0
+    app.pb.update()
 
 
 def _evoked_mode(e=None):

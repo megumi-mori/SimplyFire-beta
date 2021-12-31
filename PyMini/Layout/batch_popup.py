@@ -3,8 +3,8 @@ import tkinter.filedialog
 from tkinter import ttk, filedialog
 import app
 from Backend import interface
-from Layout import menubar, adjust_tab, detector_tab
-from DataVisualizer import data_display
+from Layout import menubar, adjust_tab, detector_tab, evoked_tab
+from DataVisualizer import data_display, evoked_data_display, results_display
 from utils.widget import DataTable, VarText, VarLabel
 import os
 from PIL import Image, ImageTk
@@ -19,19 +19,22 @@ def change_mode(mode):
 
 
 command_dict = {
-    'Analyze mini': lambda m=0:change_mode(m),
-    'Analyze evoked': lambda m=1: change_mode(m),
-    'Save event file': interface.save_events,
+    'Mini analysis mode (continuous)': lambda m=0:change_mode(m),
+    'Evoked analysis mode (overlay)': lambda m=1: change_mode(m),
 
     'Find all': detector_tab.find_all,
     'Find in window': detector_tab.find_in_window,
     'Delete all': interface.delete_all_events,
     'Delete in window': detector_tab.delete_in_window,
-    'Report statistics (mini)':data_display.report,
+    'Report stats (mini)':data_display.report,
 
     'Apply baseline adjustment':   adjust_tab.adjust_baseline,
     'Apply trace averaging': adjust_tab.average_trace,
-    'Apply filter': adjust_tab.filter
+    'Apply filter': adjust_tab.filter,
+
+    'Min/Max': evoked_tab.calculate_min_max,
+    'Report stats (evoked)': evoked_data_display.report
+
 }
 def load():
     global stop
@@ -110,11 +113,14 @@ def create_window():
     # Menubar
     # command_table.table.insert(parent='menubar', index='end', iid='open trace file', values=('\tOpen trace file',), tag='selectable')
     # command_table.table.insert(parent='menubar', index='end', iid='open event file', values=('\tOpen event file',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='save events file', values=('\tSave event file',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='mini mode', values=('\tAnalyze mini',),
+    command_table.table.insert(parent='menubar', index='end', iid='save events file', values=('\tSave minis',), tag='selectable')
+    command_table.table.insert(parent='menubar', index='end', iid='mini mode', values=('\tMini analysis mode (continuous)',),
                                 tag='selectable')
     command_table.table.insert(parent='menubar', index='end', iid='evoked mode',
-                                values=('\tAnalyze evoked',), tag='selectable')
+                                values=('\tEvoked analysis mode (overlay)',), tag='selectable')
+    command_table.table.insert(parent='menubar', index='end', iid='export events', values=('\tExport mini analysis data',), tag='selectable')
+    command_table.table.insert(parent='menubar', index='end', iid='export evoked', values=('\tExport evoked analysis data',), tag='selectable')
+    command_table.table.insert(parent='menubar', index='end', iid='export results', values=('\tExport results table',), tag='selectable')
 
     # Mini analysis tab
     command_table.table.insert(parent='mini analysis tab', index='end', iid='delete in window',
@@ -126,12 +132,14 @@ def create_window():
     command_table.table.insert(parent='mini analysis tab', index='end', iid='find all',
                           values=('\tFind all',), tag='selectable')
     command_table.table.insert(parent='mini analysis tab', index='end', iid='report mini',
-                               values=('\tReport statistics (mini)',), tag='selectable')
+                               values=('\tReport stats (mini)',), tag='selectable')
 
 
     # Evoked analysis tab
     command_table.table.insert(parent='evoked analysis tab', index='end', iid='min/max',
                           values=('\tMin/Max',), tag='selectable')
+    command_table.table.insert(parent='evoked analysis tab', index='end', iid='report evoked',
+                               values=('\tReport stats (evoked)',), tag='selectable')
 
     # Adjustment tab
     command_table.table.insert(parent='adjustment tab', index='end', iid='baseline adjustment',
@@ -259,7 +267,7 @@ def create_window():
     # stop_button.config(state='disabled')
 
     global batch_log
-    batch_log = VarText(parent=batch_frame, value="Progress...", default="Progress...")
+    batch_log = VarText(parent=batch_frame, value="Press Start to begin...", default="Press Start to begin...", lock=True)
     batch_log.grid(column=0, row=1, sticky='news')
 
     global progress_message
@@ -421,36 +429,58 @@ def process_batch(event=None):
 
     global protocol_table
     commands = [protocol_table.table.item(i, 'values')[0] for i in protocol_table.table.get_children()]
+    total_steps = len(commands)
     global file_entry
     files = file_entry.get(1.0, Tk.END).split('\n')
-    print(files)
-    print(f'len files: {len(files)}')
+    files = [f for f in files if f != ""]
+    total_files = len(files)
     global path_entry
     basedir = path_entry.get()
     global stop
-    for f in files:
+    global progress_message
+    global batch_log
+    batch_log.delete(1.0, Tk.END)
+    for j, f in enumerate(files):
         if stop:
             break
         try:
             if f:
                 interface.open_trace(f)
-                for c in commands:
-                    print(c)
-                    if c == 'Save event file':
-                        event_fname = os.path.splitext(f)[1].split('.')[0]+'.event'
-                        interface.save_events(event_fname)
+                batch_log.insert(Tk.END, f'Opening file: {f}\n')
+
+                for i,c in enumerate(commands):
+                    batch_log.insert(Tk.END,f'\t{c}\n')
+                    progress_message.config(text=f'Processing {j+1}/{total_files} files. At {i+1}/{total_steps} steps')
+                    if c == 'Save minis':
+                        fname = f.split('.')[0]+'.event'
+                        interface.save_events(fname, mode='x')
                         pass
+                    elif c == 'Export mini analysis data':
+                        fname =f.split('.')[0]+'_mini.csv'
+                        data_display.dataframe.export(fname, mode='x')
+                    elif c == 'Export evoked analysis data':
+                        fname = f.split('.')[0] + '_evoked.csv'
+                        evoked_data_display.dataframe.export(fname, mode='x')
+                    elif c == 'Export results table':
+                        fname = 'results.csv'
+                        results_display.dataframe.export(fname, mode='x')
+
                     else:
                         command_dict[c]()
         except:
             batch_log.insert(Tk.END, f'could not open {f}')
+    if stop:
+        batch_log.insert(Tk.END, 'Batch stopped by user')
+    batch_log.insert(Tk.END, 'End of batch')
     stop = False
     app.root.attributes('-disabled', False)
-    window.protocol("WM_DELETE_WINDOW", window.destroy)
+    window.protocol("WM_DELETE_WINDOW", window.forget)
     global stop_button
     stop_button.grid_forget()
     global start_button
     start_button.grid(column=1, row=0, sticky='ne')
+
+    progress_message.config(text=f'Processing 0/0 files. At 0/0 steps')
 
     pass
 

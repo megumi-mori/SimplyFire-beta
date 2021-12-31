@@ -308,7 +308,7 @@ def load(parent):
     stop_button.config(state='disabled')
     global report_button
     report_button = optionframe.insert_button(
-        text='Report \nstatistics',
+        text='Report stats',
         command=data_display.report,
     )
     report_button.config(state='disabled')
@@ -455,6 +455,12 @@ def load(parent):
         text='Fit Columns',
         command=data_display.dataframe.fit_columns
     )
+    global report_button2
+    report_button2 = optionframe.insert_button(
+        text='Report stats',
+        command=data_display.report
+    )
+    report_button2.config(state='disabled')
     return frame
 def apply_columns():
     data_display.show_columns(extract_columns2display())

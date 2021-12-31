@@ -115,10 +115,17 @@ def load(parent):
         text='Reset\ndata',
         command=evoked_data_display.reset
     )
+    optionframe.isolate_button()
     optionframe.insert_button(
-        text='Fit\ncolumns',
+        text='Fit columns',
         command=evoked_data_display.dataframe.fit_columns
     )
+    global report_button
+    report_button = optionframe.insert_button(
+        text='Report stats',
+        command=evoked_data_display.report
+    )
+    report_button.config(state='disabled')
 
     return frame
 

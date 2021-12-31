@@ -455,12 +455,12 @@ def clear_markers(key=None):
             pass
         markers[key] = None
     else:
-        try:
-            for m in markers.keys():
+        for m in markers.keys():
+            try:
                 markers[m].remove()
-            markers.clear()
-        except:
-            pass
+            except:
+                pass
+        markers.clear()
         for c in ax.collections:
             c.remove()
     canvas.draw()

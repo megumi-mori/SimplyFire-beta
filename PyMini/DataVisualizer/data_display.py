@@ -76,23 +76,25 @@ def load(parent):
     dataframe.menu.add_command(label='Delete selected (Del)', command=delete_selected)
     dataframe.menu.add_separator()
     dataframe.menu.add_command(label='Clear data', command=interface.delete_all_events)
-    dataframe.menu.add_command(label='Report statistics', command=report, state=Tk.DISABLED)
+    dataframe.menu.add_command(label='Report stats', command=report, state=Tk.DISABLED)
     dataframe.menu.add_command(label='Fit columns', command=dataframe.fit_columns)
 
     return frame
 
 def add(data):
     dataframe.add(data)
-    dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
+    dataframe.menu.entryconfig('Report stats', state=Tk.NORMAL)
     detector_tab.report_button.config(state='normal')
+    detector_tab.report_button2.config(state='normal')
     # detector_tab.filter_all_button.config(state='normal')
     # detector_tab.filter_in_window_button.config(state='normal')
 
 def append(data):
     dataframe.append(data)
     if data.shape[0]>0:
-        dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
+        dataframe.menu.entryconfig('Report stats', state=Tk.NORMAL)
         detector_tab.report_button.config(state='normal')
+        detector_tab.report_button2.config(state='normal')
         # detector_tab.filter_all_button.config(state='normal')
         # detector_tab.filter_in_window_button.config(state='normal')
 
@@ -100,8 +102,9 @@ def append(data):
 def set(data):
     dataframe.set(data)
     if data.shape[0]>0:
-        dataframe.menu.entryconfig('Report statistics', state=Tk.NORMAL)
+        dataframe.menu.entryconfig('Report stats', state=Tk.NORMAL)
         detector_tab.report_button.config(state='normal')
+        detector_tab.report_button2.config(state='normal')
         # detector_tab.filter_all_button.config(state='normal')
         # detector_tab.filter_in_window_button.config(state='normal')
 
@@ -131,8 +134,9 @@ def add_columns(columns):
 
 def clear():
     dataframe.clear()
-    dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
+    dataframe.menu.entryconfig('Report stats', state=Tk.DISABLED)
     detector_tab.report_button.config(state='disabled')
+    detector_tab.report_button2.config(state='disabled')
     # detector_tab.filter_all_button.config(state='disabled')
     # detector_tab.filter_in_window_button.config(state='disabled')
 
@@ -175,8 +179,9 @@ def delete(selection):
     table.selection_remove(*selection)
     table.delete(*selection)
     if len(dataframe.table.get_children()) == 0:
-        dataframe.menu.entryconfig('Report statistics', state=Tk.DISABLED)
+        dataframe.menu.entryconfig('Report stats', state=Tk.DISABLED)
         detector_tab.report_button.config(state='disabled')
+        detector_tab.report_button2.config(state='disabled')
         # detector_tab.filter_all_button.config(state='disabled')
         # detector_tab.filter_in_window_button.config(state='disabled')
 
@@ -184,7 +189,6 @@ def report(event=None):
     if interface.al.mini_df.shape[0] == 0:
         return None
     mini_df = interface.al.mini_df[interface.al.mini_df['channel']==interface.al.recording.channel]
-    print(mini_df)
     data = {
         'filename': interface.al.recording.filename,
         'analysis': 'mini',

@@ -665,14 +665,21 @@ class DataTable(Tk.Frame):
         self.table.delete(*selection)
         return selection
 
-    def export(self, filename):
-        with open(filename, 'w') as f:
-            items = self.table.get_children()
-            f.write(','.join(self.displaycolumns))
-            f.write('\n')
-            for i in items:
-                data = self.table.set(i)
-                f.write(','.join([data[c] for c in self.displaycolumns]))
+    def export(self, filename, mode='w', suffix_num=0):
+        if suffix_num > 0:
+            new_filename = f'{filename.split(".")[0]}({suffix_num}).{filename.split(".")[1]}'
+        try:
+            with open(new_filename, mode) as f:
+                items = self.table.get_children()
+                f.write(','.join(self.displaycolumns))
                 f.write('\n')
+                for i in items:
+                    data = self.table.set(i)
+                    f.write(','.join([data[c] for c in self.displaycolumns]))
+                    f.write('\n')
+        except:
+            if mode == 'x':
+                self.export(filename, mode, suffix_num+1)
+
 
 

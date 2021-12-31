@@ -35,12 +35,8 @@ def load(parent):
     dataframe.menu.add_command(label='Fit columns', command=dataframe.fit_columns)
     return frame
 
-
-def fit_columns():
-
-    pass
-
 def erase(event=None):
+    dataframe.clear()
     dataframe.define_columns(tuple(default_columns), sort=False)
 
 def delete_selected(e=None):

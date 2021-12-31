@@ -2,6 +2,8 @@
 import app
 from tkinter import filedialog, messagebox
 import tkinter as Tk
+
+import pandas
 from DataVisualizer import data_display, log_display, trace_display, param_guide, results_display, evoked_data_display
 import os
 import pkg_resources
@@ -330,8 +332,16 @@ def config_data_tab(tab_name, **kwargs):
 # Handling mini data
 ######################################
 
-def save_events(filename):
-    al.mini_df.to_csv(filename, index=False)
+def save_events(filename, mode='w', suffix_num=0):
+    if suffix_num > 0:
+        filename = f'{filename.split(".")[0]}({suffix_num}).{filename.split(".")[1]}'
+    try:
+        with open(filename, mode) as f:
+            f.write(f'@{al.recording.filename}\n')
+            f.write(al.mini_df.to_csv(index=False))
+    except Exception as e:
+        print(e)
+        pass
 
 def save_events_dialogue(e=None):
     if not app.event_filename:
@@ -339,7 +349,7 @@ def save_events_dialogue(e=None):
         return None
     try:
         if len(al.mini_df) > 0:
-            al.mini_df.to_csv(app.event_filename, index=True)
+            save_events(app.event_filename)
         else:
             messagebox.showerror('Error', 'No minis to save')
     except:
@@ -356,8 +366,10 @@ def save_events_as_dialogue(e=None):
         filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.event',
                                               initialfile=initialfilename)
         try:
-            al.mini_df.to_csv(filename, index=True)
-            app.event_filename = filename
+            # al.mini_df.to_csv(filename, index=True)
+            # app.event_filename = filename
+            # print(filename)
+            save_events(filename)
         except:
             messagebox.showerror('Write error', 'Could not write data to selected filename.')
     else:
@@ -379,7 +391,7 @@ def open_events(filename, log=True, undo=True, append=False):
             update_event_marker,
         ])
     if not append:
-        al.mini_df = pd.read_csv(filename)
+        al.mini_df = pd.read_csv(filename, comment='@')
         app.event_filename = filename
         data_display.clear()
         populate_data_display()
