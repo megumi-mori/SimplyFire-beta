@@ -87,11 +87,11 @@ def clear_undo():
     undo_stack = []
 
     # disable the undo command in the menubar
-    menubar.disable_undo()
+    app.menu.undo_disable()
 
 def add_undo(task):
     # enable the undo command in the menubar
-    menubar.enable_undo()
+    app.menu.undo_enable()
     global undo_stack
     if isinstance(task, list):
         undo_stack.append(task)
@@ -126,7 +126,7 @@ def undo(e=None):
 
     # if the stack is empty, disable the undo command in the menubar
     if len(undo_stack) == 0:
-        menubar.disable_undo()
+        app.menu.undo_disable()
 
 
 def configure(key, value):

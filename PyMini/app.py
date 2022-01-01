@@ -4,8 +4,8 @@ import yaml
 from Backend import interpreter, interface
 
 from config import config
-
-from Layout import font_bar, menubar, detector_tab, style_tab, setting_tab, navigation_tab, \
+from Layout.menubar import Menubar
+from Layout import font_bar, detector_tab, style_tab, setting_tab, navigation_tab, \
     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup
 from DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display
 
@@ -257,12 +257,13 @@ def load():
     ##################################################
 
     # set up menubar
-    menu = menubar.load_menubar(root)
-    root.config(menu=menu)
+    global menu
+    menu = Menubar(root)
+    root.config(menu=menu.menubar)
 
-    menubar.analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
+    menu.analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
 
-    for k, v in menubar.widgets.items():
+    for k, v in menu.widgets.items():
         widgets[k] = v
     # set up closing sequence
     root.protocol('WM_DELETE_WINDOW', _on_close)
