@@ -212,6 +212,7 @@ def load():
     # test = StyleTab(left, __import__(__name__), interface)
     # cp_notebook.add(test, text='test')
 
+    cp_notebook.add(adjust_tab.AdjustTab(left, __import__(__name__), interface), text='test')
     # get reference to widgets
     for key in ['adjust', 'mini', 'style', 'evoked']:
         for k, v in cp_tab_details[key]['module'].widgets.items():

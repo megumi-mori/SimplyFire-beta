@@ -7,12 +7,13 @@ class BaseModule(ScrollableOptionFrame):
         super().__init__(parent)
         self.app=app
         self.interface = interface
+        self.widgets = {}
 
     def log(self, msg, header=True):
         if header:
-            self.root.log_display.log(f'@ {name}: {msg}')
+            self.app.log_display.log(f'@ {name}: {msg}')
         else:
-            self.root.log_display.log(f'    {msg}')
+            self.app.log_display.log(f'    {msg}')
 
     def undo(self, func):
         def inner(*args, **kwargs):

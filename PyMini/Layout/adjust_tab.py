@@ -4,9 +4,15 @@ import tkinter as Tk
 from config import config
 from utils import widget
 from Backend import interface
-
+from Layout.base_module import BaseModule
 #### DEBUG
 import tracemalloc
+
+class AdjustTab(BaseModule):
+    def __init__(self, parent, app, interface):
+        super().__init__(parent, app, interface)
+
+        self.frame.insert_title(text='Adjust Trace', separator=True)
 
 global widgets
 widgets = {}
