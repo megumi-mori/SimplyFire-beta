@@ -290,7 +290,7 @@ def dump_user_setting(filename=None):
     ignore = ['config_', '_log', 'temp_']
     print('Writing out configuration variables....')
     if filename is None:
-        filename = widgets['config_user_path'].var.get()
+        filename = widgets['config_user_path'].var.get().strip()
     with open(filename, 'w') as f:
         print('writing dump user config {}'.format(filename))
         f.write("#################################################################\n")
@@ -300,7 +300,6 @@ def dump_user_setting(filename=None):
         # pymini.pb.initiate()
         d = {}
         for key in widgets.keys():
-            print(key)
             try:
                 for ig in ignore:
                     if ig in key:

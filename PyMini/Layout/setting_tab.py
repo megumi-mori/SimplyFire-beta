@@ -6,7 +6,7 @@ from tkinter import ttk
 from PyMini.utils import widget
 from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
 from PyMini.config import config
-import app
+from PyMini import app
 
 import os
 
@@ -117,7 +117,7 @@ def load(parent):
     return frame
 
 def save_config_as():
-    d = filedialog.asksaveasfilename(filetypes=[('yaml file', '*.yaml')], defaultextension='.yaml')
+    d = filedialog.asksaveasfilename(filetypes=[('yaml file', '*.yaml')], defaultextension='.yaml').strip()
 
     if d:
         try:

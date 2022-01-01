@@ -267,7 +267,7 @@ def create_window():
     # stop_button.config(state='disabled')
 
     global batch_log
-    batch_log = VarText(parent=batch_frame, value="Press Start to begin...", default="Press Start to begin...", lock=True)
+    batch_log = VarText(parent=batch_frame, value="Press Start to begin...", default="Press Start to begin...", lock=False)
     batch_log.grid(column=0, row=1, sticky='news')
 
     global progress_message

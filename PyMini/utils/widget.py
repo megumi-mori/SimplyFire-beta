@@ -322,8 +322,6 @@ class VarText(VarWidget, Tk.Text):
 
 
     def set(self, value):
-        if self.lock:
-            return None
         disable = False
         if self['state'] == 'disabled':
             disable = True
@@ -352,7 +350,7 @@ class VarText(VarWidget, Tk.Text):
             disable = True
             self.config(state='normal')
         Tk.Text.insert(self, *args, **kwargs)
-        # self.var.set(Tk.Text.get(self,1.0, Tk.END))
+        self.var.set(Tk.Text.get(self,1.0, Tk.END))
         if disable:
             self.config(state='disabled')
 
