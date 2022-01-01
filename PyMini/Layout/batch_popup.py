@@ -1,11 +1,11 @@
 import tkinter as Tk
 import tkinter.filedialog
 from tkinter import ttk, filedialog
-import app
-from Backend import interface
-from Layout import menubar, adjust_tab, detector_tab, evoked_tab
-from DataVisualizer import data_display, evoked_data_display, results_display
-from utils.widget import DataTable, VarText, VarLabel
+from PyMini import app
+from PyMini.Backend import interface
+from PyMini.Layout import menubar, adjust_tab, detector_tab, evoked_tab
+from PyMini.DataVisualizer import data_display, evoked_data_display, results_display
+from PyMini.utils.widget import DataTable, VarText, VarLabel
 import os
 from PIL import Image, ImageTk
 import yaml
@@ -17,26 +17,26 @@ def change_mode(mode):
     menubar.analysis_menu.invoke(mode)
     pass
 
-
-command_dict = {
-    'Mini analysis mode (continuous)': lambda m=0:change_mode(m),
-    'Evoked analysis mode (overlay)': lambda m=1: change_mode(m),
-
-    'Find all': detector_tab.find_all,
-    'Find in window': detector_tab.find_in_window,
-    'Delete all': interface.delete_all_events,
-    'Delete in window': detector_tab.delete_in_window,
-    'Report stats (mini)':data_display.report,
-
-    'Apply baseline adjustment':   adjust_tab.adjust_baseline,
-    'Apply trace averaging': adjust_tab.average_trace,
-    'Apply filter': adjust_tab.filter,
-
-    'Min/Max': evoked_tab.calculate_min_max,
-    'Report stats (evoked)': evoked_data_display.report
-
-}
 def load():
+    global command_dict
+    command_dict = {
+        'Mini analysis mode (continuous)': lambda m=0: change_mode(m),
+        'Evoked analysis mode (overlay)': lambda m=1: change_mode(m),
+
+        'Find all': detector_tab.find_all,
+        'Find in window': detector_tab.find_in_window,
+        'Delete all': interface.delete_all_events,
+        'Delete in window': detector_tab.delete_in_window,
+        'Report stats (mini)': data_display.report,
+
+        'Apply baseline adjustment': adjust_tab.adjust_baseline,
+        'Apply trace averaging': adjust_tab.average_trace,
+        'Apply filter': adjust_tab.filter,
+
+        'Min/Max': evoked_tab.calculate_min_max,
+        'Report stats (evoked)': evoked_data_display.report
+
+    }
     global stop
     stop = False
     try:
@@ -474,7 +474,7 @@ def process_batch(event=None):
     batch_log.insert(Tk.END, 'End of batch')
     stop = False
     app.root.attributes('-disabled', False)
-    window.protocol("WM_DELETE_WINDOW", window.forget)
+    window.protocol("WM_DELETE_WINDOW", window.withdraw)
     global stop_button
     stop_button.grid_forget()
     global start_button

@@ -1,7 +1,7 @@
 import tkinter as Tk
 from tkinter import ttk, filedialog, messagebox
-from utils import widget
-import app
+from PyMini.utils import widget
+from PyMini import app
 import datetime
 import os
 

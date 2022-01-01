@@ -1,13 +1,13 @@
 import tkinter as Tk
 from tkinter import ttk
-import app
-from Backend import analyzer2
-from utils import widget
-from utils.widget import NavigationToolbar
-from config import config
+from PyMini import app
+from PyMini.Backend import analyzer2
+from PyMini.utils import widget
+from PyMini.utils.widget import NavigationToolbar
+from PyMini.config import config
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from DataVisualizer import trace_display, data_display
+from PyMini.DataVisualizer import trace_display, data_display
 from functools import partial
 import gc
 

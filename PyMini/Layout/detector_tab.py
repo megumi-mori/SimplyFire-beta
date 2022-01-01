@@ -1,8 +1,7 @@
-from config import config
-from utils.scrollable_option_frame import ScrollableOptionFrame
-import app
-from DataVisualizer import data_display, trace_display, log_display
-from Backend import interface
+from PyMini.utils import scrollable_option_frame
+from PyMini import app
+from PyMini.DataVisualizer import data_display, trace_display, log_display
+from PyMini.Backend import interface
 from threading import Thread
 changed = True
 changes = {}
@@ -104,7 +103,7 @@ def load(parent):
     :param frame:
     :return:
     """
-    frame = ScrollableOptionFrame(parent)
+    frame = scrollable_option_frame.ScrollableOptionFrame(parent)
     optionframe = frame.frame
 
     ##################################################

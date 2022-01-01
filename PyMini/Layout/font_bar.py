@@ -1,6 +1,5 @@
 import tkinter as Tk
 from tkinter import ttk, font
-from config import config
 
 def load(parent):
     frame = Tk.Frame(parent, bg='red')

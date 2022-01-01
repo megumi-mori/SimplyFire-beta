@@ -1,16 +1,13 @@
-import tkinter
 import tkinter as Tk
 from tkinter import ttk
 
-from config import config
-from utils.scrollable_option_frame import ScrollableOptionFrame
-from utils.widget import VarEntry
-import app
-from Backend import interface
-from DataVisualizer import trace_display
-from tkinter import ttk
-
-from Layout.base_module import BaseModule
+from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
+from PyMini.utils.widget import VarEntry
+# import PyMini.app as app
+from PyMini import app
+from PyMini.Backend import interface
+from PyMini.DataVisualizer import trace_display
+from PyMini.Layout.base_module import BaseModule
 
 global widgets
 widgets = {}

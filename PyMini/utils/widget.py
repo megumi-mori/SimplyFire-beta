@@ -1,12 +1,12 @@
 import tkinter as Tk
 from tkinter import ttk, font
-from config import config
-from utils import validation
+from PyMini.config import config
+from PyMini.utils import validation
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import yaml
-import app
+from PyMini import app
 import textwrap
-from Backend import interface
+
 
 
 

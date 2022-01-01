@@ -1,20 +1,19 @@
-from utils.scrollable_option_frame import OptionFrame, ScrollableOptionFrame
-import app
-from config import config
+from PyMini.utils import scrollable_option_frame
+from PyMini import app
+from PyMini.config import config
 from tkinter import ttk, StringVar
 import tkinter as Tk
-from utils import widget
-from Backend import interface
-from DataVisualizer import trace_display, evoked_data_display
-from Layout import sweep_tab
-import pandas as pd
+from PyMini.utils import widget
+from PyMini.Backend import interface
+from PyMini.DataVisualizer import trace_display, evoked_data_display
+from PyMini.Layout import sweep_tab
 
 def load(parent):
 
     global widgets
     widgets = {}
 
-    frame = ScrollableOptionFrame(parent)
+    frame = scrollable_option_frame.ScrollableOptionFrame(parent)
     optionframe = frame.frame
     optionframe.insert_title(
         name='evoked',
@@ -35,7 +34,7 @@ def load(parent):
         separator=False
     )
     window_panel = optionframe.make_panel(separator=False)
-    window_option_panel = OptionFrame(window_panel)
+    window_option_panel = scrollable_option_frame.OptionFrame(window_panel)
     window_option_panel.grid_columnconfigure(0, weight=1)
     window_option_panel.grid(column=0, row=0, sticky='news')
     widgets['evoked_window_mode'] = StringVar(window_option_panel, config.evoked_window_mode)

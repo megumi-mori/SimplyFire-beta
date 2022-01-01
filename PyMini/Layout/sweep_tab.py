@@ -1,16 +1,18 @@
 import tkinter as Tk
-import tracemalloc
 from tkinter import ttk
-from utils.scrollable_option_frame import ScrollableOptionFrame, OptionFrame
-from config import config
-from Backend import interface
-from DataVisualizer import trace_display
-import app
-import time
 import gc
 
+from PyMini.utils import scrollable_option_frame
+from PyMini.Backend import interface
+from PyMini.DataVisualizer import trace_display
+from PyMini import app
+
+# debugging
+import time
+import tracemalloc
+
 def load(parent):
-    frame = OptionFrame(parent)#, scrollbar=False)
+    frame = scrollable_option_frame.OptionFrame(parent)#, scrollbar=False)
     frame.grid_columnconfigure(0, weight=1)
 
 
@@ -32,7 +34,7 @@ def load(parent):
     )
     frame.grid_rowconfigure(3, weight=1)
     global list_frame
-    list_frame = ScrollableOptionFrame(frame)#, scrollbar=True)
+    list_frame = scrollable_option_frame.ScrollableOptionFrame(frame)#, scrollbar=True)
     list_frame.grid(sticky='news')
     frame.insert_panel(list_frame, separator=False)
 
@@ -108,6 +110,7 @@ def delete_hidden():
     # interface.delete_hidden(delete)
 
 def populate_list(num, replace=True, prefix=""):
+    global list_frame
     frame = list_frame.get_frame()
 
     if replace:

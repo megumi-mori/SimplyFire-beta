@@ -1,7 +1,7 @@
-from DataVisualizer import trace_display, data_display, results_display, evoked_data_display
-import app
-from Backend import interface
-from config import config
+from PyMini.DataVisualizer import trace_display, data_display, results_display, evoked_data_display
+from PyMini import app
+from PyMini.Backend import interface
+from PyMini.config import config
 def initialize():
 
     global navigation_speed

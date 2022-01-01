@@ -1,10 +1,10 @@
 import pandas
 import numpy as np
-from utils.widget import DataTable
+from PyMini.utils.widget import DataTable
 import tkinter as Tk
-from Backend import interface, analyzer2
-from DataVisualizer import results_display
-from Layout import evoked_tab
+from PyMini.Backend import interface, analyzer2
+from PyMini.DataVisualizer import results_display
+from PyMini.Layout import evoked_tab
 
 default_columns = [
     'sweep',

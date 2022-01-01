@@ -2,12 +2,12 @@ import tkinter
 import tkinter as Tk
 from tkinter import ttk
 from collections import OrderedDict  # Python 3.7+ can use dict
-import app
-from Backend import interface, interpreter
-from Layout import detector_tab
-from utils.widget import DataTable
-from DataVisualizer import results_display
-from config import config
+from PyMini import app
+from PyMini.Backend import interface, interpreter
+from PyMini.Layout import detector_tab
+from PyMini.utils.widget import DataTable
+from PyMini.DataVisualizer import results_display
+from PyMini.config import config
 
 
 
@@ -111,6 +111,7 @@ def set(data):
 
 
 def show_columns(columns=None):
+    global dataframe
     columns = tuple([
        i for i in mini_header2config
         if mini_header2config[i] in columns

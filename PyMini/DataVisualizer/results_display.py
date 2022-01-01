@@ -1,4 +1,4 @@
-from utils.widget import DataTable
+from PyMini.utils.widget import DataTable
 import tkinter as Tk
 from tkinter import ttk
 

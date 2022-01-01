@@ -1,24 +1,31 @@
-from utils.scrollable_option_frame import ScrollableOptionFrame
+
 import tkinter as Tk
 from tkinter import filedialog
-from utils import widget
-from config import  config
-import app
 from tkinter import ttk
+
+from PyMini.utils import widget
+from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
+from PyMini.config import config
+import app
+
 import os
 
 def load(parent):
+    global widgets
+    widgets = {}
     ##################################################
     #                    Methods                     #
     ##################################################
 
     def _ask_dirname(e=None):
+        global widgets
+        widgets = {}
         d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
                                            defaultextension='.yaml')
         if d:
-            app.widgets['config_user_path'].config(state="normal")
-            app.widgets['config_user_path'].set(d)
-            app.widgets['config_user_path'].config(state='disabled')
+            widgets['config_user_path'].config(state="normal")
+            widgets['config_user_path'].set(d)
+            widgets['config_user_path'].config(state='disabled')
 
 
 
@@ -37,13 +44,13 @@ def load(parent):
         name='config_settings',
         text='Config Auto-save/load'
     )
-    app.widgets['config_autoload'] = optionframe.insert_label_checkbox(
+    widgets['config_autoload'] = optionframe.insert_label_checkbox(
         name='config_autoload',
         label='Automatically load configurations at the beginning of the next session',
         onvalue='1',
         offvalue=""
     )
-    app.widgets['config_autosave'] = optionframe.insert_label_checkbox(
+    widgets['config_autosave'] = optionframe.insert_label_checkbox(
         name='config_autosave',
         label='Automatically save configurations at the end of this session',
         onvalue='1',
@@ -67,7 +74,7 @@ def load(parent):
     )
     dir_entry.configure(state='disabled', height=2)
     dir_entry.grid(column=0,row=1,sticky='news')
-    app.widgets['config_user_path'] = dir_entry
+    widgets['config_user_path'] = dir_entry
 
     Tk.Button(
         master=dir_frame,
@@ -75,9 +82,12 @@ def load(parent):
         command=_ask_dirname
     ).grid(column=1, row=1, sticky='news')
 
-    optionframe.insert_button("Save",
-                              command= lambda e=app.widgets['config_user_path'].get():
-                            app.dump_user_setting(e))
+
+    # optionframe.insert_button("Save",
+    #                           command= lambda e=widgets['config_user_path'].get():
+    #                         app.dump_user_setting(e))
+    optionframe.insert_button('Save',
+                              command=save)
 
     optionframe.insert_button("Save As...", command=save_config_as)
 
@@ -85,21 +95,21 @@ def load(parent):
 
     optionframe.insert_button(
         text='Default',
-        command=optionframe.default
+        command=lambda w=widgets:optionframe.default(widgets=w)
     )
 
     optionframe.insert_title(
         name='misc',
         text='Misc'
     )
-    app.widgets['config_file_autodir'] = optionframe.insert_label_checkbox(
+    widgets['config_file_autodir'] = optionframe.insert_label_checkbox(
         name='config_file_autodir',
         label='Use trace file directory as default export directory (figures, data)',
         onvalue="1",
         offvalue=""
     )
 
-    app.widgets['config_undo_stack'] = optionframe.insert_label_entry(
+    widgets['config_undo_stack'] = optionframe.insert_label_entry(
         name='config_undo_stack',
         label='Number of steps to store in memory for undo (Experimental)',
     )
@@ -116,7 +126,9 @@ def save_config_as():
             save_config_as()
     return d
 
-
+def save(event=None):
+    print(app.widgets)
+    app.dump_user_setting(widgets['config_user_path'].get())
 
 
 

@@ -1,20 +1,22 @@
 from tkinter import ttk, filedialog
 import tkinter as Tk
 import yaml
-from Backend import interpreter, interface
-
-from config import config
-from Layout.menubar import Menubar
-from Layout import font_bar, detector_tab, style_tab, setting_tab, navigation_tab, \
-    sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup
-from DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display
-
-from utils import widget
-import tracemalloc
 import pkg_resources
-
-from PIL import Image, ImageTk
+from PIL import Image
 import os
+from PyMini.utils import widget, scrollable_option_frame
+from PyMini.Backend import interpreter
+from PyMini.config import config
+from PyMini.Layout import font_bar, detector_tab, style_tab, setting_tab, navigation_tab, \
+    sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar
+from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display
+
+
+# debugging
+import tracemalloc
+
+
+
 
 
 event_filename = None
@@ -31,6 +33,7 @@ def _on_close():
     :return: None
     """
     print('closing')
+    global widgets
     if widgets['config_autosave'].get():
         dump_user_setting()
         try:
@@ -82,7 +85,7 @@ def set_value(key, value, tab=None):
 #     return False
 
 def load():
-    tracemalloc.start()
+    # tracemalloc.start()
 
     global root
     root = Tk.Tk()
@@ -194,27 +197,27 @@ def load():
 
     global cp_tab_details
     cp_tab_details = {
-        'mini': {'module': detector_tab, 'text': 'Analysis', 'partner': ['evoked']},
-        'evoked': {'module': evoked_tab, 'text': 'Analysis', 'partner': ['mini']},
-        'continuous': {'module': continuous_tab, 'text': 'View', 'partner': ['overlay']},
-        'overlay': {'module': sweep_tab, 'text': 'View', 'partner': ['continuous']},
-        'adjust': {'module': adjust_tab, 'text': 'Adjust', 'partner': None},
-        'navigation': {'module': navigation_tab, 'text': 'Navi', 'partner': None},
-        'style':{'module': style_tab, 'text': 'Style', 'partner': None},
-        'setting':{'module': setting_tab, 'text': 'Setting', 'partner': None}
+        'mini': {'module': detector_tab, 'text': 'Analysis', 'partner': ['evoked'], 'name':'detector_rab'},
+        'evoked': {'module': evoked_tab, 'text': 'Analysis', 'partner': ['mini'], 'name':'evoked_tab'},
+        'continuous': {'module': continuous_tab, 'text': 'View', 'partner': ['overlay'], 'name':'continuous_tab'},
+        'overlay': {'module': sweep_tab, 'text': 'View', 'partner': ['continuous'], 'name':'sweep_tab'},
+        'adjust': {'module': adjust_tab, 'text': 'Adjust', 'partner': None, 'name':'adjust_tab'},
+        'navigation': {'module': navigation_tab, 'text': 'Navi', 'partner': None, 'name':'navigation_tab'},
+        'style':{'module': style_tab, 'text': 'Style', 'partner': None, 'name':'style_tab'},
+        'setting':{'module': setting_tab, 'text': 'Setting', 'partner': None, 'name':'setting_tab'}
     }
 
     for i, t in enumerate(cp_tab_details):
         cp_tab_details[t]['tab'] = cp_tab_details[t]['module'].load(left)
         cp_notebook.add(cp_tab_details[t]['tab'], text=cp_tab_details[t]['text'])
         cp_tab_details[t]['index'] = i
+        globals()[cp_tab_details[t]['name']] = cp_tab_details[t]['module']
     from Layout.style_tab import StyleTab
     # test = StyleTab(left, __import__(__name__), interface)
     # cp_notebook.add(test, text='test')
 
-    cp_notebook.add(adjust_tab.AdjustTab(left, __import__(__name__), interface), text='test')
     # get reference to widgets
-    for key in ['adjust', 'mini', 'style', 'evoked']:
+    for key in ['mini', 'evoked', 'adjust',  'style', 'setting']:
         for k, v in cp_tab_details[key]['module'].widgets.items():
             widgets[k] = v
 
@@ -259,12 +262,14 @@ def load():
 
     # set up menubar
     global menu
-    menu = Menubar(root)
-    root.config(menu=menu.menubar)
+    menu = menubar.load(root)
+    root.config(menu=menu)
 
-    menu.analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
+    menubar.analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
 
-    for k, v in menu.widgets.items():
+    globals()['menubar'] = menubar
+
+    for k, v in menubar.widgets.items():
         widgets[k] = v
     # set up closing sequence
     root.protocol('WM_DELETE_WINDOW', _on_close)
@@ -281,6 +286,7 @@ def load():
 
 
 def dump_user_setting(filename=None):
+    global widgets
     ignore = ['config_', '_log', 'temp_']
     print('Writing out configuration variables....')
     if filename is None:
@@ -294,6 +300,7 @@ def dump_user_setting(filename=None):
         # pymini.pb.initiate()
         d = {}
         for key in widgets.keys():
+            print(key)
             try:
                 for ig in ignore:
                     if ig in key:

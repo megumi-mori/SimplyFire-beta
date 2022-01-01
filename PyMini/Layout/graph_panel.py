@@ -1,14 +1,11 @@
 import tkinter as Tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-from utils import widget
-from utils.scrollable_option_frame import OptionFrame
-from config import config
-from DataVisualizer import trace_display
-import app
+from PyMini.utils import widget
+from PyMini.utils import scrollable_option_frame
+from PyMini.DataVisualizer import trace_display
+from PyMini import app
 import os
-import time
-from Backend import interface
 import pkg_resources
 
 
@@ -168,7 +165,7 @@ def load(parent):
     app.widgets['trace_info'] = widget.VarLabel(toolbar_frame, text='no file open')
     app.widgets['trace_info'].grid(column=0, row=1, sticky='news')
 
-    channel_frame = OptionFrame(upper_frame)#, scrollbar = False)
+    channel_frame = scrollable_option_frame.OptionFrame(upper_frame)#, scrollbar = False)
     channel_frame.grid(column=1, row=0, sticky='ews')
     channel_frame.grid_rowconfigure(0, weight=1)
     channel_frame.grid_rowconfigure(1, weight=1)

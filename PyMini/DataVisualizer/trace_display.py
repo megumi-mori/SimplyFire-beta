@@ -3,14 +3,12 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.patches import Rectangle
 from matplotlib.animation import FuncAnimation
-import app
+from PyMini import app
 import gc
 
-from Backend import interface
-import Backend.analyzer2 as analyzer
-from Layout import graph_panel
+import PyMini.Backend.analyzer2 as analyzer
+from PyMini.Layout import graph_panel
 
-from DataVisualizer import data_display
 
 temp = []
 markers = {}

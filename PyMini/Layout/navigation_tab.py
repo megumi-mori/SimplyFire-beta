@@ -1,7 +1,6 @@
-from config import config
-from utils.scrollable_option_frame import ScrollableOptionFrame
-import app
-from DataVisualizer import trace_display
+from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
+from PyMini import app
+from PyMini.DataVisualizer import trace_display
 
 
 def load(parent):

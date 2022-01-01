@@ -1,19 +1,20 @@
 # takes input from the Data Visualizers and takes appropriate action
-import app
+# from PyMini import app
+from PyMini import app
 from tkinter import filedialog, messagebox
 import tkinter as Tk
 
 import pandas
-from DataVisualizer import data_display, log_display, trace_display, param_guide, results_display, evoked_data_display
+from PyMini.DataVisualizer import data_display, log_display, trace_display, param_guide, results_display, evoked_data_display
 import os
 import pkg_resources
-from Layout import detector_tab, graph_panel, sweep_tab, adjust_tab, menubar
+# from Layout import #, sweep_tab,
+from PyMini.Layout import sweep_tab, detector_tab, graph_panel,  adjust_tab, menubar
 import matplotlib as mpl
-from Backend import interpreter, analyzer2
+from PyMini.Backend import interpreter, analyzer2
 import gc
 import pandas as pd
 import numpy as np
-from config import config
 from threading import Thread
 
 from time import time
@@ -87,11 +88,11 @@ def clear_undo():
     undo_stack = []
 
     # disable the undo command in the menubar
-    app.menu.undo_disable()
+    menubar.undo_disable()
 
 def add_undo(task):
     # enable the undo command in the menubar
-    app.menu.undo_enable()
+    menubar.undo_enable()
     global undo_stack
     if isinstance(task, list):
         undo_stack.append(task)
@@ -126,7 +127,7 @@ def undo(e=None):
 
     # if the stack is empty, disable the undo command in the menubar
     if len(undo_stack) == 0:
-        app.menu.undo_disable()
+        menubar.undo_disable()
 
 
 def configure(key, value):

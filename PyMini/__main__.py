@@ -1,4 +1,5 @@
 from config import config
+from PyMini import app
 
 import tkinter as Tk
 if __name__ == '__main__':
@@ -7,11 +8,7 @@ if __name__ == '__main__':
     splash.update()
     splash.after(0, splash.destroy)
 
-    import app
-    import Layout
-    import utils
-    import DataVisualizer
-    import Backend
+
 
     splash.mainloop()
 

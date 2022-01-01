@@ -1,8 +1,5 @@
 import yaml
 import os
-import inspect
-from tkinter import Tk
-import time
 import pkg_resources
 
 # set up default parameters during module import
@@ -71,8 +68,6 @@ def load():
                 for c, v in configs.items():
                     globals()[c] = v
                     user_vars[c] = v
-                    if c == 'adjust_fixed':
-                        print(f'adjust_fixed in config: {adjust_fixed}')
         except:
             pass
     print('config user path at config: {}'.format(config_user_path))
