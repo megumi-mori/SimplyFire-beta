@@ -59,7 +59,7 @@ def load(parent):
     save_button = Tk.Button(button_frame, text='Save log as...', command=save)
     save_button.grid(column=1, row=0, sticky='news')
 
-    log_text.insert(Tk.END, '{}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S')))
+    log_text.insert('{}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S')))
 
 
 
@@ -67,9 +67,9 @@ def load(parent):
 
 def log(msg, header=True):
     if header:
-        log_text.insert(Tk.END, '{} {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+        log_text.insert('{} {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     else:
-        log_text.insert(Tk.END, '{}\n'.format(msg))
+        log_text.insert('{}\n'.format(msg))
     log_text.see(Tk.END)
 def copy():
     app.root.clipboard_clear()
@@ -77,28 +77,28 @@ def copy():
     # app.root.update()
 
 def user_update(e=None):
-    log_text.insert(Tk.END, '{} @user: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), log_entry.get()))
+    log_text.insert('{} @user: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), log_entry.get()))
     log_entry.set("")
     log_text.see(Tk.END)
 
 def system_update(msg):
-    log_text.insert(Tk.END, '{} @system:  {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.insert('{} @system:  {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     log_text.see(Tk.END)
 
 def open_update(filename):
-    log_text.insert(Tk.END, '{} @open: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), filename))
+    log_text.insert('{} @open: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), filename))
     log_text.see(Tk.END)
 
 def search_update(msg):
-    log_text.insert(Tk.END, '{} @search: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.insert('{} @search: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     log_text.see(Tk.END)
 
 def param_update(msg):
-    log_text.insert(Tk.END, '{} @param: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.insert('{} @param: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     log_text.see(Tk.END)
 
 def save_update(msg):
-    log_text.insert(Tk.END, '{} @saved: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.insert('{} @saved: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     log_text.see(Tk.END)
 
 def save():

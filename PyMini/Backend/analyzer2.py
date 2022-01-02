@@ -71,7 +71,8 @@ class Recording():
         else:
             # insert support for other filetypes here
             pass
-
+    def save_recording(self, filename):
+        
     def set_channel(self, channel):
         self.y_label = self.channel_labels[channel]
         self.y_unit = self.channel_units[channel]

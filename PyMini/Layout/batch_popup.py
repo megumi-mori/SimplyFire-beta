@@ -40,6 +40,7 @@ def load():
     global stop
     stop = False
     try:
+        global window
         window.deiconify()
         print('recalling window')
     except:
@@ -229,14 +230,14 @@ def create_window():
     # Filename selection
     ttk.Label(file_frame, text='File path list:').grid(column=0, row=2, sticky='nw')
     global file_entry
-    file_entry = Tk.Text(master=file_frame)
+    file_entry = VarText(parent=file_frame)
     file_entry.grid(column=1, row=2, sticky='news')
     file_button_frame = ttk.Frame(file_frame)
     file_button_frame.grid(column=2, row=2, sticky='news')
     file_button_frame.grid_rowconfigure(0, weight=1)
     file_button_frame.grid_rowconfigure(2, weight=1)
     ttk.Button(file_button_frame, text='Add', command=ask_add_files).grid(column=0, row=0, sticky='s')
-    ttk.Button(file_button_frame, text='Clear').grid(column=0, row=1)
+    ttk.Button(file_button_frame, text='Clear', command=file_entry.clear).grid(column=0, row=1)
 
     # Navigation buttons
 
@@ -350,41 +351,49 @@ def ask_add_files(event=None):
     else:
         filenames=tkinter.filedialog.askopenfilenames(filetypes=[('abf files','*.abf'), ('event files', '*.event'), ("All files", '*.*')])
     global file_entry
-    filenames = "\n".join(filenames)
-    filenames = filenames + '\n'
-    file_entry.insert(Tk.END, filenames)
+    if filenames is not None:
+        filenames = "\n".join(filenames)
+        filenames = filenames + '\n'
+        file_entry.insert(Tk.END, filenames)
     window.lift()
 
 def ask_import_file(event=None):
     fname = filedialog.askopenfilename(title='Open', filetypes=[('yaml files', '*.yaml'), ('All files', '*.*')])
     window.lift()
+    if fname is None:
+        return None
     with open(fname) as f:
         data = yaml.safe_load(f)
     global path_entry
     global file_entry
     path_entry.set(data['path_entry'])
-    file_entry.delete(1.0, Tk.END)
-    file_entry.insert(1.0, data['file_entry'])
+    file_entry.clear()
+    file_entry.set(data['file_entry'])
     pass
 
 def ask_export_file(event=None):
-    window.lift()
     fname = filedialog.asksaveasfilename(title='Save As...', filetypes=[('yaml files', '*.yaml'), ('All files','*.*')], defaultextension='.yaml')
+    window.lift()
+
+    if fname is None:
+        return
     global path_entry
     global file_entry
     with open(fname, 'w') as f:
         f.write(yaml.safe_dump({
             'path_entry': path_entry.get(),
-            'file_entry': file_entry.get(1.0, Tk.END)
+            'file_entry': file_entry.get()
         }))
     pass
 def ask_open_batch(event=None):
     fname = filedialog.askopenfilename(title='Open', filetypes=[('protocol files', "*.prt"), ('All files', '*.*')])
+    window.lift()
+    if not fname:
+        return
     with open(fname, 'r') as f:
         lines = f.readlines()
         for l in lines:
             protocol_table.table.insert('', 'end', values=(l.strip(),), tag='selectable')
-    window.lift()
 
 def save_batch(event=None):
     global protocol_fname
@@ -400,12 +409,12 @@ def save_batch(event=None):
         ask_save_batch()
 def ask_save_batch(event=None):
     fname = filedialog.asksaveasfilename(title='Save As...', filetypes=[('protocol files', "*.prt"), ('All files', '*.*0')], defaultextension='.prt')
-    if fname is not None:
-        global protocol_fname
-        protocol_fname = fname
-        save_batch()
-    else:
-        return None
+    window.lift()
+    if fname is None:
+        return
+    global protocol_fname
+    protocol_fname = fname
+    save_batch()
 
 def process_interrupt(event=None):
     global stop
@@ -431,7 +440,7 @@ def process_batch(event=None):
     commands = [protocol_table.table.item(i, 'values')[0] for i in protocol_table.table.get_children()]
     total_steps = len(commands)
     global file_entry
-    files = file_entry.get(1.0, Tk.END).split('\n')
+    files = file_entry.get().split('\n')
     files = [f for f in files if f != ""]
     total_files = len(files)
     global path_entry
@@ -443,13 +452,14 @@ def process_batch(event=None):
     for j, f in enumerate(files):
         if stop:
             break
+        progress_message.config(text=f'Processing {j + 1}/{total_files} files. At {0}/{total_steps} steps')
         try:
             if f:
                 interface.open_trace(f)
-                batch_log.insert(Tk.END, f'Opening file: {f}\n')
+                batch_log.insert(f'Opening file: {f}\n')
 
                 for i,c in enumerate(commands):
-                    batch_log.insert(Tk.END,f'\t{c}\n')
+                    batch_log.insert(f'\t{c}\n')
                     progress_message.config(text=f'Processing {j+1}/{total_files} files. At {i+1}/{total_steps} steps')
                     if c == 'Save minis':
                         fname = f.split('.')[0]+'.event'
@@ -468,10 +478,10 @@ def process_batch(event=None):
                     else:
                         command_dict[c]()
         except:
-            batch_log.insert(Tk.END, f'could not open {f}')
+            batch_log.insert(f'could not open {f}')
     if stop:
-        batch_log.insert(Tk.END, 'Batch stopped by user')
-    batch_log.insert(Tk.END, 'End of batch')
+        batch_log.insert('Batch stopped by user')
+    batch_log.insert('End of batch')
     stop = False
     app.root.attributes('-disabled', False)
     window.protocol("WM_DELETE_WINDOW", window.withdraw)

@@ -19,7 +19,6 @@ def load(parent):
 
     def _ask_dirname(e=None):
         global widgets
-        widgets = {}
         d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
                                            defaultextension='.yaml')
         if d:
