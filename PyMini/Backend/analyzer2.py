@@ -77,33 +77,50 @@ class Recording():
         self.x_data = np.repeat(self.x_data, self.channel_count, axis=0)
 
     def read_csv(self, filename):
+        """
+        only supports single channel data
+        """
         self.channel_count = 1
+        self.y_data = np.array([[[]]])
         with open(filename, 'r') as f:
             for l in f.readlines():
                 l = l.strip()
-                print(l[1:].split('='))
                 if l[0] == '@': #header
-                    if l[1:].split('=')[0] == 'version':
-                        version = l[1:].split('=')[1]
-                    elif l[1:].split('=')[0] == 'num_sweeps':
-                        self.sweep_count = int(l[1:].split('=')[1])
+                    header_label = l[1:].split('=')[0]
+                    header_data = l[1:].split('=')[1]
+                    if header_label == 'version':
+                        version = header_data
+                    elif header_label == 'sweep_count':
+                        self.sweep_count = int(header_data)
                         self.original_sweep_count = self.sweep_count
-                    elif l[1:].split('=')[0] == 'sampling_rate':
-                        self.sampling_rate = float(l[1:].split('=')[1])
+                    elif header_label == 'sweep_points':
+                        self.sweep_points = int(header_data)
+                    elif header_label == 'sampling_rate':
+                        self.sampling_rate = float(header_data)
                         # sampling rate significant digits - used to round calculations
                         self.x_sigdig = len(str(self.sampling_rate)) - 1
                         # interval between each x-values (inverse of sampling rate)
                         self.x_interval = 1 / self.sampling_rate
-                    elif l[1:].split('=')[0] == 'channel_unit':
-                        self.channel_units=[l[1:].split('=')[1]]
-                    elif l[1].split('=')[0] == 'channel_label':
-                        self.channel_labels=[l[1:].split('=')[1]]
-                    elif l[1:].split('=')[0] == 'x_unit':
-                        self.x_unit = [l[1:].split('=')[1]]
-                    elif l[1:].split('=')[0] == 'x_label':
-                        self.x_label = [l[1:].split('=')[1]]
-        print(f'{version}, {self.sweep_count}, {self.sampling_rate}')
-
+                    elif header_label == 'channel_unit':
+                        self.channel_units=[header_data]
+                    elif header_label == 'channel_label':
+                        self.channel_labels=[header_data]
+                    elif header_label == 'x_unit':
+                        self.x_unit = [header_data]
+                    elif header_label == 'x_label':
+                        self.x_label = [header_data]
+                else:
+                    if self.y_data.shape[2] > 0:
+                        self.y_data = np.append(self.y_data,
+                                            np.reshape(np.array([float(i) for i in l.split(',')]), (1, 1, self.sweep_points)),
+                                            axis=1)
+                    else:
+                        self.y_data = np.reshape(np.array([float(i) for i in l.split(',')]),
+                                                 (1, 1, self.sweep_points))
+            sweepX = np.arange(self.sweep_points)/self.sampling_rate
+            self.x_data = np.repeat(np.reshape(np.array(sweepX), (1, 1, self.sweep_points)),
+                                    self.sweep_count,
+                                    axis=1)
 
     def save(self, filename, channel=None):
         if channel is None:
@@ -121,14 +138,15 @@ class Recording():
             channel = self.channel
         with open(filename, 'x') as f:
             f.write(f'@version={config.version}\n')
-            f.write(f'@num_sweeps={self.sweep_count}\n')
+            f.write(f'@sweep_count={self.sweep_count}\n')
+            f.write(f'@sweep_points={self.sweep_points}\n')
             f.write(f'@channel_unit={self.channel_units[channel]}\n')
             f.write(f'@channel_label={self.channel_labels[channel]}\n')
-            f.write(f'@sampling rate={self.sampling_rate}\n')
+            f.write(f'@sampling_rate={self.sampling_rate}\n')
             f.write(f'@x_unit={self.x_unit}\n')
             f.write(f'@x_label={self.x_label}\n')
             for s in range(self.sweep_count):
-                f.write(np.array2string(self.y_data[channel, s, :],separator=',', threshold=np.inf))
+                f.write(','.join([str(i) for i in self.y_data[channel, s, :].tolist()]))
                 f.write('\n')
 
 

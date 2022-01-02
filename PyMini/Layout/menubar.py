@@ -25,16 +25,16 @@ def load(parent):
     menubar.add_cascade(label='File', menu=file_menu)
 
     file_menu.add_command(label="Open trace \t Ctrl+o", command=ask_open_trace)
+    file_menu.add_command(label='Save channel as...', command=export_recording)
     file_menu.add_separator()
     file_menu.add_command(label='Open event file', command=open_events)
     file_menu.add_command(label='Save event file', command=interface.save_events_dialogue)
     file_menu.add_command(label='Save event file as...', command=interface.save_events_as_dialogue)
-    file_menu.add_command(label='Export events', command=export_events)
 
     file_menu.add_separator()
-    file_menu.add_command(label='Export evoked analysis', command=export_evoked)
-    file_menu.add_command(label='Export recording', command=export_recording)
-    file_menu.add_command(label='Export results', command=export_results)
+    file_menu.add_command(label='Export mini analysis table', command=export_events)
+    file_menu.add_command(label='Export evoked analysis table', command=export_evoked)
+    file_menu.add_command(label='Export results table', command=export_results)
 
     # Edit menu
     global edit_menu
