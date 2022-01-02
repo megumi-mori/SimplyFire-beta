@@ -1,11 +1,11 @@
 # from utils.scrollable_frame import ScrollableFrame
 import tkinter as Tk
 from tkinter import ttk
-from utils import widget
-from config import config
+from PyMini.utils import widget
+from PyMini.config import config
 import yaml
 import textwrap
-from Backend import interface
+from PyMini.Backend import interface
 
 
 from functools import wraps
