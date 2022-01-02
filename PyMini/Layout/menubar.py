@@ -1,5 +1,5 @@
 import tkinter as Tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, messagebox
 from PyMini.config import config
 from PyMini.utils.widget import VarWidget
 from PyMini.Backend import interface
@@ -33,7 +33,7 @@ def load(parent):
 
     file_menu.add_separator()
     file_menu.add_command(label='Export evoked analysis', command=export_evoked)
-
+    file_menu.add_command(label='Export recording', command=export_recording)
     file_menu.add_command(label='Export results', command=export_results)
 
     # Edit menu
@@ -81,7 +81,7 @@ def load(parent):
 
 def ask_open_trace():
     gc.collect()
-    fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files', '*.*')])
+    fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('csv files', '*.csv'), ('All files', '*.*')])
     if not fname:
         return None
     interface.open_trace(fname)
@@ -101,6 +101,21 @@ def export_evoked():
                                             initialfile=interface.al.recording.filename.split('.')[
                                                             0] + '_evoked.csv')
     evoked_data_display.dataframe.export(filename)
+
+def export_recording():
+    if interface.al.recording is None:
+        messagebox.showerror('Write error', message='No recording to export. Please open a recording first.')
+        return None
+    initialfname = interface.al.recording.filename.split('.')[0] + '_PyMini'
+    try:
+        filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('csv files', '*.csv'), ('All files', '*.*')],
+                                                defaultextension='.abf',
+                                                initialfile=initialfname)
+
+        if filename is not None:
+            interface.al.recording.save(filename)
+    except (FileExistsError):
+        messagebox.showerror('Write error', message='Cannot overwrite an existing ABF file')
 
 def export_results():
     filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('ALl files', '*.*')],
@@ -264,7 +279,7 @@ class Menubar():
 
     def ask_open_trace(self):
         gc.collect()
-        fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files', '*.*')])
+        fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('csv files', '*.csv'), ('All files', '*.*')])
         if not fname:
             return None
         interface.open_trace(fname)

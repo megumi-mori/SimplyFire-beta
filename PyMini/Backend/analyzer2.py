@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 from math import ceil, hypot, isnan, sqrt
 from datetime import datetime
 from pyabf import abf
+from pyabf.abfWriter import writeABF1
+
+from PyMini.config import config
 
 from pandas import DataFrame, Series
 import pandas as pd
@@ -30,49 +33,107 @@ class Recording():
     def _open_file(self, filename):
         print(f'opening {filename}')
         self.filetype = os.path.splitext(filename)[1]
+        print(self.filetype)
         _, self.filename = os.path.split(filename)
 
         if self.filetype == '.abf':
-            data = abf.ABF(filename)
-            # store the raw ABF file for now
-            # remove this later to reduce memory
-            self.data = data
-
-            # sampling rate of the recording
-            self.sampling_rate = data.dataRate
-            # sampling rate significant digits - used to round calculations
-            self.x_sigdig = len(str(self.sampling_rate)) - 1
-            # interval between each x-values (inverse of sampling rate)
-            self.x_interval = 1 / self.sampling_rate
-
-            # channel metadata
-            self.channel_count = data.channelCount
-            self.channel_names = data.adcNames
-            self.channel_units = data.adcUnits
-            self.channel_labels = [""] * self.channel_count
-            for c in range(self.channel_count):
-                data.setSweep(0, c)
-                self.channel_labels[c] = data.sweepLabelY
-
-            # x_value metadata
-            self.x_unit = data.sweepUnitsX
-            self.x_label = data.sweepLabelX  # in the form of Label (Units)
-
-            # y_value metadata
-            self.sweep_count = data.sweepCount
-            self.original_sweep_count = self.sweep_count
-            self.sweep_points = data.sweepPointCount
-
-            # extract y and x values and store as 3D numpy array (channel, sweep, datapoint)
-            self.y_data = np.reshape(data.data, (self.channel_count, self.sweep_count, self.sweep_points))
-            self.x_data = np.repeat(np.reshape(data.sweepX, (1, 1, self.sweep_points)), self.sweep_count, axis=1)
-            self.x_data = np.repeat(self.x_data, self.channel_count, axis=0)
+            self.read_abf(filename)
+        elif self.filetype == '.csv':
+            self.read_csv(filename)
 
         else:
             # insert support for other filetypes here
             pass
-    def save_recording(self, filename):
-        
+    def read_abf(self, filename):
+        data = abf.ABF(filename)
+        # sampling rate of the recording
+        self.sampling_rate = data.dataRate
+        # sampling rate significant digits - used to round calculations
+        self.x_sigdig = len(str(self.sampling_rate)) - 1
+        # interval between each x-values (inverse of sampling rate)
+        self.x_interval = 1 / self.sampling_rate
+
+        # channel metadata
+        self.channel_count = data.channelCount
+        self.channel_names = data.adcNames
+        self.channel_units = data.adcUnits
+        self.channel_labels = [""] * self.channel_count
+        for c in range(self.channel_count):
+            data.setSweep(0, c)
+            self.channel_labels[c] = data.sweepLabelY
+
+        # x_value metadata
+        self.x_unit = data.sweepUnitsX
+        self.x_label = data.sweepLabelX  # in the form of Label (Units)
+
+        # y_value metadata
+        self.sweep_count = data.sweepCount
+        self.original_sweep_count = self.sweep_count
+        self.sweep_points = data.sweepPointCount
+
+        # extract y and x values and store as 3D numpy array (channel, sweep, datapoint)
+        self.y_data = np.reshape(data.data, (self.channel_count, self.sweep_count, self.sweep_points))
+        self.x_data = np.repeat(np.reshape(data.sweepX, (1, 1, self.sweep_points)), self.sweep_count, axis=1)
+        self.x_data = np.repeat(self.x_data, self.channel_count, axis=0)
+
+    def read_csv(self, filename):
+        self.channel_count = 1
+        with open(filename, 'r') as f:
+            for l in f.readlines():
+                l = l.strip()
+                print(l[1:].split('='))
+                if l[0] == '@': #header
+                    if l[1:].split('=')[0] == 'version':
+                        version = l[1:].split('=')[1]
+                    elif l[1:].split('=')[0] == 'num_sweeps':
+                        self.sweep_count = int(l[1:].split('=')[1])
+                        self.original_sweep_count = self.sweep_count
+                    elif l[1:].split('=')[0] == 'sampling_rate':
+                        self.sampling_rate = float(l[1:].split('=')[1])
+                        # sampling rate significant digits - used to round calculations
+                        self.x_sigdig = len(str(self.sampling_rate)) - 1
+                        # interval between each x-values (inverse of sampling rate)
+                        self.x_interval = 1 / self.sampling_rate
+                    elif l[1:].split('=')[0] == 'channel_unit':
+                        self.channel_units=[l[1:].split('=')[1]]
+                    elif l[1].split('=')[0] == 'channel_label':
+                        self.channel_labels=[l[1:].split('=')[1]]
+                    elif l[1:].split('=')[0] == 'x_unit':
+                        self.x_unit = [l[1:].split('=')[1]]
+                    elif l[1:].split('=')[0] == 'x_label':
+                        self.x_label = [l[1:].split('=')[1]]
+        print(f'{version}, {self.sweep_count}, {self.sampling_rate}')
+
+
+    def save(self, filename, channel=None):
+        if channel is None:
+            channel = self.channel
+        if os.path.exists(filename):
+            raise FileExistsError
+        filetype = os.path.splitext(filename)[1]
+        if filetype == '.abf':
+            writeABF1(self.y_data[channel], filename,self.sampling_rate, self.channel_units[channel])
+        elif filetype == '.csv':
+            self.writeCSV(filename, channel)
+
+    def writeCSV(self, filename, channel=None):
+        if channel is None:
+            channel = self.channel
+        with open(filename, 'x') as f:
+            f.write(f'@version={config.version}\n')
+            f.write(f'@num_sweeps={self.sweep_count}\n')
+            f.write(f'@channel_unit={self.channel_units[channel]}\n')
+            f.write(f'@channel_label={self.channel_labels[channel]}\n')
+            f.write(f'@sampling rate={self.sampling_rate}\n')
+            f.write(f'@x_unit={self.x_unit}\n')
+            f.write(f'@x_label={self.x_label}\n')
+            for s in range(self.sweep_count):
+                f.write(np.array2string(self.y_data[channel, s, :],separator=',', threshold=np.inf))
+                f.write('\n')
+
+
+
+
     def set_channel(self, channel):
         self.y_label = self.channel_labels[channel]
         self.y_unit = self.channel_units[channel]
