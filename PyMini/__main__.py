@@ -1,4 +1,3 @@
-from config import config
 from PyMini import app
 
 import tkinter as Tk
