@@ -81,7 +81,11 @@ class Recording():
         only supports single channel data
         """
         self.channel_count = 1
-        self.y_data = np.array([[[]]])
+        self.sweep_count = 0
+        self.sweep_points = 0
+        self.x_unit = ['sec']
+        self.y_unit = ['N/A']
+        self.y_label = ['N/A']
         with open(filename, 'r') as f:
             for l in f.readlines():
                 l = l.strip()
@@ -115,8 +119,13 @@ class Recording():
                                             np.reshape(np.array([float(i) for i in l.split(',')]), (1, 1, self.sweep_points)),
                                             axis=1)
                     else:
-                        self.y_data = np.reshape(np.array([float(i) for i in l.split(',')]),
+                        ys = [float(i) for i in l.split(',')]
+                        if self.sweep_points == 0:
+                            self.sweep_points = len(ys)
+                        self.y_data = np.reshape(np.array(ys),
                                                  (1, 1, self.sweep_points))
+            if self.sweep_count == 0:
+                self.sweep_count = self.y_data.shape[1]
             sweepX = np.arange(self.sweep_points)/self.sampling_rate
             self.x_data = np.repeat(np.reshape(np.array(sweepX), (1, 1, self.sweep_points)),
                                     self.sweep_count,
@@ -129,11 +138,15 @@ class Recording():
             raise FileExistsError
         filetype = os.path.splitext(filename)[1]
         if filetype == '.abf':
-            writeABF1(self.y_data[channel], filename,self.sampling_rate, self.channel_units[channel])
+            self.write_abf
         elif filetype == '.csv':
-            self.writeCSV(filename, channel)
-
-    def writeCSV(self, filename, channel=None):
+            self.write_csv(filename, channel)
+    def write_abf(self, filename, channel=None):
+        if channel is None:
+            channel = self.channel
+        writeABF1(self.y_data[channel], filename, self.sampling_rate, self.channel_units[channel])
+        
+    def write_csv(self, filename, channel=None):
         if channel is None:
             channel = self.channel
         with open(filename, 'x') as f:
