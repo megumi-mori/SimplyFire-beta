@@ -2,6 +2,7 @@ from PyMini.utils import scrollable_option_frame
 from PyMini import app
 from PyMini.DataVisualizer import data_display, trace_display, log_display
 from PyMini.Backend import interface
+from PyMini.Layout import running_popup
 from threading import Thread
 changed = True
 changes = {}
@@ -10,12 +11,14 @@ parameters = {}
 global widgets
 widgets = {}
 def find_all():
-    global stop_button
-    stop_button.config(state = 'normal')
-    global find_all_button
-    find_all_button.config(state='disabled')
-    global find_in_window_button
-    find_in_window_button.config(state='disabled')
+    if interface.al.recording is None:
+        return None
+    # global stop_button
+    # stop_button.config(state = 'normal')
+    # global find_all_button
+    # find_all_button.config(state='disabled')
+    # global find_in_window_button
+    # find_in_window_button.config(state='disabled')
 
     t = Thread(target=start_find_all_process())
     t.start()
@@ -24,32 +27,38 @@ def stop():
     interface.interrupt_analyzer()
     pass
 def start_find_all_process():
+    running_popup.load(process='find_mini')
     interface.find_mini_in_range(trace_display.default_xlim, trace_display.default_ylim)
-    global stop_button
-    stop_button.config(state='disabled')
-    global find_all_button
-    find_all_button.config(state='normal')
-    global find_in_window_button
-    find_in_window_button.config(state='normal')
+    # global stop_button
+    # stop_button.config(state='disabled')
+    # global find_all_button
+    # find_all_button.config(state='normal')
+    # global find_in_window_button
+    # find_in_window_button.config(state='normal')
+    running_popup.window_close()
 
 def find_in_window():
-    global stop_button
-    stop_button.config(state='normal')
-    global find_all_button
-    find_all_button.config(state='disabled')
-    global find_in_window_button
-    find_in_window_button.config(state='disabled')
+    if interface.al.recording is None:
+        return None
+    # global stop_button
+    # stop_button.config(state='normal')
+    # global find_all_button
+    # find_all_button.config(state='disabled')
+    # global find_in_window_button
+    # find_in_window_button.config(state='disabled')
     t = Thread(target=start_find_in_window_process())
     t.start()
 
 def start_find_in_window_process():
+    running_popup.load(process='find_mini')
     interface.find_mini_in_range(trace_display)
-    global stop_button
-    stop_button.config(state='disabled')
-    global find_all_button
-    find_all_button.config(state='normal')
-    global find_in_window_button
-    find_in_window_button.config(state='normal')
+    # global stop_button
+    # stop_button.config(state='disabled')
+    # global find_all_button
+    # find_all_button.config(state='normal')
+    # global find_in_window_button
+    # find_in_window_button.config(state='normal')
+    running_popup.window_close()
 
 def filter_all():
     interface.filter_mini()
@@ -302,12 +311,12 @@ def load(parent):
         text='Delete in \nwindow',
         command=delete_in_window
     )
-    global stop_button
-    stop_button = optionframe.insert_button(
-        text='STOP',
-        command=stop
-    )
-    stop_button.config(state='disabled')
+    # global stop_button
+    # stop_button = optionframe.insert_button(
+    #     text='STOP',
+    #     command=stop
+    # )
+    # stop_button.config(state='disabled')
     global report_button
     report_button = optionframe.insert_button(
         text='Report stats',

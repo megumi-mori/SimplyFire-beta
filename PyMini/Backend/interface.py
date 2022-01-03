@@ -482,6 +482,11 @@ def pick_event_manual(x):
 def interrupt_analyzer():
     al.stop = True
 
+def interrupt(process=''):
+    if process == 'find_mini':
+        al.stop = True
+    pass
+
 def find_mini_in_range(xlim=None, ylim=None):
     try:
         param_guide.accept_button.config(state='disabled')
@@ -520,15 +525,15 @@ def find_mini_in_range(xlim=None, ylim=None):
                                sampling_rate=al.recording.sampling_rate, channel=al.recording.channel,
                       reference_df=True, y_unit=al.recording.y_unit,
                                x_unit=al.recording.x_unit, progress_bar=app.pb, **params)
-
-    if int(app.widgets['config_undo_stack'].get()) > 0:
-        add_undo([
-            lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
-            lambda msg='Undo mini search': detector_tab.log(msg)
-        ])
-    update_event_marker()
-    trace_display.canvas.draw()
-    data_display.append(df)
+    if df.shape[0]>0:
+        if int(app.widgets['config_undo_stack'].get()) > 0:
+            add_undo([
+                lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
+                lambda msg='Undo mini search': detector_tab.log(msg)
+            ])
+        update_event_marker()
+        trace_display.canvas.draw()
+        data_display.append(df)
 
     if detector_tab.changed:
         log_display.search_update('Manual')
@@ -854,18 +859,8 @@ def delete_event(selection, undo=True):
         param_guide.clear()
 
 def delete_events_in_range(xlim, undo=True):
-    # if int(app.widgets['config_undo_stack'].get()) > 0 and undo:
-    #     ########### Save temp file ##############
-    #     temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
-    #                                  'temp_{}.temp'.format(get_temp_num()))
-    #     al.mini_df[(al.mini_df['t']>xlim[0]) &
-    #                (al.mini_df['t']<xlim[1]) &
-    #                (al.mini_df['channel'] == al.recording.channel)
-    #     ].to_csv(temp_filename)
-    #     add_undo([
-    #         lambda f=temp_filename: open_events(temp_filename, log=False, undo=False, append=True),
-    #         lambda f=temp_filename: os.remove(f)
-    #     ])
+    if al.mini_df.shape[0] == 0:
+        return None
     selection=al.mini_df[(al.mini_df['t']>xlim[0]) &
                (al.mini_df['t']<xlim[1]) &
                (al.mini_df['channel'] == al.recording.channel)].t.values
