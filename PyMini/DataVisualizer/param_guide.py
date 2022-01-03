@@ -122,7 +122,6 @@ def create_window():
     global msg_label
     msg_label = widget.VarText(parent=msg_frame, name='param_guide_msg', value="", default="", state='disabled')
     msg_label.grid(column=0, row=0, sticky='news')
-    msg_label.insert = partial(msg_label.insert, Tk.END)
 
     vsb = ttk.Scrollbar(msg_frame, orient=Tk.VERTICAL, command=msg_label.yview)
     vsb.grid(column=1, row=0, sticky='ns')
