@@ -18,25 +18,6 @@ def change_mode(mode):
     pass
 
 def load():
-    global command_dict
-    command_dict = {
-        'Mini analysis mode (continuous)': lambda m=0: change_mode(m),
-        'Evoked analysis mode (overlay)': lambda m=1: change_mode(m),
-
-        'Find all': detector_tab.find_all,
-        'Find in window': detector_tab.find_in_window,
-        'Delete all': interface.delete_all_events,
-        'Delete in window': detector_tab.delete_in_window,
-        'Report stats (mini)': data_display.report,
-
-        'Apply baseline adjustment': adjust_tab.adjust_baseline,
-        'Apply trace averaging': adjust_tab.average_trace,
-        'Apply filter': adjust_tab.filter,
-
-        'Min/Max': evoked_tab.calculate_min_max,
-        'Report stats (evoked)': evoked_data_display.report
-
-    }
     global stop
     stop = False
     try:
@@ -44,6 +25,25 @@ def load():
         window.deiconify()
         print('recalling window')
     except:
+        global command_dict
+        command_dict = {
+            'Mini analysis mode (continuous)': lambda m=0: change_mode(m),
+            'Evoked analysis mode (overlay)': lambda m=1: change_mode(m),
+
+            'Find all': detector_tab.find_all,
+            'Find in window': detector_tab.find_in_window,
+            'Delete all': interface.delete_all_events,
+            'Delete in window': detector_tab.delete_in_window,
+            'Report stats (mini)': data_display.report,
+
+            'Apply baseline adjustment': adjust_tab.adjust_baseline,
+            'Apply trace averaging': adjust_tab.average_trace,
+            'Apply filter': adjust_tab.filter,
+
+            'Min/Max': evoked_tab.calculate_min_max,
+            'Report stats (evoked)': evoked_data_display.report
+
+        }
         create_window()
 
 def create_window():
@@ -230,14 +230,14 @@ def create_window():
     # Filename selection
     ttk.Label(file_frame, text='File path list:').grid(column=0, row=2, sticky='nw')
     global file_entry
-    file_entry = VarText(parent=file_frame)
+    file_entry = Tk.Text(master=file_frame)
     file_entry.grid(column=1, row=2, sticky='news')
     file_button_frame = ttk.Frame(file_frame)
     file_button_frame.grid(column=2, row=2, sticky='news')
     file_button_frame.grid_rowconfigure(0, weight=1)
     file_button_frame.grid_rowconfigure(2, weight=1)
     ttk.Button(file_button_frame, text='Add', command=ask_add_files).grid(column=0, row=0, sticky='s')
-    ttk.Button(file_button_frame, text='Clear', command=file_entry.clear).grid(column=0, row=1)
+    ttk.Button(file_button_frame, text='Clear', command=lambda i=1.0, j=Tk.END: file_entry.delete(i,j)).grid(column=0, row=1)
 
     # Navigation buttons
 
@@ -367,8 +367,8 @@ def ask_import_file(event=None):
     global path_entry
     global file_entry
     path_entry.set(data['path_entry'])
-    file_entry.clear()
-    file_entry.set(data['file_entry'])
+    file_entry.delete(1.0, Tk.END)
+    file_entry.insert(1.0, data['file_entry'])
     pass
 
 def ask_export_file(event=None):
@@ -382,7 +382,7 @@ def ask_export_file(event=None):
     with open(fname, 'w') as f:
         f.write(yaml.safe_dump({
             'path_entry': path_entry.get(),
-            'file_entry': file_entry.get()
+            'file_entry': file_entry.get(1.0, Tk.END)
         }))
     pass
 def ask_open_batch(event=None):
@@ -440,7 +440,7 @@ def process_batch(event=None):
     commands = [protocol_table.table.item(i, 'values')[0] for i in protocol_table.table.get_children()]
     total_steps = len(commands)
     global file_entry
-    files = file_entry.get().split('\n')
+    files = file_entry.get(1.0, Tk.END).split('\n')
     files = [f for f in files if f != ""]
     total_files = len(files)
     global path_entry
