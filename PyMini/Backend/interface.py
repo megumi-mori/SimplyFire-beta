@@ -484,7 +484,7 @@ def pick_event_manual(x):
 def interrupt_analyzer():
     al.stop = True
 
-def find_mini_in_range(xlim, ylim):
+def find_mini_in_range(xlim=None, ylim=None):
     try:
         param_guide.accept_button.config(state='disabled')
         param_guide.reanalyze_button.config(state='disabled')

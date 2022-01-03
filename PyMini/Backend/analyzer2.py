@@ -726,8 +726,7 @@ class Analyzer():
             ys = ys.copy()  # make a copy to edit
         try:
             xlim_idx = (search_index(xlim[0], xs, sampling_rate), search_index(xlim[1], xs, sampling_rate))
-        except Exception as e:
-            print(f'xlim index exception: {e}')
+        except:
             xlim_idx = (0, len(xs))
 
         if auto_radius is not None:

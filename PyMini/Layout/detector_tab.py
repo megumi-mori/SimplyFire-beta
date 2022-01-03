@@ -39,11 +39,11 @@ def find_in_window():
     find_all_button.config(state='disabled')
     global find_in_window_button
     find_in_window_button.config(state='disabled')
-    t = Thread(target=start_find_all_process())
+    t = Thread(target=start_find_in_window_process())
     t.start()
 
 def start_find_in_window_process():
-    interface.find_mini_in_range(trace_display.ax.get_xlim(), trace_display.ax.get_ylim())
+    interface.find_mini_in_range(trace_display.ax.get_xlim())
     global stop_button
     stop_button.config(state='disabled')
     global find_all_button
