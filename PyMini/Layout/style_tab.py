@@ -21,13 +21,6 @@ class StyleTab(BaseModule):
         # self.frame.insert_title(text='Main plot style')
         ttk.Label(self.frame, text='Main plot style', anchor=Tk.CENTER).grid(column=0, row=0, sticky='news')
 
-
-
-
-
-
-
-
 def load(parent):
 
     frame = ScrollableOptionFrame(parent)
@@ -142,6 +135,7 @@ def load(parent):
         name='event_markers',
         text='Event Markers'
     )
+    global boxes
     boxes = [
         ('show_peak', 'Peak'),
         ('show_decay', 'Decay constant'),
@@ -149,21 +143,13 @@ def load(parent):
         # ('show_end', 'Event end')
     ]
     for i in boxes:
-        app.widgets[i[0]] = optionframe.insert_label_checkbox(
+        widgets[i[0]] = optionframe.insert_label_checkbox(
             name = i[0],
             label=i[1],
             onvalue='1',
             offvalue='',
             command=lambda e=i[0]:interface.toggle_marker_display(e) #need to link this
         )
-    def show_all(e=None):
-        optionframe.set_all('1', filter='show_')
-        for i in boxes:
-            interface.toggle_marker_display(i[0])
-    def hide_all(e=None):
-        optionframe.set_all('', filter='show_')
-        for i in boxes:
-            interface.toggle_marker_display(i[0])
     b = optionframe.insert_button(
         text='Show all',
         command= show_all
@@ -173,7 +159,7 @@ def load(parent):
         text='Hide all',
         command=hide_all
     )
-
+    b.bind('<ButtonPress-1>', hide_all, add='+')
     return frame
 def place_VarEntry(name, column, row, frame, width=None):
     global widgets
@@ -185,3 +171,11 @@ def apply_styles(e=None):
     global entries
     trace_display.apply_styles(entries)
 
+def show_all(e=None):
+    for i in boxes:
+        widgets[i[0]].var.set('1')
+        interface.toggle_marker_display(i[0])
+def hide_all(e=None):
+    for i in boxes:
+        widgets[i[0]].var.set("")
+        interface.toggle_marker_display(i[0])
