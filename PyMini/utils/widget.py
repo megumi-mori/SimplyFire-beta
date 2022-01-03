@@ -599,6 +599,7 @@ class DataTable(Tk.Frame):
 
     def append(self, dataframe):
         if dataframe is None:
+            print('nothing in dataframe')
             return None
         total = dataframe.shape[0]
         try:
@@ -612,7 +613,8 @@ class DataTable(Tk.Frame):
                 except Exception as e:
                     print(f'datatable append{e}')
                     pass
-        except:
+        except Exception as e:
+            print(f'widget dataframe append error {e}')
             pass
     def set(self, dataframe):
         self.clear()

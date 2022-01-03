@@ -91,9 +91,10 @@ default_evoked_range_right: 1
 default_detector_core_direction : 'positive'
 default_detector_core_search_radius : 5.0
 default_detector_core_auto_radius : 80
-default_detector_core_lag : 10
+default_detector_core_lag_ms : 10
 default_detector_core_deltax_ms: 0
 default_detector_core_min_peak2peak: 5
+default_detector_core_std_lag_ms: 10
 
 default_detector_core_decay_algorithm: 'Curve fit'
 default_detector_core_decay_p_amp: 0.37
@@ -121,6 +122,8 @@ default_detector_filter_min_rise : 0
 default_detector_filter_max_rise : 'None'
 default_detector_filter_min_dr: 0
 default_detector_filter_max_dr: 'None'
+default_detector_filter_min_s2n: 0
+default_detector_filter_max_s2n: 'None'
 
 default_detector_decay_func_type : '1'
 default_detector_decay_func_constant : "1"
@@ -141,6 +144,7 @@ default_data_display_halfwidth : 1
 default_data_display_halfwidth_unit : 1
 default_data_display_baseline : 1
 default_data_display_baseline_unit : 1
+default_data_display_std: 1
 default_data_display_channel : 1
 default_data_display_direction : 1
 default_data_display_compound: 1

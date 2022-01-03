@@ -145,7 +145,7 @@ class Recording():
         if channel is None:
             channel = self.channel
         writeABF1(self.y_data[channel], filename, self.sampling_rate, self.channel_units[channel])
-        
+
     def write_csv(self, filename, channel=None):
         if channel is None:
             channel = self.channel
@@ -1288,9 +1288,9 @@ class Analyzer():
                                lag_ms=None,
                                lag=100,
                                min_peak2peak=0,
+                               std_lag_ms=10,
                                ## compound parameters defined in GUI ##
                                compound=1,
-                               extrapolation_length=100,
                                p_valley=50,
                                max_compound_interval=0,
                                extrapolate_hw=0,
@@ -1314,6 +1314,8 @@ class Analyzer():
                                max_decay=np.inf,
                                min_drr=0.0,
                                max_drr=np.inf,
+                               min_s2n = 0,
+                               max_s2n = np.inf,
                                #################################
                                offset=0,
                                y_unit='mV',
@@ -1369,13 +1371,16 @@ class Analyzer():
             decay_max_points = int(decay_max_interval/1000*sampling_rate)
         if delta_x_ms is not None:
             delta_x = int(delta_x_ms/1000*sampling_rate)
+        if std_lag_ms:
+            std_lag = int(std_lag_ms/1000*sampling_rate)
         # initiate mini data dict
         mini = {'direction': direction, 'lag': lag, 'delta_x': delta_x, 'channel': channel, 'min_amp': min_amp,
                 'max_amp': max_amp,
                 'min_rise': min_rise, 'max_rise': max_rise, 'min_hw': min_hw, 'max_hw': max_hw, 'min_decay': min_decay,
+                'min_s2n': min_s2n, 'max_s2n': max_s2n,
                 'max_decay': max_decay, 'decay_max_points': decay_max_points, 'decay_max_interval': decay_max_interval,
                 'datetime': datetime.now().strftime('%m-%d-%y %H:%M:%S'), 'failure': None, 'success': True,
-                't': xs[peak_idx], 'peak_idx': peak_idx + offset, 'compound': False, 'amp_unit': y_unit,
+                't': xs[peak_idx], 'peak_idx': peak_idx + offset, 'compound': False,
                 'baseline_unit': y_unit}
 
         max_compound_interval_idx = max_compound_interval * sampling_rate/1000
@@ -1383,6 +1388,7 @@ class Analyzer():
             mini['decay_unit'] = mini['rise_unit'] = mini['halfwidth_unit'] = 'ms'
         else:
             mini['decay_unit'] = mini['rise_unit'] = mini['halfwidth_unit'] = x_unit + 'E-3'
+        mini['amp_unit'] = mini['stdev_unit'] = y_unit
 
 
         # extract peak datapoint
@@ -1430,7 +1436,6 @@ class Analyzer():
         mini['baseline'] = ys[baseline_idx]
         mini['start_idx'] = baseline_idx + offset
 
-
         if reference_df and len(self.mini_df.index) > 0 or prev_peak is not None:
             # try:
             # find the peak of the previous mini
@@ -1466,10 +1471,6 @@ class Analyzer():
                             mini['success'] = False
                             mini['failure'] = 'The compound mini could not be analyzed - need more data points'
 
-                        # find where the 'min' valley value is before previous peak
-                        baseline_idx = np.where(ys[prev_peak_idx_offset:peak_idx] * direction == min(
-                            ys[prev_peak_idx_offset:peak_idx] * direction))[0][0] + prev_peak_idx_offset
-
                         mini['prev_baseline'] = prev_peak['baseline']
                         mini['prev_decay_const'] = prev_peak['decay_const']
                         mini['prev_decay_A'] = prev_peak['decay_A']
@@ -1478,9 +1479,11 @@ class Analyzer():
                         y_decay = single_exponent((xs[baseline_idx:peak_idx+1]-xs[prev_peak_idx_offset])*1000, mini['prev_decay_A'], mini['prev_decay_const'])  + mini['prev_baseline'] * direction
                         baseline_idx_ex = np.where(y_decay >= ys[baseline_idx:peak_idx+1]*direction)[0][-1] + baseline_idx
 
+                        # find where the 'min' valley value is between previous peak and current peak
                         baseline_idx_min = np.where(ys[prev_peak_idx_offset:peak_idx]*direction == min(ys[prev_peak_idx_offset:peak_idx] * direction))[0][0]+prev_peak_idx_offset
                         # update start_idx
-                        mini['start_idx'] = max(baseline_idx_ex, baseline_idx_min) + offset
+                        baseline_idx = max(baseline_idx_ex, baseline_idx_min)
+                        mini['start_idx'] = baseline_idx + offset
                         # extrapolate baseline at peak from previous decay
                         mini['baseline'] = single_exponent((xs[peak_idx] - xs[prev_peak_idx_offset])*1000,
                                                            mini['prev_decay_A'],
@@ -1496,10 +1499,10 @@ class Analyzer():
 
         mini['amp'] = (mini['peak_coord_y'] - mini['baseline'])  # signed
         # store coordinate for start of mini (where the plot meets the baseline)
-        mini['start_coord_x'] = xs[mini['start_idx']]
-        mini['start_coord_y'] = ys[mini['start_idx']]
+        mini['start_coord_x'] = xs[baseline_idx]
+        mini['start_coord_y'] = ys[baseline_idx]
 
-        if (mini['amp'] * direction) < min_amp:
+        if min_amp and (mini['amp'] * direction) < min_amp:
             mini['success'] = False
             mini['failure'] = 'Min amp not met'
             return mini
@@ -1509,6 +1512,25 @@ class Analyzer():
             mini['failure'] = 'Max amp exceeded'
             return mini
         self.print_time('amp', show_time)
+
+        ####### calculate stdev ########
+        mini['stdev_unit'] = y_unit
+        if std_lag > 1:
+            mini['stdev'] = np.std(ys[max(0, baseline_idx - std_lag):baseline_idx])
+        else:
+            mini['stdev'] = None
+            if (min_s2n and min_s2n > 0) or (max_2n and max_s2n < np.inf): # cannot filter
+                mini['success'] = False
+                mini['failure'] = 'Not enough data to calculate stdev of baseline'
+                return mini
+        if mini['stdev'] and min_s2n and mini['amp']*direction/mini['stdev'] < min_s2n:
+            mini['success'] = False
+            mini['failure'] = 'Min signal to noise ratio not met'
+            return mini
+        if mini['stdev'] and max_s2n and mini['amp']*direction/mini['stdev'] > max_s2n:
+            mini['success'] = False
+            mini['failure'] = 'Max signal to noise exceeded'
+            return mini
         ####### calculate end of event #######
         next_peak_idx = None
         if compound:
@@ -1539,7 +1561,7 @@ class Analyzer():
         mini['rise_const'] = (mini['peak_coord_x'] - mini['start_coord_x']) * 1000  # convert to ms
         # print(f'min_rise: {min_rise}')
         # check against min_rise and max_rise
-        if mini['rise_const'] < min_rise:
+        if min_rise and mini['rise_const'] < min_rise:
             mini['success'] = False
             mini['failure'] = 'Min rise not met'
             return mini
@@ -1665,7 +1687,7 @@ class Analyzer():
         mini['halfwidth'] = (xs[int(halfwidth_end_idx)] - xs[int(halfwidth_start_idx)]) * 1000
 
 
-        if mini['halfwidth'] < min_hw:
+        if min_hw and mini['halfwidth'] < min_hw:
             mini['success'] = False
             mini['failure'] = 'Min halfwidth not met'
             return mini
@@ -1723,6 +1745,8 @@ class Analyzer():
                     max_hw:float=np.inf,
                     min_drr:float=0.0,
                     max_drr:float=np.inf,
+                    min_s2n:float=0.0,
+                    max_s2n:float=np.inf,
                     **kwargs):
         """
         Filters the previously found mini based on criteria
@@ -1740,6 +1764,8 @@ class Analyzer():
         min_hw: float representing the minimum accepted mini halfwdith (ms)
         max_drr: float representing the maximum decay:rise ratio (no unit)
         min_drr: float representing the minimum decay:rise ratio (no unit)
+        max_s2n: signal to noise ratio (amp/stdev) min
+        min_s2n: signal to noise ratio (amp/stdev) max
         xlim: tuple representing the x-axis limits to apply the filter. If None, all entries in the dataframe are considered
         """
         if mini_df is None:
@@ -1747,9 +1773,9 @@ class Analyzer():
         if xlim is None:
             xlim = (0.0, np.inf)
         if min_amp is not None:
-            mini_df = mini_df[(mini_df['amp']*direction > min_amp) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
+            mini_df = mini_df[(mini_df['amp']*mini_df['direction'] > min_amp) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if max_amp is not None:
-            mini_df = mini_df[(mini_df['amp']*direction < max_amp) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
+            mini_df = mini_df[(mini_df['amp']*mini_df['direction'] < max_amp) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if min_rise is not None:
             mini_df = mini_df[(mini_df['rise_const'] > min_rise) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if max_rise is not None:
@@ -1766,6 +1792,11 @@ class Analyzer():
             mini_df = mini_df[(mini_df['decay_const']/mini_df['rise_const'] > min_drr) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if max_drr is not None:
             mini_df = mini_df[(mini_df['decay_const']/mini_df['rise_const'] < max_drr) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
+        if min_s2n is not None and min_s2n > 0:
+            mini_df = mini_df[(mini_df['stdev'] != None) & (mini_df['amp']*mini_df['direction']/mini_df['stdev'] > min_s2n)]
+        if max_s2n is not None and max_s2n < np.inf:
+            mini_df = mini_df[(mini_df['stdev'] != None) & (mini_df['amp']*mini_df['direction']/mini_df['stdev'] < max_s2n)]
+
         return mini_df
 
     ###################

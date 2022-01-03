@@ -134,11 +134,14 @@ def load(parent):
                     'label':'Points before peak to estimate baseline (ms)',
                     'validation':'positive_int/zero',
                     'conversion': int},
-        'lag_ms': {'id': 'detector_core_lag',
+        'lag_ms': {'id': 'detector_core_lag_ms',
                             'label': 'Window of data points averaged to find start of mini (ms):',
                             'validation': 'float', 'conversion':float},
         'min_peak2peak': {'id': 'detector_core_min_peak2peak',
-                          'label':'Reject minis closer than (ms):', 'validation':'float'}
+                          'label':'Reject minis closer than (ms):', 'validation':'float'},
+        'std_lag_ms': {'id': 'detector_core_std_lag_ms',
+                   'label': 'x-interval to calculate standard deviation (ms):',
+                   'validation':'float', 'conversion':float}
     }
     for k, d in core_params.items():
         widgets[d['id']] = optionframe.insert_label_entry(
@@ -332,7 +335,10 @@ def load(parent):
         'min_rise':{'id':'detector_filter_min_rise', 'label':'Minimum rise constant (ms)', 'validation':'float/None', 'conversion':float},
         'max_rise':{'id':'detector_filter_max_rise', 'label':'Maximum rise constant (ms)', 'validation':'float/None', 'conversion':float},
         'min_drr':{'id':'detector_filter_min_dr', 'label':'Minimum decay:rise ratio', 'validation':'float/None', 'conversion':float},
-        'max_drr':{'id':'detector_filter_max_dr', 'label':'Maximum decay:rise ratio', 'validation':'float/None', 'conversion':float}
+        'max_drr':{'id':'detector_filter_max_dr', 'label':'Maximum decay:rise ratio', 'validation':'float/None', 'conversion':float},
+        'min_s2n':{'id':'detector_filter_min_s2n', 'label':'Minimum amp:std ratio', 'validation':'float/None', 'conversion':float},
+        'max_s2n': {'id': 'detector_filter_max_s2n', 'label': 'Maximum amp:std ratio', 'validation': 'float/None',
+                    'conversion': float}
     }
     for k, d in filter_params.items():
         widgets[d['id']] = optionframe.insert_label_entry(
@@ -428,6 +434,7 @@ def load(parent):
         # ('data_display_start', 'Start time'),
         # ('data_display_end', 'End time'),
         ('data_display_channel', 'Channel'),
+        ('data_display_std', 'Stdev'),
         ('data_display_direction', 'Direction'),
         ('data_display_compound', 'Compound')
     ]

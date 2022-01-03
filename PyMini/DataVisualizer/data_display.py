@@ -35,6 +35,8 @@ mini_header2config = OrderedDict([
     ('baseline', 'data_display_baseline'),
     ('baseline_unit', 'data_display_baseline'),
     ('channel', 'data_display_channel'),
+    ('stdev', 'data_display_std'),
+    ('stdev_unit', 'data_display_std'),
     ('direction', 'data_display_direction'),
     ('compound', 'data_display_compound')
 ])
