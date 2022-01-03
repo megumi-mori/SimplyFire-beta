@@ -260,13 +260,12 @@ def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
     if fix_y:
         trace_display.set_axis_limit('y', ylim)
 
-    if len(al.mini_df.index)>0:
-        xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
-        xs = xs.dropna()
+    # if len(al.mini_df.index)>0:
+    #     xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
+    #     xs = xs.dropna()
+    #
+    #     data_display.append(al.mini_df.loc[xs])
 
-        data_display.append(al.mini_df.loc[xs])
-
-    populate_data_display()
     update_event_marker()
 
 def delete_last_sweep():
@@ -312,7 +311,6 @@ def config_data_tab(tab_name, **kwargs):
     """
     use this function to enable a disabled tab
     """
-    print('config data tab')
     try:
         if kwargs['state'] == 'normal':
             print('normal')
@@ -906,7 +904,8 @@ def plot_overlay(fix_axis=False, fix_x=False, draw=False):
     if fix_x:
         xlim = trace_display.get_axis_limits('x')
     trace_display.clear()
-    data_display.clear()
+    # data_display.clear()
+
     for i in range(al.recording.sweep_count):
         trace_display.plot_trace(al.recording.get_xs(mode='overlay', sweep=i),
                                  al.recording.get_ys(mode='overlay', sweep=i),

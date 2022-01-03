@@ -43,7 +43,7 @@ def find_in_window():
     t.start()
 
 def start_find_in_window_process():
-    interface.find_mini_in_range(trace_display.ax.get_xlim())
+    interface.find_mini_in_range(trace_display)
     global stop_button
     stop_button.config(state='disabled')
     global find_all_button

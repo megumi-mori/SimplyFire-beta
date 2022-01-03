@@ -124,11 +124,13 @@ def export_results():
     results_display.dataframe.export(filename)
 
 def open_events():
-    filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('All files', "*.*")],
-                                            defaultextension='.csv',
-                                            initialfile=interface.al.recording.filename.split('.')[0] + '_mini.csv')
+    if interface.al.recording is None:
+        messagebox.showerror('Open error', message='Please open a trace first')
+        return None
+    filename = filedialog.askopenfilename(filetype=[('event files', '*.event'), ('All files', "*.*")],
+                                            defaultextension='.event')
     if filename:
-        data_display.dataframe.export(filename)
+        interface.open_events(filename)
         return
     return
 
@@ -144,10 +146,11 @@ def set_analysis_mini():
     global widgets
     widgets['analysis_mode'].set('mini')
     interface.config_cp_tab('mini', state='normal')
+    interface.config_data_tab('mini', state='normal')
     if widgets['trace_mode'].get() != 'continuous':
         interface.config_cp_tab('mini', state='disabled')
+        interface.config_data_tab('mini', state='disabled')
         pass
-    interface.config_data_tab('mini', state='normal')
     interface.update_event_marker()
     app.pb['value'] = 0
     app.pb.update()
@@ -172,6 +175,7 @@ def set_view_continuous(save_undo=True):
         pass
     if widgets['analysis_mode'].get() == 'mini':
         interface.config_cp_tab('mini', state='normal')
+        interface.config_data_tab('mini', state='normal')
     trace_mode = 'continuous'
     pass
 
@@ -190,6 +194,7 @@ def set_view_overlay(save_undo=True):
         pass
     if widgets['analysis_mode'].get() == 'mini':
         interface.config_cp_tab('mini', state='disabled')
+        interface.config_data_tab('mini', state='disabled')
     trace_mode = 'overlay'
     pass
 
@@ -324,10 +329,11 @@ class Menubar():
     def set_analysis_mini(self):
         self.widgets['analysis_mode'].set('mini')
         interface.config_cp_tab('mini', state='normal')
+        interface.config_data_tab('mini', state='normal')
         if self.widgets['trace_mode'].get() != 'continuous':
             interface.config_cp_tab('mini', state='disabled')
+            interface.config_data_tab('mini', state='disabled')
             pass
-        interface.config_data_tab('mini', state='normal')
         interface.populate_data_display()
         interface.update_event_marker()
         app.pb['value'] = 0
@@ -351,6 +357,7 @@ class Menubar():
             pass
         if self.widgets['analysis_mode'].get() == 'mini':
             interface.config_cp_tab('mini', state='normal')
+            interface.config_data_tab('mini', state='normal')
         self.trace_mode = 'continuous'
         pass
 
@@ -365,8 +372,12 @@ class Menubar():
             interface.plot_overlay(fix_axis=True)
         except:
             pass
+        print('set_view_overlay, before if statement')
+        print(self.widgets['analysis+mode'].get())
         if self.widgets['analysis_mode'].get() == 'mini':
             interface.config_cp_tab('mini', state='disabled')
+            print('set view overlay disable mini')
+            interface.config_data_tab('mini', state='disabled')
         self.trace_mode = 'overlay'
         pass
 
