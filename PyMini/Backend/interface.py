@@ -683,11 +683,6 @@ def report_to_param_guide(xs, ys, data, clear=False):
     if data['failure'] is not None:
         param_guide.msg_label.insert(data['failure'] + '\n')
     try:
-        param_guide.plot_search(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
-                            ys[data['xlim_idx'][0]:data['xlim_idx'][1]], )
-    except:
-        pass
-    try:
         start = int(min(max(data['start_idx'] - data['lag'] - data['delta_x'], 0), data['xlim_idx'][0]))
         if data['compound']:
             start = min(start, int(data['prev_peak_idx']))
@@ -695,10 +690,18 @@ def report_to_param_guide(xs, ys, data, clear=False):
         param_guide.plot_recording(
             xs[start:end],
             ys[start:end],
+            xlim=(xs[int(max(data['start_idx'] - data['lag'], 0))],
+                  xs[int(min(data['peak_idx'] + data['decay_max_points'], len(xs)-1))])
         )
         param_guide.plot_start(data['start_coord_x'], data['start_coord_y'])
-    except: # start not found
+    except:  # start not found
         pass
+    # try:
+    #     param_guide.plot_search(xs[data['xlim_idx'][0]:data['xlim_idx'][1]],
+    #                         ys[data['xlim_idx'][0]:data['xlim_idx'][1]], )
+    # except:
+    #     pass
+
     try:
         param_guide.msg_label.insert(f"Peak: {data['peak_coord_x']:.3f},{data['peak_coord_y']:.3f}\n")
         param_guide.plot_peak(data['peak_coord_x'], data['peak_coord_y'])

@@ -169,22 +169,25 @@ def plot_trace(xs, ys, label=None):
                 c=app.widgets['style_trace_line_color'].get(), label=label)
         ax.autoscale(enable=True, axis='both', tight=True)
         ax.relim()
-        # canvas.draw()
     except Exception as e:
         print('plot_trace error {}'.format(e))
         pass
-def plot_recording(xs, ys):
+def plot_recording(xs, ys, xlim=None):
     ax.plot(xs, ys, linewidth=app.widgets['style_trace_line_width'].get(),
             c=app.widgets['style_trace_line_color'].get(),
             label='Recording')
     ax.autoscale(enable=True,axis='both',tight=True)
     ax.relim()
+    if xlim:
+        ax.set_xlim(xlim)
+
 
 def plot_search(xs, ys):
     ax.plot(xs, ys, linewidth=1,
             c='blue',
             alpha=0.1,
             label='Search range')
+
 
 
 def plot_baseline_calculation(xs, ys):

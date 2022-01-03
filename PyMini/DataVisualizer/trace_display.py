@@ -649,7 +649,6 @@ def plot_end(xs, ys):
 
 
 def apply_styles(keys):
-    print(keys)
     for k in keys:
         try:
             if k == 'style_trace_line_width':
