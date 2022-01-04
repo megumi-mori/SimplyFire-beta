@@ -1210,7 +1210,6 @@ class Analyzer():
                             sigma=y_weight,
                             absolute_sigma=True,
                             maxfev=15000)
-        print(results[0])
         a = results[0][0]
         t = results[0][1]
         # d = results[0][2]
