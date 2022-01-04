@@ -2092,3 +2092,29 @@ def calculate_window_around_x(x: float,
             end_idx = i
 
     return start_idx + offset, end_idx + offset
+
+def point_line_min_distance(x, y, offset, xs, ys, x2y=1, rate=None):
+    # finds the minimum square difference between a point and a line.
+    idx = search_index(x, xs, rate)
+    min_d = np.inf
+    min_i = None
+    for i in range(max(idx - offset, 0), min(idx + offset, len(xs))):
+        d = euc_distance((x, y), (xs[i], ys[i]), x2y)
+        if d < min_d:
+            min_d = d
+            min_i = i
+    return min_d, min_i
+
+def contains_line(xlim, ylim, xs, ys, rate=None):
+    if xlim:
+        xlim_idx = (search_index(xlim[0], xs, rate), search_index(xlim[1], xs, rate))
+    else:
+        xlim_idx = (0, len(xs))
+    if xlim_idx[0] < 0 or xlim_idx[-1] > len(xs):
+        return False
+    if ylim:
+        for y in ys[xlim_idx[0]:xlim_idx[1]]:
+            if ylim[0] < y < ylim[1]:
+                return True
+        return False
+    return True

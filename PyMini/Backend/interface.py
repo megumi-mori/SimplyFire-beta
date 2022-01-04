@@ -920,7 +920,7 @@ def select_trace_from_plot(x, y):
     for i, var in enumerate(sweep_tab.sweep_vars):
         if var.get():
             line = trace_display.get_sweep(i)
-            d, idx = al.point_line_min_distance(x, y, offset=radius, xs=line.get_xdata(), ys=line.get_ydata(),
+            d, idx = analyzer2.point_line_min_distance(x, y, offset=radius, xs=line.get_xdata(), ys=line.get_ydata(),
                                              x2y=x2y, rate=al.recording.sampling_rate)
             if d < min_d:
                 min_d = d
@@ -972,7 +972,7 @@ def highlight_sweep_in_range(xlim=None, ylim=None, draw=True):
 def get_sweep_in_range(xlim=None, ylim=None):
     ls = []
     for i, sweep in enumerate(trace_display.sweeps):
-        if al.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
+        if analyzer2.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
                                   trace_display.sweeps[sweep].get_ydata(), rate=al.recording.sampling_rate):
             ls.append((i, sweep))
     return ls

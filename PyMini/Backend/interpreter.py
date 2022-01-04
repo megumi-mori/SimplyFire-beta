@@ -26,7 +26,7 @@ def initialize():
         bind_key(key, press_function=unselect_key, target=data_display.table, add="")
 
     for key in config.key_delete:
-        bind_key(key, press_function=data_display.delete_selected, target=trace_display.canvas.get_tk_widget())
+        bind_key(key, press_function=delete_key, target=trace_display.canvas.get_tk_widget())
 
     for key in config.key_select_all:
         bind_key(key, press_function=select_all_key, target=trace_display.canvas.get_tk_widget())
@@ -434,21 +434,11 @@ def unselect_key(event):
     pass
 
 def delete_key(event):
-    focus = app.root.focus_get()
-    print('delete key')
-    print(focus)
-    if focus == data_display.dataframe.table:
+    if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
         data_display.delete_selected()
-        return None
-    if focus == trace_display.canvas.get_tk_widget() and app.widgets['analysis_mode'].get() == 'mini':
-        data_display.delete_selected()
-        return None
-    if focus == evoked_data_display.dataframe.table:
-        evoked_data_display.delete_selected()
-        return None
-    if focus == results_display.dataframe.table:
-        results_display.dataframe.delete_selected()
-        return None
+        return
+    if app.widgets['trace_mode'].get() == 'overlay':
+        interface.hide_highlighted_sweep()
 
     # if app.widgets['trace_mode'].get() == 'overlay':
     #     interface.hide_highlighted_sweep()
