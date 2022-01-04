@@ -51,7 +51,7 @@ def find_in_window():
 
 def start_find_in_window_process():
     running_popup.load(process='find_mini')
-    interface.find_mini_in_range(trace_display)
+    interface.find_mini_in_range(trace_display.ax.get_xlim())
     # global stop_button
     # stop_button.config(state='disabled')
     # global find_all_button

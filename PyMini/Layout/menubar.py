@@ -114,6 +114,7 @@ def export_recording():
 
         if filename is not None:
             interface.al.recording.save(filename)
+            print(f'saved file as {filename}')
     except (FileExistsError):
         messagebox.showerror('Write error', message='Cannot overwrite an existing ABF file')
 

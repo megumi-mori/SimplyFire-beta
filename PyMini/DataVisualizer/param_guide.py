@@ -199,7 +199,7 @@ def plot_recording(xs, ys, xlim=None):
     if xlim:
         ax.set_xlim(xlim)
         xlim_idx = (analyzer2.search_index(xlim[0], xs), analyzer2.search_index(xlim[1], xs))
-        ax.set_ylim(int(max(ys[xlim_idx[0]:xlim_idx[1]])), int(min(ys[xlim_idx[0], xlim_idx[1]])))
+        ax.set_ylim(min(ys[xlim_idx[0]:xlim_idx[1]]), max(ys[xlim_idx[0]: xlim_idx[1]]))
 
 
 
@@ -277,12 +277,20 @@ def plot_ruler(coord1, coord2):
         print(e)
         pass
 
-def plot_decay_fit(xs, A, decay, baseline, direction):
+def plot_decay_fit(xs, A, decay, decay_base=0, baseline=0, direction=1):
     # try:
-    ax.plot(xs, analyzer2.single_exponent(xs-xs[0], A, decay)*direction + baseline,
+    ax.plot(xs, analyzer2.single_exponent_constant(xs-xs[0], A, decay, decay_base)*direction + baseline,
             linewidth=app.widgets['style_trace_line_width'].get(),
             c=app.widgets['style_event_decay_color'].get(),
             label='Decay fit')
+def plot_decay_extrapolate(xs,A,decay,decay_base,baseline,prev_A,prev_decay,prev_base,prev_t,direction):
+    y = analyzer2.single_exponent_constant(xs-xs[0],A,decay,decay_base)*direction
+    prev_y = analyzer2.single_exponent_constant(xs-prev_t,prev_A, prev_decay, prev_base) * direction
+    ys = y + prev_y
+    ax.plot(xs, ys,linewidth = app.widgets['style_trace_line_width'].get(),
+            c=app.widgets['style_event_decay_color'].get(),
+            label='Decay fit')
+    pass
 
 def plot_decay_point(x, y):
     ax.scatter(x, y, marker='x', c=app.widgets['style_event_decay_color'].get(),
@@ -372,12 +380,31 @@ def report(xs, ys, data, clear_plot=False):
     try:
         msg_label.insert('Decay: {:.3f} {}\n'.format(data['decay_const'], data['decay_unit']))
         msg_label.insert(f'Decay:rise ratio: {data["decay_const"] / data["rise_const"]}\n')
-
-        plot_decay_fit(xs[int(data['peak_idx']):end],
-                                   data['decay_A'],
-                                   data['decay_const'] / 1000,
-                                   data['baseline'],
-                                   data['direction'])
+        try:
+            if not data['compound']:
+                plot_decay_fit(xs=xs[int(data['peak_idx']):end],
+                               A=data['decay_A'],
+                               decay=data['decay_const'] / 1000,
+                               decay_base=data['decay_baseline'],
+                               baseline=data['baseline'],
+                               direction=data['direction'])
+            else:
+                plot_decay_extrapolate(xs=xs[int(data['peak_idx']):end],
+                                       A=data['decay_A'],
+                                       decay=data['decay_const']/1000,
+                                       decay_base=data['decay_baseline'],
+                                       baseline=data['baseline'],
+                                       prev_A=data['prev_decay_A'],
+                                       prev_decay=data['prev_decay_const']/1000,
+                                       prev_base=data['prev_decay_baseline'],
+                                       prev_t=data['prev_t'],
+                                       direction=data['direction'])
+        except:
+            plot_decay_fit(xs=xs[int(data['peak_idx']):end],
+                           A=data['decay_A'],
+                           decay=data['decay_const'] / 1000,
+                           baseline=data['baseline'],
+                           direction=data['direction'])
         plot_decay_point(data['decay_coord_x'], data['decay_coord_y'])
     except Exception as e:
         print(e)

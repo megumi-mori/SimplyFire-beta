@@ -138,7 +138,7 @@ class Recording():
             raise FileExistsError
         filetype = os.path.splitext(filename)[1]
         if filetype == '.abf':
-            self.write_abf
+            self.write_abf(filename, channel)
         elif filetype == '.csv':
             self.write_csv(filename, channel)
     def write_abf(self, filename, channel=None):
@@ -1097,6 +1097,7 @@ class Analyzer():
                                  prev_mini_t:float=None,
                                  prev_mini_A: float=None,
                                  prev_mini_decay: float=None,
+                                prev_mini_decay_baseline:float=None,
                                  prev_mini_baseline: float=None,
                                  ):
         """
@@ -1118,8 +1119,8 @@ class Analyzer():
         """
         if prev_mini_A is not None:
             prev_mini_t_ms = prev_mini_t * 1000
-            y_data = ys * direction - single_exponent((xs * 1000 - prev_mini_t_ms), prev_mini_A,
-                                                  prev_mini_decay) - prev_mini_baseline * direction
+            y_data = ys * direction - single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A,
+                                                  prev_mini_decay, prev_mini_decay_baseline) - prev_mini_baseline * direction
         else:
             y_data = (ys - baseline) * direction
         left_idx = np.where(y_data[:peak_idx] <= (amp * 0.5) * direction)
@@ -1162,6 +1163,7 @@ class Analyzer():
                        baseline: float=0.0,
                        prev_mini_decay: float=None,
                        prev_mini_A: float=None,
+                       prev_mini_decay_baseline: float=None,
                        prev_mini_baseline: float=None,
                        prev_mini_t: int=None
                        ):
@@ -1184,7 +1186,7 @@ class Analyzer():
 
         if prev_mini_t is not None: # compound mini
             prev_mini_t_ms = prev_mini_t * 1000
-            y_data = ys *direction - single_exponent((xs*1000-prev_mini_t_ms), prev_mini_A, prev_mini_decay) - prev_mini_baseline*direction
+            y_data = ys *direction - single_exponent_constant((xs*1000-prev_mini_t_ms), prev_mini_A, prev_mini_decay, prev_mini_decay_baseline) - prev_mini_baseline*direction
 
         else:
             y_data = (ys - baseline) * direction  # baseline subtract
@@ -1195,11 +1197,11 @@ class Analyzer():
             p0[0] = amplitude
         if decay_guess is not None:
             p0[1] = decay_guess
+
         # initialize weights for gradient descent
         y_weight = np.empty(len(y_data))
         y_weight.fill(10)
         y_weight[0] = 0.001
-
         # fit
         results = curve_fit(single_exponent,
                             x_data,
@@ -1208,13 +1210,14 @@ class Analyzer():
                             sigma=y_weight,
                             absolute_sigma=True,
                             maxfev=15000)
-        # print(results[0])
+        print(results[0])
         a = results[0][0]
         t = results[0][1]
         # d = results[0][2]
+        d=0
         # print((a, t, d))
 
-        return a, t
+        return a, t, d
 
 
 
@@ -1377,6 +1380,8 @@ class Analyzer():
             std_lag = int(std_lag_ms/1000*sampling_rate)
         if peak_t:
             peak_idx = search_index(peak_t, xs, sampling_rate)
+        elif peak_idx:
+            peak_idx = int(peak_idx) # make sure is int
         if peak_t is None and peak_idx is None:
             return {'success':False, 'failure':'peak idx not provided'}
         # initiate mini data dict
@@ -1424,19 +1429,17 @@ class Analyzer():
                                                               delta_x=delta_x,
                                                               direction=direction)
 
-
+        # check if baseline calculation was successful
+        if baseline_idx is None:  # not successful
+            mini['success'] = False
+            mini['failure'] = 'Baseline could not be found'
+            return mini
         if delta_x is None or delta_x == 0:
             base_idx = (baseline_idx - lag, baseline_idx)
         else:
             base_idx = (int(peak_idx - delta_x - lag/2), int(peak_idx - delta_x+lag/2))
         mini['base_idx_L'] = base_idx[0] + offset
         mini['base_idx_R'] = base_idx[1] + offset
-
-        # check if baseline calculation was successful
-        if baseline_idx is None:  # not successful
-            mini['success'] = False
-            mini['failure'] = 'Baseline could not be found'
-            return mini
         self.print_time('baseline', show_time)
         ####### search baseline #######
         # find baseline/start of event
@@ -1448,58 +1451,65 @@ class Analyzer():
             # find the peak of the previous mini
             # peak x-value must be stored in the column 't'
             # check that the channels are the same
-            try:
-                if prev_peak is None:
-                    if prev_peak_idx is None:
-                        try:
-                            prev_peak_idx = self.mini_df.loc[(self.mini_df['channel'] == channel) & (
-                                    self.mini_df['t'] < mini['t'])].peak_idx
-                            prev_peak_idx = max(prev_peak_idx)
-                        except:
-                            pass
-
+            # try:
+            if prev_peak is None:
+                if prev_peak_idx is None:
+                    try:
+                        prev_peak_idx = self.mini_df.loc[(self.mini_df['channel'] == channel) & (
+                                self.mini_df['t'] < mini['t'])].peak_idx
+                        prev_peak_idx = max(prev_peak_idx)
+                    except:
+                        prev_peak_idx = None
+                        pass
+                if prev_peak_idx is not None:
                     prev_peak = self.mini_df.loc[(self.mini_df['peak_idx'] == prev_peak_idx) &
-                                                 (self.mini_df['channel'] == channel)].squeeze().to_dict()
-                prev_peak_idx_offset = int(prev_peak['peak_idx']) - offset
-                self.print_time('reference search', show_time)
+                                             (self.mini_df['channel'] == channel)].squeeze().to_dict()
+                    prev_peak_idx_offset = int(prev_peak['peak_idx']) - offset
+                    self.print_time('reference search', show_time)
 
-                if prev_peak_idx_offset + min_peak2peak*sampling_rate/1000>peak_idx:
-                    mini['success']=False
-                    mini['failure']='The peak occurs within minimum interval (ms) of the preceding mini'
-                    return mini
-                if compound:
-                    if prev_peak_idx_offset + max_compound_interval*sampling_rate/1000> peak_idx:
-                        # current peak is within set compound interval from the previous peak
-                        mini['compound'] = True
-                        prev_t = prev_peak['t']
-                        mini['prev_t'] = prev_t
-                        mini['prev_peak_idx'] = prev_peak['peak_idx']
-                        if prev_peak_idx_offset < 0 or prev_peak_idx_offset > len(ys):  # not sufficient datapoints
-                            mini['success'] = False
-                            mini['failure'] = 'The compound mini could not be analyzed - need more data points'
+                    if prev_peak_idx_offset + min_peak2peak*sampling_rate/1000>peak_idx:
+                        mini['success']=False
+                        mini['failure']='The peak occurs within minimum interval (ms) of the preceding mini'
+                        return mini
+                    if compound:
+                        if prev_peak_idx_offset + max_compound_interval*sampling_rate/1000> peak_idx:
+                            # current peak is within set compound interval from the previous peak
+                            mini['compound'] = True
+                            prev_t = prev_peak['t']
+                            mini['prev_t'] = prev_t
+                            mini['prev_peak_idx'] = prev_peak['peak_idx']
+                            if prev_peak_idx_offset < 0 or prev_peak_idx_offset > len(ys):  # not sufficient datapoints
+                                mini['success'] = False
+                                mini['failure'] = 'The compound mini could not be analyzed - need more data points'
 
-                        mini['prev_baseline'] = prev_peak['baseline']
-                        mini['prev_decay_const'] = prev_peak['decay_const']
-                        mini['prev_decay_A'] = prev_peak['decay_A']
+                            mini['prev_baseline'] = prev_peak['baseline']
+                            mini['prev_decay_const'] = prev_peak['decay_const']
+                            mini['prev_decay_A'] = prev_peak['decay_A']
+                            mini['prev_decay_baseline'] = prev_peak['decay_baseline']
 
-                        # extrapolate start from previous decay
-                        y_decay = single_exponent((xs[baseline_idx:peak_idx+1]-xs[prev_peak_idx_offset])*1000, mini['prev_decay_A'], mini['prev_decay_const'])  + mini['prev_baseline'] * direction
-                        baseline_idx_ex = np.where(y_decay >= ys[baseline_idx:peak_idx+1]*direction)[0][-1] + baseline_idx
-
-                        # find where the 'min' valley value is between previous peak and current peak
-                        baseline_idx_min = np.where(ys[prev_peak_idx_offset:peak_idx]*direction == min(ys[prev_peak_idx_offset:peak_idx] * direction))[0][0]+prev_peak_idx_offset
-                        # update start_idx
-                        baseline_idx = max(baseline_idx_ex, baseline_idx_min)
-                        mini['start_idx'] = baseline_idx + offset
-                        # extrapolate baseline at peak from previous decay
-                        mini['baseline'] = single_exponent((xs[peak_idx] - xs[prev_peak_idx_offset])*1000,
-                                                           mini['prev_decay_A'],
-                                                           mini['prev_decay_const']) * direction + mini['prev_baseline']# get the extrapolated baseline value
-                        self.print_time('reference extrapolation', show_time)
-            except Exception as e:
-                print('decay extrapolation')
-                print(e)
-                pass
+                            # extrapolate start from previous decay
+                            y_decay = single_exponent((xs[prev_peak_idx_offset:peak_idx+1]-xs[prev_peak_idx_offset])*1000, mini['prev_decay_A'], mini['prev_decay_const'])  + mini['prev_baseline'] * direction
+                            try:
+                                baseline_idx_ex = np.where(y_decay >= ys[prev_peak_idx_offset:peak_idx+1]*direction)[0][-1] + prev_peak_idx_offset
+                            except:
+                                baseline_idx_ex = None
+                            # find where the 'min' valley value is between previous peak and current peak
+                            baseline_idx_min = np.where(ys[prev_peak_idx_offset:peak_idx]*direction == min(ys[prev_peak_idx_offset:peak_idx] * direction))[0][0]+prev_peak_idx_offset
+                            # update start_idx
+                            try:
+                                baseline_idx = max(baseline_idx_ex, baseline_idx_min)
+                            except:
+                                baseline_idx = baseline_idx_min
+                            mini['start_idx'] = baseline_idx + offset
+                            # extrapolate baseline at peak from previous decay
+                            mini['baseline'] = single_exponent((xs[peak_idx] - xs[prev_peak_idx_offset])*1000,
+                                                               mini['prev_decay_A'],
+                                                               mini['prev_decay_const']) * direction + mini['prev_baseline']# get the extrapolated baseline value
+                            self.print_time('reference extrapolation', show_time)
+            # except Exception as e:
+            #     print('decay extrapolation')
+            #     print(e)
+            #     pass
         self.print_time('reference', show_time)
 
 
@@ -1588,7 +1598,7 @@ class Analyzer():
         # try:
         if decay_algorithm == 'Curve fit':
             try:
-                mini['decay_A'], mini['decay_const'] = self.fit_mini_decay(
+                mini['decay_A'], mini['decay_const'], mini['decay_baseline'] = self.fit_mini_decay(
                     xs=xs[peak_idx:min(peak_idx+decay_max_points, len(xs))],
                                     ys=ys[peak_idx:min(peak_idx+decay_max_points, len(ys))],
                                     sampling_rate=sampling_rate,
@@ -1599,11 +1609,12 @@ class Analyzer():
                                     baseline=mini['baseline'],
                                     prev_mini_decay=mini['prev_decay_const'],
                                     prev_mini_A=mini['prev_decay_A'],
+                    prev_mini_decay_baseline=mini['prev_decay_baseline'],
                                     prev_mini_t=mini['prev_t'],
                     prev_mini_baseline=mini['prev_baseline']
                                 )
             except:
-                mini['decay_A'], mini['decay_const'] = self.fit_mini_decay(
+                mini['decay_A'], mini['decay_const'], mini['decay_baseline'] = self.fit_mini_decay(
                     xs=xs[peak_idx:min(peak_idx + decay_max_points, len(xs))],
                     ys=ys[peak_idx:min(peak_idx + decay_max_points, len(ys))],
                     sampling_rate=sampling_rate,
@@ -1616,6 +1627,7 @@ class Analyzer():
         elif decay_algorithm == 'None':
             mini['decay_A'] = None
             mini['decay_const'] = None
+            mini['decay_baseline'] = None
             mini['decay_idx'] = None
             mini['decay_coord_x'] = None
             mini['decay_coord_y'] = None
@@ -1641,21 +1653,24 @@ class Analyzer():
             # print('here')
             try:
                 mini['decay_coord_x'] = xs[decay_idx]
-                prev_decay_y = single_exponent(
+                prev_decay_y = single_exponent_constant(
                     mini['decay_const'] + (mini['t'] - mini['prev_t'])*1000,
                     mini['prev_decay_A'],
-                    mini['prev_decay_const']
+                    mini['prev_decay_const'],
+                    mini['prev_decay_baseline']
                 )*direction + mini['prev_baseline']
-                mini['decay_coord_y'] =prev_decay_y+ single_exponent(
+                mini['decay_coord_y'] =prev_decay_y+ single_exponent_constant(
                     mini['decay_const'],
                     mini['decay_A'],
                     mini['decay_const'],
+                    mini['decay_baseline']
                 ) * direction  #### add support for compound (add back subtracted baseline)
             except:
-                mini['decay_coord_y'] = single_exponent(
+                mini['decay_coord_y'] = single_exponent_constant(
                     mini['decay_const'],
                     mini['decay_A'],
                     mini['decay_const'],
+                    mini['decay_baseline']
                 ) * direction + mini['baseline']
                 pass
             self.print_time('decay', show_time)
@@ -1667,6 +1682,7 @@ class Analyzer():
                 amp=mini['amp'], xs=xs[baseline_idx:end_idx], ys=ys[baseline_idx:end_idx],
                 peak_idx=peak_idx-baseline_idx, baseline=mini['baseline'], direction=direction,
                 prev_mini_t=mini['prev_t'], prev_mini_decay=mini['prev_decay_const'], prev_mini_A=mini['prev_decay_A'],
+                prev_mini_decay_baseline=mini['prev_decay_baseline'],
                 prev_mini_baseline=mini['prev_baseline']
             )
         else:
@@ -1711,14 +1727,16 @@ class Analyzer():
         mini['halfwidth_end_coord_x'] = xs[halfwidth_end_idx]
 
         if compound and mini['compound']:
-            mini['halfwidth_start_coord_y'] = single_exponent((xs[halfwidth_start_idx] - mini['prev_t']) * 1000,
+            mini['halfwidth_start_coord_y'] = single_exponent_constant((xs[halfwidth_start_idx] - mini['prev_t']) * 1000,
                                                               mini['prev_decay_A'],
-                                                              mini['prev_decay_const']
+                                                              mini['prev_decay_const'],
+                                                                       mini['prev_decay_baseline']
                                                               ) * direction + mini['prev_baseline'] + 0.5 * \
                                               mini['amp']
-            mini['halfwidth_end_coord_y'] = single_exponent((xs[halfwidth_end_idx] - mini['prev_t']) * 1000,
+            mini['halfwidth_end_coord_y'] = single_exponent_constant((xs[halfwidth_end_idx] - mini['prev_t']) * 1000,
                                                             mini['prev_decay_A'],
-                                                            mini['prev_decay_const']
+                                                            mini['prev_decay_const'],
+                                                                     mini['prev_decay_baseline']
                                                             ) * direction + mini['prev_baseline'] + 0.5 * mini[
                                                 'amp']
         else:

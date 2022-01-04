@@ -588,7 +588,9 @@ def select_single_mini(iid):
 
 def reanalyze(data, accept_all=False):
     peak_idx = data['peak_idx']
-    delete_event([data['t']], undo=False)
+    if al.mini_df.shape[0]>0:
+        if al.mini_df['t'].isin([data['t']]).any():
+            delete_event([data['t']], undo=False)
 
     params = detector_tab.extract_mini_parameters()
     if accept_all:
