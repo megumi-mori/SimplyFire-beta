@@ -227,5 +227,8 @@ def report(event=None):
         data['channel'] = interface.al.recording.channel
     if 'compound' in dataframe.columns:
         data['num_compound'] = mini_df['compound'].sum()
+    # calculate frequency
+    data['Hz'] = interface.al.calculate_frequency()
+
 
     results_display.dataframe.add(data)

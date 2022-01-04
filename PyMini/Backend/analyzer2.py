@@ -1906,7 +1906,13 @@ class Analyzer():
     #             start_idx += 1
     #             peak_idx += 1
     #     return None
+    def calculate_frequency(self, channel=None):
+        if channel is None:
+            channel = self.recording.channel
+        df = self.mini_df[self.mini_df['channel']==channel]
+        freq = (df['t'].max() - df['t'].min())/df.shape[0]
 
+        return freq
 
 ##############################
 # Common Helper Functions
