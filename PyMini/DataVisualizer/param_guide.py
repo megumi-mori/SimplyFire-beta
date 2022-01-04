@@ -198,6 +198,11 @@ def plot_recording(xs, ys, xlim=None):
     ax.relim()
     if xlim:
         ax.set_xlim(xlim)
+        xlim_idx = (analyzer2.search_index(xlim[0], xs), analyzer2.search_index(xlim[1], xs))
+        ax.set_ylim(int(max(ys[xlim_idx[0]:xlim_idx[1]])), int(min(ys[xlim_idx[0], xlim_idx[1]])))
+
+
+
 
 
 def plot_search(xs, ys):
