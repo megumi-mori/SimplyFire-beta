@@ -30,8 +30,8 @@ def load():
             'Mini analysis mode (continuous)': lambda m=0: change_mode(m),
             'Evoked analysis mode (overlay)': lambda m=1: change_mode(m),
 
-            'Find all': detector_tab.find_all,
-            'Find in window': detector_tab.find_in_window,
+            'Find all': lambda p=False: detector_tab.find_all(p),
+            'Find in window': lambda p=False: detector_tab.find_in_window(p),
             'Delete all': interface.delete_all_events,
             'Delete in window': detector_tab.delete_in_window,
             'Report stats (mini)': data_display.report,
@@ -45,6 +45,8 @@ def load():
 
         }
         create_window()
+    global current_command
+    current_command = None
 
 def create_window():
     global window
@@ -419,6 +421,9 @@ def ask_save_batch(event=None):
 def process_interrupt(event=None):
     global stop
     stop = True
+    global current_command
+    interface.interrupt(process=current_command)
+
 
 def process_start(event=None):
     global start_button
@@ -428,7 +433,7 @@ def process_start(event=None):
     global stop
     stop = False
 
-    t = Thread(target=process_batch)
+    t = Thread(target=process_batch())
     t.start()
 
 def process_batch(event=None):
@@ -448,7 +453,9 @@ def process_batch(event=None):
     global stop
     global progress_message
     global batch_log
+    global current_command
     batch_log.delete(1.0, Tk.END)
+
     for j, f in enumerate(files):
         if stop:
             break
@@ -461,6 +468,7 @@ def process_batch(event=None):
                 for i,c in enumerate(commands):
                     batch_log.insert(f'\t{c}\n')
                     progress_message.config(text=f'Processing {j+1}/{total_files} files. At {i+1}/{total_steps} steps')
+                    current_command = c
                     if c == 'Save minis':
                         fname = f.split('.')[0]+'.event'
                         interface.save_events(fname, mode='x')
@@ -480,8 +488,8 @@ def process_batch(event=None):
         except:
             batch_log.insert(f'could not open {f}')
     if stop:
-        batch_log.insert('Batch stopped by user')
-    batch_log.insert('End of batch')
+        batch_log.insert('Batch stopped by user\n')
+    batch_log.insert('End of batch\n')
     stop = False
     app.root.attributes('-disabled', False)
     window.protocol("WM_DELETE_WINDOW", window.withdraw)
