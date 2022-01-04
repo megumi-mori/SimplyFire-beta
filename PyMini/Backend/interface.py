@@ -169,12 +169,8 @@ def open_trace(fname):
             pass
     else:
         al.recording.set_channel(0)
-    trace_display.clear()
     data_display.clear()
     evoked_data_display.clear()
-    trace_display.ax.set_xlabel(al.recording.x_label)
-    trace_display.ax.set_ylabel(al.recording.y_label)
-    trace_display.canvas.draw()
     app.widgets['trace_info'].set(
         '{}: {}Hz : {} channel{}'.format(
             al.recording.filename,
@@ -184,7 +180,6 @@ def open_trace(fname):
         )
     )
     trace_display.ax.autoscale(enable=True, axis='both', tight=True)
-
     sweep_tab.populate_list(al.recording.sweep_count)
 
     print('after populating list: {}'.format(len(sweep_tab.panels)))
@@ -195,7 +190,6 @@ def open_trace(fname):
         plot_overlay()
 
     param_guide.update()
-
     if app.widgets['force_axis_limit'].get() == '1':
         trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
         trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
@@ -237,6 +231,8 @@ def _change_channel(num, save_undo=True):
     populate_data_display()
     update_event_marker()
 
+    param_guide.update()
+
 
 def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
     if not al.recording:
@@ -253,6 +249,9 @@ def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
                              al.recording.get_ys(mode='continuous'),
                              draw=draw,
                              relim=True)
+    trace_display.ax.set_xlabel(al.recording.x_label)
+    trace_display.ax.set_ylabel(al.recording.y_label)
+
     if fix_axis:
         trace_display.set_axis_limit('x', xlim)
         trace_display.set_axis_limit('y', ylim)
@@ -875,6 +874,8 @@ def plot_overlay(fix_axis=False, fix_x=False, draw=False):
         xlim = trace_display.get_axis_limits('x')
     trace_display.clear()
     # data_display.clear()
+    trace_display.ax.set_xlabel(al.recording.x_label)
+    trace_display.ax.set_ylabel(al.recording.y_label)
 
     for i in range(al.recording.sweep_count):
         trace_display.plot_trace(al.recording.get_xs(mode='overlay', sweep=i),
