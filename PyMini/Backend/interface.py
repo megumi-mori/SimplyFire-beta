@@ -14,6 +14,7 @@ import matplotlib as mpl
 from PyMini.Backend import interpreter, analyzer2
 import gc
 import pandas as pd
+from pandas import Series
 import numpy as np
 from threading import Thread
 
@@ -586,85 +587,64 @@ def select_single_mini(iid):
 #         print('select again')
 #         data_display.select_one(iid)
 
-def reanalyze(xs, ys, data, remove_restrict=False):
-    global mini_df
-    try:
-        old_data = mini_df.loc[data['t']]
-    except:
-        old_data = None
+def reanalyze(data, accept_all=False):
+    peak_idx = data['peak_idx']
+    delete_event([data['t']], undo=False)
 
-    data_display.delete_one(data['t'])
-    try:
-        param_guide.configure_buttons(state='disabled')
-    except:
-        pass
-    direction = {'negative': -1, 'positive': 1}[app.widgets['detector_direction'].get()]
-    lag = int(app.widgets['detector_points_baseline'].get())
-    if app.widgets['window_param_guide'].get():
+    params = detector_tab.extract_mini_parameters()
+    if accept_all:
+        params['min_amp'] = 0.0
+        params['max_amp'] = np.inf
+        params['min_decay'] = 0.0
+        params['max_decay'] = np.inf
+        params['min_hw'] = 0.0
+        params['max_hw'] = np.inf
+        params['min_rise'] = 0.0
+        params['max_rise'] = np.inf
+        params['min_drr'] = 0.0
+        params['max_drr'] = np.inf
+        params['min_s2n'] = 0.0
+        params['max_s2n'] = np.inf
+    xs = trace_display.ax.lines[0].get_xdata()
+    ys = trace_display.ax.lines[0].get_ydata()
+
+    guide = False
+    if app.widgets['window_param_guide'].get() == '1':
+        guide = True
         param_guide.clear()
-    if remove_restrict:
-        if app.widgets['window_param_guide'].get():
-            param_guide.msg_label.insert('Reanalyzing without restrictions.\n')
-        min_amp = 0,
-        min_rise = 0,
-        max_rise = np.inf,
-        min_hw = 0,
-        max_hw = np.inf,
-        min_decay = 0,
-        max_decay = np.inf,
-    else:
-        min_amp = float(app.widgets['detector_min_amp'].get())
 
-        min_rise = float(app.widgets['detector_min_rise'].get())
-        try:
-            max_rise = float(app.widgets['detector_max_rise'].get())
-        except:
-            max_rise = np.inf
+    mini = al.analyze_candidate_mini(xs=xs, ys=ys, peak_idx=peak_idx, x_sigdig=al.recording.x_sigdig,
+                               sampling_rate=al.recording.sampling_rate, channel=al.recording.channel,
+                               reference_df=True, y_unit=al.recording.y_unit,
+                               x_unit=al.recording.x_unit,
+                               **params)
+    if guide:
+        # param_guide.report(xs, ys, mini)
+        param_guide.report(xs, ys, mini)
+    if mini['success']:
+        al.mini_df = al.mini_df.append(Series(mini), ignore_index=True, sort=False)
+        al.mini_df = al.mini_df.sort_values(by='t')
 
-        min_hw = float(app.widgets['detector_min_hw'].get())
-        try:
-            max_hw = float(app.widgets['detector_max_hw'].get())
-        except:
-            max_hw = np.inf
-
-        min_decay = float(app.widgets['detector_min_decay'].get())
-        try:
-            max_decay = float(app.widgets['detector_max_decay'].get())
-        except:
-            max_decay = np.inf
-
-    new_data, success = al.filter_mini()
-    new_data['channel'] = al.recording.channel
-    new_data['search_xlim'] = data['search_xlim']
-    undo = []
-    if success:
-        try:
-            mini_df = mini_df.append(pd.Series(new_data, name=new_data['t']), ignore_index=False, verify_integrity=True,
-                                     sort=True)
-            data_display.add({key: value for key, value in new_data.items() if key in data_display.mini_header2config})
-            update_event_marker()
-            data_display.table.update()
-            undo = [
-                lambda t=new_data['t']:data_display.delete_one(t),
-                lambda msg='Undo reanalysis of mini at {}'.format(data['t']):log_display.log(msg)
-            ]
-        except Exception as e:
-            print('reanalyze {}'.format(e))
-            pass
-    if old_data is not None:
-        pass
-        undo.append(lambda d=old_data: add_event(d))
-    undo.append(update_event_marker)
-    add_undo(undo)
-
-    if app.widgets['window_param_guide'].get():
-        param_guide.report(xs, ys, new_data)
-
+        data_display.add({key: value for key,value in mini.items() if key in data_display.mini_header2config})
+        update_event_marker()
+        if int(app.widgets['config_undo_stack'].get()) > 0:
+            if data['success']:
+                add_undo([
+                    lambda iid=[mini['t']], u=False:delete_event(iid, undo=u),
+                    lambda data=data: add_event(data),
+                    lambda msg='Undo reanalyze mini detection at {}'.format(data['t']):detector_tab.log(msg)
+                ])
+            else:
+                add_undo([
+                    lambda iid=[mini['t']], u=False: delete_event(iid, undo=u),
+                    lambda msg='Undo reanalyze mini detection at {}'.format(data['t']): detector_tab.log(msg)
+                ])
     if detector_tab.changed:
         log_display.search_update('Manual')
         log_display.param_update(detector_tab.changes)
         detector_tab.changes = {}
         detector_tab.changed = False
+
 
 def add_event(data):
     # populate this and replace with repeated calls in interpreter
@@ -833,6 +813,8 @@ def update_event_marker():
     trace_display.canvas.draw()
 
 def delete_event(selection, undo=True):
+    if al.mini_df.shape[0]==0:
+        return None
     if len(selection)>0:
         selection = [float(i) for i in selection]
         if int(app.widgets['config_undo_stack'].get()) > 0 and undo:

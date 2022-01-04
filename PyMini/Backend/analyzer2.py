@@ -1276,7 +1276,8 @@ class Analyzer():
     def analyze_candidate_mini(self,
                                xs,
                                ys,
-                               peak_idx,
+                               peak_idx=None,
+                               peak_t=None,
                                x_sigdig=None,
                                sampling_rate=None,
                                channel=0,
@@ -1327,8 +1328,8 @@ class Analyzer():
                                **kwargs
                                ):
         """
-            peak_idx: int - use if reanalyzing an existing peak. Index within the xs data corresponding to a peak.
-                - If provided, the data point at peak_idx is assumed to be the local extremum
+            peak_idx: int - Index within the xs data corresponding to a peak.
+            peak_t: float - if provided, takes precedence over peak_idx
             x_sigdig: significant digits in x
             sampling_rate: sampling rate of xs in Hz
             direction: int {-1, 1} indicating the expected sign of the mini event. -1 for current, 1 for potential.
@@ -1374,6 +1375,10 @@ class Analyzer():
             delta_x = int(delta_x_ms/1000*sampling_rate)
         if std_lag_ms:
             std_lag = int(std_lag_ms/1000*sampling_rate)
+        if peak_t:
+            peak_idx = search_index(peak_t, xs, sampling_rate)
+        if peak_t is None and peak_idx is None:
+            return {'success':False, 'failure':'peak idx not provided'}
         # initiate mini data dict
         mini = {'direction': direction, 'lag': lag, 'delta_x': delta_x, 'channel': channel, 'min_amp': min_amp,
                 'max_amp': max_amp,
@@ -1383,7 +1388,6 @@ class Analyzer():
                 'datetime': datetime.now().strftime('%m-%d-%y %H:%M:%S'), 'failure': None, 'success': True,
                 't': xs[peak_idx], 'peak_idx': peak_idx + offset, 'compound': False,
                 'baseline_unit': y_unit}
-
         max_compound_interval_idx = max_compound_interval * sampling_rate/1000
         if x_unit in ['s', 'sec', 'second', 'seconds']:
             mini['decay_unit'] = mini['rise_unit'] = mini['halfwidth_unit'] = 'ms'
@@ -1407,6 +1411,7 @@ class Analyzer():
                     return mini
             except Exception as e:  # if df is empty, will throw an error
                 pass
+
 
         # store peak coordinate
         mini['peak_coord_x'] = xs[peak_idx]

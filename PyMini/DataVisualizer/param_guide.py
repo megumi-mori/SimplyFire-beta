@@ -2,7 +2,7 @@ import tkinter as Tk
 from tkinter import ttk
 from math import isnan
 from PyMini import app
-from PyMini.Backend import analyzer2
+from PyMini.Backend import analyzer2, interface
 from PyMini.utils import widget
 from PyMini.utils.widget import NavigationToolbar
 from PyMini.config import config
@@ -92,22 +92,22 @@ def create_window():
     button_frame.grid(column=0, row=1, sticky='news')
 
     global accept_button
-    accept_button = ttk.Button(button_frame, text='Remove restrictions')
+    accept_button = ttk.Button(button_frame, text='Ignore filter\nparams')
     accept_button.grid(column=0, row=0, sticky='news')
     accept_button.config(state='disabled')
-    accept_button.bind('<Button>', canvas.get_tk_widget().focus_set())
+    accept_button.bind('<Button>', accept)
 
     global reanalyze_button
     reanalyze_button = ttk.Button(button_frame, text='Reanalyze')
     reanalyze_button.grid(column=1, row=0, sticky='news')
     reanalyze_button.config(state='disabled')
-    reanalyze_button.bind('<Button>', canvas.get_tk_widget().focus_set())
+    reanalyze_button.bind('<Button>', reanalyze)
 
     global reject_button
     reject_button = ttk.Button(button_frame, text='Reject')
     reject_button.grid(column=2, row=0, sticky='news')
     reject_button.config(state='disabled')
-    reject_button.bind('<Button>', canvas.get_tk_widget().focus_set())
+    reject_button.bind('<Button>', reject)
 
     # global goto_button
     # goto_button = ttk.Button(button_frame, text='Select')
@@ -137,6 +137,11 @@ def create_window():
 
     update()
 
+def accept(e=None):
+    global mini_data
+    interface.reanalyze(mini_data, accept_all=True)
+    canvas.get_tk_widget().focus_set()
+
 def update():
     try:
         ax.set_xlabel(trace_display.ax.get_xlabel())
@@ -159,6 +164,8 @@ def clear():
         ax.clear()
         canvas.draw()
         gc.collect()
+        global peak
+        peak = None
     except:
         pass
 
@@ -281,7 +288,18 @@ def plot_halfwidth(coord1, coord2):
             linewidth=app.widgets['style_trace_line_width'].get(),
             c='black')
 
+def reanalyze(e=None):
+    global mini_data
+    interface.reanalyze(mini_data)
+    canvas.get_tk_widget().focus_set()
+
+def reject(e=None):
+    global mini_data
+    interface.delete_event([mini_data['t']])
+    canvas.get_tk_widget().focus_set()
 def report(xs, ys, data, clear_plot=False):
+    global mini_data
+    mini_data = data
     global msg_label
     if clear:
         clear()
@@ -289,10 +307,16 @@ def report(xs, ys, data, clear_plot=False):
     if data['failure'] is not None:
         msg_label.insert(data['failure']+'\n')
     try:
-        start = int(min(max(data['start_idx'] - data['lag'] - data['delta_x'], 0), data['xlim_idx_L']))
+        try:
+            start = int(min(max(data['start_idx'] - data['lag'] - data['delta_x'], 0), data['xlim_idx_L']))
+        except:
+            start = int(max(data['start_idx'] - data['lag'] - data['delta_x'], 0))
         if data['compound']:
             start = min(start, int(data['prev_peak_idx']))
-        end = int(max(min(data['peak_idx'] + data['decay_max_points'], len(xs)), data['xlim_idx_R']))
+        try:
+            end = int(max(min(data['peak_idx'] + data['decay_max_points'], len(xs)), data['xlim_idx_R']))
+        except:
+            end = int(min(data['peak_idx'] + data['decay_max_points'], len(xs)))
         plot_recording(
             xs[start:end],
             ys[start:end],
@@ -300,7 +324,8 @@ def report(xs, ys, data, clear_plot=False):
                   xs[int(min(data['peak_idx'] + data['decay_max_points'], len(xs) - 1))])
         )
         plot_start(data['start_coord_x'], data['start_coord_y'])
-    except:  # start not found
+    except Exception as e:  # start not found
+        print(f'param_guide report plot recording call {e}')
         pass
 
     try:
