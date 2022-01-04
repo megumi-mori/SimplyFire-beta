@@ -770,7 +770,8 @@ class Analyzer():
                 self.print_time('analyze mini', show_time)
                 if mini['success']:
                     self.print_time('pre append', show_time)
-                    mini['xlim_idx']=(start_idx,end_idx)
+                    mini['xlim_idx_L']=start_idx
+                    mini['xlim_idx_R']=end_idx
                     hits.append(mini)
                     start_idx = peak_idx + 1
                     prev_peak = mini
@@ -878,7 +879,8 @@ class Analyzer():
                 offset=offset,
                 **kwargs
             )
-            mini['xlim_idx'] = xlim_idx
+            mini['xlim_idx_L'] = xlim_idx[0]
+            mini['xlim_idx_R'] = xlim_idx[1]
             if reference_df and mini['success']:
                 self.mini_df = self.mini_df.append(Series(mini),
                                                    ignore_index=True,
@@ -1422,7 +1424,8 @@ class Analyzer():
             base_idx = (baseline_idx - lag, baseline_idx)
         else:
             base_idx = (int(peak_idx - delta_x - lag/2), int(peak_idx - delta_x+lag/2))
-        mini['base_idx'] = (base_idx[0] + offset, base_idx[1] + offset)
+        mini['base_idx_L'] = base_idx[0] + offset
+        mini['base_idx_R'] = base_idx[1] + offset
 
         # check if baseline calculation was successful
         if baseline_idx is None:  # not successful

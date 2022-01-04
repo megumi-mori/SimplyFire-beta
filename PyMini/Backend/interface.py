@@ -173,7 +173,7 @@ def open_trace(fname):
     evoked_data_display.clear()
     trace_display.ax.set_xlabel(al.recording.x_label)
     trace_display.ax.set_ylabel(al.recording.y_label)
-
+    trace_display.canvas.draw()
     app.widgets['trace_info'].set(
         '{}: {}Hz : {} channel{}'.format(
             al.recording.filename,
@@ -376,7 +376,6 @@ def save_events_as_dialogue(e=None):
     return
 
 def open_events(filename, log=True, undo=True, append=False):
-    global mini_df
     if not al.recording:
         # recording file not open yet
         messagebox.showerror('Open error', 'Please open a recording file first.')
@@ -389,13 +388,15 @@ def open_events(filename, log=True, undo=True, append=False):
             lambda msg='Undo open event file':log_display.log(msg),
             update_event_marker,
         ])
+    df = pd.read_csv(filename, comment='@')
+    df = df.replace({np.nan: None})
+    df['compound'] = df['compound'].replace([0.0, 1.0], [False, True])
     if not append:
-        al.mini_df = pd.read_csv(filename, comment='@')
+        al.mini_df = df
         app.event_filename = filename
         data_display.clear()
         populate_data_display()
     else:
-        df = pd.read_csv(filename)
         al.mini_df = al.mini_df.append(df)
         data_display.append(df[df.channel == al.recording.channel])
     update_event_marker()
@@ -435,10 +436,7 @@ def populate_data_display():
 
 def pick_event_manual(x):
     try:
-        param_guide.accept_button.config(state='disabled')
-        param_guide.reanalyze_button.config(state='disabled')
-        param_guide.reject_button.config(state='disabled')
-        param_guide.goto_button.config(state='disabled')
+        param_guide.configure_buttons(state='disabled')
     except:
         pass
     data_display.unselect()
@@ -464,7 +462,8 @@ def pick_event_manual(x):
                                reference_df=True, y_unit=al.recording.y_unit,
                                x_unit=al.recording.x_unit, **params)
     if guide:
-        report_to_param_guide(xs, ys, mini)
+        # param_guide.report(xs, ys, mini)
+        param_guide.report(xs, ys, mini)
     if mini['success']:
         data_display.add({key: value for key,value in mini.items() if key in data_display.mini_header2config})
         update_event_marker()
@@ -489,10 +488,7 @@ def interrupt(process=''):
 
 def find_mini_in_range(xlim=None, ylim=None):
     try:
-        param_guide.accept_button.config(state='disabled')
-        param_guide.reanalyze_button.config(state='disabled')
-        param_guide.reject_button.config(state='disabled')
-        param_guide.goto_button.config(state='disabled')
+        param_guide.configure_buttons(state='disabled')
     except:
         pass
     app.pb['value'] = 0
@@ -579,7 +575,7 @@ def filter_mini(xlim=None):
 def select_single_mini(iid):
     data = al.mini_df[al.mini_df.t == float(iid)].squeeze().to_dict()
     if app.widgets['window_param_guide'].get() == '1':
-        report_to_param_guide(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear=True)
+        param_guide.report(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear_plot=True)
 
 # def select_in_data_display(iid):
 #     print('selecting one: ')
@@ -599,10 +595,7 @@ def reanalyze(xs, ys, data, remove_restrict=False):
 
     data_display.delete_one(data['t'])
     try:
-        param_guide.accept_button.config(state='disabled')
-        param_guide.reanalyze_button.config(state='disabled')
-        param_guide.reject_button.config(state='disabled')
-        param_guide.goto_button.config(state='disabled')
+        param_guide.configure_buttons(state='disabled')
     except:
         pass
     direction = {'negative': -1, 'positive': 1}[app.widgets['detector_direction'].get()]
@@ -665,7 +658,7 @@ def reanalyze(xs, ys, data, remove_restrict=False):
     add_undo(undo)
 
     if app.widgets['window_param_guide'].get():
-        report_to_param_guide(xs, ys, new_data)
+        param_guide.report(xs, ys, new_data)
 
     if detector_tab.changed:
         log_display.search_update('Manual')

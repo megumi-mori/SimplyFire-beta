@@ -23,6 +23,7 @@ def initialize():
     ################################
     for key in config.key_deselect:
         bind_key(key, press_function=unselect_key, target=trace_display.canvas.get_tk_widget())
+        bind_key(key, press_function=unselect_key, target=data_display.table, add="")
 
     for key in config.key_delete:
         bind_key(key, press_function=data_display.delete_selected, target=trace_display.canvas.get_tk_widget())
@@ -172,19 +173,19 @@ def initialize_param_guide():
         bind_key_dp(key, press_function=lambda e: param_guide.canvas.toolbar.zoom())
     pass
 
-def bind_key_dp(key, press_function=None, release_function=None):
-    bind_key(key, press_function, release_function, data_display.table)
-    bind_key(key, press_function, release_function, trace_display.canvas.get_tk_widget())
-    bind_key(key, press_function, release_function, results_display.table)
-    bind_key(key, press_function, release_function, evoked_data_display.table)
+def bind_key_dp(key, press_function=None, release_function=None, add='+'):
+    bind_key(key, press_function, release_function, data_display.table, add=add)
+    bind_key(key, press_function, release_function, trace_display.canvas.get_tk_widget(), add=add)
+    bind_key(key, press_function, release_function, results_display.table, add=add)
+    bind_key(key, press_function, release_function, evoked_data_display.table, add=add)
 
-def bind_key_pg(key, press_function=None, release_function=None):
-    bind_key(key, press_function, release_function, param_guide.canvas.get_tk_widget())
+def bind_key_pg(key, press_function=None, release_function=None, add='+'):
+    bind_key(key, press_function, release_function, param_guide.canvas.get_tk_widget(), add=add)
 
-def bind_key(key, press_function=None, release_function=None, target=None):
+def bind_key(key, press_function=None, release_function=None, target=None, add='+'):
     # use for regular key press and release event binding
     if press_function is not None:
-        target.bind(key, press_function, add="+")
+        target.bind(key, press_function, add=add)
     if release_function is not None:
         if key[0] == '<':
             rkey = key.strip('<')

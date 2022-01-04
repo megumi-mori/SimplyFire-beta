@@ -1,5 +1,6 @@
 import tkinter as Tk
 from tkinter import ttk
+from math import isnan
 from PyMini import app
 from PyMini.Backend import analyzer2
 from PyMini.utils import widget
@@ -108,11 +109,11 @@ def create_window():
     reject_button.config(state='disabled')
     reject_button.bind('<Button>', canvas.get_tk_widget().focus_set())
 
-    global goto_button
-    goto_button = ttk.Button(button_frame, text='Select')
-    goto_button.grid(column=3, row=0, sticky='news')
-    goto_button.config(state='disabled')
-    goto_button.bind('<Button>', canvas.get_tk_widget().focus_set())
+    # global goto_button
+    # goto_button = ttk.Button(button_frame, text='Select')
+    # goto_button.grid(column=3, row=0, sticky='news')
+    # goto_button.config(state='disabled')
+    # goto_button.bind('<Button>', canvas.get_tk_widget().focus_set())
 
 
 
@@ -141,15 +142,15 @@ def update():
         ax.set_xlabel(trace_display.ax.get_xlabel())
         ax.set_ylabel(trace_display.ax.get_ylabel())
         canvas.draw()
-    except:
+    except Exception as e:
+        print(f'param_guide update error {e}')
         pass
-
 def clear():
     try:
         accept_button.config(state='disabled')
         reanalyze_button.config(state='disabled')
         reject_button.config(state='disabled')
-        goto_button.config(state='disabled')
+        # goto_button.config(state='disabled')
         msg_label.clear()
         for l in ax.lines:
             l.remove()
@@ -160,6 +161,16 @@ def clear():
         gc.collect()
     except:
         pass
+
+def configure_buttons(**kwargs):
+    global accept_button
+    accept_button.config(**kwargs)
+
+    global reanalyze_button
+    reanalyze_button.config(**kwargs)
+
+    global reject_button
+    reject_button.config(**kwargs)
 
 def plot_trace(xs, ys, label=None):
     if label is None:
@@ -270,8 +281,101 @@ def plot_halfwidth(coord1, coord2):
             linewidth=app.widgets['style_trace_line_width'].get(),
             c='black')
 
+def report(xs, ys, data, clear_plot=False):
+    global msg_label
+    if clear:
+        clear()
+    print(data['failure'])
+    if data['failure'] is not None:
+        msg_label.insert(data['failure']+'\n')
+    try:
+        start = int(min(max(data['start_idx'] - data['lag'] - data['delta_x'], 0), data['xlim_idx_L']))
+        if data['compound']:
+            start = min(start, int(data['prev_peak_idx']))
+        end = int(max(min(data['peak_idx'] + data['decay_max_points'], len(xs)), data['xlim_idx_R']))
+        plot_recording(
+            xs[start:end],
+            ys[start:end],
+            xlim=(xs[int(max(data['start_idx'] - data['lag'], 0))],
+                  xs[int(min(data['peak_idx'] + data['decay_max_points'], len(xs) - 1))])
+        )
+        plot_start(data['start_coord_x'], data['start_coord_y'])
+    except:  # start not found
+        pass
+
+    try:
+        msg_label.insert(f"Peak: {data['peak_coord_x']:.3f},{data['peak_coord_y']:.3f}\n")
+        plot_peak(data['peak_coord_x'], data['peak_coord_y'])
+        plot_amplitude((data['peak_coord_x'], data['peak_coord_y']), data['baseline'])
+    except:  # peak not found
+        pass
+
+    try:
+        if data['base_idx_L'] is not None and not data['compound']:
+            plot_base_range(
+                xs[int(data['base_idx_L']):int(data['base_idx_R'])],
+                ys[int(data['base_idx_L']):int(data['base_idx_R'])]
+            )
+    except Exception as e:
+        print(f'base idx plotting exception {e}')
+        pass
+    try:
+        msg_label.insert('Baseline: {:.3f} {}\n'.format(data['baseline'], data['baseline_unit']))
+        msg_label.insert('Amplitude: {:.3f} {}\n'.format(data['amp'], data['amp_unit']))
+        msg_label.insert('Rise: {:.3f} {}\n'.format(data['rise_const'], data['rise_unit']))
+    except:
+        pass
+    try:
+        if not data['compound']:
+            plot_base_simple(xs[int(data['start_idx'])], xs[end], data['baseline'])
+        else:
+            plot_base_extrapolate(
+                xs=xs[int(data['prev_peak_idx']):end],
+                A=data['prev_decay_A'],
+                decay=data['prev_decay_const'] / 1000,
+                baseline=data['prev_baseline'],
+                direction=data['direction']
+            )
+            pass
+    except:
+        pass
+    try:
+        msg_label.insert('Decay: {:.3f} {}\n'.format(data['decay_const'], data['decay_unit']))
+        msg_label.insert(f'Decay:rise ratio: {data["decay_const"] / data["rise_const"]}\n')
+
+        plot_decay_fit(xs[int(data['peak_idx']):end],
+                                   data['decay_A'],
+                                   data['decay_const'] / 1000,
+                                   data['baseline'],
+                                   data['direction'])
+        plot_decay_point(data['decay_coord_x'], data['decay_coord_y'])
+    except Exception as e:
+        print(e)
+    try:
+        plot_halfwidth((data['halfwidth_start_coord_x'], data['halfwidth_start_coord_y']),
+                                   (data['halfwidth_end_coord_x'], data['halfwidth_end_coord_y']))
+        msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')
+    except:
+        pass
+    show_legend()
+    canvas.draw()
+    update()
+
+    global accept_button
+    accept_button.config(state='normal')
+
+    global reanalyze_button
+    reanalyze_button.config(state='normal')
+
+    global reject_button
+    if data['success']:
+        reject_button.config(state='normal')
+    else:
+        reject_button.config(state='disabled')
+
 def show_legend():
     ax.legend(frameon=False)
 
 def hide_legend():
     ax.legend().set_visible(False)
+

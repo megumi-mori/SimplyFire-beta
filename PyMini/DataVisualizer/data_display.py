@@ -6,7 +6,7 @@ from PyMini import app
 from PyMini.Backend import interface, interpreter
 from PyMini.Layout import detector_tab
 from PyMini.utils.widget import DataTable
-from PyMini.DataVisualizer import results_display
+from PyMini.DataVisualizer import results_display, param_guide
 from PyMini.config import config
 
 
@@ -162,6 +162,12 @@ def select(e=None):
 
 def unselect(e=None):
     dataframe.unselect()
+    try:
+        param_guide.clear()
+    except Exception as e:
+        print(f'data_display unselect error {e}')
+        pass
+
 
 # def select_one(iid):
 #     raise

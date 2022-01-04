@@ -1,4 +1,0 @@
-saveas text numpy array: 0:00:01.976459 (1 channel)
-save each row: 0:00:01.322295 (1 channel)
-save each row, separate files 0:00:01.303294 (1 channel)
-array tofile 0:00:01.217287 (1 channel)
