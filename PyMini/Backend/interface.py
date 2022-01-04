@@ -953,7 +953,6 @@ def unhighlight_all_sweeps(draw=True):
 def highlight_sweep_in_range(xlim=None, ylim=None, draw=True):
     # called when right click drag on plot
     unhighlight_all_sweeps(draw=True)
-    print(trace_display.highlighted_sweep)
     if xlim and xlim[0] > xlim[1]:
         xlim = (xlim[1], xlim[0])
     if ylim and ylim[0] > ylim[1]:
