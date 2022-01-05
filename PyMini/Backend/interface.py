@@ -331,16 +331,19 @@ def config_data_tab(tab_name, **kwargs):
 # Handling mini data
 ######################################
 
-def save_events(filename, mode='w', suffix_num=0):
+def save_events(filename, mode='w', suffix_num=0, handle_error=True):
     if suffix_num > 0:
         filename = f'{filename.split(".")[0]}({suffix_num}).{filename.split(".")[1]}'
     try:
         with open(filename, mode) as f:
             f.write(f'@{al.recording.filename}\n')
             f.write(al.mini_df.to_csv(index=False))
-    except Exception as e:
-        print(e)
+    except (FileExistsError):
+        if handle_error:
+            save_events(filename, mode, suffix_num+1)
         pass
+
+
 
 def save_events_dialogue(e=None):
     if not app.event_filename:
@@ -348,7 +351,7 @@ def save_events_dialogue(e=None):
         return None
     try:
         if len(al.mini_df) > 0:
-            save_events(app.event_filename)
+            save_events(app.event_filename, mode='w')
         else:
             messagebox.showerror('Error', 'No minis to save')
     except:
@@ -368,7 +371,7 @@ def save_events_as_dialogue(e=None):
             # al.mini_df.to_csv(filename, index=True)
             # app.event_filename = filename
             # print(filename)
-            save_events(filename)
+            save_events(filename, mode='w')
         except:
             messagebox.showerror('Write error', 'Could not write data to selected filename.')
     else:
