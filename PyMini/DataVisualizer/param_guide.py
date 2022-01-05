@@ -311,6 +311,7 @@ def reject(e=None):
     interface.delete_event([mini_data['t']])
     canvas.get_tk_widget().focus_set()
 def report(xs, ys, data, clear_plot=False):
+    print(data)
     global mini_data
     mini_data = data
     global msg_label
@@ -411,7 +412,11 @@ def report(xs, ys, data, clear_plot=False):
     try:
         plot_halfwidth((data['halfwidth_start_coord_x'], data['halfwidth_start_coord_y']),
                                    (data['halfwidth_end_coord_x'], data['halfwidth_end_coord_y']))
-        msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')
+        msg_label.insert(f'Halfwidth: {data["halfwidth"]:.3f} {data["halfwidth_unit"]}\n')
+    except:
+        pass
+    try:
+        msg_label.insert(f'Signal-to-noise ratio: {data["amp"]*data["direction"]/data["stdev"]:.3f}\n')
     except:
         pass
     show_legend()

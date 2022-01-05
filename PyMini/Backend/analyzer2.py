@@ -1531,7 +1531,6 @@ class Analyzer():
         self.print_time('amp', show_time)
 
         ####### calculate stdev ########
-        mini['stdev_unit'] = y_unit
         if std_lag > 1:
             mini['stdev'] = np.std(ys[max(0, baseline_idx - std_lag):baseline_idx])
         else:
@@ -1798,19 +1797,19 @@ class Analyzer():
         if xlim is None:
             xlim = (0.0, np.inf)
         if min_amp is not None:
-            mini_df = mini_df[(mini_df['amp']*mini_df['direction'] > min_amp) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
+            mini_df = mini_df[(mini_df['amp']*mini_df['direction'] >= min_amp) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if max_amp is not None:
             mini_df = mini_df[(mini_df['amp']*mini_df['direction'] < max_amp) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if min_rise is not None:
-            mini_df = mini_df[(mini_df['rise_const'] > min_rise) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
+            mini_df = mini_df[(mini_df['rise_const'] >= min_rise) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if max_rise is not None:
             mini_df = mini_df[(mini_df['rise_const'] < max_rise) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if min_decay is not None:
-            mini_df = mini_df[(mini_df['decay_const'] > min_decay) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
+            mini_df = mini_df[(mini_df['decay_const'] >= min_decay) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if max_decay is not None:
             mini_df = mini_df[(mini_df['decay_const'] < max_decay) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if min_hw is not None:
-            mini_df = mini_df[(mini_df['halfwidth'] > min_hw) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
+            mini_df = mini_df[(mini_df['halfwidth'] >= min_hw) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if max_hw is not None:
             mini_df = mini_df[(mini_df['halfwidth'] < max_hw) | (mini_df['t'] < xlim[0]) | (mini_df['t'] > xlim[1])]
         if min_drr is not None:

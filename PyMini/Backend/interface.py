@@ -388,7 +388,11 @@ def open_events(filename, log=True, undo=True, append=False):
             lambda msg='Undo open event file':log_display.log(msg),
             update_event_marker,
         ])
-    df = pd.read_csv(filename, comment='@')
+    filetype = os.path.splitext(filename)[1]
+    if filetype == ".csv" or filetype == '.temp':
+        df = open_events_csv(filename)
+    elif filetype == ".minipy":
+        df = open_events_mini(filename)
     df = df.replace({np.nan: None})
     df['compound'] = df['compound'].replace([0.0, 1.0], [False, True])
     if not append:
@@ -404,21 +408,111 @@ def open_events(filename, log=True, undo=True, append=False):
         log_display.open_update('mini data: {}'.format(filename))
     app.pb['value']=0
     app.pb.update()
-    # try:
 
-    #
-    # except:
-    #     messagebox.showerror('Read error', 'Could not read data.')
+def open_events_csv(filename):
+    df = pd.read_csv(filename, comment='@')
+    return df
 
-# def restore_events(filename=''):
-#     try:
-#         data_display.clear()
-#         populate_data_display()
-#
-#         update_event_marker()
-#     except Exception as e:
-#         print('restore events error: {}'.format(e))
-#         pass
+def open_events_mini(filename):
+    """
+    open mini files from Minipy (ancestral version)
+    """
+    channel = 0
+    minis = []
+    header_idx = {}
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+        for l in lines:
+            info = l.strip().split(',')
+            if info[0] == "@Trace":
+                recording_filename = info[1]
+            elif info[0] == '@Channel':
+                channel = int(info[1])
+            elif info[0] == '@Header':
+                for i,h in enumerate(info):
+                    header_idx[h] = i
+                xs = al.recording.get_xs(mode='continuous', channel=channel)
+                ys= al.recording.get_ys(mode='continuous', channel=channel)
+                print(f'reading minipy file: {header_idx}')
+            elif info[0] == '@Data':
+                mini = {
+                    't':float(info[header_idx['x']]),
+                    'peak_coord_x':float(info[header_idx['x']]),
+                    'peak_coord_y':float(info[header_idx['y']]),
+                    'amp':float(info[header_idx['Vmax']])*float(info[header_idx['direction']]),
+                    'baseline':float(info[header_idx['baseline']]),
+                    'compound': False,
+                    'decay_A':float(info[header_idx['Vmax']]),
+                    'decay_const':float(info[header_idx['tau']])*1000,
+                    'decay_baseline':0,
+                    'decay_coord_x':float(info[header_idx['tau_x']]),
+                    'decay_coord_y':float(info[header_idx['tau_y']]),
+                    'decay_max_points':int(float(app.widgets['detector_core_decay_max_interval'].get())/1000*al.recording.sampling_rate),
+                    'failure':None,
+                    'lag':int(info[header_idx['lag']]),
+                    'rise_const':float(info[header_idx['rise_time']])*1000,
+                    'start_coord_x':float(info[header_idx['left_x']]),
+                    'start_coord_y':float(info[header_idx['left_y']]),
+                    'amp_unit':al.recording.channel_units[channel],
+                    'baseline_unit':al.recording.channel_units[channel],
+                    'decay_unit':'ms',
+                    'halfwidth_unit': 'ms',
+                    'rise_unit':'ms',
+                    'channel':channel,
+                    'delta_x':0,
+                    'direction':int(info[header_idx['direction']]),
+                    'end_coord_x':float(info[header_idx['right_x']]),
+                    'end_coord_y':float(info[header_idx['right_y']]),
+                    'max_amp':np.inf,
+                    'min_amp':0.0,
+                    'max_rise': np.inf,
+                    'min_rise': 0.0,
+                    'max_decay': np.inf,
+                    'min_decay': 0.0,
+                    'max_hw': np.inf,
+                    'min_hw': 0.0,
+                    'max_s2n':np.inf,
+                    'min_s2n':0.0,
+                    'stdev_unit':al.recording.channel_units[channel],
+                    'success':True,
+                }
+                pass
+                mini['start_idx'] = int(analyzer2.search_index(mini['start_coord_x'], xs, rate=al.recording.sampling_rate))
+                mini['baseline_idx'] = mini['start_idx']
+                mini['base_idx_L'] = mini['start_idx'] - mini['lag']
+                mini['base_idx_R'] = mini['start_idx']
+                mini['decay_idx'] = int(analyzer2.search_index(mini['start_coord_x']+mini['decay_const'], xs, rate=al.recording.sampling_rate))
+                mini['peak_idx'] = int(analyzer2.search_index(mini['peak_coord_x'], xs, rate=al.recording.sampling_rate))
+                mini['decay_start_idx'] = mini['peak_idx']
+                mini['end_idx'] = analyzer2.search_index(mini['end_coord_x'], xs, rate=al.recording.sampling_rate)
+                mini['stdev'] = np.std(ys[mini['base_idx_L']:mini['base_idx_R']])
+
+                #try finding halfwidth
+                hw_start_idx,hw_end_idx = al.find_mini_halfwidth(amp=mini['amp'],
+                                                                 xs=xs[mini['baseline_idx']:mini['end_idx']],
+                                                                 ys=ys[mini['baseline_idx']:mini['end_idx']],
+                                                                 peak_idx=mini['peak_idx'] - mini['baseline_idx'],
+                                                                 baseline=mini['baseline'],
+                                                                 direction=mini['direction'])
+                if hw_start_idx is not None and hw_end_idx is None:
+                    if app.widgets['detector_core_extrapolate_hw'].get():
+                        t = np.log(0.5)*(-1)*mini['decay_const']/1000
+                        hw_end_idx = analyzer2.search_index(xs[mini['peak_idx']]+t,xs[mini['baseline_idx']:], al.recording.sampling_rate)
+                if hw_start_idx is None or hw_end_idx is None:
+                    mini['halfwidth'] = 0 # could not be calculated
+                else:
+                    mini['halfwidth_start_idx'] = hw_start_idx + mini['baseline_idx']
+                    mini['halfwidth_end_idx'] = hw_end_idx + mini['baseline_idx']
+                    mini['halfwidth'] = (xs[int(mini['halfwidth_end_idx'])] - xs[int(mini['halfwidth_start_idx'])])*1000
+                    mini['halfwidth_start_coord_x'] = xs[mini['halfwidth_start_idx']]
+                    mini['halfwidth_end_coord_x'] = xs[mini['halfwidth_end_idx']]
+                    mini['halfwidth_start_coord_y'] = mini['halfwidth_end_coord_y'] = mini['baseline']+0.5*mini['amp']
+
+
+                minis.append(mini)
+        df = pd.DataFrame.from_dict(minis)
+        print(df)
+        return df
 
 def populate_data_display():
     try:
@@ -575,6 +669,7 @@ def filter_mini(xlim=None):
 def select_single_mini(iid):
     data = al.mini_df[al.mini_df.t == float(iid)].squeeze().to_dict()
     if app.widgets['window_param_guide'].get() == '1':
+        print(al.mini_df[al.mini_df.t==float(iid)])
         param_guide.report(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear_plot=True)
 
 # def select_in_data_display(iid):
@@ -651,8 +746,7 @@ def add_event(data):
     # populate this and replace with repeated calls in interpreter
     # also include add to data display after removing calls
     data_display.add({key:value for key, value in data.items() if key in data_display.mini_header2config})
-    global mini_df
-    mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+    al.mini_df = al.mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
 
 def report_to_param_guide(xs, ys, data, clear=False):
     if clear:
