@@ -60,8 +60,7 @@ class Recording():
         self.channel_labels = [""] * self.channel_count
         for c in range(self.channel_count):
             data.setSweep(0, c)
-            self.channel_labels[c] = data.sweepLabelY
-
+            self.channel_labels[c] = data.sweepLabelY.replace('\x00','')
         # x_value metadata
         self.x_unit = data.sweepUnitsX
         self.x_label = data.sweepLabelX  # in the form of Label (Units)
