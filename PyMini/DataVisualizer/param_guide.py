@@ -311,7 +311,6 @@ def reject(e=None):
     interface.delete_event([mini_data['t']])
     canvas.get_tk_widget().focus_set()
 def report(xs, ys, data, clear_plot=False):
-    print(data)
     global mini_data
     mini_data = data
     global msg_label
