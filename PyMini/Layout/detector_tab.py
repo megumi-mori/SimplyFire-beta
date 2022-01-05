@@ -10,7 +10,7 @@ parameters = {}
 
 global widgets
 widgets = {}
-def find_all():
+def find_all(popup=True):
     if interface.al.recording is None:
         return None
     # global stop_button
@@ -20,14 +20,15 @@ def find_all():
     # global find_in_window_button
     # find_in_window_button.config(state='disabled')
 
-    t = Thread(target=start_find_all_process())
+    t = Thread(target=start_find_all_process(popup=popup))
     t.start()
 
 def stop():
     interface.interrupt_analyzer()
     pass
-def start_find_all_process():
-    running_popup.load(process='find_mini')
+def start_find_all_process(popup=True):
+    if popup:
+        running_popup.load(process='find_mini')
     interface.find_mini_in_range(trace_display.default_xlim, trace_display.default_ylim)
     # global stop_button
     # stop_button.config(state='disabled')
@@ -35,9 +36,10 @@ def start_find_all_process():
     # find_all_button.config(state='normal')
     # global find_in_window_button
     # find_in_window_button.config(state='normal')
-    running_popup.window_close()
+    if popup:
+        running_popup.window_close()
 
-def find_in_window():
+def find_in_window(popup=True):
     if interface.al.recording is None:
         return None
     # global stop_button
@@ -46,11 +48,12 @@ def find_in_window():
     # find_all_button.config(state='disabled')
     # global find_in_window_button
     # find_in_window_button.config(state='disabled')
-    t = Thread(target=start_find_in_window_process())
+    t = Thread(target=start_find_in_window_process(popup=popup))
     t.start()
 
-def start_find_in_window_process():
-    running_popup.load(process='find_mini')
+def start_find_in_window_process(popup=True):
+    if popup:
+        running_popup.load(process='find_mini')
     interface.find_mini_in_range(trace_display.ax.get_xlim())
     # global stop_button
     # stop_button.config(state='disabled')
@@ -58,7 +61,8 @@ def start_find_in_window_process():
     # find_all_button.config(state='normal')
     # global find_in_window_button
     # find_in_window_button.config(state='normal')
-    running_popup.window_close()
+    if popup:
+        running_popup.window_close()
 
 def filter_all():
     interface.filter_mini()

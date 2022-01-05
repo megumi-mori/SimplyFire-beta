@@ -576,7 +576,7 @@ def interrupt_analyzer():
     al.stop = True
 
 def interrupt(process=''):
-    if process == 'find_mini':
+    if process == 'find_mini' or process == 'Find all' or process == 'Find in window':
         al.stop = True
     pass
 
