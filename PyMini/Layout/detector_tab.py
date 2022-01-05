@@ -126,7 +126,29 @@ def load(parent):
         name='detector',
         text='Mini analysis mode'
     )
-
+    global find_all_button
+    find_all_button = optionframe.insert_button(
+        text='Find all',
+        command=find_all  # link this later
+    )
+    optionframe.insert_button(
+        text='Delete all',
+        command=interface.delete_all_events
+    )
+    global find_in_window_button
+    find_in_window_button = optionframe.insert_button(
+        text='Find in \nwindow',
+        command=find_in_window  # link this later
+    )
+    optionframe.insert_button(
+        text='Delete in \nwindow',
+        command=delete_in_window
+    )
+    global report_button
+    report_button = optionframe.insert_button(
+        text='Report stats',
+        command=data_display.report,
+    )
     # mini analysis core parameters
     optionframe.insert_title(
         text='core parameters'
@@ -297,35 +319,14 @@ def load(parent):
         text='Default',
         command=default
     )
-    global find_all_button
-    find_all_button = optionframe.insert_button(
-        text='Find all',
-        command=find_all  # link this later
-    )
-    optionframe.insert_button(
-        text='Delete all',
-        command=interface.delete_all_events
-    )
-    global find_in_window_button
-    find_in_window_button = optionframe.insert_button(
-        text='Find in \nwindow',
-        command=find_in_window  # link this later
-    )
-    optionframe.insert_button(
-        text='Delete in \nwindow',
-        command=delete_in_window
-    )
+
     # global stop_button
     # stop_button = optionframe.insert_button(
     #     text='STOP',
     #     command=stop
     # )
     # stop_button.config(state='disabled')
-    global report_button
-    report_button = optionframe.insert_button(
-        text='Report stats',
-        command=data_display.report,
-    )
+
     report_button.config(state='disabled')
     # mini filtering (min and max values) options
     optionframe.insert_title(
