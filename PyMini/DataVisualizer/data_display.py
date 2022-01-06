@@ -198,6 +198,8 @@ def report(event=None):
     if interface.al.mini_df.shape[0] == 0:
         return None
     mini_df = interface.al.mini_df[interface.al.mini_df['channel']==interface.al.recording.channel]
+    if mini_df.shape[0] == 0:
+        return None
     data = {
         'filename': interface.al.recording.filename,
         'analysis': 'mini',
@@ -205,23 +207,23 @@ def report(event=None):
     }
     if 'amp' in dataframe.columns:
         data['amp'] = mini_df['amp'].mean()
-        data['amp_unit']= mini_df['amp_unit'][0]
+        data['amp_unit']= mini_df['amp_unit'].iloc[0]
         data['amp_std']= mini_df['amp'].std()
     if 'decay_const' in dataframe.columns:
         data['decay_const'] = mini_df['decay_const'].mean()
-        data['decay_unit'] = mini_df['decay_unit'][0]
+        data['decay_unit'] = mini_df['decay_unit'].iloc[0]
         data['decay_std'] = mini_df['decay_const'].std()
     if 'rise_const' in dataframe.columns:
         data['rise_const'] = mini_df['rise_const'].mean()
-        data['rise_unit'] = mini_df['rise_unit'][0]
+        data['rise_unit'] = mini_df['rise_unit'].iloc[0]
         data['decay_std'] = mini_df['rise_const'].std()
     if 'halfwidth' in dataframe.columns:
         data['halfwidth'] = mini_df['halfwidth'].mean()
-        data['halfwidth_unit'] = mini_df['halfwidth_unit'][0]
+        data['halfwidth_unit'] = mini_df['halfwidth_unit'].iloc[0]
         data['halfwidth_std'] = mini_df['halfwidth'].std()
     if 'baseline' in dataframe.columns:
         data['baseline'] = mini_df['baseline'].mean()
-        data['baseline_unit'] = mini_df['baseline_unit'][0]
+        data['baseline_unit'] = mini_df['baseline_unit'].iloc[0]
         data['baseline_std'] = mini_df['baseline'].std()
     if 'channel' in dataframe.columns:
         data['channel'] = interface.al.recording.channel

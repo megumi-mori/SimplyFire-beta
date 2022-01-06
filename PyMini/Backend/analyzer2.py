@@ -1728,17 +1728,6 @@ class Analyzer():
             return mini
         mini['halfwidth'] = (xs[int(halfwidth_end_idx)] - xs[int(halfwidth_start_idx)]) * 1000
 
-
-        if min_hw and mini['halfwidth'] < min_hw:
-            mini['success'] = False
-            mini['failure'] = 'Min halfwidth not met'
-            return mini
-
-        if max_hw and mini['halfwidth'] > max_hw:
-            mini['success'] = False
-            mini['failure'] = 'Max halfwidth exceeded'
-            return mini
-
         mini['halfwidth_start_idx'] = halfwidth_start_idx + offset
         mini['halfwidth_end_idx'] = halfwidth_end_idx + offset
 
@@ -1760,6 +1749,16 @@ class Analyzer():
                                                 'amp']
         else:
             mini['halfwidth_start_coord_y'] = mini['halfwidth_end_coord_y'] = mini['baseline'] + 0.5 * mini['amp']
+
+        if min_hw and mini['halfwidth'] < min_hw:
+            mini['success'] = False
+            mini['failure'] = 'Min halfwidth not met'
+            return mini
+
+        if max_hw and mini['halfwidth'] > max_hw:
+            mini['success'] = False
+            mini['failure'] = 'Max halfwidth exceeded'
+            return mini
 
         ###### calculate decay:rise ratio #####
         if decay_algorithm != 'None':
