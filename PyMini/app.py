@@ -7,7 +7,7 @@ import os
 from PyMini.utils import widget, scrollable_option_frame
 from PyMini.Backend import interpreter
 from PyMini.config import config
-from PyMini.Layout import font_bar, detector_tab, style_tab, setting_tab, navigation_tab, \
+from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar
 from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display
 
