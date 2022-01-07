@@ -1641,6 +1641,17 @@ class Analyzer():
                     direction=direction,
                     baseline=mini['baseline'],
                 )
+        elif decay_algorithm == '% amplitude':
+            # mimics Mini Analysis
+            mini['decay_A'] = mini['amp'] * direction
+            mini['decay_baseline'] = 0
+            decay_idx = np.where((ys[int(peak_idx): int(min(peak_idx+decay_max_points, len(ys)))] - mini['baseline'])*direction < decay_p_amp * mini['amp'] * direction/100)
+            if len(decay_idx[0])>0:
+                mini['decay_const'] = decay_idx[0][0]/sampling_rate*1000
+            else:
+                mini['failure'] = 'Decay constant could not be calculated'
+                mini['success'] = False
+                return mini
         elif decay_algorithm == 'None':
             mini['decay_A'] = None
             mini['decay_const'] = None
