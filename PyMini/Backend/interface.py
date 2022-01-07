@@ -672,7 +672,6 @@ def filter_mini(xlim=None):
 def select_single_mini(iid):
     data = al.mini_df[al.mini_df.t == float(iid)].squeeze().to_dict()
     if app.widgets['window_param_guide'].get() == '1':
-        print(al.mini_df[al.mini_df.t==float(iid)])
         param_guide.report(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear_plot=True)
 
 # def select_in_data_display(iid):
