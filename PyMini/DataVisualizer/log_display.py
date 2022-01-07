@@ -46,17 +46,17 @@ def load(parent):
     log_entry.configure(justify=Tk.LEFT)
     log_entry.bind('<Return>', user_update)
 
-    test_button = Tk.Button(insert_frame, text='test')
+    test_button = ttk.Button(insert_frame, text='Insert')
     test_button.bind('<ButtonPress-1>', user_update)
     test_button.grid(column=2, row=0, sticky='news')
 
     button_frame = Tk.Frame(frame)
     button_frame.grid(column=0, row=2, sticky='news')
 
-    copy_button = Tk.Button(button_frame, text='Copy', command=copy)
+    copy_button = ttk.Button(button_frame, text='Copy', command=copy)
     copy_button.grid(column=0, row=0, sticky='nws')
 
-    save_button = Tk.Button(button_frame, text='Save log as...', command=save)
+    save_button = ttk.Button(button_frame, text='Save log as...', command=save)
     save_button.grid(column=1, row=0, sticky='news')
 
     log_text.insert('{}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S')))
