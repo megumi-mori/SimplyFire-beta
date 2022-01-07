@@ -202,7 +202,7 @@ def load(parent):
         name='detector_core_decay_algorithm',
         label='Decay calculation method:',
         # options=['% amplitude', 'Sum of squares', 'Curve fit', 'None'],
-        options=['Curve fit'],
+        options=['Curve fit', '% amplitude'],
         command=populate_decay_algorithms
     )
     global decay_params
