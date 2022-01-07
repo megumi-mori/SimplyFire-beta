@@ -123,6 +123,7 @@ def create_window():
     global msg_label
     msg_label = widget.VarText(parent=msg_frame, name='param_guide_msg', value="", default="", state='disabled')
     msg_label.grid(column=0, row=0, sticky='news')
+    Tk.Text.configure(msg_label, font=Tk.font.Font(size=int(float(app.widgets['font_size'].get()))))
 
     vsb = ttk.Scrollbar(msg_frame, orient=Tk.VERTICAL, command=msg_label.yview)
     vsb.grid(column=1, row=0, sticky='ns')
@@ -144,8 +145,10 @@ def accept(e=None):
 
 def update():
     try:
-        ax.set_xlabel(trace_display.ax.get_xlabel())
-        ax.set_ylabel(trace_display.ax.get_ylabel())
+        ax.set_xlabel(trace_display.ax.get_xlabel(), fontsize=int(float(app.widgets['font_size'].get())))
+        ax.set_ylabel(trace_display.ax.get_ylabel(), fontsize=int(float(app.widgets['font_size'].get())))
+        ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
+        ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
         canvas.draw()
     except Exception as e:
         print(f'param_guide update error {e}')
@@ -286,7 +289,7 @@ def plot_decay_fit(xs, A, decay, decay_base=0, baseline=0, direction=1):
 def plot_decay_extrapolate(xs,A,decay,decay_base,baseline,prev_A,prev_decay,prev_base,prev_t,direction):
     y = analyzer2.single_exponent_constant(xs-xs[0],A,decay,decay_base)*direction
     prev_y = analyzer2.single_exponent_constant(xs-prev_t,prev_A, prev_decay, prev_base) * direction
-    ys = y + prev_y
+    ys = y + prev_y + baseline
     ax.plot(xs, ys,linewidth = app.widgets['style_trace_line_width'].get(),
             c=app.widgets['style_event_decay_color'].get(),
             label='Decay fit')
@@ -316,9 +319,10 @@ def report(xs, ys, data, clear_plot=False):
     global msg_label
     if clear:
         clear()
-    print(data['failure'])
     if data['failure'] is not None:
         msg_label.insert(data['failure']+'\n')
+    else:
+        msg_label.insert('Success\n')
     try:
         try:
             start = int(min(max(data['start_idx'] - data['lag'] - data['delta_x'], 0), data['xlim_idx_L']))
@@ -411,7 +415,11 @@ def report(xs, ys, data, clear_plot=False):
     try:
         plot_halfwidth((data['halfwidth_start_coord_x'], data['halfwidth_start_coord_y']),
                                    (data['halfwidth_end_coord_x'], data['halfwidth_end_coord_y']))
-        msg_label.insert(f'Halfwidth: {data["halfwidth"]} {data["halfwidth_unit"]}\n')
+        msg_label.insert(f'Halfwidth: {data["halfwidth"]:.3f} {data["halfwidth_unit"]}\n')
+    except:
+        pass
+    try:
+        msg_label.insert(f'Signal-to-noise ratio: {data["amp"]*data["direction"]/data["stdev"]:.3f}\n')
     except:
         pass
     show_legend()

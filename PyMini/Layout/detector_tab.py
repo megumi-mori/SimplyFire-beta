@@ -39,7 +39,6 @@ def start_find_all_process(popup=True):
     if popup:
         running_popup.window_close()
 
-
 def find_in_window(popup=True):
     if interface.al.recording is None:
         return None
@@ -81,6 +80,10 @@ def populate_decay_algorithms(e=None):
             widgets[d['id']].master.master.grid()
         else:
             widgets[d['id']].master.master.grid_remove()
+    global changed
+    changed = True
+    global changes
+    changes['decay_algorithm'] = e
     pass
 def load(parent):
     global widgets
@@ -127,7 +130,29 @@ def load(parent):
         name='detector',
         text='Mini analysis mode'
     )
-
+    global find_all_button
+    find_all_button = optionframe.insert_button(
+        text='Find all',
+        command=find_all  # link this later
+    )
+    optionframe.insert_button(
+        text='Delete all',
+        command=interface.delete_all_events
+    )
+    global find_in_window_button
+    find_in_window_button = optionframe.insert_button(
+        text='Find in \nwindow',
+        command=find_in_window  # link this later
+    )
+    optionframe.insert_button(
+        text='Delete in \nwindow',
+        command=delete_in_window
+    )
+    global report_button
+    report_button = optionframe.insert_button(
+        text='Report stats',
+        command=data_display.report,
+    )
     # mini analysis core parameters
     optionframe.insert_title(
         text='core parameters'
@@ -151,11 +176,9 @@ def load(parent):
         'lag_ms': {'id': 'detector_core_lag_ms',
                             'label': 'Window of data points averaged to find start of mini (ms):',
                             'validation': 'float', 'conversion':float},
-        'min_peak2peak': {'id': 'detector_core_min_peak2peak',
-                          'label':'Reject minis closer than (ms):', 'validation':'float'},
-        'std_lag_ms': {'id': 'detector_core_std_lag_ms',
-                   'label': 'x-interval to calculate standard deviation (ms):',
-                   'validation':'float', 'conversion':float}
+        # 'std_lag_ms': {'id': 'detector_core_std_lag_ms',
+        #            'label': 'x-interval to calculate standard deviation (ms):',
+        #            'validation':'float', 'conversion':float}
     }
     for k, d in core_params.items():
         widgets[d['id']] = optionframe.insert_label_entry(
@@ -183,7 +206,7 @@ def load(parent):
         name='detector_core_decay_algorithm',
         label='Decay calculation method:',
         # options=['% amplitude', 'Sum of squares', 'Curve fit', 'None'],
-        options=['Curve fit'],
+        options=['Curve fit', '% amplitude'],
         command=populate_decay_algorithms
     )
     global decay_params
@@ -264,6 +287,8 @@ def load(parent):
         'max_compound_interval': {'id': 'detector_core_max_compound_interval',
                                 'label': 'Maximum interval between two peaks to use compound mini analysis (ms)',
                                 'validation':'float', 'conversion': float},
+        'min_peak2peak_ms': {'id': 'detector_core_min_peak2peak',
+                          'label':'Ignore minis closer than (ms):', 'validation':'float'},
 
     }
     for k, d in compound_params.items():
@@ -298,35 +323,14 @@ def load(parent):
         text='Default',
         command=default
     )
-    global find_all_button
-    find_all_button = optionframe.insert_button(
-        text='Find all',
-        command=find_all  # link this later
-    )
-    optionframe.insert_button(
-        text='Delete all',
-        command=interface.delete_all_events
-    )
-    global find_in_window_button
-    find_in_window_button = optionframe.insert_button(
-        text='Find in \nwindow',
-        command=find_in_window  # link this later
-    )
-    optionframe.insert_button(
-        text='Delete in \nwindow',
-        command=delete_in_window
-    )
+
     # global stop_button
     # stop_button = optionframe.insert_button(
     #     text='STOP',
     #     command=stop
     # )
     # stop_button.config(state='disabled')
-    global report_button
-    report_button = optionframe.insert_button(
-        text='Report stats',
-        command=data_display.report,
-    )
+
     report_button.config(state='disabled')
     # mini filtering (min and max values) options
     optionframe.insert_title(

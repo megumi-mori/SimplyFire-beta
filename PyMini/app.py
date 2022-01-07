@@ -7,7 +7,7 @@ import os
 from PyMini.utils import widget, scrollable_option_frame
 from PyMini.Backend import interpreter
 from PyMini.config import config
-from PyMini.Layout import font_bar, detector_tab, style_tab, setting_tab, navigation_tab, \
+from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar
 from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display
 
@@ -86,13 +86,12 @@ def set_value(key, value, tab=None):
 
 def load():
     # tracemalloc.start()
+    config.load()
 
     global root
     root = Tk.Tk()
     root.title('PyMini v{}'.format(config.version))
     root.geometry('{}x{}'.format(config.geometry[0], config.geometry[1]))
-
-    config.load()
     root.bind('<Control-o>', lambda e:menubar.ask_open_trace())
 
     root.grid_rowconfigure(0, weight=1)
@@ -142,10 +141,11 @@ def load():
 
 
     # must set up a graph object that can 'refresh' and 'plot' etc
-    panel = graph_panel.load(None)
+    global gp
+    gp = graph_panel.load(None)
     root.update()
-    pw_2.add(panel)
-    pw_2.paneconfig(panel, height=config.gp_height)
+    pw_2.add(gp)
+    pw_2.paneconfig(gp, height=config.gp_height)
 
     global data_notebook
     data_notebook = ttk.Notebook(pw_2)
@@ -176,10 +176,11 @@ def load():
     ##################################################
 
     # set up frame
-    left = Tk.Frame(pw, background='blue')
-    left.grid(column=0, row=0, sticky='news')
-    left.grid_rowconfigure(0, weight=1)
-    left.grid_columnconfigure(0, weight=1)
+    global cp
+    cp = Tk.Frame(pw, background='blue')
+    cp.grid(column=0, row=0, sticky='news')
+    cp.grid_rowconfigure(0, weight=1)
+    cp.grid_columnconfigure(0, weight=1)
 
     # insert control panel in to left panel
     # cp = Tk.Frame(left, bg='purple')
@@ -188,7 +189,7 @@ def load():
     # cp.grid(column=0 ,row=0, sticky='news')
 
     global cp_notebook
-    cp_notebook = ttk.Notebook(left)
+    cp_notebook = ttk.Notebook(cp)
     cp_notebook.grid(column=0, row=0, sticky='news')
 
     #############################################################
@@ -208,7 +209,7 @@ def load():
     }
 
     for i, t in enumerate(cp_tab_details):
-        cp_tab_details[t]['tab'] = cp_tab_details[t]['module'].load(left)
+        cp_tab_details[t]['tab'] = cp_tab_details[t]['module'].load(cp)
         cp_notebook.add(cp_tab_details[t]['tab'], text=cp_tab_details[t]['text'])
         cp_tab_details[t]['index'] = i
         globals()[cp_tab_details[t]['name']] = cp_tab_details[t]['module']
@@ -220,7 +221,7 @@ def load():
     for key in ['mini', 'evoked', 'adjust',  'style', 'setting']:
         for k, v in cp_tab_details[key]['module'].widgets.items():
             widgets[k] = v
-
+    setting_tab.set_fontsize(widgets['font_size'].get())
     # set focus rules
     for key in widgets:
         if type(widgets[key]) == widget.VarEntry:
@@ -233,13 +234,14 @@ def load():
             widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
 
     # set up font adjustment bar
-    fb = font_bar.load(left)
-    fb.grid(column=0, row=1, sticky='news')
+    # fb = font_bar.load(left, config.font_size)
+    # widgets['font_size'] = font_bar.font_scale
+    # fb.grid(column=0, row=1, sticky='news')
 
     # set up progress bar
     global pb
     # pb = progress_bar.ProgressBar(left)
-    pb = ttk.Progressbar(left, length=100,
+    pb = ttk.Progressbar(cp, length=100,
                          mode='determinate',
                          orient=Tk.HORIZONTAL)
     pb.grid(column=0, row=2, stick='news')
@@ -247,12 +249,12 @@ def load():
     # finis up the pw setting:
 
     pw.grid(column=0, row=0, sticky='news')
-    pw.add(left)
+    pw.add(cp)
     pw.add(right)
 
     # adjust frame width
     # root.update()
-    pw.paneconfig(left, width=int(config.cp_width))
+    pw.paneconfig(cp, width=int(config.cp_width))
     pw.bind('<ButtonPress>', print)
 
 
@@ -308,6 +310,10 @@ def dump_user_setting(filename=None):
                     d[key] = widgets[key].get()
             except:
                 d[key] = widgets[key].get()
+        global cp
+        d['cp_width'] = cp.winfo_width()
+        d['gp_height'] = gp.winfo_height()
+        d['geometry'] = [root.winfo_width(), root.winfo_height()]
 
         print('save output:')
         f.write(yaml.safe_dump(d))

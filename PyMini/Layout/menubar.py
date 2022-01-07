@@ -102,11 +102,11 @@ def export_evoked():
                                                             0] + '_evoked.csv')
     evoked_data_display.dataframe.export(filename)
 
-def export_recording():
+def export_recording(handle_duplicates=False):
     if interface.al.recording is None:
         messagebox.showerror('Write error', message='No recording to export. Please open a recording first.')
         return None
-    initialfname = interface.al.recording.filename.split('.')[0] + '_PyMini'
+    initialfname = interface.al.recording.filename.split('.')[0] + '_Modified'
     try:
         filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('csv files', '*.csv'), ('All files', '*.*')],
                                                 defaultextension='.abf',

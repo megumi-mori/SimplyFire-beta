@@ -20,6 +20,8 @@ def change_mode(mode):
 def load():
     global stop
     stop = False
+    global current_command
+    current_command = None
     try:
         global window
         window.deiconify()
@@ -41,8 +43,7 @@ def load():
             'Apply filter': adjust_tab.filter,
 
             'Min/Max': evoked_tab.calculate_min_max,
-            'Report stats (evoked)': evoked_data_display.report
-
+            'Report stats (evoked)': evoked_data_display.report,
         }
         create_window()
     global current_command
@@ -112,28 +113,31 @@ def create_window():
     command_table.table.item('evoked analysis tab', open=True)
     command_table.add({'Commands': 'adjustment tab'})
     command_table.table.item('adjustment tab', open=True)
+    command_table.add({'Commands': 'batch control'})
+    command_table.table.item('batch control', open=True)
 
     # Menubar
     # command_table.table.insert(parent='menubar', index='end', iid='open trace file', values=('\tOpen trace file',), tag='selectable')
     # command_table.table.insert(parent='menubar', index='end', iid='open event file', values=('\tOpen event file',), tag='selectable')
+    command_table.table.insert(parent='menubar', index='end', iid='save channel', values=('\tSave channel',), tag='selectable')
     command_table.table.insert(parent='menubar', index='end', iid='save events file', values=('\tSave minis',), tag='selectable')
     command_table.table.insert(parent='menubar', index='end', iid='mini mode', values=('\tMini analysis mode (continuous)',),
                                 tag='selectable')
     command_table.table.insert(parent='menubar', index='end', iid='evoked mode',
                                 values=('\tEvoked analysis mode (overlay)',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='export events', values=('\tExport mini analysis data',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='export evoked', values=('\tExport evoked analysis data',), tag='selectable')
+    command_table.table.insert(parent='menubar', index='end', iid='export events', values=('\tExport mini analysis table',), tag='selectable')
+    command_table.table.insert(parent='menubar', index='end', iid='export evoked', values=('\tExport evoked analysis table',), tag='selectable')
     command_table.table.insert(parent='menubar', index='end', iid='export results', values=('\tExport results table',), tag='selectable')
 
     # Mini analysis tab
-    command_table.table.insert(parent='mini analysis tab', index='end', iid='delete in window',
-                               values=('\tDelete in window',), tag='selectable')
-    command_table.table.insert(parent='mini analysis tab', index='end', iid='delete all',
-                               values=('\tDelete all',), tag='selectable')
     command_table.table.insert(parent='mini analysis tab', index='end', iid='find in window',
                           values=('\tFind in window',), tag='selectable')
     command_table.table.insert(parent='mini analysis tab', index='end', iid='find all',
                           values=('\tFind all',), tag='selectable')
+    command_table.table.insert(parent='mini analysis tab', index='end', iid='delete in window',
+                               values=('\tDelete in window',), tag='selectable')
+    command_table.table.insert(parent='mini analysis tab', index='end', iid='delete all',
+                               values=('\tDelete all',), tag='selectable')
     command_table.table.insert(parent='mini analysis tab', index='end', iid='report mini',
                                values=('\tReport stats (mini)',), tag='selectable')
 
@@ -151,6 +155,13 @@ def create_window():
                                 values=('\tApply trace averaging',), tag='selectable')
     command_table.table.insert(parent='adjustment tab', index='end', iid='apply filter',
                                 values=('\tApply filter',), tag='selectable')
+
+    # Special commands
+    command_table.table.insert(parent='batch control', index='end', iid='pause',
+                               values=('\tPause',),
+                               tag='selectable')
+
+    # formatting
     command_table.table.column("#0", stretch=False, width=40)
     command_table.table.column(0, stretch=True)
 
@@ -223,6 +234,8 @@ def create_window():
         value="",
         default="")
     path_entry.grid(column=1, row=1, sticky='news')
+    Tk.Text.configure(path_entry,
+                      font=Tk.font.Font(size=int(float(app.widgets['font_size'].get()))))
     path_entry.configure(state='disabled', height=2)
     path_button_frame = ttk.Frame(file_frame)
     path_button_frame.grid(column=2, row=1, sticky='news')
@@ -233,6 +246,7 @@ def create_window():
     ttk.Label(file_frame, text='File path list:').grid(column=0, row=2, sticky='nw')
     global file_entry
     file_entry = Tk.Text(master=file_frame)
+    Tk.Text.configure(file_entry, font=Tk.font.Font(size=int(float(app.widgets['font_size'].get()))))
     file_entry.grid(column=1, row=2, sticky='news')
     file_button_frame = ttk.Frame(file_frame)
     file_button_frame.grid(column=2, row=2, sticky='news')
@@ -267,11 +281,17 @@ def create_window():
     stop_button = ttk.Button(control_frame, text='STOP', command=process_interrupt)
     stop_button.grid(column=2, row=0, sticky='ne')
     stop_button.grid_forget()
+    global resume_button
+    resume_button = ttk.Button(control_frame, text='RESUME', command=process_resume)
+    resume_button.grid(column=3, row=0, sticky='ne')
+    resume_button.grid_forget()
     # stop_button.config(state='disabled')
 
     global batch_log
     batch_log = VarText(parent=batch_frame, value="Press Start to begin...", default="Press Start to begin...", lock=False)
     batch_log.grid(column=0, row=1, sticky='news')
+    Tk.Text.configure(batch_log,
+                      font=Tk.font.Font(size=int(float(app.widgets['font_size'].get()))))
 
     global progress_message
     progress_message = VarLabel(batch_frame, value="Processing 0/0 files. At 0/0 steps", default="Processing 0/0 files. At 0/0 steps")
@@ -424,6 +444,25 @@ def process_interrupt(event=None):
     global current_command
     interface.interrupt(process=current_command)
 
+def process_pause(event=None):
+    global stop_button
+    stop_button.grid_forget()
+
+    global resume_button
+    resume_button.grid(column=3, row=0, sticky='ne')
+
+    app.root.attributes('-disabled', False)
+    window.protocol("WM_DELETE_WINDOW", window.withdraw)
+
+def process_resume(event=None):
+    global stop_button
+    stop_button.grid(column=2, row=0, sticky='ne')
+
+    global resume_button
+    resume_button.grid_forget()
+
+    t = Thread(target=process_batch())
+    t.start()
 
 def process_start(event=None):
     global start_button
@@ -433,63 +472,100 @@ def process_start(event=None):
     global stop
     stop = False
 
+    global file_entry
+    global file_list
+    file_list = file_entry.get(1.0, Tk.END).split('\n')
+    file_list = [f for f in file_list if f != ""]
+
+    global protocol_table
+    global command_list
+    command_list = [protocol_table.table.item(i, 'values')[0] for i in protocol_table.table.get_children()]
+    command_list.insert(0, 'Open file')
+
+    global file_idx
+    file_idx = 0
+
+    global command_idx
+    command_idx = 0
+
+    global batch_log
+    batch_log.clear()
     t = Thread(target=process_batch())
     t.start()
 
-def process_batch(event=None):
+def process_batch():
     global window
     window.protocol("WM_DELETE_WINDOW", disable_event)
     app.root.attributes('-disabled', True)
-
-    global protocol_table
-    commands = [protocol_table.table.item(i, 'values')[0] for i in protocol_table.table.get_children()]
-    total_steps = len(commands)
-    global file_entry
-    files = file_entry.get(1.0, Tk.END).split('\n')
-    files = [f for f in files if f != ""]
-    total_files = len(files)
+    global command_list
+    global file_list
+    total_steps = len(command_list)
+    total_files = len(file_list)
     global path_entry
-    basedir = path_entry.get()
+    basedir = path_entry.get().strip()
+    # add support for truncated filenames (without directory names) using the path entry
     global stop
     global progress_message
     global batch_log
     global current_command
-    batch_log.delete(1.0, Tk.END)
-
-    for j, f in enumerate(files):
-        if stop:
-            break
-        progress_message.config(text=f'Processing {j + 1}/{total_files} files. At {0}/{total_steps} steps')
-        try:
-            if f:
-                interface.open_trace(f)
-                batch_log.insert(f'Opening file: {f}\n')
-
-                for i,c in enumerate(commands):
-                    batch_log.insert(f'\t{c}\n')
-                    progress_message.config(text=f'Processing {j+1}/{total_files} files. At {i+1}/{total_steps} steps')
-                    current_command = c
+    global file_idx
+    global command_idx
+    while file_idx < total_files:
+        while command_idx < total_steps:
+            if stop:
+                break
+            try:
+                c = command_list[command_idx]
+                current_command = c
+                progress_message.config(text=f'Processing {file_idx+1}/{total_files} files. At {command_idx}/{total_steps-1} steps')
+                if c == 'Open file':
+                    f = file_list[file_idx]
+                    if f:
+                        if not os.path.isdir(os.path.dirname(f)):
+                            batch_log.insert(f'Opening file {f} from directory {basedir}')
+                            f = os.path.join(basedir, f)
+                        else:
+                            batch_log.insert(f'Opening file {f}')
+                        try:
+                            interface.open_trace(f)
+                        except:
+                            batch_log.insert(f'Error opening file.\n')
+                    else:
+                        batch_log.insert(f'Filename invalid\n')
+                else:
+                    batch_log.insert(f'Command: {c}\n')
                     if c == 'Save minis':
-                        fname = f.split('.')[0]+'.event'
+                        fname = file_list[file_idx].split('.')[0] + '.event'
                         interface.save_events(fname, mode='x')
                         pass
-                    elif c == 'Export mini analysis data':
-                        fname =f.split('.')[0]+'_mini.csv'
+                    elif c == 'Export mini analysis table':
+                        fname = file_list[file_idx].split('.')[0] + '_mini.csv'
                         data_display.dataframe.export(fname, mode='x')
-                    elif c == 'Export evoked analysis data':
-                        fname = f.split('.')[0] + '_evoked.csv'
+                    elif c == 'Export evoked analysis table':
+                        fname = file_list[file_idx].split('.')[0] + '_evoked.csv'
                         evoked_data_display.dataframe.export(fname, mode='x')
                     elif c == 'Export results table':
                         fname = 'results.csv'
                         results_display.dataframe.export(fname, mode='x')
-
+                    elif c == 'Save channel':
+                        fname = file_list[file_idx].split('.')[0] + '_Modified.abf'
+                        interface.al.recording.save(fname, handle_error=True)
+                    elif c == 'Pause':
+                        command_idx += 1
+                        process_pause()
+                        return None
                     else:
                         command_dict[c]()
-        except:
-            batch_log.insert(f'could not open {f}')
+            except Exception as e:
+                batch_log.insert(f'Error performing command: {c}.\n Exception: {e}')
+            command_idx += 1
+        if stop:
+            break
+        file_idx += 1
+        command_idx = 0
     if stop:
         batch_log.insert('Batch stopped by user\n')
-    batch_log.insert('End of batch\n')
+    batch_log.insert('End of batch')
     stop = False
     app.root.attributes('-disabled', False)
     window.protocol("WM_DELETE_WINDOW", window.withdraw)
@@ -499,6 +575,9 @@ def process_batch(event=None):
     start_button.grid(column=1, row=0, sticky='ne')
 
     progress_message.config(text=f'Processing 0/0 files. At 0/0 steps')
+
+    file_list = []
+    command_list = []
 
     pass
 

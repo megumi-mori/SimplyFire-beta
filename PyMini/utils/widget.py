@@ -664,7 +664,7 @@ class DataTable(Tk.Frame):
         self.table.delete(*selection)
         return selection
 
-    def export(self, filename, mode='w', suffix_num=0):
+    def export(self, filename, mode='w', suffix_num=0, handle_error=True):
         if suffix_num > 0:
             new_filename = f'{filename.split(".")[0]}({suffix_num}).{filename.split(".")[1]}'
         try:
@@ -676,8 +676,8 @@ class DataTable(Tk.Frame):
                     data = self.table.set(i)
                     f.write(','.join([data[c] for c in self.displaycolumns]))
                     f.write('\n')
-        except:
-            if mode == 'x':
+        except (FileExistsError):
+            if handle_error:
                 self.export(filename, mode, suffix_num+1)
 
 
