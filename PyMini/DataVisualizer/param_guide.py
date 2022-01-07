@@ -289,7 +289,7 @@ def plot_decay_fit(xs, A, decay, decay_base=0, baseline=0, direction=1):
 def plot_decay_extrapolate(xs,A,decay,decay_base,baseline,prev_A,prev_decay,prev_base,prev_t,direction):
     y = analyzer2.single_exponent_constant(xs-xs[0],A,decay,decay_base)*direction
     prev_y = analyzer2.single_exponent_constant(xs-prev_t,prev_A, prev_decay, prev_base) * direction
-    ys = y + prev_y
+    ys = y + prev_y + baseline
     ax.plot(xs, ys,linewidth = app.widgets['style_trace_line_width'].get(),
             c=app.widgets['style_event_decay_color'].get(),
             label='Decay fit')
@@ -319,9 +319,10 @@ def report(xs, ys, data, clear_plot=False):
     global msg_label
     if clear:
         clear()
-    print(data['failure'])
     if data['failure'] is not None:
         msg_label.insert(data['failure']+'\n')
+    else:
+        msg_label.insert('Success\n')
     try:
         try:
             start = int(min(max(data['start_idx'] - data['lag'] - data['delta_x'], 0), data['xlim_idx_L']))
