@@ -333,7 +333,9 @@ def config_data_tab(tab_name, **kwargs):
 
 def save_events(filename, mode='w', suffix_num=0, handle_error=True):
     if suffix_num > 0:
-        fname = f'{filename.split(".")[0]}({suffix_num}).{filename.split(".")[1]}'
+        fname = f'{os.path.split(filename)[0]}({suffix_num}).{os.path.split(filename)[1]}'
+    else:
+        fname = filename
     try:
         with open(fname, mode) as f:
             f.write(f'@{al.recording.filename}\n')
@@ -362,7 +364,7 @@ def save_events_dialogue(e=None):
 def save_events_as_dialogue(e=None):
     if len(al.mini_df) > 0:
         try:
-            initialfilename = al.recording.filename.split('.')[0] + '.event'
+            initialfilename = os.path.split(al.recording.filename)[1] + '.event'
         except:
             initialfilename = app.event_filename
         filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.event',
