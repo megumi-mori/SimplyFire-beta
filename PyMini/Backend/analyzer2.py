@@ -1298,11 +1298,11 @@ class Analyzer():
                                delta_x=0,
                                lag_ms=None,
                                lag=100,
-                               min_peak2peak=0,
                                ## compound parameters defined in GUI ##
                                compound=1,
                                p_valley=50,
                                max_compound_interval=0,
+                               min_peak2peak_ms=0,
                                extrapolate_hw=0,
                                ## decay algorithm parameters ##
                                decay_algorithm = '% amplitude',
@@ -1387,6 +1387,7 @@ class Analyzer():
             peak_idx = int(peak_idx) # make sure is int
         if peak_t is None and peak_idx is None:
             return {'success':False, 'failure':'peak idx not provided'}
+        min_peak2peak = min_peak2peak_ms/1000*sampling_rate
         if prev_peak:
             try:
                 prev_peak_idx = prev_peak['peak_idx']
@@ -1482,12 +1483,7 @@ class Analyzer():
                                              (self.mini_df['channel'] == channel)].squeeze().to_dict()
             if prev_peak is not None:
                 prev_peak_idx_offset = int(prev_peak['peak_idx']) - offset
-                self.print_time('reference search', show_time)
-
-                if prev_peak_idx_offset + min_peak2peak*sampling_rate/1000>peak_idx:
-                    mini['success']=False
-                    mini['failure']='The peak occurs within minimum interval (ms) of the preceding mini'
-                    return mini
+                #check if previous peak has decayed sufficiently
                 if compound:
                     if prev_peak_idx_offset + max_compound_interval*sampling_rate/1000> peak_idx:
                         # current peak is within set compound interval from the previous peak
@@ -1498,7 +1494,11 @@ class Analyzer():
                         if prev_peak_idx_offset < 0 or prev_peak_idx_offset > len(ys):  # not sufficient datapoints
                             mini['success'] = False
                             mini['failure'] = 'The compound mini could not be analyzed - need more data points'
-
+                        if min((ys[prev_peak_idx_offset:peak_idx]-prev_peak['baseline']) * direction) > prev_peak[
+                            'amp'] * direction * p_valley / 100:
+                            mini['success'] = False
+                            mini['failure'] = 'Minimum peak_to_valley % not reached for the previous mini'
+                            return mini
                         mini['prev_baseline'] = prev_peak['baseline']
                         mini['prev_decay_const'] = prev_peak['decay_const']
                         mini['prev_decay_A'] = prev_peak['decay_A']
@@ -1566,12 +1566,14 @@ class Analyzer():
         ####### calculate end of event #######
         next_peak_idx = None
         if compound:
-            next_peak_idx = self.find_peak_recursive(xs=xs,
-                                                     ys=ys,
-                                                     start=int(min(peak_idx+min_peak2peak/1000*sampling_rate, len(ys)-1)),
-                                                     end=int(min(peak_idx+max_compound_interval_idx, len(ys)-1)),
-                                                     direction=direction
-                                                     )
+            next_search_start = np.where((ys[int(peak_idx+min_peak2peak):int(peak_idx+max_compound_interval_idx)] - mini['baseline'])*direction < mini['amp'] * p_valley /100 * direction)
+            if len(next_search_start[0]>0):
+                next_peak_idx = self.find_peak_recursive(xs=xs,
+                                                         ys=ys,
+                                                         start=int(min(next_search_start[0][0]+peak_idx+min_peak2peak, len(ys)-1)),
+                                                         end=int(min(next_search_start[0][0]+peak_idx+min_peak2peak+max_compound_interval_idx, len(ys)-1)),
+                                                         direction=direction
+                                                         )
 
         end_idx = None
         if next_peak_idx is not None:

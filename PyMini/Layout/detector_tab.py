@@ -172,11 +172,9 @@ def load(parent):
         'lag_ms': {'id': 'detector_core_lag_ms',
                             'label': 'Window of data points averaged to find start of mini (ms):',
                             'validation': 'float', 'conversion':float},
-        'min_peak2peak': {'id': 'detector_core_min_peak2peak',
-                          'label':'Reject minis closer than (ms):', 'validation':'float'},
-        'std_lag_ms': {'id': 'detector_core_std_lag_ms',
-                   'label': 'x-interval to calculate standard deviation (ms):',
-                   'validation':'float', 'conversion':float}
+        # 'std_lag_ms': {'id': 'detector_core_std_lag_ms',
+        #            'label': 'x-interval to calculate standard deviation (ms):',
+        #            'validation':'float', 'conversion':float}
     }
     for k, d in core_params.items():
         widgets[d['id']] = optionframe.insert_label_entry(
@@ -285,6 +283,8 @@ def load(parent):
         'max_compound_interval': {'id': 'detector_core_max_compound_interval',
                                 'label': 'Maximum interval between two peaks to use compound mini analysis (ms)',
                                 'validation':'float', 'conversion': float},
+        'min_peak2peak_ms': {'id': 'detector_core_min_peak2peak',
+                          'label':'Ignore minis closer than (ms):', 'validation':'float'},
 
     }
     for k, d in compound_params.items():
