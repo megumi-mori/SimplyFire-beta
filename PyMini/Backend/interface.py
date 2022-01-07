@@ -633,7 +633,7 @@ def find_mini_in_range(xlim=None, ylim=None):
         data_display.append(df)
 
     if detector_tab.changed:
-        log_display.search_update('Manual')
+        log_display.search_update('Auto')
         log_display.param_update(detector_tab.changes)
         detector_tab.changes = {}
         detector_tab.changed = False

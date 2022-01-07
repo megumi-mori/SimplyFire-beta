@@ -80,6 +80,10 @@ def populate_decay_algorithms(e=None):
             widgets[d['id']].master.master.grid()
         else:
             widgets[d['id']].master.master.grid_remove()
+    global changed
+    changed = True
+    global changes
+    changes['decay_algorithm'] = e
     pass
 def load(parent):
     global widgets
