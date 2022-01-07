@@ -247,8 +247,7 @@ def plot_mouse_release(event):
     if event_pick:
         event_pick = False
         return
-
-    if trace_display.canvas.toolbar.mode == 'pan/zoom':
+    if trace_display.canvas.toolbar.mode == 'pan/zoom' or trace_display.canvas.toolbar.mode == 'zoom rect':
         # make sure the plot does not go out of xlim bounds
         trace_display.scroll_x_by(percent=0)
         trace_display.zoom_x_by(percent=0)
