@@ -46,8 +46,6 @@ def load():
             'Report stats (evoked)': evoked_data_display.report,
         }
         create_window()
-    global current_command
-    current_command = None
 
 def create_window():
     global window
