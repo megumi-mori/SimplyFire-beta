@@ -123,6 +123,7 @@ def create_window():
     global msg_label
     msg_label = widget.VarText(parent=msg_frame, name='param_guide_msg', value="", default="", state='disabled')
     msg_label.grid(column=0, row=0, sticky='news')
+    Tk.Text.configure(msg_label, font=Tk.font.Font(size=int(float(app.widgets['font_size'].get()))))
 
     vsb = ttk.Scrollbar(msg_frame, orient=Tk.VERTICAL, command=msg_label.yview)
     vsb.grid(column=1, row=0, sticky='ns')
@@ -144,8 +145,10 @@ def accept(e=None):
 
 def update():
     try:
-        ax.set_xlabel(trace_display.ax.get_xlabel())
-        ax.set_ylabel(trace_display.ax.get_ylabel())
+        ax.set_xlabel(trace_display.ax.get_xlabel(), fontsize=int(float(app.widgets['font_size'].get())))
+        ax.set_ylabel(trace_display.ax.get_ylabel(), fontsize=int(float(app.widgets['font_size'].get())))
+        ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
+        ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
         canvas.draw()
     except Exception as e:
         print(f'param_guide update error {e}')

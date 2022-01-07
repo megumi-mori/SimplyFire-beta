@@ -249,8 +249,10 @@ def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
                              al.recording.get_ys(mode='continuous'),
                              draw=draw,
                              relim=True)
-    trace_display.ax.set_xlabel(al.recording.x_label)
-    trace_display.ax.set_ylabel(al.recording.y_label)
+    trace_display.ax.set_xlabel(al.recording.x_label, fontsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.set_ylabel(al.recording.y_label, fontsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
 
     if fix_axis:
         trace_display.set_axis_limit('x', xlim)
@@ -974,8 +976,10 @@ def plot_overlay(fix_axis=False, fix_x=False, draw=False):
         xlim = trace_display.get_axis_limits('x')
     trace_display.clear()
     # data_display.clear()
-    trace_display.ax.set_xlabel(al.recording.x_label)
-    trace_display.ax.set_ylabel(al.recording.y_label)
+    trace_display.ax.set_xlabel(al.recording.x_label, fontsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.set_ylabel(al.recording.y_label, fontsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
 
     for i in range(al.recording.sweep_count):
         trace_display.plot_trace(al.recording.get_xs(mode='overlay', sweep=i),

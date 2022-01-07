@@ -1,12 +1,14 @@
 
 import tkinter as Tk
 from tkinter import filedialog
-from tkinter import ttk
+from tkinter import ttk, font
 
 from PyMini.utils import widget
 from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
+from PyMini.Layout import batch_popup
 from PyMini.config import config
 from PyMini import app
+from PyMini.DataVisualizer import trace_display, param_guide
 
 import os
 
@@ -37,6 +39,23 @@ def load(parent):
 
     optionframe = frame.frame
     ##################################################
+    #                Visual Options                  #
+    ##################################################
+    global s
+    s = ttk.Style()
+
+    optionframe.insert_title(
+        name='visual_settings',
+        text='Application Font'
+    )
+    widgets['font_size'] = optionframe.insert_label_optionmenu(
+        name='font_size',
+        label="Font size",
+        options=range(9,20,1),
+        command=set_fontsize
+    )
+
+    ##################################################
     #               Parameter Options                #
     ##################################################
     optionframe.insert_title(
@@ -64,7 +83,7 @@ def load(parent):
     dir_frame.columnconfigure(0, weight=1)
     ttk.Label(master=dir_frame,
              text='Configuration file path:').grid(column=0, row=0, sticky='news')
-
+    global dir_entry
     dir_entry = widget.VarText(
         parent=dir_frame,
         name='config_user_path',
@@ -130,4 +149,41 @@ def save(event=None):
     app.dump_user_setting(widgets['config_user_path'].get())
 
 
+def set_fontsize(fontsize):
+    fontsize=int(float(fontsize))
+    fonts = [
+        "TkDefaultFont",
+        "TkTextFont",
+        "TkMenuFont",
+        "TkHeadingFont"
+    ]
+    for f in fonts:
+        def_font = font.nametofont(f)
+        def_font.configure(size=fontsize)
+        s.configure('Treeview', rowheight=int(fontsize * 2))
 
+    Tk.Text.configure(dir_entry, font=Tk.font.Font(size=fontsize))
+    Tk.Text.configure(app.log_display.log_text, font=Tk.font.Font(size=fontsize))
+    try:
+        trace_display.ax.xaxis.get_label().set_fontsize(fontsize)
+        trace_display.ax.yaxis.get_label().set_fontsize(fontsize)
+        trace_display.ax.tick_params(axis='y', which='major', labelsize=fontsize)
+        trace_display.ax.tick_params(axis='x', which='major', labelsize=fontsize)
+    except:
+        pass
+
+    try:
+        param_guide.ax.xaxis.get_label().set_fontsize(fontsize)
+        param_guide.ax.yaxis.get_label().set_fontsize(fontsize)
+        param_guide.ax.tick_params(axis='y', which='major', labelsize=fontsize)
+        param_guide.ax.tick_params(axis='x', which='major', labelsize=fontsize)
+        Tk.Text.configure(param_guide.msg_label, font=Tk.font.Font(size=fontsize))
+    except:
+        pass
+
+    try:
+        Tk.Text.configure(batch_popup.path_entry, font=Tk.font.Font(size=fontsize))
+        Tk.Text.configure(batch_popup.file_entry, font=Tk.font.Font(size=fontsize))
+        Tk.Text.configure(batch_popup.batch_log, font=Tk.font.Font(size=fontsize))
+    except:
+        pass

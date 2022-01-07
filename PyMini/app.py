@@ -233,8 +233,9 @@ def load():
             widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
 
     # set up font adjustment bar
-    fb = font_bar.load(left)
-    fb.grid(column=0, row=1, sticky='news')
+    # fb = font_bar.load(left, config.font_size)
+    # widgets['font_size'] = font_bar.font_scale
+    # fb.grid(column=0, row=1, sticky='news')
 
     # set up progress bar
     global pb
@@ -278,6 +279,7 @@ def load():
     interpreter.initialize()
 
     # # finalize the data viewer - table
+    setting_tab.set_fontsize(widgets['font_size'].get())
     root.update()
     data_display.fit_columns()
     evoked_data_display.fit_columns()
