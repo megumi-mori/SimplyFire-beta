@@ -495,7 +495,7 @@ def process_batch():
     total_steps = len(command_list)
     total_files = len(file_list)
     global path_entry
-    basedir = path_entry.get()
+    basedir = path_entry.get().strip()
     # add support for truncated filenames (without directory names) using the path entry
     global stop
     global progress_message
@@ -509,44 +509,48 @@ def process_batch():
                 break
             try:
                 c = command_list[command_idx]
-                batch_log.insert(f'\t{c}\n')
                 current_command = c
                 progress_message.config(text=f'Processing {file_idx+1}/{total_files} files. At {command_idx}/{total_steps-1} steps')
                 if c == 'Open file':
                     f = file_list[file_idx]
                     if f:
+                        if not os.path.isdir(os.path.dirname(f)):
+                            batch_log.insert(f'Opening file {f} from directory {basedir}')
+                            f = os.path.join(basedir, f)
+                        else:
+                            batch_log.insert(f'Opening file {f}')
                         try:
                             interface.open_trace(f)
-                            batch_log.insert(f'Opening file: {f}\n')
                         except:
                             batch_log.insert(f'Error opening file.\n')
                     else:
                         batch_log.insert(f'Filename invalid\n')
-
-                elif c == 'Save minis':
-                    fname = file_list[file_idx].split('.')[0] + '.event'
-                    interface.save_events(fname, mode='x')
-                    pass
-                elif c == 'Export mini analysis table':
-                    fname = file_list[file_idx].split('.')[0] + '_mini.csv'
-                    data_display.dataframe.export(fname, mode='x')
-                elif c == 'Export evoked analysis table':
-                    fname = file_list[file_idx].split('.')[0] + '_evoked.csv'
-                    evoked_data_display.dataframe.export(fname, mode='x')
-                elif c == 'Export results table':
-                    fname = 'results.csv'
-                    results_display.dataframe.export(fname, mode='x')
-                elif c == 'Save channel':
-                    fname = file_list[file_idx].split('.')[0] + '_Modified.abf'
-                    interface.al.recording.save(fname, handle_error=True)
-                elif c == 'Pause':
-                    command_idx += 1
-                    process_pause()
-                    return None
                 else:
-                    command_dict[c]()
-            except:
-                batch_log.insert(f'Error performing command: {c}\n')
+                    batch_log.insert(f'Command: {c}\n')
+                    if c == 'Save minis':
+                        fname = file_list[file_idx].split('.')[0] + '.event'
+                        interface.save_events(fname, mode='x')
+                        pass
+                    elif c == 'Export mini analysis table':
+                        fname = file_list[file_idx].split('.')[0] + '_mini.csv'
+                        data_display.dataframe.export(fname, mode='x')
+                    elif c == 'Export evoked analysis table':
+                        fname = file_list[file_idx].split('.')[0] + '_evoked.csv'
+                        evoked_data_display.dataframe.export(fname, mode='x')
+                    elif c == 'Export results table':
+                        fname = 'results.csv'
+                        results_display.dataframe.export(fname, mode='x')
+                    elif c == 'Save channel':
+                        fname = file_list[file_idx].split('.')[0] + '_Modified.abf'
+                        interface.al.recording.save(fname, handle_error=True)
+                    elif c == 'Pause':
+                        command_idx += 1
+                        process_pause()
+                        return None
+                    else:
+                        command_dict[c]()
+            except Exception as e:
+                batch_log.insert(f'Error performing command: {c}.\n Exception: {e}')
             command_idx += 1
         if stop:
             break
