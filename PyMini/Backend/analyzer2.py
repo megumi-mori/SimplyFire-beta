@@ -1299,7 +1299,6 @@ class Analyzer():
                                lag_ms=None,
                                lag=100,
                                min_peak2peak=0,
-                               std_lag_ms=10,
                                ## compound parameters defined in GUI ##
                                compound=1,
                                p_valley=50,
@@ -1382,8 +1381,6 @@ class Analyzer():
             decay_max_points = int(decay_max_interval/1000*sampling_rate)
         if delta_x_ms is not None:
             delta_x = int(delta_x_ms/1000*sampling_rate)
-        if std_lag_ms:
-            std_lag = int(std_lag_ms/1000*sampling_rate)
         if peak_t:
             peak_idx = search_index(peak_t, xs, sampling_rate)
         elif peak_idx:
@@ -1551,14 +1548,13 @@ class Analyzer():
         self.print_time('amp', show_time)
 
         ####### calculate stdev ########
-        if std_lag > 1:
-            mini['stdev'] = np.std(ys[max(0, baseline_idx - std_lag):baseline_idx])
-        else:
-            mini['stdev'] = None
-            if (min_s2n and min_s2n > 0) or (max_2n and max_s2n < np.inf): # cannot filter
-                mini['success'] = False
-                mini['failure'] = 'Not enough data to calculate stdev of baseline'
-                return mini
+        mini['stdev'] = np.std(ys[max(0, baseline_idx - lag):baseline_idx])
+        # else:
+        #     mini['stdev'] = None
+        #     if (min_s2n and min_s2n > 0) or (max_2n and max_s2n < np.inf): # cannot filter
+        #         mini['success'] = False
+        #         mini['failure'] = 'Not enough data to calculate stdev of baseline'
+        #         return mini
         if mini['stdev'] and min_s2n and mini['amp']*direction/mini['stdev'] < min_s2n:
             mini['success'] = False
             mini['failure'] = 'Min signal to noise ratio not met'
