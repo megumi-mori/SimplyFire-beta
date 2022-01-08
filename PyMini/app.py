@@ -315,6 +315,8 @@ def dump_user_setting(filename=None):
         d['cp_width'] = cp.winfo_width()
         d['gp_height'] = gp.winfo_height()
         d['geometry'] = [root.winfo_width(), root.winfo_height()]
+        d['compare_color_list'] = config.compare_color_list
+        d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
 
         print('save output:')
         f.write(yaml.safe_dump(d))

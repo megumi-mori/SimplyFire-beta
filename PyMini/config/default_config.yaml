@@ -192,6 +192,18 @@ default_force_channel_id: 0
 default_export_sweep : 1
 default_sweep_picker_offset : 20
 
+# compare
+default_compare_color_list: # the colors are based on Okabe&Ito colorblind-friendly pallet (https://jfly.uni-koeln.de/color/)
+- 'Black'
+- '#0080ff'
+- '#ff8000'
+- '#e64dff'
+- '#33ffff'
+- '#e6f21a'
+- '#33ffff'
+- '#ff3300'
+- '#08ff40'
+- 'Black'
 # menu
 default_trace_mode : 'continuous'
 default_analysis_mode : 'mini'

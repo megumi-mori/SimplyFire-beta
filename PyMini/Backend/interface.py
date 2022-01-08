@@ -178,7 +178,14 @@ def open_trace(fname, append=False):
         )
         trace_display.ax.autoscale(enable=True, axis='both', tight=True)
         sweep_tab.populate_list(record.sweep_count)
+        while len(recordings) > 0:
+            r = recordings.pop()
+            del r
+    recordings.append(record)
+    if not append:
+        app.compare_tab.reset_trace_list(fname)
     else:
+        app.compare_tab.increase_trace_list(fname)
         try:
             record.set_channel(recordings[0].channel)
         except:
@@ -187,16 +194,12 @@ def open_trace(fname, append=False):
     if app.widgets['trace_mode'].get() == 'continuous':
         plot_continuous(record)
     elif app.widgets['trace_mode'].get() == 'overlay':
-        plot_overlay(record, append=False, sweeps=range(0, record.sweep_count))
+        plot_overlay(0, append=False)
     else:
-        plot_overlay(record, append=append, sweeps=range(0, record.sweep_count))
+        plot_overlay(len(recordings)-1, fix_x=append, append=append)
 
     param_guide.update()
     if not append:
-        while len(recordings) > 0:
-            r = recordings.pop()
-            del r
-        recordings = [record]
         if app.widgets['force_axis_limit'].get() == '1':
             trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
             trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
@@ -215,11 +218,9 @@ def open_trace(fname, append=False):
             )
     # starting channel was set earlier in the code
         app.widgets['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
-    else:
-        recordings.append(record)
 
-    if app.widgets['trace_mode'].get() == 'compare':
-        app.compare_tab.increase_trace_list(fname)
+    app.pb['value'] = 0
+    app.pb.update()
 
     # trace_display.refresh()
 def _change_channel(num, save_undo=True):
@@ -241,12 +242,9 @@ def _change_channel(num, save_undo=True):
         plot_continuous(recordings[0], fix_x=True, draw=False)
     elif app.widgets['trace_mode'].get() == 'compare':
         for i,r in enumerate(recordings):
-            plot_overlay(r, fix_x=True, draw=False, append=(i!=0), sweeps=app.compare_tab.get_sweep_list(i))
-
-
-        # add sweep specification
+            plot_overlay(i, fix_x=True, draw=False, append=(i!=0))
     else:
-        plot_overlay(recordings[0], fix_x=True, draw=False, sweeps=[i for i,v in enumerate(app.sweep_tab.sweep_vars) if v.get()])
+        plot_overlay(0, fix_x=True, draw=False)
         # for i, var in enumerate(sweep_tab.sweep_vars):
         #     if not var.get():
         #         trace_display.hide_sweep(i)
@@ -258,8 +256,13 @@ def _change_channel(num, save_undo=True):
 
     param_guide.update()
 
+    app.pb['value'] = 0
+    app.pb.update()
+
 
 def plot_continuous(recording, fix_axis=False, draw=True, fix_x=False, fix_y=False):
+    global idx_offset
+    idx_offset = 0
     if fix_axis:
         xlim = trace_display.get_axis_limits('x')
         ylim = trace_display.get_axis_limits('y')
@@ -977,7 +980,8 @@ def delete_all_events(undo=True):
 # Sweeps
 #######################################
 
-def plot_overlay(recording, fix_axis=False, fix_x=False, draw=False, append=False, sweeps=None):
+def plot_overlay(idx, fix_axis=False, fix_x=False, draw=False, append=False, sweeps=None):
+    recording = recordings[idx]
     global idx_offset
     if fix_axis:
         xlim = trace_display.get_axis_limits('x')
@@ -992,22 +996,30 @@ def plot_overlay(recording, fix_axis=False, fix_x=False, draw=False, append=Fals
         trace_display.ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
         trace_display.ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
         idx_offset = 0
-
+    if app.widgets['trace_mode'].get() == 'compare':
+        color = app.compare_tab.get_color(idx)
+    else:
+        color = app.widgets['style_trace_line_color'].get()
     for i in range(recording.sweep_count):
+        app.pb['value'] = (i+1)/recording.sweep_count*100
+        app.pb.update()
         trace_display.plot_trace(recording.get_xs(mode='overlay', sweep=i),
                                  recording.get_ys(mode='overlay', sweep=i),
                                  draw=False,
                                  relim=False,
-                                 idx=i + idx_offset)
-    if append:
-        idx_offset += recording.sweep_count
-    trace_display.show_all_plot(update_default=not append)
+                                 idx=i + idx_offset,
+                                 color=color)
+    trace_display.show_all_plot(update_default=True)
+    if app.widgets['trace_mode'].get() == 'overlay':
+        sweeps = [i for i,v in enumerate(app.sweep_tab.sweep_vars) if v.get()]
+    elif app.widgets['trace_mode'].get() == 'compare':
+        sweeps = app.compare_tab.get_sweep_list(idx)
     if sweeps:
         for i in range(recording.sweep_count):
-            trace_display.hide_sweep(i)
+            trace_display.hide_sweep(i+idx_offset)
         for i in sweeps:
-            trace_display.show_sweep(i)
-
+            trace_display.show_sweep(i+idx_offset)
+    idx_offset += recording.sweep_count
     if fix_axis:
         trace_display.set_axis_limit('x', xlim)
         trace_display.set_axis_limit('y', ylim)
@@ -1015,6 +1027,9 @@ def plot_overlay(recording, fix_axis=False, fix_x=False, draw=False, append=Fals
         trace_display.set_axis_limit('x', xlim)
     if draw:
         trace_display.canvas.draw()
+
+    app.pb['value'] = 0
+    app.pb.update()
 
 def toggle_sweep(idx, v, draw=True):
     if v == 1:

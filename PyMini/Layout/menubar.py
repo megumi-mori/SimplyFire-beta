@@ -180,6 +180,13 @@ def set_view_compare(save_undo=True):
     interface.config_cp_tab(widgets['analysis_mode'].get(), state='disabled')
     interface.config_data_tab(widgets['analysis_mode'].get(), state='disabled')
 
+    try:
+        for i,r in enumerate(interface.recordings):
+            interface.plot_overlay(i, fix_axis=True, append=(i!=0))
+    except:
+        pass
+    trace_mode = 'compare'
+
 def set_view_continuous(save_undo=True):
     global trace_mode
     global widgets
@@ -221,7 +228,7 @@ def set_view_overlay(save_undo=True):
     widgets['trace_mode'].set('overlay')
     interface.config_cp_tab('overlay', state='normal')
     try:
-        interface.plot_overlay(interface.recordings[0], fix_axis=True)
+        interface.plot_overlay(0, fix_axis=True)
     except:
         pass
     if widgets['analysis_mode'].get() == 'mini':

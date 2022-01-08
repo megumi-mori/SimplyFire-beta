@@ -7,6 +7,7 @@ from PyMini import app
 import gc
 
 import PyMini.Backend.analyzer2 as analyzer
+from PyMini.Backend import interface
 from PyMini.Layout import graph_panel
 
 
@@ -266,7 +267,7 @@ def zoom_x_by(direction=1, percent=0, event=None):
 
     center_pos = 0.5
     try:
-        center_pos = (event.xdata - win_lim[0])/width
+        center_pos = (event.xdata - xlim[0])/width
     except:
         pass
     center_pos = center_pos * width + xlim[0]
@@ -464,16 +465,17 @@ def clear_markers(key=None):
     canvas.draw()
 
 
-def plot_trace(xs, ys, draw=True, relim=True, idx=0):
+def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None):
     if 'sweep_{}'.format(idx) in sweeps:
         try:
             sweeps['sweep_{}'.format(idx)].remove()
         except:
             pass
-
+    if not color:
+        color = app.widgets['style_trace_line_color'].get()
     sweeps['sweep_{}'.format(idx)], = ax.plot(xs, ys,
                                               linewidth=app.widgets['style_trace_line_width'].get(),
-                                              c=app.widgets['style_trace_line_color'].get(),
+                                              c=color,
                                               animated=False)  # pickradius=int(app.widgets['style_event_pick_offset'].get())
     if relim:
         ax.autoscale(enable=True, axis='both', tight=True)
@@ -481,6 +483,7 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0):
         canvas.draw()
         global default_xlim
         default_xlim = ax.get_xlim()
+        print(default_xlim)
 
         global default_ylim
         default_ylim = ax.get_ylim()
@@ -660,7 +663,7 @@ def plot_end(xs, ys):
         pass
 
 
-def apply_styles(keys):
+def apply_styles(keys, draw=True):
     global highlighted_sweep
     for k in keys:
         try:
@@ -668,8 +671,15 @@ def apply_styles(keys):
                 for l in ax.lines:
                     l.set_linewidth(float(app.widgets[k].get()))
             if k == 'style_trace_line_color':
-                for l in ax.lines:
-                    l.set_color(app.widgets[k].get())
+                if not app.widgets['trace_mode'].get() == 'compare':
+                    for l in ax.lines:
+                        l.set_color(app.widgets[k].get())
+            if k == 'compare_color_list':
+                idx_offset = 0
+                for i,r in enumerate(interface.recordings):
+                    for j in range(r.sweep_count):
+                        sweeps[f'sweep_{j+idx_offset}'].set_color(app.compare_tab.get_color(i))
+                    idx_offset += r.sweep_count
             if k == 'style_event_peak_color':
                 markers['peak'].set_color(app.widgets[k].get())
             if k == 'style_event_peak_size':
@@ -696,7 +706,8 @@ def apply_styles(keys):
                 markers['peak'].set_picker(float(app.widgets[k].get()))
         except:
             pass
-    canvas.draw()
+    if draw:
+        canvas.draw()
 
 
 def show_all_plot(update_default=False):
@@ -708,6 +719,7 @@ def show_all_plot(update_default=False):
         default_xlim = ax.get_xlim()
         global default_ylim
         default_ylim = ax.get_ylim()
+
 
 
 get_axis_limits = lambda axis: getattr(ax, 'get_{}lim'.format(axis))()
