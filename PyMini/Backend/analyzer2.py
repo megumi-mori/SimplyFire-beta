@@ -11,9 +11,6 @@ from PyMini.config import config
 from pandas import DataFrame, Series
 import pandas as pd
 from scipy.optimize import curve_fit
-
-from astropy.convolution import Box1DKernel, convolve
-
 from time import time  # debugging
 
 
@@ -585,24 +582,32 @@ class Analyzer():
 
         """
         if filter == 'Boxcar':
+            # https://danielmuellerkomorowska.com/2020/06/02/smoothing-data-by-rolling-average-with-numpy/
             width = int(params['width'])
-            k = Box1DKernel(width=width)
+            kernel = np.ones(width)/width
             for c in channels:
-                # apply filter
-                ys = self.recording.get_y_matrix(mode='continuous',
-                                                 channels=[c],
-                                                 sweeps=sweeps)
-                filtered = convolve(ys.flatten(), k)
-
-                # reshape filtered data to 3D numpy array
-                filtered = np.reshape(filtered, (1, 1, len(filtered)))
-
-                # # even out the edge cases
-                filtered[:, :, :int(width / 2)] = ys[:, :, :int(width / 2)]
-                filtered[:, :, -int(width / 2):] = ys[:, :, -int(width / 2):]
-
+                ys=self.recording.get_y_matrix(mode='continuous', channels=[c], sweeps=sweeps)
+                filtered=np.convolve(ys.flatten(), kernel, mode='same')
+                filtered=np.reshape(filtered, (1,1,len(filtered)))
                 self.recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
-        return None
+            # k = convolution.Box1DKernel(width=width)
+            # for c in channels:
+            #     # apply filter
+            #     ys = self.recording.get_y_matrix(mode='continuous',
+            #                                      channels=[c],
+            #                                      sweeps=sweeps)
+        #         filtered = convolve(ys.flatten(), k)
+        #
+        #         # reshape filtered data to 3D numpy array
+        #         filtered = np.reshape(filtered, (1, 1, len(filtered)))
+        #
+        #         # # even out the edge cases
+        #         filtered[:, :, :int(width / 2)] = ys[:, :, :int(width / 2)]
+        #         filtered[:, :, -int(width / 2):] = ys[:, :, -int(width / 2):]
+        #
+        #         self.recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
+        # return None
+        pass
 
     def find_closest_sweep_to_point(self, point, xlim=None, ylim=None, height=1, width=1, radius=np.inf,
                                     channels=None, sweeps=None):
