@@ -160,6 +160,9 @@ def initialize():
     trace_display.canvas.mpl_connect('motion_notify_event', plot_mouse_move)
     trace_display.canvas.mpl_connect('button_release_event', plot_mouse_release)
 
+    trace_display.canvas.mpl_connect('axes_enter_event', on_enter_axes)
+    trace_display.canvas.mpl_connect('axes_leave_event', on_leave_axes)
+
     #######################################
     # Global Keys
     #######################################
@@ -195,6 +198,16 @@ def bind_key(key, press_function=None, release_function=None, target=None, add='
         target.bind('<KeyRelease-{}>'.format(rkey),
                                 release_function, add="+")
 
+def on_enter_axes(e=None):
+    if trace_display.canvas.toolbar.mode == 'pan/zoom':
+        trace_display.canvas.get_tk_widget().config(cursor='fleur')
+    elif trace_display.canvas.toolbar.mode == 'zoom rect':
+        trace_display.canvas.get_tk_widget().config(cursor='cross')
+    pass
+
+def on_leave_axes(e=None):
+    trace_display.canvas.get_tk_widget().config(cursor='arrow')
+    pass
 
 # trace_display mouse events
 def plot_mouse_press(event):
