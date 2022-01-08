@@ -123,7 +123,6 @@ def show_columns(columns=None):
     fit_columns()
 
 def fit_columns():
-    print('fit columns mini')
     dataframe.fit_columns()
 
 def define_columns(columns):
@@ -230,7 +229,7 @@ def report(event=None):
     if 'compound' in dataframe.columns:
         data['num_compound'] = mini_df['compound'].sum()
     # calculate frequency
-    data['Hz'] = interface.al.calculate_frequency()
+    data['Hz'] = interface.al.calculate_frequency(interface.recordings[0].channel)
 
 
     results_display.dataframe.add(data)

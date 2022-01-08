@@ -1,6 +1,7 @@
 from matplotlib import colors
 import os
-from config import config
+from PyMini.config import config
+from PyMini.Backend import analyzer2
 
 valid_types = [
     "float",
@@ -9,7 +10,9 @@ valid_types = [
     "positive_nonzero_int",
     "auto",
     "dir",
-    "None"
+    "None",
+    "indices",
+    "color"
 ]
 
 
@@ -44,6 +47,9 @@ def validate(validate_type, value):
             return True
         elif type == "dir":
             if os.path.isdir(value):
+                return True
+        elif type == "indices":
+            if analyzer2.is_indices(value):
                 return True
         elif type == "None":
             if is_na(value):

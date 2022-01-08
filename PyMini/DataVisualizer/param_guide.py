@@ -150,8 +150,7 @@ def update():
         ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
         ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
         canvas.draw()
-    except Exception as e:
-        print(f'param_guide update error {e}')
+    except:
         pass
 def clear():
     try:

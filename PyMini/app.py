@@ -4,11 +4,12 @@ import yaml
 import pkg_resources
 from PIL import Image
 import os
-from PyMini.utils import widget, scrollable_option_frame
+from PyMini.utils import widget
 from PyMini.Backend import interpreter
 from PyMini.config import config
 from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
-    sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar
+    sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar,\
+    compare_tab
 from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display
 
 
@@ -35,7 +36,6 @@ def _on_close():
     print('closing')
     global widgets
     if widgets['config_autosave'].get():
-        dump_user_setting()
         try:
             dump_user_setting()
         except:
@@ -153,8 +153,8 @@ def load():
     # only show one tab at a time
     global data_tab_details
     data_tab_details = {
-        'mini':{'module': data_display, 'text': 'Data'},
-        'evoked': {'module': evoked_data_display, 'text': 'Data'}
+        'mini':{'module': data_display, 'text': 'Mini Data'},
+        'evoked': {'module': evoked_data_display, 'text': 'Evoked Data'}
     }
     for i, t in enumerate(data_tab_details):
         data_tab_details[t]['tab'] = data_tab_details[t]['module'].load(None)
@@ -200,12 +200,13 @@ def load():
     cp_tab_details = {
         'mini': {'module': detector_tab, 'text': 'Analysis', 'partner': ['evoked'], 'name':'detector_rab'},
         'evoked': {'module': evoked_tab, 'text': 'Analysis', 'partner': ['mini'], 'name':'evoked_tab'},
-        'continuous': {'module': continuous_tab, 'text': 'View', 'partner': ['overlay'], 'name':'continuous_tab'},
-        'overlay': {'module': sweep_tab, 'text': 'View', 'partner': ['continuous'], 'name':'sweep_tab'},
-        'adjust': {'module': adjust_tab, 'text': 'Adjust', 'partner': None, 'name':'adjust_tab'},
-        'navigation': {'module': navigation_tab, 'text': 'Navi', 'partner': None, 'name':'navigation_tab'},
-        'style':{'module': style_tab, 'text': 'Style', 'partner': None, 'name':'style_tab'},
-        'setting':{'module': setting_tab, 'text': 'Setting', 'partner': None, 'name':'setting_tab'}
+        'continuous': {'module': continuous_tab, 'text': 'View', 'partner': ['overlay', 'compare'], 'name':'continuous_tab'},
+        'overlay': {'module': sweep_tab, 'text': 'View', 'partner': ['continuous', 'compare'], 'name':'sweep_tab'},
+        'compare':{'module': compare_tab, 'text': 'View', 'partner': ['continuous', 'overlay'], 'name':'compare_tab'},
+        'adjust': {'module': adjust_tab, 'text': 'Adjust', 'partner': [], 'name':'adjust_tab'},
+        'navigation': {'module': navigation_tab, 'text': 'Navi', 'partner': [], 'name':'navigation_tab'},
+        'style':{'module': style_tab, 'text': 'Style', 'partner': [], 'name':'style_tab'},
+        'setting':{'module': setting_tab, 'text': 'Setting', 'partner': [], 'name':'setting_tab'}
     }
 
     for i, t in enumerate(cp_tab_details):

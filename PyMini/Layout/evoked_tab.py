@@ -122,7 +122,7 @@ def load(parent):
     global report_button
     report_button = optionframe.insert_button(
         text='Report stats',
-        command=evoked_data_display.report
+        command=report
     )
     report_button.config(state='disabled')
 
@@ -143,21 +143,25 @@ def _select_evoked_window_mode(e=None):
     pass
 
 def calculate_min_max(e=None):
+    if app.widgets['analysis_mode'].get() != 'evoked' or app.widgets['trace_mode'].get() == 'compare':
+        return None
+    if len(interface.recordings) == 0:
+        return None
     target = widgets['evoked_target'].get()
     if app.widgets['trace_mode'].get() == 'continuous':
-        target_sweeps = range(interface.al.recording.sweep_count)
+        target_sweeps = range(interface.recordings[0].sweep_count)
     else:
         if target == 'All sweeps':
-            target_sweeps = range(interface.al.recording.sweep_count)
+            target_sweeps = range(interface.recordings[0].sweep_count)
         elif target == 'Visible sweeps':
             target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]  # check visible sweeps
         elif target == 'Highlighted sweeps':
             target_sweeps = [i for i in trace_display.highlighted_sweep]
     limit_channel = widgets['evoked_channel'].get()
     if limit_channel:
-        channels = [interface.al.recording.channel]
+        channels = [interface.recordings[0].channel]
     else:
-        channels = range(interface.al.recording.channel_count)
+        channels = range(interface.recordings[0].channel_count)
     window = widgets['evoked_window_mode'].get()
 
     if window == 'all':
@@ -167,8 +171,8 @@ def calculate_min_max(e=None):
     elif window == 'manual':
         xlim = (float(widgets['evoked_range_left'].get()), float(widgets['evoked_range_right'].get()))
 
-    mins, mins_std = interface.al.calculate_min_sweeps(plot_mode=app.widgets['trace_mode'].get(), channels=channels, sweeps=target_sweeps, xlim=xlim)
-    maxs, maxs_std = interface.al.calculate_max_sweeps(plot_mode=app.widgets['trace_mode'].get(), channels=channels, sweeps=target_sweeps,
+    mins, mins_std = interface.al.calculate_min_sweeps(interface.recordings[0], plot_mode=app.widgets['trace_mode'].get(), channels=channels, sweeps=target_sweeps, xlim=xlim)
+    maxs, maxs_std = interface.al.calculate_max_sweeps(interface.recordings[0], plot_mode=app.widgets['trace_mode'].get(), channels=channels, sweeps=target_sweeps,
                                                        xlim=xlim)
     if app.widgets['trace_mode'].get() == 'continuous':
         target_sweeps=[0]
@@ -178,9 +182,13 @@ def calculate_min_max(e=None):
                 'channel': c,
                 'sweep': s,
                 'min': mins[i, j, 0],
-                'min_unit': interface.al.recording.y_unit,
+                'min_unit': interface.recordings[0].y_unit,
                 'max': maxs[i, j, 0],
-                'max_unit': interface.al.recording.y_unit
+                'max_unit': interface.recordings[0].y_unit
             })
 
     pass
+
+def report(e=None):
+    if app.widgets['analysis_mode'].get() != 'evoked' or app.widgets['trace_mode'].get() == 'compare':
+        return None

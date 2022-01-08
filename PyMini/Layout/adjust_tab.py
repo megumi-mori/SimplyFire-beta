@@ -1,10 +1,11 @@
-from utils.scrollable_option_frame import ScrollableOptionFrame, OptionFrame
+from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame, OptionFrame
 from tkinter import ttk, StringVar
 import tkinter as Tk
-from config import config
-from utils import widget
+from PyMini.config import config
+from PyMini.utils import widget
 from PyMini.Backend import interface
-from Layout.base_module import BaseModule
+from PyMini.Layout.base_module import BaseModule
+from PyMini import app
 #### DEBUG
 import tracemalloc
 
@@ -500,6 +501,8 @@ def _select_baseline_mode(e=None, undo=True):
 
 
 def adjust_baseline(e=None):
+    if app.widgets['trace_mode'].get() == 'compare':
+        return None
     all_channels = True
     if widgets['adjust_channel'].get():
         all_channels = False
@@ -523,6 +526,8 @@ def adjust_baseline(e=None):
 
 #### Trace Averaging #####
 def average_trace(e=None):
+    if app.widgets['trace_mode'].get() != 'overlay':
+        return None
     if widgets['adjust_channel'].get():
         all_channels = False
     else:
@@ -537,6 +542,8 @@ def average_trace(e=None):
 
 #### Filtering #####
 def filter(e=None):
+    if app.widgets['trace_mode'].get() == 'compare':
+        return None
     if widgets['adjust_channel'].get():
         all_channels = False
     else:

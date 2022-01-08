@@ -96,6 +96,11 @@ def load(parent):
     ttk.Label(main_style_panel, text='Event pick offset').grid(column=label_column, row=row, sticky='news')
     place_VarEntry(name='style_event_pick_offset', column=size_column, row=row, frame=main_style_panel, width=size_width)
 
+    row += 1
+    ttk.Label(main_style_panel, text='Sweep pick offset (% axis)').grid(column=label_column, row=row, sticky='news')
+    place_VarEntry(name='style_trace_pick_offset_percent', column=size_column, row=row, frame=main_style_panel,
+                   width=size_width)
+
     global entries
     entries = ['style_trace_line_width', 'style_trace_line_color',
                                 'style_event_peak_size', 'style_event_peak_color',
@@ -103,7 +108,7 @@ def load(parent):
                                 'style_event_decay_size', 'style_event_decay_color',
                                 'style_event_highlight_size', 'style_event_highlight_color',
                                 'style_trace_highlight_width', 'style_trace_highlight_color',
-               'style_event_pick_offset'
+               'style_event_pick_offset', 'style_trace_pick_offset_percent'
                ]
 
     for i in entries:

@@ -1,4 +1,3 @@
-from PyMini.DataVisualizer import trace_display, data_display, results_display, evoked_data_display
 from PyMini import app
 from PyMini.Backend import interface
 from PyMini.config import config
@@ -22,14 +21,14 @@ def initialize():
     # trace marker manipulation
     ################################
     for key in config.key_deselect:
-        bind_key(key, press_function=unselect_key, target=trace_display.canvas.get_tk_widget())
-        bind_key(key, press_function=unselect_key, target=data_display.table, add="")
+        bind_key(key, press_function=unselect_key, target=app.trace_display.canvas.get_tk_widget())
+        bind_key(key, press_function=unselect_key, target=app.data_display.table, add="")
 
     for key in config.key_delete:
-        bind_key(key, press_function=delete_key, target=trace_display.canvas.get_tk_widget())
+        bind_key(key, press_function=delete_key, target=app.trace_display.canvas.get_tk_widget())
 
     for key in config.key_select_all:
-        bind_key(key, press_function=select_all_key, target=trace_display.canvas.get_tk_widget())
+        bind_key(key, press_function=select_all_key, target=app.trace_display.canvas.get_tk_widget())
 
     for key in config.key_select_window:
         bind_key_dp(key, press_function=select_window_key)
@@ -139,9 +138,9 @@ def initialize():
     # Toolbar Toggle
     ######################################
     for key in config.key_toolbar_pan:
-        bind_key_dp(key, press_function=lambda e:trace_display.canvas.toolbar.pan())
+        bind_key_dp(key, press_function=lambda e:app.trace_display.canvas.toolbar.pan())
     for key in config.key_toolbar_zoom:
-        bind_key_dp(key, press_function=lambda e:trace_display.canvas.toolbar.zoom())
+        bind_key_dp(key, press_function=lambda e:app.trace_display.canvas.toolbar.zoom())
 
     #######################################
     # Canvas Mouse Events
@@ -155,13 +154,13 @@ def initialize():
     drag_coord_start = None
     global drag_coord_end
     drag_coord_end = None
-    trace_display.canvas.mpl_connect('pick_event', plot_event_pick)
-    trace_display.canvas.mpl_connect('button_press_event', plot_mouse_press)
-    trace_display.canvas.mpl_connect('motion_notify_event', plot_mouse_move)
-    trace_display.canvas.mpl_connect('button_release_event', plot_mouse_release)
+    app.trace_display.canvas.mpl_connect('pick_event', plot_event_pick)
+    app.trace_display.canvas.mpl_connect('button_press_event', plot_mouse_press)
+    app.trace_display.canvas.mpl_connect('motion_notify_event', plot_mouse_move)
+    app.trace_display.canvas.mpl_connect('button_release_event', plot_mouse_release)
 
-    trace_display.canvas.mpl_connect('axes_enter_event', on_enter_axes)
-    trace_display.canvas.mpl_connect('axes_leave_event', on_leave_axes)
+    app.trace_display.canvas.mpl_connect('axes_enter_event', on_enter_axes)
+    app.trace_display.canvas.mpl_connect('axes_leave_event', on_leave_axes)
 
     #######################################
     # Global Keys
@@ -169,18 +168,11 @@ def initialize():
     for key in config.key_undo:
         app.root.bind(key, interface.undo)
 
-def initialize_param_guide():
-    for key in config.key_toolbar_pan:
-        bind_key_pg(key, press_function=lambda e: param_guide.canvas.toolbar.pan())
-    for key in config.key_toolbar_zoom:
-        bind_key_dp(key, press_function=lambda e: param_guide.canvas.toolbar.zoom())
-    pass
-
 def bind_key_dp(key, press_function=None, release_function=None, add='+'):
-    bind_key(key, press_function, release_function, data_display.table, add=add)
-    bind_key(key, press_function, release_function, trace_display.canvas.get_tk_widget(), add=add)
-    bind_key(key, press_function, release_function, results_display.table, add=add)
-    bind_key(key, press_function, release_function, evoked_data_display.table, add=add)
+    bind_key(key, press_function, release_function, app.data_display.table, add=add)
+    bind_key(key, press_function, release_function, app.trace_display.canvas.get_tk_widget(), add=add)
+    bind_key(key, press_function, release_function, app.results_display.table, add=add)
+    bind_key(key, press_function, release_function, app.evoked_data_display.table, add=add)
 
 def bind_key_pg(key, press_function=None, release_function=None, add='+'):
     bind_key(key, press_function, release_function, param_guide.canvas.get_tk_widget(), add=add)
@@ -199,19 +191,19 @@ def bind_key(key, press_function=None, release_function=None, target=None, add='
                                 release_function, add="+")
 
 def on_enter_axes(e=None):
-    if trace_display.canvas.toolbar.mode == 'pan/zoom':
-        trace_display.canvas.get_tk_widget().config(cursor='fleur')
-    elif trace_display.canvas.toolbar.mode == 'zoom rect':
-        trace_display.canvas.get_tk_widget().config(cursor='cross')
+    if app.trace_display.canvas.toolbar.mode == 'pan/zoom':
+        app.trace_display.canvas.get_tk_widget().config(cursor='fleur')
+    elif app.trace_display.canvas.toolbar.mode == 'zoom rect':
+        app.trace_display.canvas.get_tk_widget().config(cursor='cross')
     pass
 
 def on_leave_axes(e=None):
-    trace_display.canvas.get_tk_widget().config(cursor='arrow')
+    app.trace_display.canvas.get_tk_widget().config(cursor='arrow')
     pass
 
-# trace_display mouse events
+# app.trace_display mouse events
 def plot_mouse_press(event):
-    if trace_display.canvas.toolbar.mode == "" and event.button == 3:
+    if app.trace_display.canvas.toolbar.mode == "" and event.button == 3:
         global drag_coord_start
         if event.xdata and event.ydata:
             drag_coord_start = (event.xdata, event.ydata)
@@ -219,10 +211,10 @@ def plot_mouse_press(event):
 def plot_mouse_move(event):
     global drag_coord_start
     global drag_coord_end
-    if trace_display.canvas.toolbar.mode == "" and event.button == 3 and event.xdata and event.ydata:
+    if app.trace_display.canvas.toolbar.mode == "" and event.button == 3 and event.xdata and event.ydata:
         if drag_coord_start:
-            xlim = trace_display.ax.get_xlim()
-            ylim = trace_display.ax.get_ylim()
+            xlim = app.trace_display.ax.get_xlim()
+            ylim = app.trace_display.ax.get_ylim()
             width = xlim[1] - xlim[0]
             height = ylim[1] - ylim[0]
             pad = 0
@@ -230,7 +222,7 @@ def plot_mouse_move(event):
                 0] + height * pad / 100 < event.ydata < \
                     ylim[1] + height * pad / 100:
                 drag_coord_end = (event.xdata, event.ydata)
-                trace_display.draw_rect(drag_coord_start, drag_coord_end)
+                app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
                 return
         drag_coord_end = (event.xdata, event.ydata)
 
@@ -241,18 +233,18 @@ def plot_event_pick(event):
         xdata, ydata = event.artist.get_offsets()[event.ind][0]
         if multi_select:
             try:
-                data_display.table.selection_toggle(str(xdata))
-                data_display.table.see(str(xdata))
+                app.data_display.table.selection_toggle(str(xdata))
+                app.data_display.table.see(str(xdata))
             except:
-                data_display.table.selection_toggle(str(round(xdata,interface.al.recording.x_sigdig)))
-                data_display.table.see(str(round(xdata, interface.al.recording.x_sigdig)))
+                app.data_display.table.selection_toggle(str(round(xdata,interface.al.recording.x_sigdig)))
+                app.data_display.table.see(str(round(xdata, interface.al.recording.x_sigdig)))
             return
         try:
-            data_display.table.selection_set(str(xdata))
-            data_display.table.see(str(xdata))
+            app.data_display.table.selection_set(str(xdata))
+            app.data_display.table.see(str(xdata))
         except:
-            data_display.table.selection_set(str(round(xdata, interface.al.recording.x_sigdig)))
-            data_display.table.see(str(round(xdata, interface.al.recording.x_sigdig)))
+            app.data_display.table.selection_set(str(round(xdata, interface.al.recording.x_sigdig)))
+            app.data_display.table.see(str(round(xdata, interface.al.recording.x_sigdig)))
         # data_display.toggle_one(str(xdata))
 
 def plot_mouse_release(event):
@@ -260,13 +252,13 @@ def plot_mouse_release(event):
     if event_pick:
         event_pick = False
         return
-    if trace_display.canvas.toolbar.mode == 'pan/zoom' or trace_display.canvas.toolbar.mode == 'zoom rect':
+    if app.trace_display.canvas.toolbar.mode == 'pan/zoom' or app.trace_display.canvas.toolbar.mode == 'zoom rect':
         # make sure the plot does not go out of xlim bounds
-        trace_display.scroll_x_by(percent=0)
-        trace_display.zoom_x_by(percent=0)
+        app.trace_display.scroll_x_by(percent=0)
+        app.trace_display.zoom_x_by(percent=0)
         return None
 
-    if trace_display.canvas.toolbar.mode != "":
+    if app.trace_display.canvas.toolbar.mode != "":
         # take care of other cases here
         return None
 
@@ -286,7 +278,7 @@ def plot_mouse_release(event):
                                                draw=True)
         drag_coord_end = None
         drag_coord_start = None
-        trace_display.draw_rect(drag_coord_start, drag_coord_end)
+        app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
         return None
 
     if event.button == 3:
@@ -299,11 +291,11 @@ def plot_mouse_release(event):
         'analysis_mode'].get() == 'mini' and event.button==1:
         interface.pick_event_manual(event.xdata)
 
-# trace_display navigation by key-press
+# app.trace_display navigation by key-press
 def scroll_x_key(event, direction):
     global scrolling_x
     # if not scrolling_x:
-    #     trace_display.scroll_x_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
+    #     app.trace_display.scroll_x_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
     #                           float(app.widgets['navigation_scroll_percent'].get()))
     if not scrolling_x:
         scroll_x_repeat(direction * int(app.widgets['navigation_mirror_x_scroll'].get()),
@@ -314,7 +306,7 @@ def scroll_x_key(event, direction):
 def scroll_y_key(event, direction):
     global scrolling_y
     if not scrolling_y:
-        # trace_display.scroll_y_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
+        # app.trace_display.scroll_y_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
         #                       float(app.widgets['navigation_scroll_percent'].get()))
         scroll_y_repeat(direction * int(app.widgets['navigation_mirror_y_scroll'].get()),
                      int(app.widgets['navigation_fps'].get()),
@@ -324,13 +316,13 @@ def scroll_y_key(event, direction):
 def scroll_x_repeat(direction, fps, percent):
     global jobid_x_scroll
     jobid_x_scroll = app.root.after(int(1000 / fps), scroll_x_repeat, direction, fps, percent)
-    trace_display.scroll_x_by(direction, percent)
+    app.trace_display.scroll_x_by(direction, percent)
     pass
 
 def scroll_y_repeat(direction, fps, percent):
     global jobid_y_scroll
     jobid_y_scroll = app.root.after(int(1000 / fps), scroll_y_repeat, direction, fps, percent)
-    trace_display.scroll_y_by(direction, percent * navigation_speed)
+    app.trace_display.scroll_y_by(direction, percent * navigation_speed)
     pass
 
 def stop_x_scroll(e=None):
@@ -394,7 +386,7 @@ def zoom_x_key(event, direction):
 def zoom_x_repeat(direction, fps, percent):
     global jobid_x_zoom
     jobid_x_zoom = app.root.after(int(1000/fps), zoom_x_repeat, direction, fps, percent)
-    trace_display.zoom_x_by(direction, percent)
+    app.trace_display.zoom_x_by(direction, percent)
     pass
 
 def stop_x_zoom(e=None):
@@ -419,7 +411,7 @@ def zoom_y_key(event, direction):
 def zoom_y_repeat(direction, fps, percent):
     global jobid_y_zoom
     jobid_y_zoom = app.root.after(int(1000 / fps), zoom_y_repeat, direction, fps, percent)
-    trace_display.zoom_y_by(direction, percent)
+    app.trace_display.zoom_y_by(direction, percent)
 
 def stop_y_zoom(e=None):
     global jobid_y_zoom
@@ -430,7 +422,7 @@ def stop_y_zoom(e=None):
         pass
     zooming_y = False
 
-# trace_display navigation_toolbar control
+# app.trace_display navigation_toolbar control
 def toolbar_toggle_pan(event, toolbar):
     toolbar.pan()
     pass
@@ -438,16 +430,16 @@ def toolbar_toggle_pan(event, toolbar):
 def toolbar_toggle_zoom(event, toolbar):
     toolbar.zoom()
     pass
-# data_display and trace_display data item interaction
+# data_display and app.trace_display data item interaction
 def unselect_key(event):
-    data_display.unselect()
+    app.data_display.unselect()
     if app.widgets['trace_mode'].get() == 'overlay':
         interface.unhighlight_all_sweeps()
     pass
 
 def delete_key(event):
     if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
-        data_display.delete_selected()
+        app.data_display.delete_selected()
         return
     if app.widgets['trace_mode'].get() == 'overlay':
         interface.hide_highlighted_sweep()
@@ -459,13 +451,13 @@ def delete_key(event):
 def select_all_key(event):
     # if app.widgets['trace_mode'].get() == 'overlay':
     #     interface.highlight_all_sweeps()
-    if app.widgets['analysis_mode'].get() == 'mini' and app.root.focus_get() == trace_display.canvas.get_tk_widget():
-        data_display.dataframe.select_all()
+    if app.widgets['analysis_mode'].get() == 'mini' and app.root.focus_get() == app.trace_display.canvas.get_tk_widget():
+        app.data_display.dataframe.select_all()
     pass
 
 def select_window_key(event=None):
-    xlim = trace_display.ax.get_xlim()
-    ylim = trace_display.ax.get_ylim()
+    xlim = app.trace_display.ax.get_xlim()
+    ylim = app.trace_display.ax.get_ylim()
     if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
         interface.highlight_events_in_range(xlim, ylim)
     elif app.widgets['trace_mode'].get() == 'overlay':

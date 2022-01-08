@@ -105,11 +105,9 @@ def add_undo(task):
             del temp
     except:
         pass
-    print(undo_stack)
     return
 
 def undo(e=None):
-    print('undo')
     app.pb['value'] = 0
     app.pb.update()
     if len(undo_stack) > 0:
@@ -122,7 +120,6 @@ def undo(e=None):
             del task
 
         del task_stack
-        print(undo_stack)
     app.pb['value'] = 0
     app.pb.update()
 
@@ -138,12 +135,14 @@ def configure(key, value):
 # Handling recording data
 #################################
 
-def open_trace(fname):
+global recordings
+recordings = []
+def open_trace(fname, append=False):
     # trace stored in analyzer
+    global recordings
     try:
-        al.open_file(fname)
-    except Exception as e:
-        print(e)
+        record = al.open_file(fname)
+    except:
         messagebox.showerror('Read file error', 'The selected file could not be opened.')
         return None
     try:
@@ -151,80 +150,106 @@ def open_trace(fname):
     except:
         return None
 
-    # clear undo
     clear_undo()
+    if not append:
+        al.clear_mini_df()
+        data_display.clear()
+        evoked_data_display.clear()
+        # update save file directory
+        if app.widgets['config_file_autodir'].get() == '1':
+            mpl.rcParams['savefig.directory'] = os.path.split(fname)[0]
 
-    # update save file directory
-    if app.widgets['config_file_autodir'].get() == '1':
-        mpl.rcParams['savefig.directory'] = os.path.split(fname)[0]
-
-    # check if channel number is specified by user:
-    if app.widgets['force_channel'].get() == '1':
-        try:
-            al.recording.set_channel(int(app.widgets['force_channel_id'].get()))  # 0 indexing
-        except Exception as e:
-            print(al.recording.channel)
-            print('force_channel id error:{}'.format(e))
-            al.recording.set_channel(0) # force to open the first channel
-            pass
-    else:
-        al.recording.set_channel(0)
-    data_display.clear()
-    evoked_data_display.clear()
-    app.widgets['trace_info'].set(
-        '{}: {}Hz : {} channel{}'.format(
-            al.recording.filename,
-            al.recording.sampling_rate,
-            al.recording.channel_count,
-            's' if al.recording.channel_count > 1 else ""
+        # check if channel number is specified by user:
+        if app.widgets['force_channel'].get() == '1':
+            try:
+                record.set_channel(int(app.widgets['force_channel_id'].get()))  # 0 indexing
+            except (IndexError): # forced channel does not exist
+                record.set_channel(0) # force to open the first channel
+                pass
+        else:
+            record.set_channel(0)
+        app.widgets['trace_info'].set(
+            '{}: {}Hz : {} channel{}'.format(
+                record.filename,
+                record.sampling_rate,
+                record.channel_count,
+                's' if record.channel_count > 1 else ""
+            )
         )
-    )
-    trace_display.ax.autoscale(enable=True, axis='both', tight=True)
-    sweep_tab.populate_list(al.recording.sweep_count)
-
-    print('after populating list: {}'.format(len(sweep_tab.panels)))
+        trace_display.ax.autoscale(enable=True, axis='both', tight=True)
+        sweep_tab.populate_list(record.sweep_count)
+    else:
+        try:
+            record.set_channel(recordings[0].channel)
+        except:
+            _change_channel(0, save_undo=False) # cannot open channel
 
     if app.widgets['trace_mode'].get() == 'continuous':
-        plot_continuous()
+        plot_continuous(record)
+    elif app.widgets['trace_mode'].get() == 'overlay':
+        plot_overlay(record, append=False, sweeps=range(0, record.sweep_count))
     else:
-        plot_overlay()
+        plot_overlay(record, append=append, sweeps=range(0, record.sweep_count))
 
     param_guide.update()
-    if app.widgets['force_axis_limit'].get() == '1':
-        trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
-        trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
+    if not append:
+        while len(recordings) > 0:
+            r = recordings.pop()
+            del r
+        recordings = [record]
+        if app.widgets['force_axis_limit'].get() == '1':
+            trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
+            trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
 
-    graph_panel.y_scrollbar.config(state='normal')
-    graph_panel.x_scrollbar.config(state='normal')
+        graph_panel.y_scrollbar.config(state='normal')
+        graph_panel.x_scrollbar.config(state='normal')
 
-    trace_display.update_x_scrollbar()
-    trace_display.update_y_scrollbar()
+        trace_display.update_x_scrollbar()
+        trace_display.update_y_scrollbar()
 
-    app.widgets['channel_option'].clear_options()
-
-    for i in range(al.recording.channel_count):
-        app.widgets['channel_option'].add_command(
-            label='{}: {}'.format(i, al.recording.channel_labels[i]),
-            command=lambda c=i:_change_channel(c)
-        )
+        app.widgets['channel_option'].clear_options()
+        for i in range(record.channel_count):
+            app.widgets['channel_option'].add_command(
+                label='{}: {}'.format(i, record.channel_labels[i]),
+                command=lambda c=i:_change_channel(c)
+            )
     # starting channel was set earlier in the code
-    app.widgets['channel_option'].set('{}: {}'.format(al.recording.channel, al.recording.y_label))
+        app.widgets['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
+    else:
+        recordings.append(record)
+
+    if app.widgets['trace_mode'].get() == 'compare':
+        app.compare_tab.increase_trace_list(fname)
 
     # trace_display.refresh()
 def _change_channel(num, save_undo=True):
-    log_display.log('@ graph_viewer: switch to channel {}'.format(num))
-    if save_undo and num != al.recording.channel:
-        add_undo(lambda n=al.recording.channel, s=False:_change_channel(n, s))
+    global recordings
 
-    al.recording.set_channel(num)
-    app.widgets['channel_option'].set('{}: {}'.format(al.recording.channel, al.recording.y_label)) #0 indexing for channel num
+    if save_undo and num != recordings[0].channel:
+        add_undo(lambda n= recordings[0].channel, s=False:_change_channel(n, s))
+
+    try:
+        for r in recordings:
+            r.set_channel(num)
+        log_display.log('@ graph_viewer: switch to channel {}'.format(num))
+    except:
+        for r in recordings:
+            r.set_channel(0)
+        log_display.log('@ graph_viewer: unable to switch to channel {}. Reverting to channel 0'.format(num))
+    app.widgets['channel_option'].set('{}: {}'.format(recordings[0].channel, recordings[0].y_label)) #0 indexing for channel num
     if app.widgets['trace_mode'].get() == 'continuous':
-        plot_continuous(fix_x=True, draw=False)
+        plot_continuous(recordings[0], fix_x=True, draw=False)
+    elif app.widgets['trace_mode'].get() == 'compare':
+        for i,r in enumerate(recordings):
+            plot_overlay(r, fix_x=True, draw=False, append=(i!=0), sweeps=app.compare_tab.get_sweep_list(i))
+
+
+        # add sweep specification
     else:
-        plot_overlay(fix_x=True, draw=False)
-        for i, var in enumerate(sweep_tab.sweep_vars):
-            if not var.get():
-                trace_display.hide_sweep(i)
+        plot_overlay(recordings[0], fix_x=True, draw=False, sweeps=[i for i,v in enumerate(app.sweep_tab.sweep_vars) if v.get()])
+        # for i, var in enumerate(sweep_tab.sweep_vars):
+        #     if not var.get():
+        #         trace_display.hide_sweep(i)
     trace_display.canvas.draw()
     data_display.clear()
 
@@ -234,9 +259,7 @@ def _change_channel(num, save_undo=True):
     param_guide.update()
 
 
-def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
-    if not al.recording:
-        return None # no recording open
+def plot_continuous(recording, fix_axis=False, draw=True, fix_x=False, fix_y=False):
     if fix_axis:
         xlim = trace_display.get_axis_limits('x')
         ylim = trace_display.get_axis_limits('y')
@@ -245,12 +268,12 @@ def plot_continuous(fix_axis=False, draw=True, fix_x=False, fix_y=False):
     if fix_y:
         ylim=trace_display.get_axis_limits('y')
     trace_display.clear()
-    trace_display.plot_trace(al.recording.get_xs(mode='continuous'),
-                             al.recording.get_ys(mode='continuous'),
+    trace_display.plot_trace(recording.get_xs(mode='continuous'),
+                             recording.get_ys(mode='continuous'),
                              draw=draw,
                              relim=True)
-    trace_display.ax.set_xlabel(al.recording.x_label, fontsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.set_ylabel(al.recording.y_label, fontsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.set_xlabel(recording.x_label, fontsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.set_ylabel(recording.y_label, fontsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
 
@@ -304,7 +327,7 @@ def config_cp_tab(tab_name, **kwargs):
             app.cp_notebook.select(idx)
             return
     except Exception as e:
-        print(e)
+        print(f'config_cp_tab error {e}')
         pass
     else:
         app.cp_notebook.tab(app.cp_tab_details[tab_name]['tab'], **kwargs)
@@ -315,7 +338,6 @@ def config_data_tab(tab_name, **kwargs):
     """
     try:
         if kwargs['state'] == 'normal':
-            print('normal')
             for key, tab in app.data_tab_details.items():
                 app.data_notebook.tab(tab['tab'], state='hidden')
             pass
@@ -440,7 +462,6 @@ def open_events_mini(filename):
                     header_idx[h] = i
                 xs = al.recording.get_xs(mode='continuous', channel=channel)
                 ys= al.recording.get_ys(mode='continuous', channel=channel)
-                print(f'reading minipy file: {header_idx}')
             elif info[0] == '@Data':
                 mini = {
                     't':float(info[header_idx['x']]),
@@ -518,7 +539,6 @@ def open_events_mini(filename):
 
                 minis.append(mini)
         df = pd.DataFrame.from_dict(minis)
-        print(df)
         return df
 
 def populate_data_display():
@@ -526,9 +546,7 @@ def populate_data_display():
         xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
         xs = xs.dropna()
         data_display.set(al.mini_df.loc[xs])
-    except Exception as e:
-        print('interface populate_data_display')
-        print(e)
+    except:
         pass
 
 #######################################
@@ -597,7 +615,6 @@ def find_mini_in_range(xlim=None, ylim=None):
 
     t0 = time()
     data_display.unselect()
-    print(f'data_display.unselect(): {time()-t0}')
     t0=time()
     try:
         xs = trace_display.ax.lines[0].get_xdata()
@@ -606,7 +623,6 @@ def find_mini_in_range(xlim=None, ylim=None):
         app.pb['value'] = 0
         app.pb.update()
         return
-    print(f'get xs, ys: {time()-t0}')
     t0=time()
     # temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
     # save_events(temp_filename)
@@ -616,12 +632,11 @@ def find_mini_in_range(xlim=None, ylim=None):
     #     lambda msg='Undo auto mini detection in range: {} - {}'.format(xlim[0], xlim[1]): detector_tab.log(msg)
     # ])
     params = detector_tab.extract_mini_parameters()
-    print(f'get params: {time()-t0}')
 
-    df = al.find_mini_auto(xlim=xlim, xs=xs, ys=ys, x_sigdig=al.recording.x_sigdig,
-                               sampling_rate=al.recording.sampling_rate, channel=al.recording.channel,
-                      reference_df=True, y_unit=al.recording.y_unit,
-                               x_unit=al.recording.x_unit, progress_bar=app.pb, **params)
+    df = al.find_mini_auto(xlim=xlim, xs=xs, ys=ys, x_sigdig=recordings[0].x_sigdig,
+                               sampling_rate=recordings[0].sampling_rate, channel=recordings[0].channel,
+                      reference_df=True, y_unit=recordings[0].y_unit,
+                               x_unit=recordings[0].x_unit, progress_bar=app.pb, **params)
     if df.shape[0]>0:
         if int(app.widgets['config_undo_stack'].get()) > 0:
             add_undo([
@@ -786,17 +801,13 @@ def report_to_param_guide(xs, ys, data, clear=False):
     except: # peak not found
         pass
 
-    print('about to plot base idx')
-
     try:
-        print('plot base idx')
         if data['base_idx'] is not None and not data['compound']:
             param_guide.plot_base_range(
                 xs[int(data['base_idx'][0]):int(data['base_idx'][1])],
                 ys[int(data['base_idx'][0]):int(data['base_idx'][1])]
             )
-    except Exception as e:
-        print(f'base idx plotting exception {e}')
+    except:
         pass
     try:
         param_guide.msg_label.insert('Baseline: {:.3f} {}\n'.format(data['baseline'], data['baseline_unit']))
@@ -828,8 +839,8 @@ def report_to_param_guide(xs, ys, data, clear=False):
                                    data['baseline'],
                                    data['direction'])
         param_guide.plot_decay_point(data['decay_coord_x'], data['decay_coord_y'])
-    except Exception as e:
-        print(e)
+    except:
+        pass
     try:
         param_guide.plot_halfwidth((data['halfwidth_start_coord_x'], data['halfwidth_start_coord_y']),
                                    (data['halfwidth_end_coord_x'], data['halfwidth_end_coord_y']))
@@ -841,7 +852,8 @@ def report_to_param_guide(xs, ys, data, clear=False):
 
 
 def get_column(colname, t = None):
-    if al.recording is None:
+    global recordings
+    if len(recordings) == 0:
         return None
     if len(al.mini_df) == 0:
         return None
@@ -849,10 +861,9 @@ def get_column(colname, t = None):
         try:
             return list(al.mini_df[al.mini_df['t'].isin(t)][colname])
         except:
-            print(t)
             return al.mini_df[al.mini_df.t.isin(t)][colname]
     else:
-        xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
+        xs = al.mini_df.index.where(al.mini_df['channel'] == recordings[0].channel)
         xs = xs.dropna()
         return list(al.mini_df.loc[xs][colname])
 
@@ -899,7 +910,8 @@ def highlight_events_in_range(xlim=None, ylim=None):
 
 
 def update_event_marker():
-    if al.recording is None:
+    global recordings
+    if len(recordings)==0:
         return None
     if app.widgets['show_peak'].get():
         trace_display.plot_peak(get_column('peak_coord_x'), get_column('peak_coord_y'))
@@ -908,8 +920,7 @@ def update_event_marker():
     if app.widgets['show_decay'].get():
         try:
             trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
-        except Exception as e: # decay was not found yet
-            print(f'update event marker {e}')
+        except:
             pass
     trace_display.canvas.draw()
 
@@ -966,33 +977,37 @@ def delete_all_events(undo=True):
 # Sweeps
 #######################################
 
-def plot_overlay(fix_axis=False, fix_x=False, draw=False):
-    if not al.recording:
-        return None # no recording to plot
+def plot_overlay(recording, fix_axis=False, fix_x=False, draw=False, append=False, sweeps=None):
+    global idx_offset
     if fix_axis:
         xlim = trace_display.get_axis_limits('x')
         ylim = trace_display.get_axis_limits('y')
     if fix_x:
         xlim = trace_display.get_axis_limits('x')
-    trace_display.clear()
-    # data_display.clear()
-    trace_display.ax.set_xlabel(al.recording.x_label, fontsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.set_ylabel(al.recording.y_label, fontsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
+    if not append:
+        trace_display.clear()
+        # data_display.clear()
+        trace_display.ax.set_xlabel(recording.x_label, fontsize=int(float(app.widgets['font_size'].get())))
+        trace_display.ax.set_ylabel(recording.y_label, fontsize=int(float(app.widgets['font_size'].get())))
+        trace_display.ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
+        trace_display.ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
+        idx_offset = 0
 
-    for i in range(al.recording.sweep_count):
-        trace_display.plot_trace(al.recording.get_xs(mode='overlay', sweep=i),
-                                 al.recording.get_ys(mode='overlay', sweep=i),
+    for i in range(recording.sweep_count):
+        trace_display.plot_trace(recording.get_xs(mode='overlay', sweep=i),
+                                 recording.get_ys(mode='overlay', sweep=i),
                                  draw=False,
                                  relim=False,
-                                 idx=i)
-    trace_display.show_all_plot(update_default=True)
-    for i, var in enumerate(sweep_tab.sweep_vars):
-        if var.get():
-            trace_display.show_sweep(i)
-        else:
+                                 idx=i + idx_offset)
+    if append:
+        idx_offset += recording.sweep_count
+    trace_display.show_all_plot(update_default=not append)
+    if sweeps:
+        for i in range(recording.sweep_count):
             trace_display.hide_sweep(i)
+        for i in sweeps:
+            trace_display.show_sweep(i)
+
     if fix_axis:
         trace_display.set_axis_limit('x', xlim)
         trace_display.set_axis_limit('y', ylim)
@@ -1013,24 +1028,26 @@ def toggle_sweep(idx, v, draw=True):
         trace_display.hide_sweep(idx, draw)
 
 def select_trace_from_plot(x, y):
+    if len(recordings) == 0:
+        return None
     #called by trace_display during mouse click near trace
     min_d = np.inf
     pick = None
-    offset = int(app.widgets['sweep_picker_offset'].get())
+    offset = float(app.widgets['style_trace_pick_offset_percent'].get())
     xlim = trace_display.ax.get_xlim()
-    radius = int(abs(xlim[1] - xlim[0]) * offset/100 * al.recording.sampling_rate)
+    radius = abs(xlim[1] - xlim[0]) * offset/100
     ylim = trace_display.ax.get_ylim()
     x2y = (xlim[1] - xlim[0])/(ylim[1] - ylim[0])
     for i, var in enumerate(sweep_tab.sweep_vars):
         if var.get():
             line = trace_display.get_sweep(i)
-            d, idx = analyzer2.point_line_min_distance(x, y, offset=radius, xs=line.get_xdata(), ys=line.get_ydata(),
-                                             x2y=x2y, rate=al.recording.sampling_rate)
-            if d < min_d:
+            d, idx, _ = analyzer2.point_line_min_distance((x, y), xs=line.get_xdata(), ys=line.get_ydata(), sampling_rate=recordings[0].sampling_rate, radius=radius,
+                                             xy_ratio=x2y)
+            if d and d < min_d:
                 min_d = d
                 pick = i
     if pick is None:
-        return None
+        trace_display.remove_highlight_sweep(draw=True)
     trace_display.toggle_sweep_highlight(pick, not interpreter.multi_select, draw=True)
 
 def hide_highlighted_sweep():
@@ -1081,23 +1098,23 @@ def get_sweep_in_range(xlim=None, ylim=None):
     return ls
 
 
-def delete_hidden(delete):
-    if len(delete) == al.recording.sweep_count:
-        messagebox.showerror(message='Must have at least 1 visible trace')
-        return None
-    if len(mini_df.index) > 0:
-        selection = messagebox.askokcancel(message='You have more than 1 mini data. Deleting sweeps may cause the events to misalign.\n'+
-                               'Continue?', icon=messagebox.WARNING)
-        if not selection:
-            return None
-    count = 0
-    for idx in delete:
-        al.recording.delete_sweep(idx - count)
-        count += 1
-
-    sweep_tab.populate_list(al.recording.sweep_count)
-    # should only be called during 'overlay' mode
-    plot_overlay(fix_axis=True)
+# def delete_hidden(delete):
+#     if len(delete) == al.recording.sweep_count:
+#         messagebox.showerror(message='Must have at least 1 visible trace')
+#         return None
+#     if len(mini_df.index) > 0:
+#         selection = messagebox.askokcancel(message='You have more than 1 mini data. Deleting sweeps may cause the events to misalign.\n'+
+#                                'Continue?', icon=messagebox.WARNING)
+#         if not selection:
+#             return None
+#     count = 0
+#     for idx in delete:
+#         al.recording.delete_sweep(idx - count)
+#         count += 1
+#
+#     sweep_tab.populate_list(al.recording.sweep_count)
+#     # should only be called during 'overlay' mode
+#     plot_overlay(fix_axis=True)
 
 
 
@@ -1124,28 +1141,30 @@ def save_trace_as(fname):
 
 # update changes made to the y-data in the recording data to the plot
 def update_plot_ys(sweeps):
+    global recordings
     if app.widgets['trace_mode'].get() == 'continuous':
-        trace_display.get_sweep(0).set_ydata(al.recording.get_ys(mode='continuous'))
+        trace_display.get_sweep(0).set_ydata(recordings[0].get_ys(mode='continuous'))
     else:
         for s in sweeps:
-            trace_display.get_sweep(s).set_ydata(al.recording.get_ys(mode='overlay', sweep=s))
+            trace_display.get_sweep(s).set_ydata(recordings[0].get_ys(mode='overlay', sweep=s))
     trace_display.canvas.draw()
 
 def adjust_baseline(all_channels=False, target='All sweeps', mode='mean', xlim=None, fixed_val=None):
-    if al.recording is None:
+    global recordings
+    if len(recordings) == 0:
         return None
     if all_channels:
-        channels = range(al.recording.channel_count)
+        channels = range(recordings[0].channel_count)
     else:
-        channels = [al.recording.channel]
+        channels = [recordings[0].channel]
 
     # determine sweeps to apply adjustment
     plot_mode = app.widgets['trace_mode'].get()
     target_sweeps = None
     if plot_mode == 'continuous':
-        target_sweeps = range(al.recording.sweep_count)
+        target_sweeps = range(recordings[0].sweep_count)
     elif target == 'All sweeps':
-        target_sweeps = range(al.recording.sweep_count)
+        target_sweeps = range(recordings[0].sweep_count)
     elif target == 'Visible sweeps':
         target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()]
     elif target == 'Highlighted sweeps':
@@ -1160,15 +1179,18 @@ def adjust_baseline(all_channels=False, target='All sweeps', mode='mean', xlim=N
         fixed_val = None
 
     # perform adjustment
-    baseline = al.subtract_baseline(plot_mode=plot_mode,
+    baseline = al.subtract_baseline(recordings[0], plot_mode=plot_mode,
                                channels=channels, sweeps=target_sweeps, xlim=xlim,
                                fixed_val=fixed_val)
     update_plot_ys(target_sweeps)
 
     # save undo functions
     undo_baseline = baseline*(-1)
+    def shift_back_y_data(shift, plot_mode='continuous', channels=None, sweeps=None):
+        recordings[0] = al.shift_y_data(recording=recordings[0], shift=shift, plot_mode=plot_mode, channels=channels, sweeps=sweeps)
+
     add_undo([
-        lambda b=undo_baseline, m=plot_mode, c=channels, s=target_sweeps: al.shift_y_data(b, m, c, s),
+        lambda b=undo_baseline, m=plot_mode, c=channels, s=target_sweeps: shift_back_y_data(b, m, c, s),
         lambda s=target_sweeps: update_plot_ys(s)
     ])
 
@@ -1183,11 +1205,11 @@ def adjust_baseline(all_channels=False, target='All sweeps', mode='mean', xlim=N
     if target == 'fixed':
         log('Subtract a fixed number', False)
         for c in channels:
-            log('Channel {}: {}{}'.format(c, fixed_val, al.recording.channel_units[c]), False)
+            log('Channel {}: {}{}'.format(c, fixed_val, recordings[0].channel_units[c]), False)
     elif mode == 'mean':
         log('Subtract the mean of all sweeps', False)
         for i, c in enumerate(channels):
-            log('Channel {}: {:.6f}{}'.format(c, baseline[i, 0, 0], al.recording.channel_units[c]), False)
+            log('Channel {}: {:.6f}{}'.format(c, baseline[i, 0, 0], recordings[0].channel_units[c]), False)
     elif mode == 'range':
         log('Subtract the mean of range {} from each sweep'.format(xlim), False)
         mean = np.mean(baseline, axis=1, keepdims=True)
@@ -1195,23 +1217,25 @@ def adjust_baseline(all_channels=False, target='All sweeps', mode='mean', xlim=N
         for i,c in enumerate(channels):
             log('Channel {}: mean: {:.6f}{} stdev: {:.6f}'.format(c,
                                                           mean[i, 0, 0],
-                                                          al.recording.channel_units[c],
+                                                          recordings[0].channel_units[c],
                                                           std[i, 0, 0]),
                 False)
 
 def average_y_data(all_channels=False, target='All sweeps', report_minmax=False, limit_minmax_window=False, hide_all=False):
-    if not al.recording:
-        return None # no recording file open
+    global recordings
+    if len(recordings)==0:
+        return None
+        # no recording file open
     if all_channels:
-        channels = range(al.recording.channel_count)
+        channels = range(recordings[0].channel_count)
     else:
-        channels = [al.recording.channel]
+        channels = [recordings[0].channel]
     if app.widgets['trace_mode'].get() == 'continuous':
         return None
     target_sweeps=[]
 
     if target == 'All sweeps':
-        target_sweeps = range(al.recording.sweep_count)
+        target_sweeps = range(recordings[0].sweep_count)
     elif target == 'Visible sweeps':
         target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()] #check visible sweeps
     elif target == 'Highlighted sweeps':
@@ -1227,16 +1251,16 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
         xlim = None
         if limit_minmax_window:
             xlim = trace_display.ax.get_xlim()
-        mins, mins_std = al.calculate_min_sweeps(plot_mode='overlay', channels=channels, sweeps=target_sweeps, xlim=xlim)
-        maxs, maxs_std = al.calculate_max_sweeps(plot_mode='overlay', channels=channels, sweeps=target_sweeps, xlim=xlim)
-    ys_avg = al.append_average_sweeps(channels=channels, sweeps=target_sweeps)
+        mins, mins_std = al.calculate_min_sweeps(recordings[0], plot_mode='overlay', channels=channels, sweeps=target_sweeps, xlim=xlim)
+        maxs, maxs_std = al.calculate_max_sweeps(recordings[0], plot_mode='overlay', channels=channels, sweeps=target_sweeps, xlim=xlim)
+    al.append_average_sweeps(recordings[0], channels=channels, sweeps=target_sweeps)
 
     sweep_tab.populate_list(1, replace=False, prefix='Avg ')
-    trace_display.plot_trace(al.recording.get_xs(mode='overlay', sweep=-1),
-                             al.recording.get_ys(mode='overlay', sweep=-1),
+    trace_display.plot_trace(recordings[0].get_xs(mode='overlay', sweep=-1),
+                             recordings[0].get_ys(mode='overlay', sweep=-1),
                              draw=True,
                              relim=False,
-                             idx=al.recording.sweep_count-1)
+                             idx=recordings[0].sweep_count-1)
 
     # sweep_tab.checkbuttons[-1].invoke()
 
@@ -1249,39 +1273,38 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
     log('Trace Averaging', True)
     log('Sweeps {}'.format(analyzer2.format_list_indices(target_sweeps)), False)
     log('Channels: {}'.format(channels), False)
-    print(mins)
-    print(np.mean(mins[0], axis=0, keepdims=False))
     if report_minmax:
         for i,c in enumerate(channels):
             results_display.dataframe.add({
-                'filename': al.recording.filename,
+                'filename': recordings[0].filename,
                 'channel': c,  # 0 indexing
                 'analysis': 'trace averaging',
                 'min': np.mean(mins[i], axis=0, keepdims=False)[0],
-                'min_unit': al.recording.channel_units[c],
+                'min_unit': recordings[0].channel_units[c],
                 'min_std': mins_std[i, 0, 0],
                 'max': np.mean(maxs[i], axis=0, keepdims=False)[0],
-                'max_unit': al.recording.channel_units[c],
+                'max_unit': recordings[0].channel_units[c],
                 'max_std': maxs_std[i,0,0],
             })
             log('Channel {}: min: {:.6f} {} stdev: {:.6f}'.format(c,
                                                          mins[i,0,0],
-                                                         al.recording.channel_units[c],
+                                                         recordings[0].channel_units[c],
                                                          mins_std[i,0,0]), False)
             log('           max: {:.6f} {} stdev: {:.6f}'.format(maxs[i, 0, 0],
-                                                        al.recording.channel_units[c],
+                                                        recordings[0].channel_units[c],
                                                         maxs_std[i, 0, 0]), False)
 
 
 def filter_y_data(all_channels=False, target='All sweeps', mode='Boxcar', params=None):
+    global recordings
     if all_channels:
-        channels = range(al.recording.channel_count)
+        channels = range(recordings[0].channel_count)
     else:
-        channels = [al.recording.channel]
+        channels = [recordings[0].channel]
     if app.widgets['trace_mode'].get() == 'continuous':
-        target_sweeps = range(al.recording.sweep_count)
+        target_sweeps = range(recordings[0].sweep_count)
     elif target == 'All sweeps':
-        target_sweeps = range(al.recording.sweep_count)
+        target_sweeps = range(recordings[0].sweep_count)
     elif target == 'Visible sweeps':
         target_sweeps = [i for i, v in enumerate(sweep_tab.sweep_vars) if v.get()] #check visible sweeps
     elif target == 'Highlighted sweeps':
@@ -1295,11 +1318,11 @@ def filter_y_data(all_channels=False, target='All sweeps', mode='Boxcar', params
     if int(app.widgets['config_undo_stack'].get()) > 0:
         ########### Save temp file ##############
         temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
-        al.recording.save_y_data(filename=temp_filename,
+        recordings[0].save_y_data(filename=temp_filename,
                                        channels=channels,
                                        sweeps=target_sweeps)
         add_undo([
-            lambda f=temp_filename, c=channels, s=target_sweeps: al.recording.load_y_data(f, c, s),
+            lambda f=temp_filename, c=channels, s=target_sweeps: recordings[0].load_y_data(f, c, s),
             lambda s=target_sweeps: update_plot_ys(s),
             lambda f=temp_filename: os.remove(f)
         ])
@@ -1307,7 +1330,7 @@ def filter_y_data(all_channels=False, target='All sweeps', mode='Boxcar', params
     app.pb['value'] = 50
     app.pb.update()
 
-    al.filter_sweeps(filter=mode, params=params, channels=channels, sweeps=target_sweeps)
+    al.filter_sweeps(recordings[0], filter=mode, params=params, channels=channels, sweeps=target_sweeps)
     update_plot_ys(target_sweeps)
 
     app.pb['value'] = 100

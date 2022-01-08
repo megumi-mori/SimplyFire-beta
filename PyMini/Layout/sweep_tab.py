@@ -156,6 +156,7 @@ def populate_list(num, replace=True, prefix=""):
             temp = sweep_vars.pop()
             del temp
 
+# def sweep_list():
 
 
 

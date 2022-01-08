@@ -485,7 +485,6 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0):
         global default_ylim
         default_ylim = ax.get_ylim()
 
-        print(default_xlim)
 
     if draw:
         canvas.draw()
@@ -495,8 +494,7 @@ def hide_sweep(idx, draw=False):
     try:
         sweeps['sweep_{}'.format(idx)].set_linestyle('None')
         # del sweeps['sweep_{}'.format(idx)]
-    except Exception as e:
-        print(e)
+    except:
         pass
     if draw:
         canvas.draw()
@@ -528,10 +526,11 @@ def get_sweep(idx):
 def toggle_sweep_highlight(idx, exclusive=True, draw=False):
     global highlighted_sweep
     c = app.widgets['style_trace_line_color'].get()
-    print(highlighted_sweep)
+    w = float(app.widgets['style_trace_line_width'].get())
     if exclusive:
         for l in sweeps:
             sweeps[l].set_color(c)
+            sweeps[l].set_linewidth(w)
         if idx in highlighted_sweep and len(highlighted_sweep) == 1:
             highlighted_sweep = []
             canvas.draw()
@@ -540,32 +539,46 @@ def toggle_sweep_highlight(idx, exclusive=True, draw=False):
     if idx in highlighted_sweep:
         try:
             sweeps['sweep_{}'.format(idx)].set_color(c)
+            sweeps[f'sweep_{idx}'].set_linewidth(w)
             highlighted_sweep.remove(idx)
         except:
             pass
     else:
         try:
             sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_highlight_color'].get())
+            sweeps[f'sweep_{idx}'].set_linewidth(float(app.widgets['style_trace_highlight_width'].get()))
             highlighted_sweep.append(idx)
         except:
             pass
     if draw:
         canvas.draw()
 
-
+def remove_highlight_sweep(draw=True):
+    global highlighted_sweep
+    for idx in highlighted_sweep:
+        try:
+            sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_line_color'].ge())
+            sweeps[f'sweep_{idx}'].set_linewidth(float(app.widgets['style_trace_line_width'].get()))
+            highlighted_sweep.remove(idx)
+        except:
+            pass
+    highlighted_sweep = []
+    if draw:
+        canvas.draw()
 def set_highlight_sweep(idx, highlight=True, draw=True):
     if idx not in highlighted_sweep and highlight:
         try:
             sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_highlight_color'].get())
+            sweeps[f'sweep_{idx}'].set_linewidth(float(app.widgets['style_trace_highlight_width'].get()))
             highlighted_sweep.append(idx)
         except:
             pass
     elif not highlight and idx in highlighted_sweep:
         try:
             sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_line_color'].get())
+            sweeps[f'sweep_{idx}'].set_linewidth(float(app.widgets['style_trace_line_width'].get()))
             highlighted_sweep.remove(idx)
-        except Exception as e:
-            print('remove highlight : {}'.format(e))
+        except:
             pass
     if draw:
         canvas.draw()
@@ -597,8 +610,7 @@ def plot_peak(xs, ys):
                                      s=float(app.widgets['style_event_peak_size'].get())**2,
                                      pickradius=float(app.widgets['style_event_pick_offset'].get()), animated=False)
         # canvas.draw()
-    except Exception as e:
-        print('plot peak, plotting error:{}'.format(e))
+    except:
         pass
 
 
@@ -649,6 +661,7 @@ def plot_end(xs, ys):
 
 
 def apply_styles(keys):
+    global highlighted_sweep
     for k in keys:
         try:
             if k == 'style_trace_line_width':
@@ -673,11 +686,15 @@ def apply_styles(keys):
                 markers['highlight'].set_color(app.widgets[k].get())
             if k == 'style_event_highlight_size':
                 markers['highlight'].set_markersize(app.widgets[k].get())
+            if k == 'style_trace_highlight_width':
+                for idx in highlighted_sweep:
+                    sweeps[f'sweep_{idx}'].set_linewidth(float(app.widgets[k].get()))
+            if k == 'style_trace_highlight_color':
+                for idx in highlighted_sweep:
+                    sweeps[f'sweep_{idx}'].set_color(app.widgets[k].get())
             if k == 'style_event_pick_offset':
-                print('set picker')
                 markers['peak'].set_picker(float(app.widgets[k].get()))
-        except Exception as e:
-            print(f'trace display apply styles error {e}')
+        except:
             pass
     canvas.draw()
 
@@ -710,7 +727,6 @@ def set_axis_limit(axis, lim):
         ax.set_xlim(l)
     if axis == 'y':
         l = [float(e) if e != 'auto' else default_ylim[i] for i, e in enumerate(lim)]
-        print('set y lim: {}'.format(l))
         ax.set_ylim(l)
     canvas.draw()
 

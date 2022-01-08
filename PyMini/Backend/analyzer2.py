@@ -28,9 +28,7 @@ class Recording():
         self._open_file(filepath)
 
     def _open_file(self, filename):
-        print(f'opening {filename}')
         self.filetype = os.path.splitext(filename)[1]
-        print(self.filetype)
         _, self.filename = os.path.split(filename)
 
         if self.filetype == '.abf':
@@ -175,8 +173,8 @@ class Recording():
 
         # if index out of bounds, the above code will raise an error
         # otherwise, store the channel value
-
         self.channel = channel
+
 
     def replace_y_data(self, mode='continuous', channels=None, sweeps=None, new_data=None):
         """
@@ -380,22 +378,18 @@ class Analyzer():
         # initialize dataframes
         self.mini_df = DataFrame()
 
-        self.recording = None
 
     def open_file(self, filename):
-        try:
-            # clear memory of the old file
-            del self.recording
-        except:
-            pass
-        self.recording = Recording(filename)
+        return Recording(filename)
+
+    def clear_mini_df(self):
         self.mini_df = self.mini_df.iloc[0:0]
-        return self.recording
+
 
     def set_plot_mode(self, plot_mode):
         self.plot_mode = plot_mode
 
-    def plot(self, plot_mode=None, channels=None, sweeps=None, xlim=None, ylim=None, color='black', linewidth=2,
+    def plot(self, recording, plot_mode=None, channels=None, sweeps=None, xlim=None, ylim=None, color='black', linewidth=2,
              show=True):
         """
         displays a plot of the recording. Use this function to visualize in non-GUI mode
@@ -409,8 +403,8 @@ class Analyzer():
         """
         if not plot_mode:
             plot_mode = self.plot_mode
-        x_matrix = self.recording.get_x_matrix(mode=plot_mode, sweeps=sweeps, channels=channels)  # 2D numpy array
-        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels)  # 3D numpy array
+        x_matrix = recording.get_x_matrix(mode=plot_mode, sweeps=sweeps, channels=channels)  # 2D numpy array
+        y_matrix = recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels)  # 3D numpy array
         c_len, s_len, _ = y_matrix.shape
         for c in range(c_len):
             for s in range(s_len):
@@ -431,7 +425,7 @@ class Analyzer():
     # Evoked Recording Analysis #
     #############################
 
-    def calculate_min_sweeps(self, plot_mode=None, channels=None, sweeps=None, xlim=None):
+    def calculate_min_sweeps(self, recording, plot_mode=None, channels=None, sweeps=None, xlim=None):
         """
         returns minimum y-value from each sweep in each channel
         if the plot_mode is 'overlay', returns the minimum y-value for each sweep
@@ -445,16 +439,16 @@ class Analyzer():
         if not plot_mode:
             plot_mode = self.plot_mode
         if sweeps is None:
-            sweeps = range(self.recording.sweep_count)
+            sweeps = range(recording.sweep_count)
         if channels is None:
-            channels = range(self.recording.channel_count)
-        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels,
+            channels = range(recording.channel_count)
+        y_matrix = recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels,
                                                xlim=xlim)  # 3D numpy array
         mins = np.min(y_matrix, axis=2, keepdims=True)
         mins_std = np.std(mins, axis=1, keepdims=True)
         return mins, mins_std
 
-    def calculate_max_sweeps(self, plot_mode=None, channels=None, sweeps=None, xlim=None):
+    def calculate_max_sweeps(self, recording, plot_mode=None, channels=None, sweeps=None, xlim=None):
         """
         returns maximum y-value from each sweep in each channel
         if the plot_mode is 'overlay', returns the minimum y-value for each sweep
@@ -467,12 +461,12 @@ class Analyzer():
         """
         if not plot_mode:
             plot_mode = self.plot_mode
-        y_matrix = self.recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels,
+        y_matrix = recording.get_y_matrix(mode=plot_mode, sweeps=sweeps, channels=channels,
                                                xlim=xlim)  # 3D numpy array
         if sweeps is None:
-            sweeps = range(self.recording.sweep_count)
+            sweeps = range(recording.sweep_count)
         if channels is None:
-            channels = range(self.recording.channel_count)
+            channels = range(recording.channel_count)
         maxs = np.max(y_matrix, axis=2, keepdims=True)
         maxs_std = np.std(maxs, axis=1, keepdims=True)
         return maxs, maxs_std
@@ -481,7 +475,7 @@ class Analyzer():
     # Recording Adjustment #
     ########################
 
-    def average_sweeps(self, channels=None, sweeps=None, fill=0):
+    def average_sweeps(self, recording, channels=None, sweeps=None, fill=0):
         """
         returns a 3D numpy array representing the average of specified sweeps in each channel
 
@@ -490,15 +484,15 @@ class Analyzer():
         fill: float - y-value to fill channels that will not be assessed. defaults to 0
         """
         # initialize matrix
-        result = np.full((self.recording.channel_count, 1, self.recording.sweep_points),
+        result = np.full((recording.channel_count, 1, recording.sweep_points),
                          fill_value=fill,
                          dtype=np.float)
-        result[channels] = np.mean(self.recording.get_y_matrix(mode='overlay', sweeps=sweeps, channels=channels),
+        result[channels] = np.mean(recording.get_y_matrix(mode='overlay', sweeps=sweeps, channels=channels),
                                    axis=1,
                                    keepdims=True)
         return result
 
-    def append_average_sweeps(self, channels=None, sweeps=None, fill=0):
+    def append_average_sweeps(self, recording, channels=None, sweeps=None, fill=0):
         """
         averages sweeps in each channel and stores the result in the recording attribute
 
@@ -507,12 +501,12 @@ class Analyzer():
         fill: float - y-value to fill channels that will not be assessed. defaults to 0
         """
 
-        avg = self.average_sweeps(channels=channels, sweeps=sweeps, fill=fill)
-        self.recording.append_sweep(avg)
+        avg = self.average_sweeps(recording, channels=channels, sweeps=sweeps, fill=fill)
+        recording.append_sweep(avg)
 
         return avg
 
-    def subtract_baseline(self, plot_mode='continuous', channels=None, sweeps=None, xlim=None, fixed_val=None):
+    def subtract_baseline(self, recording, plot_mode='continuous', channels=None, sweeps=None, xlim=None, fixed_val=None):
         """
         subtracts baseline from each sweep. Baseline can be calculated as the mean of specified data points
         or a single value can be specified as a parameter
@@ -536,19 +530,19 @@ class Analyzer():
         if fixed_val is not None:
             baseline = fixed_val
         else:
-            baseline = np.mean(self.recording.get_y_matrix(mode=plot_mode,
+            baseline = np.mean(recording.get_y_matrix(mode=plot_mode,
                                                            channels=channels,
                                                            sweeps=sweeps,
                                                            xlim=xlim),
                                axis=2,
                                keepdims=True)
-        result = self.recording.get_y_matrix(mode=plot_mode, channels=channels, sweeps=sweeps) - baseline
+        result = recording.get_y_matrix(mode=plot_mode, channels=channels, sweeps=sweeps) - baseline
 
-        self.recording.replace_y_data(mode=plot_mode, channels=channels, sweeps=sweeps, new_data=result)
+        recording.replace_y_data(mode=plot_mode, channels=channels, sweeps=sweeps, new_data=result)
 
         return baseline
 
-    def shift_y_data(self, shift, plot_mode='continuous', channels=None, sweeps=None):
+    def shift_y_data(self, recording, shift, plot_mode='continuous', channels=None, sweeps=None):
         """
         shifts y_data by specified amount
 
@@ -557,12 +551,12 @@ class Analyzer():
         channels: list of int
         sweeps: list of int
         """
-        result = self.recording.get_y_matrix(mode=plot_mode, channels=channels, sweeps=sweeps) - shift
-        self.recording.replace_y_data(mode=plot_mode, channels=channels, sweeps=sweeps, new_data=result)
+        result = recording.get_y_matrix(mode=plot_mode, channels=channels, sweeps=sweeps) - shift
+        recording.replace_y_data(mode=plot_mode, channels=channels, sweeps=sweeps, new_data=result)
 
-        return None
+        return recording
 
-    def filter_sweeps(self, filter='Boxcar', params=None, channels=None, sweeps=None):
+    def filter_sweeps(self, recording, filter='Boxcar', params=None, channels=None, sweeps=None):
         """
         applies a specified filter to the y-data in specified sweeps and channels
 
@@ -586,10 +580,12 @@ class Analyzer():
             width = int(params['width'])
             kernel = np.ones(width)/width
             for c in channels:
-                ys=self.recording.get_y_matrix(mode='continuous', channels=[c], sweeps=sweeps)
+                ys=recording.get_y_matrix(mode='continuous', channels=[c], sweeps=sweeps)
                 filtered=np.convolve(ys.flatten(), kernel, mode='same')
                 filtered=np.reshape(filtered, (1,1,len(filtered)))
-                self.recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
+                filtered[:, :, :int(width / 2)] = ys[:, :, :int(width / 2)]
+                filtered[:, :, -int(width / 2):] = ys[:, :, -int(width / 2):]
+                recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
             # k = convolution.Box1DKernel(width=width)
             # for c in channels:
             #     # apply filter
@@ -607,9 +603,9 @@ class Analyzer():
         #
         #         self.recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
         # return None
-        pass
+        return recording
 
-    def find_closest_sweep_to_point(self, point, xlim=None, ylim=None, height=1, width=1, radius=np.inf,
+    def find_closest_sweep_to_point(self, recording, point, xlim=None, ylim=None, height=1, width=1, radius=np.inf,
                                     channels=None, sweeps=None):
         """
         returns the sweep number that is closest to a given point that satisfies the given radius
@@ -632,9 +628,9 @@ class Analyzer():
         except Exception as e:  # xlim and/or ylim not specified
             xy_ratio = 1
         if channels is None:
-            channels = range(self.recording.channel_count)
+            channels = range(recording.channel_count)
         if sweeps is None:
-            sweeps = range(self.recording.sweep_count)
+            sweeps = range(recording.sweep_count)
         min_c = None
         min_s = None
         min_i = None
@@ -643,9 +639,9 @@ class Analyzer():
             for s in sweeps:
                 d, i, _ = point_line_min_distance(
                     point,
-                    self.recording.get_xs(mode='overlay', sweep=s, channel=c),
-                    self.recording.get_ys(mode='overlay', sweep=s, channel=c),
-                    sampling_rate=self.recording.sampling_rate,
+                    recording.get_xs(mode='overlay', sweep=s, channel=c),
+                    recording.get_ys(mode='overlay', sweep=s, channel=c),
+                    sampling_rate=recording.sampling_rate,
                     radius=radius,
                     xy_ratio=xy_ratio)
                 try:
@@ -675,6 +671,7 @@ class Analyzer():
                        xlim=None,
                        xs=None,
                        ys=None,
+                       recording=None,
                        x_sigdig=6,
                        sampling_rate=None,
                        channel=0,
@@ -730,10 +727,13 @@ class Analyzer():
         show_time = False
         self.print_time('start auto', show_time)
         self.stop=False
+        if xs is None or ys is None:
+            if recording is None:
+                return None # cannot analyze
         if xs is None:
-            xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
+            xs = recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
         if ys is None:
-            ys = self.recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
+            ys = recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
         else:
             ys = ys.copy()  # make a copy to edit
         try:
@@ -745,7 +745,10 @@ class Analyzer():
             if sampling_rate is None:
                 sampling_rate = 1/np.mean(xs[1:5]-xs[0:4])
             elif sampling_rate == 'auto':
-                sampling_rate = self.recording.sampling_rate
+                try:
+                    sampling_rate = recording.sampling_rate
+                except:
+                    sampling_rate = 1 / np.mean(xs[1:5] - xs[0:4])
             kernel = int(auto_radius/1000*sampling_rate)
         if stride is None:
             stride = int(kernel/2)
@@ -827,6 +830,7 @@ class Analyzer():
                          xlim_idx: tuple = None,
                          xs: np.ndarray = None,
                          ys: np.ndarray = None,
+                         recording=None,
                          x_sigdig: int = 6,
                          sampling_rate: float = None,
                          channel=0,
@@ -863,10 +867,13 @@ class Analyzer():
             in the result:
                 #### list columns here
         """
+        if xs is None or ys is None:
+            if recording is None:
+                return None # insufficient data
         if xs is None:
-            xs = self.recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
+            xs = recording.get_x_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
         if ys is None:
-            ys = self.recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
+            ys = recording.get_y_matrix(mode='continuous', channels=[channel], sweeps=sweeps, xlim=xlim).flatten()
         else:
             ys = ys.copy()
         if xlim_idx is None:
@@ -1377,8 +1384,7 @@ class Analyzer():
         show_time = False
         # perform conversions
         if sampling_rate == 'auto':
-            sampling_rate = self.recording.sampling_rate
-
+            sampling_rate = 1 / np.mean(xs[1:5] - xs[0:4])
         # convert lag_ms to lag
         if lag_ms is not None:
             lag = int(lag_ms/1000*sampling_rate)
@@ -1956,9 +1962,7 @@ class Analyzer():
     #             start_idx += 1
     #             peak_idx += 1
     #     return None
-    def calculate_frequency(self, channel=None):
-        if channel is None:
-            channel = self.recording.channel
+    def calculate_frequency(self, channel):
         df = self.mini_df[self.mini_df['channel']==channel]
         freq = (df['t'].max() - df['t'].min())/df.shape[0]
 
@@ -1994,13 +1998,16 @@ def point_line_min_distance(point, xs, ys, sampling_rate, radius=np.inf, xy_rati
     else:
         search_xlim = (max(0, int(point_idx - radius * sampling_rate)),  # search start index (0 or greater)
                        min(len(xs), int(point_idx + radius * sampling_rate)))  # search end index (len(xs) or less)
+    xs_bool = (xs < xs[point_idx] + radius) & (xs > xs[point_idx] - radius)
+    ys_bool = (ys < ys[point_idx] + radius * xy_ratio) & (ys > ys[point_idx] - radius)
     min_d = np.inf
     min_i = None
-    for i in range(search_xlim[0], search_xlim[1], 1):
-        d = euc_distance(point, (xs[i], ys[i]), xy_ratio)
-        if d < min_d and d <= radius:
-            min_d = d
-            min_i = i
+    for i in range(search_xlim[0], search_xlim[1]):
+        if xs_bool[i] and ys_bool[i]:
+            d = euc_distance(point, (xs[i], ys[i]), xy_ratio)
+            if d < min_d and d <= radius:
+                min_d = d
+                min_i = i
     if min_i:
         return min_d, min_i, (xs[min_i], ys[min_i])
     return None, None, None  # no match
@@ -2079,8 +2086,39 @@ def format_list_indices(idx):
         elif n - 1 != idx[i - 1]:
             # 0, 1, 2, 3, [4, 10, 11], 14, 16 --> '0..4,10' -->'0..4,10..11'
             s = '{},{}'.format(s, n)
-
     return s
+
+def translate_indices(s):
+    sections = s.split(',')
+    indices = []
+    for section in sections:
+        idx = section.split('..') # should be left with indeces (int)
+        if len(idx) == 1:
+            indices.append(int(idx[0]))
+        else:
+            for i in range(int(idx[0]),int(idx[1])):
+                indices.append(int(i))
+    return indices
+
+def is_indices(s):
+    # check formatting
+    temp = s.replace('..', ',').split(',')
+    # check every number is int
+    for t in temp:
+        try:
+            int(t)
+        except:
+            return False
+    try:
+        translate_indices(s)
+    except:
+        return False
+    return True
+
+
+
+
+
 
 
 def calculate_window_around_x(x: float,
@@ -2149,17 +2187,17 @@ def calculate_window_around_x(x: float,
 
     return start_idx + offset, end_idx + offset
 
-def point_line_min_distance(x, y, offset, xs, ys, x2y=1, rate=None):
-    # finds the minimum square difference between a point and a line.
-    idx = search_index(x, xs, rate)
-    min_d = np.inf
-    min_i = None
-    for i in range(max(idx - offset, 0), min(idx + offset, len(xs))):
-        d = euc_distance((x, y), (xs[i], ys[i]), x2y)
-        if d < min_d:
-            min_d = d
-            min_i = i
-    return min_d, min_i
+# def point_line_min_distance(x, y, offset, xs, ys, x2y=1, rate=None):
+#     # finds the minimum square difference between a point and a line.
+#     idx = search_index(x, xs, rate)
+#     min_d = np.inf
+#     min_i = None
+#     for i in range(max(idx - offset, 0), min(idx + offset, len(xs))):
+#         d = euc_distance((x, y), (xs[i], ys[i]), x2y)
+#         if d < min_d:
+#             min_d = d
+#             min_i = i
+#     return min_d, min_i
 
 def contains_line(xlim, ylim, xs, ys, rate=None):
     if xlim:

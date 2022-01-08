@@ -10,8 +10,13 @@ parameters = {}
 
 global widgets
 widgets = {}
+
 def find_all(popup=True):
-    if interface.al.recording is None:
+    if len(interface.recordings) == 0:
+        return None
+
+    # don't do anything if the app is in the wrong setting
+    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
         return None
     # global stop_button
     # stop_button.config(state = 'normal')
@@ -40,7 +45,9 @@ def start_find_all_process(popup=True):
         running_popup.window_close()
 
 def find_in_window(popup=True):
-    if interface.al.recording is None:
+    if len(interface.recordings) == 0:
+        return None
+    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
         return None
     # global stop_button
     # stop_button.config(state='normal')
@@ -64,12 +71,29 @@ def start_find_in_window_process(popup=True):
     if popup:
         running_popup.window_close()
 
-def filter_all():
+def filter_all(e=None):
+    if len(interface.recordings) == 0:
+        return None
+    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+        return None
     interface.filter_mini()
-def filter_in_window():
+def filter_in_window(e=None):
+    if len(interface.recordings) == 0:
+        return None
+    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+        return None
     interface.filter_mini(trace_display.ax.get_xlim())
-
-def delete_in_window():
+def delete_all(e=None):
+    if len(interface.recordings) == 0:
+        return None
+    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+        return None
+    interface.delete_all_events()
+def delete_in_window(e=None):
+    if len(interface.recordings) == 0:
+        return None
+    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+        return None
     interface.delete_events_in_range(trace_display.ax.get_xlim())
 def populate_decay_algorithms(e=None):
     #['% amplitude', 'Sum of squares', 'Scipy Curve Fit'],
@@ -85,6 +109,10 @@ def populate_decay_algorithms(e=None):
     global changes
     changes['decay_algorithm'] = e
     pass
+def report(e=None):
+    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+        return None
+    data_display.report()
 def load(parent):
     global widgets
     ##################################################
@@ -137,7 +165,7 @@ def load(parent):
     )
     optionframe.insert_button(
         text='Delete all',
-        command=interface.delete_all_events
+        command=delete_all
     )
     global find_in_window_button
     find_in_window_button = optionframe.insert_button(
@@ -151,7 +179,7 @@ def load(parent):
     global report_button
     report_button = optionframe.insert_button(
         text='Report stats',
-        command=data_display.report,
+        command=report,
     )
     # mini analysis core parameters
     optionframe.insert_title(
