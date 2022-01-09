@@ -219,7 +219,6 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
 
     def command_undo(self, e=None):
         if self.undo_value == self.get():
-            print('nothing to do')
             return None
         try:
             self.set_undo()
@@ -599,7 +598,6 @@ class DataTable(Tk.Frame):
 
     def append(self, dataframe):
         if dataframe is None:
-            print('nothing in dataframe')
             return None
         total = dataframe.shape[0]
         try:

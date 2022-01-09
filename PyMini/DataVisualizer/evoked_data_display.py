@@ -36,7 +36,6 @@ def load(parent=None):
     return frame
 
 def fit_columns():
-    print('fit columns evoked ')
     dataframe.fit_columns()
 
 def clear():
@@ -105,7 +104,7 @@ def report(event=None):
     if len(df) == 0:
         return None
     df = pandas.DataFrame.from_dict(df, orient='index')
-    output = {'filename': interface.al.recording.filename,
+    output = {'filename': interface.recordings[0].filename,
               'analysis': 'evoked'}
     for c in columns:
         if 'unit' in c:

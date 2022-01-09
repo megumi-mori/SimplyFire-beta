@@ -55,8 +55,11 @@ def validate(validate_type, value):
             if is_na(value):
                 return True
         elif type[0] == '[' and type[-1] == ']': #probably can do this better with regex?
-            if (value.casefold()).__eq__(type[1:-1].casefold()):
-                return True
+            try:
+                if (value.casefold()).__eq__(type[1:-1].casefold()):
+                    return True
+            except (AttributeError):
+                pass
 
         else:
             pass

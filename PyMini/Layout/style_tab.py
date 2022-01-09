@@ -58,39 +58,39 @@ def load(parent):
     row+= 1
     ttk.Label(main_style_panel, text='Trace plot').grid(column=label_column, row=row, sticky='news')
     place_VarEntry(name='style_trace_line_width', column=size_column, row=row, frame=main_style_panel, width=size_width)
-    place_VarEntry(name='style_trace_line_color', column=color_column, row=row, frame=main_style_panel, width=color_width)
+    place_VarEntry(name='style_trace_line_color', column=color_column, row=row, frame=main_style_panel, width=color_width, validate_type='color')
 
     row+= 1
     ttk.Label(main_style_panel, text='Peak marker').grid(column=label_column, row=row, sticky='news')
     place_VarEntry(name='style_event_peak_size', column=size_column, row=row, frame=main_style_panel, width=size_width)
-    place_VarEntry(frame=main_style_panel, name='style_event_peak_color', width=color_width, column=color_column, row=row)
+    place_VarEntry(frame=main_style_panel, name='style_event_peak_color', width=color_width, column=color_column, row=row, validate_type='color')
 
     row+= 1
     ttk.Label(main_style_panel, text='Start marker').grid(column=label_column, row=row, sticky='news')
     place_VarEntry(name='style_event_start_size', column=size_column, row=row, frame=main_style_panel, width=size_width)
     place_VarEntry(frame=main_style_panel, name='style_event_start_color', width=color_width, column=color_column,
-                   row=row)
+                   row=row, validate_type='color')
 
     row+= 1
     ttk.Label(main_style_panel, text='Decay marker').grid(column=label_column, row=row, sticky='news')
     place_VarEntry(name='style_event_decay_size', column=size_column, row=row, frame=main_style_panel,
                    width=size_width)
     place_VarEntry(frame=main_style_panel, name='style_event_decay_color', width=color_width, column=color_column,
-                   row=row)
+                   row=row, validate_type='color')
 
     row += 1
     ttk.Label(main_style_panel, text='Event highlight marker').grid(column=label_column, row=row, sticky='news')
     place_VarEntry(name='style_event_highlight_size', column=size_column, row=row, frame=main_style_panel,
                    width=size_width)
     place_VarEntry(frame=main_style_panel, name='style_event_highlight_color', width=color_width, column=color_column,
-                   row=row)
+                   row=row, validate_type='color')
 
     row += 1
     ttk.Label(main_style_panel, text='Trace highlight').grid(column=label_column, row=row, sticky='news')
     place_VarEntry(name='style_trace_highlight_width', column=size_column, row=row, frame=main_style_panel,
                    width=size_width)
     place_VarEntry(frame=main_style_panel, name='style_trace_highlight_color', width=color_width, column=color_column,
-                   row=row)
+                   row=row, validate_type='color')
 
     row +=1
     ttk.Label(main_style_panel, text='Event pick offset').grid(column=label_column, row=row, sticky='news')
@@ -126,7 +126,7 @@ def load(parent):
 
     optionframe.insert_button(
         text='Apply',
-        command= lambda e=entries:trace_display.apply_styles(e)
+        command= apply_styles
     )
     optionframe.insert_button(
         text='Default',
@@ -166,15 +166,16 @@ def load(parent):
     )
     b.bind('<ButtonPress-1>', hide_all, add='+')
     return frame
-def place_VarEntry(name, column, row, frame, width=None):
-    global widgets
-    widgets[name] = VarEntry(frame, name=name, width=width)
-    widgets[name].grid(column=column, row=row, sticky='news')
-    return widgets[name]
-
 def apply_styles(e=None):
     global entries
+    trace_display.canvas.get_tk_widget().focus_set()
     trace_display.apply_styles(entries)
+
+def place_VarEntry(name, column, row, frame, width=None, validate_type=""):
+    global widgets
+    widgets[name] = VarEntry(frame, name=name, width=width,validate_type=validate_type)
+    widgets[name].grid(column=column, row=row, sticky='news')
+    return widgets[name]
 
 def show_all(e=None):
     for i in boxes:

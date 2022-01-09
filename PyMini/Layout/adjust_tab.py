@@ -339,7 +339,6 @@ def load(parent):
     baseline_panel.insert_widget(baseline_option_buttons['fixed'])
 
     widgets['adjust_fixed'] = widget.VarEntry(parent=baseline_panel, name='adjust_fixed', validate_type='float')
-    print(f'checking pre-set value: {config.adjust_fixed} for adjust_fixed')
     baseline_panel.insert_widget(widgets['adjust_fixed'])
 
     frame.insert_button(
@@ -482,7 +481,6 @@ def _populate_filter_param_form(algorithm=None):
 ######### Baseline Adjust
 def _select_baseline_mode(e=None, undo=True):
     if widgets['adjust_baseline_mode'].get() == 'mean':
-        print('mean')
         widgets['adjust_range_left'].config(state='disabled')
         widgets['adjust_range_right'].config(state='disabled')
         widgets['adjust_fixed'].config(state='disabled')

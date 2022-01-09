@@ -483,7 +483,6 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None):
         canvas.draw()
         global default_xlim
         default_xlim = ax.get_xlim()
-        print(default_xlim)
 
         global default_ylim
         default_ylim = ax.get_ylim()

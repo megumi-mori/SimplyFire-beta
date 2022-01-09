@@ -196,11 +196,11 @@ def delete(selection):
 def report(event=None):
     if interface.al.mini_df.shape[0] == 0:
         return None
-    mini_df = interface.al.mini_df[interface.al.mini_df['channel']==interface.al.recording.channel]
+    mini_df = interface.al.mini_df[interface.al.mini_df['channel']==interface.recordings[0].channel]
     if mini_df.shape[0] == 0:
         return None
     data = {
-        'filename': interface.al.recording.filename,
+        'filename': interface.recordings[0].filename,
         'analysis': 'mini',
         'num_minis': mini_df.shape[0]
     }
@@ -225,7 +225,7 @@ def report(event=None):
         data['baseline_unit'] = mini_df['baseline_unit'].iloc[0]
         data['baseline_std'] = mini_df['baseline'].std()
     if 'channel' in dataframe.columns:
-        data['channel'] = interface.al.recording.channel
+        data['channel'] = interface.recordings[0].channel
     if 'compound' in dataframe.columns:
         data['num_compound'] = mini_df['compound'].sum()
     # calculate frequency

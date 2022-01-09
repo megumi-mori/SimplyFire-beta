@@ -31,8 +31,9 @@ def load(parent):
     global list_frame
     list_frame = scrollable_option_frame.ScrollableOptionFrame(frame)
     list_frame.grid(sticky='news')
+    frame.insert_panel(list_frame)
     list_frame.columnconfigure(0, weight=1)
-    frame.grid_rowconfigure(3, weight=1)
+    frame.grid_rowconfigure(2, weight=1)
 
     global start_msg
     start_msg = list_frame.frame.insert_title(
@@ -65,13 +66,10 @@ def load(parent):
 
 
 def add_trace(e=None):
-    if len(interface.recordings)==0:
-        fname = app.menubar.ask_open_trace()
-    else:
-        fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', '*.abf'), ('csv files', '*.csv'), ('All files', '*.*')])
-        interface.open_trace(fname, append=True)
+    fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', '*.abf'), ('csv files', '*.csv'), ('All files', '*.*')])
     if not fname:
         return None
+    interface.open_trace(fname, append=True)
 
 
 def reset_trace_list(fname):
@@ -102,8 +100,6 @@ def increase_trace_list(fname):
     global trace_list
     global num_visible
     global list_frame
-    print(f'trace_list: {len(trace_list)}')
-    print(f'num_visibleL {num_visible}')
     if len(trace_list) > num_visible:
         trace_list[num_visible]['panel'].grid()
     else:

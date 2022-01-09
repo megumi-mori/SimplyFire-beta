@@ -40,7 +40,7 @@ def load(parent):
     widgets['evoked_window_mode'] = StringVar(window_option_panel, config.evoked_window_mode)
 
     window_option_panel.insert_widget(
-        Tk.Label(master=window_option_panel, text='Calculate using data from (overlay only):')
+        Tk.Label(master=window_option_panel, text='Limit x-axes for analysis to:')
     )
 
     all_button = ttk.Radiobutton(
@@ -192,3 +192,4 @@ def calculate_min_max(e=None):
 def report(e=None):
     if app.widgets['analysis_mode'].get() != 'evoked' or app.widgets['trace_mode'].get() == 'compare':
         return None
+    evoked_data_display.report()

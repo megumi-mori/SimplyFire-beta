@@ -66,7 +66,6 @@ def show_all():
     app.pb['value'] = 0
 
 def show(idx=None, draw=False):
-    print(idx)
     for i in idx:
         if sweep_vars[i].get() == 0:
             sweep_vars[i].set(1)

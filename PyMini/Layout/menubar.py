@@ -8,7 +8,6 @@ import gc
 from PyMini import app
 
 def load(parent):
-    print(app.data_notebook)
     global widgets
     widgets = {}
     global trace_mode
@@ -108,17 +107,17 @@ def export_evoked():
     evoked_data_display.dataframe.export(filename)
 
 def export_recording(handle_duplicates=False):
-    if interface.al.recording is None:
+    if len(interface.recordings[0])==0:
         messagebox.showerror('Write error', message='No recording to export. Please open a recording first.')
         return None
-    initialfname = interface.al.recording.filename.split('.')[0] + '_Modified'
+    initialfname = interface.recordings[0].filename.split('.')[0] + '_Modified'
     try:
         filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('csv files', '*.csv'), ('All files', '*.*')],
                                                 defaultextension='.abf',
                                                 initialfile=initialfname)
 
         if filename is not None:
-            interface.al.recording.save(filename)
+            interface.recordings[0].save(filename)
             print(f'saved file as {filename}')
     except (FileExistsError):
         messagebox.showerror('Write error', message='Cannot overwrite an existing ABF file')

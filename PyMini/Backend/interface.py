@@ -297,7 +297,7 @@ def plot_continuous(recording, fix_axis=False, draw=True, fix_x=False, fix_y=Fal
     update_event_marker()
 
 def delete_last_sweep():
-    al.recording.delete_last_sweep()
+    recordings[0].delete_last_sweep()
     sweep_tab.delete_last_sweep()
     trace_display.delete_last_sweep()
 
@@ -365,7 +365,7 @@ def save_events(filename, mode='w', suffix_num=0, handle_error=True):
         fname = filename
     try:
         with open(fname, mode) as f:
-            f.write(f'@{al.recording.filename}\n')
+            f.write(f'@{recordings[0].filename}\n')
             f.write(al.mini_df.to_csv(index=False))
     except (FileExistsError):
         if handle_error:
@@ -391,7 +391,7 @@ def save_events_dialogue(e=None):
 def save_events_as_dialogue(e=None):
     if len(al.mini_df) > 0:
         try:
-            initialfilename = os.path.split(al.recording.filename)[1] + '.event'
+            initialfilename = os.path.split(recordings[0].filename)[1] + '.event'
         except:
             initialfilename = app.event_filename
         filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.event',
@@ -408,7 +408,7 @@ def save_events_as_dialogue(e=None):
     return
 
 def open_events(filename, log=True, undo=True, append=False):
-    if not al.recording:
+    if len(recordings) == 0:
         # recording file not open yet
         messagebox.showerror('Open error', 'Please open a recording file first.')
     if undo and int(app.widgets['config_undo_stack'].get()) > 0:
@@ -434,7 +434,7 @@ def open_events(filename, log=True, undo=True, append=False):
         populate_data_display()
     else:
         al.mini_df = al.mini_df.append(df)
-        data_display.append(df[df.channel == al.recording.channel])
+        data_display.append(df[df.channel == recordings[0].channel])
     update_event_marker()
     if log:
         log_display.open_update('mini data: {}'.format(filename))
@@ -463,8 +463,8 @@ def open_events_mini(filename):
             elif info[0] == '@Header':
                 for i,h in enumerate(info):
                     header_idx[h] = i
-                xs = al.recording.get_xs(mode='continuous', channel=channel)
-                ys= al.recording.get_ys(mode='continuous', channel=channel)
+                xs = recordings[0].get_xs(mode='continuous', channel=channel)
+                ys= recordings[0].get_ys(mode='continuous', channel=channel)
             elif info[0] == '@Data':
                 mini = {
                     't':float(info[header_idx['x']]),
@@ -478,14 +478,14 @@ def open_events_mini(filename):
                     'decay_baseline':0,
                     'decay_coord_x':float(info[header_idx['tau_x']]),
                     'decay_coord_y':float(info[header_idx['tau_y']]),
-                    'decay_max_points':int(float(app.widgets['detector_core_decay_max_interval'].get())/1000*al.recording.sampling_rate),
+                    'decay_max_points':int(float(app.widgets['detector_core_decay_max_interval'].get())/1000*recordings[0].sampling_rate),
                     'failure':None,
                     'lag':int(info[header_idx['lag']]),
                     'rise_const':float(info[header_idx['rise_time']])*1000,
                     'start_coord_x':float(info[header_idx['left_x']]),
                     'start_coord_y':float(info[header_idx['left_y']]),
-                    'amp_unit':al.recording.channel_units[channel],
-                    'baseline_unit':al.recording.channel_units[channel],
+                    'amp_unit':recordings[0].channel_units[channel],
+                    'baseline_unit':recordings[0].channel_units[channel],
                     'decay_unit':'ms',
                     'halfwidth_unit': 'ms',
                     'rise_unit':'ms',
@@ -504,18 +504,18 @@ def open_events_mini(filename):
                     'min_hw': 0.0,
                     'max_s2n':np.inf,
                     'min_s2n':0.0,
-                    'stdev_unit':al.recording.channel_units[channel],
+                    'stdev_unit':recordings[0].channel_units[channel],
                     'success':True,
                 }
                 pass
-                mini['start_idx'] = int(analyzer2.search_index(mini['start_coord_x'], xs, rate=al.recording.sampling_rate))
+                mini['start_idx'] = int(analyzer2.search_index(mini['start_coord_x'], xs, rate=recordings[0].sampling_rate))
                 mini['baseline_idx'] = mini['start_idx']
                 mini['base_idx_L'] = mini['start_idx'] - mini['lag']
                 mini['base_idx_R'] = mini['start_idx']
-                mini['decay_idx'] = int(analyzer2.search_index(mini['start_coord_x']+mini['decay_const'], xs, rate=al.recording.sampling_rate))
-                mini['peak_idx'] = int(analyzer2.search_index(mini['peak_coord_x'], xs, rate=al.recording.sampling_rate))
+                mini['decay_idx'] = int(analyzer2.search_index(mini['start_coord_x']+mini['decay_const'], xs, rate=recordings[0].sampling_rate))
+                mini['peak_idx'] = int(analyzer2.search_index(mini['peak_coord_x'], xs, rate=recordings[0].sampling_rate))
                 mini['decay_start_idx'] = mini['peak_idx']
-                mini['end_idx'] = analyzer2.search_index(mini['end_coord_x'], xs, rate=al.recording.sampling_rate)
+                mini['end_idx'] = analyzer2.search_index(mini['end_coord_x'], xs, rate=recordings[0].sampling_rate)
                 mini['stdev'] = np.std(ys[mini['base_idx_L']:mini['base_idx_R']])
 
                 #try finding halfwidth
@@ -528,7 +528,7 @@ def open_events_mini(filename):
                 if hw_start_idx is not None and hw_end_idx is None:
                     if app.widgets['detector_core_extrapolate_hw'].get():
                         t = np.log(0.5)*(-1)*mini['decay_const']/1000
-                        hw_end_idx = analyzer2.search_index(xs[mini['peak_idx']]+t,xs[mini['baseline_idx']:], al.recording.sampling_rate)
+                        hw_end_idx = analyzer2.search_index(xs[mini['peak_idx']]+t,xs[mini['baseline_idx']:], recordings[0].sampling_rate)
                 if hw_start_idx is None or hw_end_idx is None:
                     mini['halfwidth'] = 0 # could not be calculated
                 else:
@@ -546,7 +546,7 @@ def open_events_mini(filename):
 
 def populate_data_display():
     try:
-        xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
+        xs = al.mini_df.index.where(al.mini_df['channel'] == recordings[0].channel)
         xs = xs.dropna()
         data_display.set(al.mini_df.loc[xs])
     except:
@@ -579,10 +579,10 @@ def pick_event_manual(x):
         guide = True
         param_guide.clear()
 
-    mini = al.find_mini_manual(xlim=(max(x-r, xlim[0]), min(x+r,xlim[1])), xs=xs, ys=ys, x_sigdig=al.recording.x_sigdig,
-                               sampling_rate=al.recording.sampling_rate, channel=al.recording.channel,
-                               reference_df=True, y_unit=al.recording.y_unit,
-                               x_unit=al.recording.x_unit, **params)
+    mini = al.find_mini_manual(xlim=(max(x-r, xlim[0]), min(x+r,xlim[1])), xs=xs, ys=ys, x_sigdig=recordings[0].x_sigdig,
+                               sampling_rate=recordings[0].sampling_rate, channel=recordings[0].channel,
+                               reference_df=True, y_unit=recordings[0].y_unit,
+                               x_unit=recordings[0].x_unit, **params)
     if guide:
         # param_guide.report(xs, ys, mini)
         param_guide.report(xs, ys, mini)
@@ -733,10 +733,10 @@ def reanalyze(data, accept_all=False):
         guide = True
         param_guide.clear()
 
-    mini = al.analyze_candidate_mini(xs=xs, ys=ys, peak_idx=peak_idx, x_sigdig=al.recording.x_sigdig,
-                               sampling_rate=al.recording.sampling_rate, channel=al.recording.channel,
-                               reference_df=True, y_unit=al.recording.y_unit,
-                               x_unit=al.recording.x_unit,
+    mini = al.analyze_candidate_mini(xs=xs, ys=ys, peak_idx=peak_idx, x_sigdig=recordings[0].x_sigdig,
+                               sampling_rate=recordings[0].sampling_rate, channel=recordings[0].channel,
+                               reference_df=True, y_unit=recordings[0].y_unit,
+                               x_unit=recordings[0].x_unit,
                                **params)
     if guide:
         # param_guide.report(xs, ys, mini)
@@ -902,7 +902,7 @@ def highlight_events_in_range(xlim=None, ylim=None):
         ylim = (ylim[1], ylim[0])
     if al.mini_df.shape[0] == 0:
         return None
-    mini_df = al.mini_df[al.mini_df['channel'] == al.recording.channel]
+    mini_df = al.mini_df[al.mini_df['channel'] == recordings[0].channel]
     if xlim:
         mini_df = mini_df[al.mini_df['t'] > xlim[0]]
         mini_df = mini_df[mini_df['t'] < xlim[1]]
@@ -936,13 +936,13 @@ def delete_event(selection, undo=True):
             ########### Save temp file ##############
             temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
                                          'temp_{}.temp'.format(get_temp_num()))
-            al.mini_df[(al.mini_df['t'].isin(selection)) & (al.mini_df['channel'] == al.recording.channel)].to_csv(
+            al.mini_df[(al.mini_df['t'].isin(selection)) & (al.mini_df['channel'] == recordings[0].channel)].to_csv(
                 temp_filename)
             add_undo([
                 lambda f=temp_filename: open_events(temp_filename, log=False, undo=False, append=True),
                 lambda f=temp_filename: os.remove(f)
             ])
-        al.mini_df = al.mini_df[(~al.mini_df['t'].isin(selection)) | (al.mini_df['channel'] != al.recording.channel)]
+        al.mini_df = al.mini_df[(~al.mini_df['t'].isin(selection)) | (al.mini_df['channel'] != recordings[0].channel)]
         data_display.delete(selection)
         update_event_marker() ##### maybe make this separate
     if app.widgets['window_param_guide'].get():
@@ -953,7 +953,7 @@ def delete_events_in_range(xlim, undo=True):
         return None
     selection=al.mini_df[(al.mini_df['t']>xlim[0]) &
                (al.mini_df['t']<xlim[1]) &
-               (al.mini_df['channel'] == al.recording.channel)].t.values
+               (al.mini_df['channel'] == recordings[0].channel)].t.values
     delete_event(selection, undo=undo)
 def delete_all_events(undo=True):
     if al.mini_df.shape[0] == 0:
@@ -962,13 +962,13 @@ def delete_all_events(undo=True):
     ########## Save temp file ##############
         temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
                                      'temp_{}.temp'.format(get_temp_num()))
-        al.mini_df[al.mini_df['channel'] == al.recording.channel].to_csv(temp_filename)
+        al.mini_df[al.mini_df['channel'] == recordings[0].channel].to_csv(temp_filename)
         add_undo([
             lambda f=temp_filename, l=False, u=False, a=True: open_events(filename=f, log=l, undo=u, append=a),
             lambda f=temp_filename:os.remove(f)
         ])
     try:
-        al.mini_df = al.mini_df[al.mini_df['channel']!=al.recording.channel]
+        al.mini_df = al.mini_df[al.mini_df['channel']!=recordings[0].channel]
         data_display.clear()
         update_event_marker()
     except:
@@ -1108,7 +1108,7 @@ def get_sweep_in_range(xlim=None, ylim=None):
     ls = []
     for i, sweep in enumerate(trace_display.sweeps):
         if analyzer2.contains_line(xlim, ylim, trace_display.sweeps[sweep].get_xdata(),
-                                  trace_display.sweeps[sweep].get_ydata(), rate=al.recording.sampling_rate):
+                                  trace_display.sweeps[sweep].get_ydata(), rate=recordings[0].sampling_rate):
             ls.append((i, sweep))
     return ls
 
@@ -1136,17 +1136,17 @@ def get_sweep_in_range(xlim=None, ylim=None):
 ######################################
 # Save Trace
 ######################################
-def save_trace_as(fname):
-    """
-    not done
-    """
-    c = al.recording.channel
-    for i in range(al.recording.sweep_count):
-        try:
-            ys = trace_display.get_sweep(i).get_ydata()
-            al.recording.update_datea(channel=c, sweep=i, data=ys)
-        except:
-            pass
+# def save_trace_as(fname):
+#     """
+#     not done
+#     """
+#     c = recordings[0].channel
+#     for i in range(recordings[0].sweep_count):
+#         try:
+#             ys = trace_display.get_sweep(i).get_ydata()
+#             recordings[0].update_datea(channel=c, sweep=i, data=ys)
+#         except:
+#             pass
 
 
 
