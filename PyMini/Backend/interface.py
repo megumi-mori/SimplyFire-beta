@@ -360,13 +360,14 @@ def config_data_tab(tab_name, **kwargs):
 
 def save_events(filename, mode='w', suffix_num=0, handle_error=True):
     if suffix_num > 0:
-        fname = f'{os.path.split(filename)[0]}({suffix_num}).{os.path.split(filename)[1]}'
+        fname = f'{os.path.splitext(filename)[0]}({suffix_num}){os.path.splitext(filename)[1]}'
     else:
         fname = filename
     try:
         with open(fname, mode) as f:
             f.write(f'@{recordings[0].filename}\n')
             f.write(al.mini_df.to_csv(index=False))
+        print(f'saved events in file: {fname} with mode: {mode}')
     except (FileExistsError):
         if handle_error:
             save_events(filename, mode, suffix_num+1)

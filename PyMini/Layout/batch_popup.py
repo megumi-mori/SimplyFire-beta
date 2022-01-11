@@ -25,25 +25,28 @@ def load():
     try:
         global window
         window.deiconify()
-        print('recalling window')
     except:
         global command_dict
         command_dict = {
             'Mini analysis mode (continuous)': lambda m=0: change_mode(m),
             'Evoked analysis mode (overlay)': lambda m=1: change_mode(m),
+            'Save minis': save_minis,
+            'Export mini analysis table': export_data_display,
+            'Export evoked analysis table': export_evoked_data_display,
+            'Export results table': export_results_display,
 
             'Find all': lambda p=False: detector_tab.find_all(p),
             'Find in window': lambda p=False: detector_tab.find_in_window(p),
             'Delete all': interface.delete_all_events,
             'Delete in window': detector_tab.delete_in_window,
-            'Report stats (mini)': data_display.report,
+            'Report stats (mini)': report_data_display,
 
             'Apply baseline adjustment': adjust_tab.adjust_baseline,
             'Apply trace averaging': adjust_tab.average_trace,
             'Apply filter': adjust_tab.filter,
 
             'Min/Max': evoked_tab.calculate_min_max,
-            'Report stats (evoked)': evoked_data_display.report,
+            'Report stats (evoked)': report_evoked_data_display,
         }
         create_window()
 
@@ -296,6 +299,9 @@ def create_window():
     progress_message.grid(column=0, row=2)
 
 def _on_close(event=None):
+    process_interrupt()
+    if paused:
+        process_resume()
     app.root.attributes('-disabled', False)
     window.withdraw()
 
@@ -436,6 +442,25 @@ def ask_save_batch(event=None):
     protocol_fname = fname
     save_batch()
 
+def export_data_display(event=None):
+    global batch_log
+    if len(app.data_display.table.get_children())==0:
+        batch_log.insert('Warning: Exporting an empty data table\n')
+    fname = os.path.splitext(file_list[file_idx])[0] + '_mini.csv'
+    data_display.dataframe.export(fname, mode='x')
+def export_evoked_data_display(event=None):
+    global batch_log
+    if len(app.evoked_data_display.table.get_children())==0:
+        batch_log.insert('Warning: Exporting an empty data table\n')
+    fname = os.path.splitext(file_list[file_idx])[0] + '_evoked.csv'
+    evoked_data_display.dataframe.export(fname, mode='x')
+def export_results_display(event=None):
+    global batch_log
+    if len(app.results_display.table.get_children())==0:
+        batch_log.insert('Warning: Exporting an empty data table\n')
+    fname = os.path.split(file_list[file_idx])[0]+'/results.csv'
+    results_display.dataframe.export(fname, mode='x')
+
 def process_interrupt(event=None):
     global stop
     stop = True
@@ -443,6 +468,8 @@ def process_interrupt(event=None):
     interface.interrupt(process=current_command)
 
 def process_pause(event=None):
+    global paused
+    paused = True
     global stop_button
     stop_button.grid_forget()
 
@@ -450,9 +477,10 @@ def process_pause(event=None):
     resume_button.grid(column=3, row=0, sticky='ne')
 
     app.root.attributes('-disabled', False)
-    window.protocol("WM_DELETE_WINDOW", window.withdraw)
 
 def process_resume(event=None):
+    global paused
+    paused=False
     global stop_button
     stop_button.grid(column=2, row=0, sticky='ne')
 
@@ -463,6 +491,8 @@ def process_resume(event=None):
     t.start()
 
 def process_start(event=None):
+    global paused
+    paused=False
     global start_button
     start_button.grid_forget()
     global stop_button
@@ -493,7 +523,6 @@ def process_start(event=None):
 
 def process_batch():
     global window
-    window.protocol("WM_DELETE_WINDOW", disable_event)
     app.root.attributes('-disabled', True)
     global command_list
     global file_list
@@ -520,10 +549,10 @@ def process_batch():
                     f = file_list[file_idx]
                     if f:
                         if not os.path.isdir(os.path.dirname(f)):
-                            batch_log.insert(f'Opening file {f} from directory {basedir}')
+                            batch_log.insert(f'Opening file {f} from directory {basedir}\n')
                             f = os.path.join(basedir, f)
                         else:
-                            batch_log.insert(f'Opening file {f}')
+                            batch_log.insert(f'Opening file {f}\n')
                         try:
                             interface.open_trace(f)
                         except:
@@ -532,20 +561,7 @@ def process_batch():
                         batch_log.insert(f'Filename invalid\n')
                 else:
                     batch_log.insert(f'Command: {c}\n')
-                    if c == 'Save minis':
-                        fname = file_list[file_idx].split('.')[0] + '.event'
-                        interface.save_events(fname, mode='x')
-                        pass
-                    elif c == 'Export mini analysis table':
-                        fname = file_list[file_idx].split('.')[0] + '_mini.csv'
-                        data_display.dataframe.export(fname, mode='x')
-                    elif c == 'Export evoked analysis table':
-                        fname = file_list[file_idx].split('.')[0] + '_evoked.csv'
-                        evoked_data_display.dataframe.export(fname, mode='x')
-                    elif c == 'Export results table':
-                        fname = 'results.csv'
-                        results_display.dataframe.export(fname, mode='x')
-                    elif c == 'Save channel':
+                    if c == 'Save channel':
                         fname = file_list[file_idx].split('.')[0] + '_Modified.abf'
                         interface.al.recording.save(fname, handle_error=True)
                     elif c == 'Pause':
@@ -566,9 +582,11 @@ def process_batch():
     batch_log.insert('End of batch')
     stop = False
     app.root.attributes('-disabled', False)
-    window.protocol("WM_DELETE_WINDOW", window.withdraw)
+    window.protocol("WM_DELETE_WINDOW", _on_close)
     global stop_button
     stop_button.grid_forget()
+    global resume_button
+    resume_button.grid_forget()
     global start_button
     start_button.grid(column=1, row=0, sticky='ne')
 
@@ -579,5 +597,25 @@ def process_batch():
 
     pass
 
+def report_data_display(e=None):
+    global batch_log
+    if len(app.data_display.table.get_children())==0:
+        batch_log.insert('Warning: no minis to report\n')
+    data_display.report()
+    pass
+
+def report_evoked_data_display(e=None):
+    global batch_log
+    if len(app.evoked_data_display.table.get_children()) ==0:
+        batch_log.insert('Warning: No analysis to report\n')
+    evoked_data_display.report()
+
+def save_minis(e=None):
+    global batch_log
+    if interface.al.mini_df.shape[0]==0:
+        batch_log.insert('Warning: No minis detected\n')
+    fname = file_list[file_idx].split('.')[0] + '.event'
+    interface.save_events(fname, mode='x')
+    pass
 def disable_event():
     pass

@@ -20,6 +20,7 @@ def load(parent):
     ##################################
 
     # File menu
+    global file_menu
     file_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='File', menu=file_menu)
 
@@ -79,6 +80,7 @@ def load(parent):
     view_menu.invoke({'continuous': 0, 'overlay': 1, 'compare':2}[config.trace_mode])
     analysis_menu.invoke({'mini': 0, 'evoked': 1}[config.analysis_mode])
 
+    undo_disable()
     return menubar
 
 def ask_open_trace():
@@ -91,6 +93,9 @@ def ask_open_trace():
     return fname
 
 def export_events():
+    if len(interface.recordings) == 0:
+        messagebox.showerror(title='Save error', message='Please open a trace to analyze first')
+        return None
     filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('All files', "*.*")],
                                             defaultextension='.csv',
                                             initialfile=interface.recordings[0].filename.split('.')[0] + '_mini.csv')
@@ -100,6 +105,9 @@ def export_events():
     return
 
 def export_evoked():
+    if len(interface.recordings) == 0:
+        messagebox.showerror(title='Save error', message='Please open a trace to analyze first')
+        return None
     filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('ALl files', '*.*')],
                                             defaultextension='.csv',
                                             initialfile=interface.recordings[0].filename.split('.')[
@@ -108,7 +116,7 @@ def export_evoked():
 
 def export_recording(handle_duplicates=False):
     if len(interface.recordings)==0:
-        messagebox.showerror('Write error', message='No recording to export. Please open a recording first.')
+        messagebox.showerror(title='Save error', message='No recording to export. Please open a recording first.')
         return None
     initialfname = interface.recordings[0].filename.split('.')[0] + '_Modified'
     try:
@@ -126,7 +134,8 @@ def export_results():
     filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('ALl files', '*.*')],
                                             defaultextension='.csv',
                                             initialfile='results.csv')
-    results_display.dataframe.export(filename)
+    if filename:
+        results_display.dataframe.export(filename)
 
 def open_events():
     if len(interface.recordings)==0:

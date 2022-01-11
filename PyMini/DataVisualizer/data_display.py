@@ -194,7 +194,13 @@ def delete(selection):
         # detector_tab.filter_in_window_button.config(state='disabled')
 
 def report(event=None):
-    if interface.al.mini_df.shape[0] == 0:
+    global table
+    if len(table.get_children())==0:
+        results_display.dataframe.add({
+            'filename':interface.recordings[0].filename,
+            'analysis': 'mini',
+            'num_minis': 0,
+        })
         return None
     mini_df = interface.al.mini_df[interface.al.mini_df['channel']==interface.recordings[0].channel]
     if mini_df.shape[0] == 0:

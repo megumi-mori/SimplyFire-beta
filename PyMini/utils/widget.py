@@ -6,6 +6,7 @@ from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import yaml
 from PyMini import app
 import textwrap
+import os
 
 
 
@@ -664,7 +665,9 @@ class DataTable(Tk.Frame):
 
     def export(self, filename, mode='w', suffix_num=0, handle_error=True):
         if suffix_num > 0:
-            new_filename = f'{filename.split(".")[0]}({suffix_num}).{filename.split(".")[1]}'
+            new_filename = f'{os.path.splitext(filename)[0]}({suffix_num}){os.path.splitext(filename)[1]}'
+        else:
+            new_filename = filename
         try:
             with open(new_filename, mode) as f:
                 items = self.table.get_children()
@@ -674,6 +677,7 @@ class DataTable(Tk.Frame):
                     data = self.table.set(i)
                     f.write(','.join([data[c] for c in self.displaycolumns]))
                     f.write('\n')
+            print(f'successfuly exported dtaframe to: {new_filename}')
         except (FileExistsError):
             if handle_error:
                 self.export(filename, mode, suffix_num+1)

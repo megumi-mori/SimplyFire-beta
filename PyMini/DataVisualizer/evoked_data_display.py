@@ -102,6 +102,11 @@ def report(event=None):
                     pass
         df[i] = data
     if len(df) == 0:
+        results_display.dataframe.add({
+            'filename':interface.recordings[0].filename,
+            'analysis':'evoked',
+            'sweep':None
+        })
         return None
     df = pandas.DataFrame.from_dict(df, orient='index')
     output = {'filename': interface.recordings[0].filename,
