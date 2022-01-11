@@ -138,9 +138,10 @@ def initialize():
     # Toolbar Toggle
     ######################################
     for key in config.key_toolbar_pan:
-        bind_key_dp(key, press_function=lambda e:app.trace_display.canvas.toolbar.pan())
+        bind_key_dp(key, press_function=lambda e:toolbar_toggle_pan())
     for key in config.key_toolbar_zoom:
-        bind_key_dp(key, press_function=lambda e:app.trace_display.canvas.toolbar.zoom())
+        bind_key_dp(key, press_function=lambda e:toolbar_toggle_zoom())
+
 
     #######################################
     # Canvas Mouse Events
@@ -162,6 +163,7 @@ def initialize():
     app.trace_display.canvas.mpl_connect('axes_enter_event', on_enter_axes)
     app.trace_display.canvas.mpl_connect('axes_leave_event', on_leave_axes)
 
+
     #######################################
     # Global Keys
     #######################################
@@ -175,7 +177,7 @@ def bind_key_dp(key, press_function=None, release_function=None, add='+'):
     bind_key(key, press_function, release_function, app.evoked_data_display.table, add=add)
 
 def bind_key_pg(key, press_function=None, release_function=None, add='+'):
-    bind_key(key, press_function, release_function, param_guide.canvas.get_tk_widget(), add=add)
+    bind_key(key, press_function, release_function, app.param_guide.canvas.get_tk_widget(), add=add)
 
 def bind_key(key, press_function=None, release_function=None, target=None, add='+'):
     # use for regular key press and release event binding
@@ -423,13 +425,24 @@ def stop_y_zoom(e=None):
     zooming_y = False
 
 # app.trace_display navigation_toolbar control
-def toolbar_toggle_pan(event, toolbar):
-    toolbar.pan()
+def toolbar_toggle_pan():
+    app.trace_display.canvas.toolbar.pan()
+    if app.trace_display.canvas.toolbar.mode == 'pan/zoom':
+        app.trace_display.canvas.get_tk_widget().config(cursor='fleur')
+    else:
+        app.trace_display.canvas.get_tk_widget().config(cursor='arrow')
+
     pass
 
-def toolbar_toggle_zoom(event, toolbar):
-    toolbar.zoom()
+
+def toolbar_toggle_zoom():
+    app.trace_display.canvas.toolbar.zoom()
+    if app.trace_display.canvas.toolbar.mode == 'zoom rect':
+        app.trace_display.canvas.get_tk_widget().config(cursor='cross')
+    else:
+        app.trace_display.canvas.get_tk_widget().config(cursor='arrow')
     pass
+
 # data_display and app.trace_display data item interaction
 def unselect_key(event):
     app.data_display.unselect()
