@@ -130,7 +130,7 @@ def create_window():
     # msg_label.configure(yscrollcommand=vsb.set)
 
     toolbar_frame = Tk.Frame(frame)
-
+    global toolbar
     toolbar = NavigationToolbar(canvas, toolbar_frame)
     toolbar.grid(column=0, row=0, sticky='news')
     toolbar_frame.grid(column=0, row=0, sticky='news')
