@@ -1003,7 +1003,7 @@ class Analyzer():
                 return None, None
 
         # estimate baseline using avg data points at delta_x before peak
-        tma = np.mean(ys[int(peak_idx-delta_x-lag/2):int(peak_idx-delta_x+lag/2)])*direction
+        tma = np.mean(ys[int(peak_idx-delta_x):int(peak_idx - delta_x+lag)])*direction
         while idx > peak_idx - delta_x:
             if tma >= ys[idx] * direction:
                 return idx, tma*direction
@@ -1469,7 +1469,6 @@ class Analyzer():
         self.print_time('baseline', show_time)
         ####### search baseline #######
         # find baseline/start of event
-        mini['baseline'] = ys[baseline_idx]
         mini['start_idx'] = baseline_idx + offset
 
         if reference_df and len(self.mini_df.index) > 0 or prev_peak is not None:
