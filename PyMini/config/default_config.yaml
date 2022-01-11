@@ -12,7 +12,7 @@
 #################################################################
 
 # version
-version : 'b0.1.6'
+version : 'b2.0.1'
 
 #aesthetics
 default_geometry :
@@ -107,7 +107,7 @@ default_detector_core_decay_max_interval : 25
 default_detector_core_compound: 1
 default_detector_core_extrapolation_length: 100
 default_detector_core_p_valley: 50.0
-default_detector_core_max_compound_interval: 5.0
+default_detector_core_max_compound_interval: 50
 default_detector_core_update_events : 0
 default_detector_core_extrapolate_hw: 1
 
