@@ -367,7 +367,6 @@ def save_events(filename, mode='w', suffix_num=0, handle_error=True):
         with open(fname, mode) as f:
             f.write(f'@{recordings[0].filename}\n')
             f.write(al.mini_df.to_csv(index=False))
-        print(f'saved events in file: {fname} with mode: {mode}')
     except (FileExistsError):
         if handle_error:
             save_events(filename, mode, suffix_num+1)
@@ -392,7 +391,7 @@ def save_events_dialogue(e=None):
 def save_events_as_dialogue(e=None):
     if len(al.mini_df) > 0:
         try:
-            initialfilename = os.path.split(recordings[0].filename)[1] + '.event'
+            initialfilename = os.path.splitext(recordings[0].filename)[0] + '.event'
         except:
             initialfilename = app.event_filename
         filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.event',
