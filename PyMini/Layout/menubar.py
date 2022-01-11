@@ -93,7 +93,7 @@ def ask_open_trace():
 def export_events():
     filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('All files', "*.*")],
                                             defaultextension='.csv',
-                                            initialfile=interface.al.recording.filename.split('.')[0] + '_mini.csv')
+                                            initialfile=interface.recordings[0].filename.split('.')[0] + '_mini.csv')
     if filename:
         data_display.dataframe.export(filename)
         return
@@ -102,12 +102,12 @@ def export_events():
 def export_evoked():
     filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('ALl files', '*.*')],
                                             defaultextension='.csv',
-                                            initialfile=interface.al.recording.filename.split('.')[
+                                            initialfile=interface.recordings[0].filename.split('.')[
                                                             0] + '_evoked.csv')
     evoked_data_display.dataframe.export(filename)
 
 def export_recording(handle_duplicates=False):
-    if len(interface.recordings[0])==0:
+    if len(interface.recordings)==0:
         messagebox.showerror('Write error', message='No recording to export. Please open a recording first.')
         return None
     initialfname = interface.recordings[0].filename.split('.')[0] + '_Modified'
@@ -129,7 +129,7 @@ def export_results():
     results_display.dataframe.export(filename)
 
 def open_events():
-    if interface.al.recording is None:
+    if len(interface.recordings)==0:
         messagebox.showerror('Open error', message='Please open a trace first')
         return None
     filename = filedialog.askopenfilename(filetype=[('event files', '*.event'), ('All files', "*.*")],
