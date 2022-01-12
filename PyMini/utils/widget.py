@@ -675,9 +675,8 @@ class DataTable(Tk.Frame):
                 f.write('\n')
                 for i in items:
                     data = self.table.set(i)
-                    f.write(','.join([data[c] for c in self.displaycolumns]))
+                    f.write(','.join([str(data.get(c)) for c in self.displaycolumns]))
                     f.write('\n')
-            print(f'successfuly exported dtaframe to: {new_filename}')
         except (FileExistsError):
             if handle_error:
                 self.export(filename, mode, suffix_num+1)
