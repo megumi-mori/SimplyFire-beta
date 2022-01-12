@@ -1,9 +1,10 @@
 # PyMini
 
-- Jan 11, 2022 b2.0.2
+- Jan 11, 2022 b2.0.3
   - handle missing data when opening event files (i.e. unsupported analysis in older versions)
   - '.event' file was not handled for event opening (fixed)
   - speed up append to dataframe by disabling the notebook
+  - left-hand keyboard control for scroll and zoom
 
 - Dec 12 2021:
   - during auto, appending each new mini to dataframe was taking too much time
