@@ -697,6 +697,17 @@ def select_single_mini(iid):
     if app.widgets['window_param_guide'].get() == '1':
         param_guide.report(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear_plot=True)
 
+def select_left(e=None):
+    if app.widgets['analysis_mode'].get()!= 'mini':
+        return None
+    xlim=app.trace_display.ax.get_xlim()
+    if len(recordings)==0:
+        return None
+    if al.mini_df.shape[0]==0:
+        return None
+    df = al.mini_df[(al.mini_df.t<xlim[1])&(al.mini_df.t>xlim[0])&(al.mini_df.channel==recordings[0].channel)]
+    if df.shape[0]>0:
+        app.data_display.table.selection_set(str(df.iloc[0]['t']))
 # def select_in_data_display(iid):
 #     print('selecting one: ')
 #     data_display.select_one(iid)
