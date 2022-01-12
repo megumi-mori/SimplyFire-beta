@@ -365,7 +365,8 @@ def save_events(filename, mode='w', suffix_num=0, handle_error=True):
         fname = filename
     try:
         with open(fname, mode) as f:
-            f.write(f'@{recordings[0].filename}\n')
+            f.write(f'@filename:{recordings[0].filename}\n')
+            f.write(f'@version:{app.config.version}\n')
             f.write(al.mini_df.to_csv(index=False))
     except (FileExistsError):
         if handle_error:
