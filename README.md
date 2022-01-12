@@ -1,5 +1,7 @@
 # PyMini
 
+- Jan 12, 2022 b2.0.4
+  - fixed len recordings check in interface during filtering
 - Jan 11, 2022 b2.0.3
   - handle missing data when opening event files (i.e. unsupported analysis in older versions)
   - '.event' file was not handled for event opening (fixed)
