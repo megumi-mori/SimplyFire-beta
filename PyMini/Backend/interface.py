@@ -1325,7 +1325,7 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
 
 def filter_y_data(all_channels=False, target='All sweeps', mode='Boxcar', params=None):
     global recordings
-    if len(recordings[0]) == 0:
+    if len(recordings) == 0:
         return None
     if all_channels:
         channels = range(recordings[0].channel_count)
