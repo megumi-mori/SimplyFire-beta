@@ -1,7 +1,8 @@
 # PyMini
 
-- Jan 12, 2022 b2.0.4
+- Jan 12, 2022 b2.0.5
   - fixed len recordings check in interface during filtering
+  - easier navigation with arrow keys (for mini data table) and space bar to select first mini in view (or toggle to next)
 - Jan 11, 2022 b2.0.3
   - handle missing data when opening event files (i.e. unsupported analysis in older versions)
   - '.event' file was not handled for event opening (fixed)

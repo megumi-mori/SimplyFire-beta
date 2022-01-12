@@ -700,14 +700,24 @@ def select_single_mini(iid):
 def select_left(e=None):
     if app.widgets['analysis_mode'].get()!= 'mini':
         return None
-    xlim=app.trace_display.ax.get_xlim()
+    xlim_left, xlim_right = app.trace_display.ax.get_xlim()
     if len(recordings)==0:
         return None
     if al.mini_df.shape[0]==0:
         return None
-    df = al.mini_df[(al.mini_df.t<xlim[1])&(al.mini_df.t>xlim[0])&(al.mini_df.channel==recordings[0].channel)]
+    selection = app.data_display.dataframe.table.selection()
+    if len(selection)>0:
+        max_xlim = float(selection[0])
+        for s in selection[1:]:
+            if float(s) > max_xlim and float(s) <xlim_right:
+                max_xlim = float(s)
+        xlim_left = max_xlim
+    df = al.mini_df[(al.mini_df.t < xlim_right) & (al.mini_df.t > xlim_left) & (
+                al.mini_df.channel == recordings[0].channel)].sort_values(by='t')
     if df.shape[0]>0:
         app.data_display.table.selection_set(str(df.iloc[0]['t']))
+    else:
+        app.data_display.unselect()
     focus()
 # def select_in_data_display(iid):
 #     print('selecting one: ')

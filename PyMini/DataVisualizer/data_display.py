@@ -81,6 +81,8 @@ def load(parent):
     dataframe.menu.add_command(label='Report stats', command=report, state=Tk.DISABLED)
     dataframe.menu.add_command(label='Fit columns', command=dataframe.fit_columns)
 
+    table.bind('<Up>', select_prev)
+    table.bind('<Down>', select_next)
     return frame
 
 def add(data):
@@ -157,12 +159,33 @@ def hide():
 
 def select(e=None):
     selected = table.selection()
+    if len(selected)>0:
+        table.see(selected[0])
     if app.widgets['analysis_mode'].get() == 'mini':
         if len(selected) == 1:
             interface.select_single_mini(float(selected[0]))
         interface.highlight_selected_mini([float(i) for i in selected])
 
 
+def select_next(e=None):
+    if len(table.get_children()) == 0:
+        return None
+    selection = table.selection()
+    if len(selection)>0:
+        if table.next(selection[-1]):
+            table.selection_set(table.next(selection[-1]))
+            return None
+    table.selection_set(table.get_children()[0])
+
+def select_prev(e=None):
+    if len(table.get_children()) == 0:
+        return None
+    selection = table.selection()
+    if len(selection) > 0:
+        if table.prev(selection[0]) != "":
+            table.selection_set(table.prev(selection[0]))
+            return None
+    table.selection_set(table.get_children()[-1])
 def unselect(e=None):
     dataframe.unselect()
     try:

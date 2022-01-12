@@ -247,17 +247,17 @@ def plot_event_pick(event):
         if multi_select:
             try:
                 app.data_display.table.selection_toggle(str(xdata))
-                app.data_display.table.see(str(xdata))
+                # app.data_display.table.see(str(xdata))
             except:
                 app.data_display.table.selection_toggle(str(round(xdata,interface.recordings[0].x_sigdig)))
-                app.data_display.table.see(str(round(xdata, interface.recordings[0].x_sigdig)))
+                # app.data_display.table.see(str(round(xdata, interface.recordings[0].x_sigdig)))
             return
         try:
             app.data_display.table.selection_set(str(xdata))
-            app.data_display.table.see(str(xdata))
+            # app.data_display.table.see(str(xdata))
         except:
             app.data_display.table.selection_set(str(round(xdata, interface.recordings[0].x_sigdig)))
-            app.data_display.table.see(str(round(xdata, interface.recordings[0].x_sigdig)))
+            # app.data_display.table.see(str(round(xdata, interface.recordings[0].x_sigdig)))
         # data_display.toggle_one(str(xdata))
 
 def plot_mouse_release(event):
