@@ -46,98 +46,103 @@ def initialize():
         bind_key_dp(key, press_function=lambda e, d=-1: scroll_x_key(e, d),
                     release_function=lambda e: stop_x_scroll())
                  # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
-        if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
-            try:
-                bind_key_dp(key.upper(), press_function=lambda e, d=-1: scroll_x_key(e, d),
-                            release_function=lambda e: stop_x_scroll())
-                 # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
-            except:
-                pass
+        # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
+        try:
+            bind_key_dp(key.upper(), release_function=lambda e: stop_x_scroll())
+            bind_key_dp(key.lowerw(), release_function=lambda e: stop_x_scroll())
+             # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
+        except:
+            pass
     for key in config.key_pan_right:
         bind_key_dp(key, press_function=lambda e, d=1: scroll_x_key(e, d),
                     release_function=lambda e: stop_x_scroll())
                  # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
-        if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
-            try:
-                bind_key_dp(key.upper(), press_function=lambda e, d=1: scroll_x_key(e, d),
-                            release_function=lambda e: stop_x_scroll())
-                         # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
-            except:
-                pass
+        # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
+        try:
+            bind_key_dp(key.upper(), release_function=lambda e: stop_x_scroll())
+            bind_key_dp(key.upper(), release_function=lambda e: stop_x_scroll())
+                     # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
+        except:
+            pass
 
     for key in config.key_pan_up:
         bind_key_dp(key, press_function=lambda e, d=1: scroll_y_key(e, d),
                     release_function=lambda e: stop_y_scroll())
                  # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
-        if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
-            try:
-                bind_key_dp(key.upper(), press_function=lambda e, d=1: scroll_y_key(e, d),
-                            release_function=lambda e: stop_y_scroll())
-                         # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
-            except:
-                pass
+        # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
+        try:
+            bind_key_dp(key.upper(), release_function=lambda e: stop_y_scroll())
+            bind_key_dp(key.lower(), release_function=lambda e: stop_y_scroll())
+                     # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
+        except:
+            pass
 
     for key in config.key_pan_down:
         bind_key_dp(key, press_function=lambda e, d=-1: scroll_y_key(e, d),
                     release_function=lambda e: stop_y_scroll())
                  # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
-        if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
-            try:
-                bind_key_dp(key.upper(), press_function=lambda e, d=-1: scroll_y_key(e, d),
-                            release_function=lambda e: stop_y_scroll())
-                         # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
-            except:
-                pass
+        # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
+        try:
+            bind_key_dp(key.upper(), release_function=lambda e: stop_y_scroll())
+            bind_key_dp(key.lower(), release_function=lambda e: stop_y_scroll())
+                     # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
+        except:
+            pass
 
     for key in config.key_scroll_rapid:
         bind_key_dp(key, press_function=lambda e:exec('global navigation_speed; navigation_speed=2'),
                  release_function=lambda e: exec('global navigation_speed; navigation_speed=1'))
 
+    print(config.key_zoom_in_x)
     for key in config.key_zoom_in_x:
         bind_key_dp(key, press_function=lambda e, d=1:zoom_x_key(e, d),
                  release_function=lambda e: stop_x_zoom())
-        if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
-            try:
-                bind_key_dp(key.upper(), press_function=lambda e, d=1: zoom_x_key(e, d),
-                         release_function=lambda e: stop_x_zoom())
-            except:
-                pass
+        # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
+        try:
+            bind_key_dp(key.upper(), release_function=lambda e: stop_x_zoom())
+            bind_key_dp(key.lower(), release_function=lambda e: stop_x_zoom())
+        except:
+            pass
     for key in config.key_zoom_out_x:
         bind_key_dp(key, press_function=lambda e, d=-1:zoom_x_key(e, d),
                  release_function=lambda e: stop_x_zoom())
-        if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
-            try:
-                bind_key_dp(key.upper(), press_function=lambda e, d=-1: zoom_x_key(e, d),
-                         release_function=lambda e: stop_x_zoom())
-            except:
-                pass
+        # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
+        try:
+            bind_key_dp(key.upper(),release_function=lambda e: stop_x_zoom())
+            bind_key_dp(key.lower(), release_function=lambda e: stop_x_zoom())
+        except:
+            pass
 
     bind_key_dp('<FocusOut>', press_function=lambda e: stop_all())
     for key in config.key_zoom_in_y:
         bind_key_dp(key, press_function=lambda e, d=1:zoom_y_key(e, d),
                  release_function=lambda e: stop_y_zoom())
-        if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
-            try:
-                bind_key_dp(key, press_function=lambda e, d=1: zoom_y_key(e, d),
-                        release_function=lambda e: stop_y_zoom())
-            except:
-                pass
+        # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
+        try:
+            bind_key_dp(key.upper(), release_function=lambda e: stop_y_zoom())
+            bind_key_dp(key.lower(), release_function=lambda e: stop_y_zoom())
+        except:
+            pass
     for key in config.key_zoom_out_y:
         bind_key_dp(key, press_function=lambda e, d=-1:zoom_y_key(e, d),
                  release_function=lambda e: stop_y_zoom())
-        if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
-            try:
-                bind_key_dp(key, press_function=lambda e, d=-1: zoom_y_key(e, d),
-                        release_function=lambda e: stop_y_zoom())
-            except:
-                pass
+        # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
+        try:
+            bind_key_dp(key.lower(), release_function=lambda e: stop_y_zoom())
+            bind_key_dp(key.upper(), release_function=lambda e: stop_y_zoom())
+        except:
+            pass
+    for key in config.key_select:
+        bind_key_dp(key, press_function=interface.select_left)
 
 
 
     ######################################
     # Toolbar Toggle
     ######################################
+    print(config.key_toolbar_pan)
     for key in config.key_toolbar_pan:
+        print(f'toolbar_pan: {key}')
         bind_key_dp(key, press_function=lambda e:toolbar_toggle_pan())
     for key in config.key_toolbar_zoom:
         bind_key_dp(key, press_function=lambda e:toolbar_toggle_zoom())
@@ -171,15 +176,21 @@ def initialize():
         app.root.bind(key, interface.undo)
 
 def bind_key_dp(key, press_function=None, release_function=None, add='+'):
+    if key is None:
+        return None
     bind_key(key, press_function, release_function, app.data_display.table, add=add)
     bind_key(key, press_function, release_function, app.trace_display.canvas.get_tk_widget(), add=add)
     bind_key(key, press_function, release_function, app.results_display.table, add=add)
     bind_key(key, press_function, release_function, app.evoked_data_display.table, add=add)
 
 def bind_key_pg(key, press_function=None, release_function=None, add='+'):
+    if key is None:
+        return None
     bind_key(key, press_function, release_function, app.param_guide.canvas.get_tk_widget(), add=add)
 
 def bind_key(key, press_function=None, release_function=None, target=None, add='+'):
+    if key is None:
+        return None
     # use for regular key press and release event binding
     if press_function is not None:
         target.bind(key, press_function, add=add)
