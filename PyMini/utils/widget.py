@@ -602,11 +602,11 @@ class DataTable(Tk.Frame):
             return None
         total = dataframe.shape[0]
         try:
-            dataframe=dataframe[[k for k in self.columns]]
+            dataframe=dataframe[[k for k in self.columns if k in dataframe.columns]]
             for i, (idx, row) in enumerate(dataframe.iterrows()):
                 try:
                     self.table.insert('', 'end', iid=row[self.iid_header],
-                                      values=[row[k] for k in self.columns])
+                                      values=[row.get(k) for k in self.columns])
                     app.pb['value'] = i/total*100
                     app.pb.update()
                 except Exception as e:
