@@ -230,8 +230,9 @@ default_key_multi_select:
   - '<Shift_R>'
 # plot navigation
 default_key_scroll_rapid:
-  - '<Shift_L>'
-  - '<Shift_R>'
+  -
+#  - '<Shift_L>'
+#  - '<Shift_R>'
 default_key_pan_left :
   - 'a'
 default_key_pan_right:
@@ -246,19 +247,27 @@ default_key_erase:
   - 'e'
 default_key_zoom_in_x:
   - 'j'
+  - 'D'
 default_key_zoom_out_x:
   - 'l'
+  - 'A'
 default_key_zoom_in_y:
   - 'i'
+  - 'W'
 default_key_zoom_out_y:
   - 'k'
+  - 'S'
 default_key_reset_focus:
   - '<space>'
 # toolbar
 default_key_toolbar_pan:
   - 'p'
+  - 'c'
 default_key_toolbar_zoom:
-  - 'z'
+  - 'm'
+  - 'x'
+default_key_select:
+  - '<space>'
 
 default_key_undo:
   - '<Control-z>'
