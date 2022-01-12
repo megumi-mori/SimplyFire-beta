@@ -168,13 +168,13 @@ def load(parent):
     return frame
 def apply_styles(e=None):
     global entries
-    trace_display.canvas.get_tk_widget().focus_set()
+    interface.focus()
     trace_display.apply_styles(entries)
 
 def default(e=None):
     global optionframe
     optionframe.default(filter='style', widgets=widgets)
-    app.trace_display.canvas.get_tk_widget().focus_set()
+    interface.focus()
 
 def place_VarEntry(name, column, row, frame, width=None, validate_type=""):
     global widgets
@@ -183,12 +183,12 @@ def place_VarEntry(name, column, row, frame, width=None, validate_type=""):
     return widgets[name]
 
 def show_all(e=None):
-    app.trace_display.canvas.get_tk_widget().focus_set()
+    interface.focus()
     for i in boxes:
         widgets[i[0]].var.set('1')
         interface.toggle_marker_display(i[0])
 def hide_all(e=None):
-    app.trace_display.canvas.get_tk_widget().focus_set()
+    interface.focus()
     for i in boxes:
         widgets[i[0]].var.set("")
         interface.toggle_marker_display(i[0])

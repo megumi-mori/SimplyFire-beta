@@ -143,6 +143,7 @@ def _select_evoked_window_mode(e=None):
     pass
 
 def calculate_min_max(e=None):
+    interface.focus()
     if app.widgets['analysis_mode'].get() != 'evoked' or app.widgets['trace_mode'].get() == 'compare':
         return None
     if len(interface.recordings) == 0:
@@ -190,6 +191,7 @@ def calculate_min_max(e=None):
     pass
 
 def report(e=None):
+    interface.focus()
     if app.widgets['analysis_mode'].get() != 'evoked' or app.widgets['trace_mode'].get() == 'compare':
         return None
     evoked_data_display.report()

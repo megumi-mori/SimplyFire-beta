@@ -499,7 +499,7 @@ def _select_baseline_mode(e=None, undo=True):
 
 
 def adjust_baseline(e=None):
-    app.trace_display.canvas.get_tk_widget().focus_set()
+    interface.focus()
     if app.widgets['trace_mode'].get() == 'compare':
         return None
     all_channels = True
@@ -525,7 +525,7 @@ def adjust_baseline(e=None):
 
 #### Trace Averaging #####
 def average_trace(e=None):
-    app.trace_display.canvas.get_tk_widget().focus_set()
+    interface.focus()
     if app.widgets['trace_mode'].get() != 'overlay':
         return None
     if widgets['adjust_channel'].get():
@@ -542,7 +542,7 @@ def average_trace(e=None):
 
 #### Filtering #####
 def filter(e=None):
-    app.trace_display.canvas.get_tk_widget().focus_set()
+    interface.focus()
     if app.widgets['trace_mode'].get() == 'compare':
         return None
     if widgets['adjust_channel'].get():

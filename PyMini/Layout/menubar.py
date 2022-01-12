@@ -90,6 +90,7 @@ def ask_open_trace():
         return None
     interface.open_trace(fname)
     app.compare_tab.start_msg.grid_forget()
+    interface.focus()
     return fname
 
 def export_events():
@@ -145,6 +146,7 @@ def open_events():
                                             defaultextension='.event')
     if filename:
         interface.open_events(filename)
+        interface.focus()
         return
     return
 

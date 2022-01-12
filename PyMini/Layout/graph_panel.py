@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 from PyMini.utils import widget
 from PyMini.utils import scrollable_option_frame
 from PyMini.DataVisualizer import trace_display
+from PyMini.Backend import interface
 from PyMini import app
 import os
 import pkg_resources
@@ -141,7 +142,7 @@ def load(parent):
                                                       from_=0,
                                                       to=100,
                                                       orient=Tk.VERTICAL,
-                                                      command=lambda e:trace_display.scroll_y_to(e))
+                                                      command= scroll_y_to)
     y_scrollbar.grid(column=0, row=1, sticky='news')
     y_scrollbar.config(state='disabled')  # disabled until a trace is loaded
     y_scrollbar.set(50)
@@ -233,7 +234,7 @@ def load(parent):
                                   from_=0,
                                   to=100,
                                   orient=Tk.HORIZONTAL,
-                                  command=lambda e:trace_display.scroll_x_to(e)
+                                  command= scroll_x_to
                                   )
     x_scrollbar.grid(column=3, row=0, sticky='news')
     x_scrollbar.config(state='disabled')  # disabled until a trace is loaded
@@ -242,8 +243,15 @@ def load(parent):
 
     return frame
 
+def scroll_x_to(e):
+    interface.focus()
+    trace_display.scroll_x_to(e)
 
+def scroll_y_to(e):
+    interface.focus()
+    trace_display.scroll_y_to(e)
 def stop(e=None):
     app.root.after_cancel(jobid)
     trace_display.update_x_scrollbar()
     trace_display.update_y_scrollbar()
+    interface.focus()

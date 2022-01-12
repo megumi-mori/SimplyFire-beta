@@ -1,6 +1,7 @@
 from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
 from PyMini import app
 from PyMini.DataVisualizer import trace_display
+from PyMini.Backend import interface
 
 
 def load(parent):
@@ -10,7 +11,7 @@ def load(parent):
     #                    Methods                     #
     ##################################################
     def apply_axes_limits():
-        app.trace_display.canvas.get_tk_widget().focus_set()
+        interface.focus()
         # trace_display.focus()
         trace_display.set_axis_limit(
             axis='x',
@@ -30,7 +31,7 @@ def load(parent):
         pass
 
     def default_axis_parameters():
-        app.trace_display.canvas.get_tk_widget().focus_set()
+        interface.focus()
         app.widgets['min_x'].set('auto')
         app.widgets['max_x'].set('auto')
         app.widgets['min_y'].set('auto')
@@ -38,12 +39,12 @@ def load(parent):
         pass
 
     def default_nav_parameters():
-        app.trace_display.canvas.get_tk_widget().focus_set()
+        interface.focus()
         optionframe.default(filter='navigation', widgets=widgets)
 
 
     def get_current_axes():
-        app.trace_display.canvas.get_tk_widget().focus_set()
+        interface.focus()
         xlim = trace_display.get_axis_limits('x')
         app.widgets['min_x'].set(xlim[0])
         app.widgets['max_x'].set(xlim[1])
@@ -53,7 +54,7 @@ def load(parent):
         pass
 
     def show_all(e=None):
-        app.trace_display.canvas.get_tk_widget().focus_set()
+        interface.focus()
         trace_display.show_all_plot()
 
     ##################################################
@@ -83,7 +84,7 @@ def load(parent):
             validate_type=e[2]
         )
         widgets[e[0]].bind('<Return>', lambda e:apply_axes_limits(), add='+')
-        widgets[e[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add='+')
+        widgets[e[0]].bind('<Return>', lambda e: interface.focus(), add='+')
 
 
     widgets['force_axis_limit'] = optionframe.insert_label_checkbox(
@@ -126,7 +127,7 @@ def load(parent):
             label=e[1],
             validate_type=e[2]
         )
-        widgets[e[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add ='+')
+        widgets[e[0]].bind('<Return>', lambda e: interface.focus(), add ='+')
 
     boxes = [
        ('navigation_mirror_y_scroll', 'Mirror y-axis scroll button directions'), #name, label

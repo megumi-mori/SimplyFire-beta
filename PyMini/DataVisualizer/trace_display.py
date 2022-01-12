@@ -62,7 +62,8 @@ def load(parent):
 
 
 def _on_mouse_press(event):
-    canvas.get_tk_widget().focus_set()
+    # canvas.get_tk_widget().focus_set()
+    interface.focus()
     if canvas.toolbar.mode == "" and event.button == 3:
         state.press_coord = (event.x, event.y)
     # print('click! {}'.format(event))

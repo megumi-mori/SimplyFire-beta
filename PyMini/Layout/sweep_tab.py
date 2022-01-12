@@ -56,6 +56,7 @@ def load(parent):
 
 
 def show_all():
+    interface.focus()
     for i, var in enumerate(sweep_vars):
         if var.get() == 0:
             var.set(1)
@@ -95,6 +96,7 @@ def delete_last_sweep():
     gc.collect()
 
 def hide_all():
+    interface.focus()
     for i, var in enumerate(sweep_vars):
         if var.get() == 1:
             var.set(0)

@@ -5,7 +5,7 @@ import pkg_resources
 from PIL import Image
 import os
 from PyMini.utils import widget
-from PyMini.Backend import interpreter
+from PyMini.Backend import interpreter, interface
 from PyMini.config import config
 from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar,\
@@ -226,13 +226,13 @@ def load():
     # set focus rules
     for key in widgets:
         if type(widgets[key]) == widget.VarEntry:
-            widgets[key].bind('<Return>', lambda e: data_display.table.focus_set(), add='+')
+            widgets[key].bind('<Return>', lambda e: interface.focus(), add='+')
         if type(widgets[key]) == widget.VarCheckbutton:
-            widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
+            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
         if type(widgets[key]) == widget.VarOptionmenu:
-            widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
+            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
         if type(widgets[key]) == widget.VarCheckbutton:
-            widgets[key].bind('<ButtonRelease>', lambda e: data_display.table.focus_set(), add='+')
+            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
 
     # set up font adjustment bar
     # fb = font_bar.load(left, config.font_size)

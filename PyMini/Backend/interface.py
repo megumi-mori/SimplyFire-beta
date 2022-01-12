@@ -708,6 +708,7 @@ def select_left(e=None):
     df = al.mini_df[(al.mini_df.t<xlim[1])&(al.mini_df.t>xlim[0])&(al.mini_df.channel==recordings[0].channel)]
     if df.shape[0]>0:
         app.data_display.table.selection_set(str(df.iloc[0]['t']))
+    focus()
 # def select_in_data_display(iid):
 #     print('selecting one: ')
 #     data_display.select_one(iid)
@@ -1324,6 +1325,8 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
 
 def filter_y_data(all_channels=False, target='All sweeps', mode='Boxcar', params=None):
     global recordings
+    if len(recordings[0]) == 0:
+        return None
     if all_channels:
         channels = range(recordings[0].channel_count)
     else:
@@ -1383,3 +1386,15 @@ def log(msg, header=False):
     if not header:
         msg = '    '+msg
     log_display.log(msg, header)
+
+##########################
+# Controls
+##########################
+
+def focus():
+    try:
+        if app.widgets['analysis_mode'].get() == 'mini':
+            app.data_display.dataframe.table.focus_set()
+            return None
+    except:
+        app.trace_display.canvas.get_tk_widget().focus_set()
