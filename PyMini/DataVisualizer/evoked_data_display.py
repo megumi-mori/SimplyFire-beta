@@ -30,7 +30,7 @@ def load(parent=None):
     dataframe.menu.add_command(label='Select all (Ctrl+a)', command=dataframe.select_all)
     dataframe.menu.add_command(label='Delete selected (Del)', command=delete_selected)
     dataframe.menu.add_separator()
-    dataframe.menu.add_command(label='Clear data', command=dataframe.clear())
+    dataframe.menu.add_command(label='Clear data', command=clear)
     dataframe.menu.add_command(label='Report stats', command=report, state=Tk.DISABLED)
     dataframe.menu.add_command(label='Fit columns', command=dataframe.fit_columns)
     return frame
@@ -38,12 +38,12 @@ def load(parent=None):
 def fit_columns():
     dataframe.fit_columns()
 
-def clear():
+def clear(e=None):
     dataframe.clear()
     dataframe.menu.entryconfig('Report stats', state=Tk.DISABLED)
     evoked_tab.report_button.config(state='disabled')
 
-def delete_selected():
+def delete_selected(e=None):
     selection = dataframe.table.selection()
     dataframe.table.selection_remove(*selection)
     dataframe.table.delete(*selection)
