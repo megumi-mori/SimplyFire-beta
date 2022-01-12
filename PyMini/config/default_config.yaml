@@ -12,7 +12,7 @@
 #################################################################
 
 # version
-version : 'b2.0.1'
+version : 'b2.0.2'
 
 #aesthetics
 default_geometry :
