@@ -94,7 +94,10 @@ def add(data):
 def append(data):
     # app.data_notebook.tab(app.data_tab_details['mini']['tab'], state='disabled')
     interface.config_data_tab('mini', state='disabled')
-    dataframe.append(data)
+    try:
+        dataframe.append(data)
+    except Exception as e:
+        print(f'data_display append error: {e}')
     interface.config_data_tab('mini', state='normal')
     # app.data_notebook.tab(app.data_tab_details['mini']['tab'], state='normal')
     if data.shape[0]>0:
