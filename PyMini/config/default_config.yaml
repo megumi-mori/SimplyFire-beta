@@ -274,4 +274,3 @@ default_key_undo:
 
 default_key_copy:
   - '<Control-c>'
-  - 'c'
