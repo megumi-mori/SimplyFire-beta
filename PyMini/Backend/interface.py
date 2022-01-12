@@ -421,7 +421,7 @@ def open_events(filename, log=True, undo=True, append=False):
             update_event_marker,
         ])
     filetype = os.path.splitext(filename)[1]
-    if filetype == ".csv" or filetype == '.temp':
+    if filetype == ".csv" or filetype == '.temp' or filetype =='.event':
         df = open_events_csv(filename)
     elif filetype == ".minipy":
         df = open_events_mini(filename)
