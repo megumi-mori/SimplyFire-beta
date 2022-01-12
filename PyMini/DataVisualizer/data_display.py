@@ -106,11 +106,8 @@ def append(data):
 
 
 def set(data):
-    dataframe.set(data)
-    if data.shape[0]>0:
-        dataframe.menu.entryconfig('Report stats', state=Tk.NORMAL)
-        detector_tab.report_button.config(state='normal')
-        detector_tab.report_button2.config(state='normal')
+    dataframe.clear()
+    append(data)
         # detector_tab.filter_all_button.config(state='normal')
         # detector_tab.filter_in_window_button.config(state='normal')
 
