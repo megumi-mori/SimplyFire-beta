@@ -92,7 +92,11 @@ def add(data):
     # detector_tab.filter_in_window_button.config(state='normal')
 
 def append(data):
+    # app.data_notebook.tab(app.data_tab_details['mini']['tab'], state='disabled')
+    interface.config_data_tab('mini', state='disabled')
     dataframe.append(data)
+    interface.config_data_tab('mini', state='normal')
+    # app.data_notebook.tab(app.data_tab_details['mini']['tab'], state='normal')
     if data.shape[0]>0:
         dataframe.menu.entryconfig('Report stats', state=Tk.NORMAL)
         detector_tab.report_button.config(state='normal')
