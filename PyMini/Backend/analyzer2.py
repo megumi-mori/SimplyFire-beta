@@ -1512,7 +1512,10 @@ class Analyzer():
                         mini['prev_baseline'] = prev_peak['baseline']
                         mini['prev_decay_const'] = prev_peak['decay_const']
                         mini['prev_decay_A'] = prev_peak['decay_A']
-                        mini['prev_decay_baseline'] = prev_peak['decay_baseline']
+                        try:
+                            mini['prev_decay_baseline'] = prev_peak['decay_baseline']
+                        except:
+                            mini['prev_decay_baseline'] = prev_peak['baseline']
 
                         # extrapolate start from previous decay
                         y_decay = single_exponent((xs[prev_peak_idx_offset:peak_idx+1]-xs[prev_peak_idx_offset])*1000, mini['prev_decay_A'], mini['prev_decay_const'])  + mini['prev_baseline'] * direction
