@@ -4,10 +4,13 @@ from PyMini.DataVisualizer import trace_display
 
 
 def load(parent):
+    global widgets
+    widgets = {}
     ##################################################
     #                    Methods                     #
     ##################################################
     def apply_axes_limits():
+        app.trace_display.canvas.get_tk_widget().focus_set()
         # trace_display.focus()
         trace_display.set_axis_limit(
             axis='x',
@@ -27,6 +30,7 @@ def load(parent):
         pass
 
     def default_axis_parameters():
+        app.trace_display.canvas.get_tk_widget().focus_set()
         app.widgets['min_x'].set('auto')
         app.widgets['max_x'].set('auto')
         app.widgets['min_y'].set('auto')
@@ -34,10 +38,12 @@ def load(parent):
         pass
 
     def default_nav_parameters():
-        optionframe.default(filter='navigation')
+        app.trace_display.canvas.get_tk_widget().focus_set()
+        optionframe.default(filter='navigation', widgets=widgets)
 
 
     def get_current_axes():
+        app.trace_display.canvas.get_tk_widget().focus_set()
         xlim = trace_display.get_axis_limits('x')
         app.widgets['min_x'].set(xlim[0])
         app.widgets['max_x'].set(xlim[1])
@@ -45,6 +51,10 @@ def load(parent):
         app.widgets['min_y'].set(ylim[0])
         app.widgets['max_y'].set(ylim[1])
         pass
+
+    def show_all(e=None):
+        app.trace_display.canvas.get_tk_widget().focus_set()
+        trace_display.show_all_plot()
 
     ##################################################
     #                    Populate                    #
@@ -67,16 +77,16 @@ def load(parent):
         ('min_y', 'Bottom y-axis', '[auto]/float')
     ]
     for e in entries:
-        app.widgets[e[0]] = optionframe.insert_label_entry(
+        widgets[e[0]] = optionframe.insert_label_entry(
             name=e[0],
             label=e[1],
             validate_type=e[2]
         )
-        app.widgets[e[0]].bind('<Return>', lambda e:apply_axes_limits(), add='+')
-        app.widgets[e[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add='+')
+        widgets[e[0]].bind('<Return>', lambda e:apply_axes_limits(), add='+')
+        widgets[e[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add='+')
 
 
-    app.widgets['force_axis_limit'] = optionframe.insert_label_checkbox(
+    widgets['force_axis_limit'] = optionframe.insert_label_checkbox(
         name='force_axis_limit',
         label="Force axes limits on a new trace (reverts to 'show all' if out of bounds)"
     )
@@ -90,7 +100,7 @@ def load(parent):
     )
     optionframe.insert_button(
         text='Show all',
-        command=trace_display.show_all_plot
+        command=show_all
     )
     optionframe.insert_button(
         text='Current values',
@@ -111,12 +121,12 @@ def load(parent):
         ('navigation_zoom_percent', 'Zoom speed (percent axis):', 'float')
     ]
     for e in entries:
-        app.widgets[e[0]] = optionframe.insert_label_entry(
+        widgets[e[0]] = optionframe.insert_label_entry(
             name=e[0],
             label=e[1],
             validate_type=e[2]
         )
-        app.widgets[e[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add ='+')
+        widgets[e[0]].bind('<Return>', lambda e: trace_display.canvas.get_tk_widget().focus_set(), add ='+')
 
     boxes = [
        ('navigation_mirror_y_scroll', 'Mirror y-axis scroll button directions'), #name, label
@@ -124,7 +134,7 @@ def load(parent):
     ]
 
     for b in boxes:
-       app.widgets[b[0]] = optionframe.insert_label_checkbox(
+       widgets[b[0]] = optionframe.insert_label_checkbox(
            name=b[0],
            label=b[1],
            onvalue=-1,

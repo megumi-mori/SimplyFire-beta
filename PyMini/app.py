@@ -219,7 +219,7 @@ def load():
     # cp_notebook.add(test, text='test')
 
     # get reference to widgets
-    for key in ['mini', 'evoked', 'adjust',  'style', 'setting']:
+    for key in ['mini', 'evoked', 'adjust',  'navigation', 'style', 'setting']:
         for k, v in cp_tab_details[key]['module'].widgets.items():
             widgets[k] = v
     setting_tab.set_fontsize(widgets['font_size'].get())

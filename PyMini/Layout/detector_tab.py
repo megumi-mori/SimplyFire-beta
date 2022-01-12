@@ -43,6 +43,7 @@ def start_find_all_process(popup=True):
     # find_in_window_button.config(state='normal')
     if popup:
         running_popup.window_close()
+    app.trace_display.canvas.get_tk_widget().focus_set()
 
 def find_in_window(popup=True):
     if len(interface.recordings) == 0:
@@ -70,26 +71,31 @@ def start_find_in_window_process(popup=True):
     # find_in_window_button.config(state='normal')
     if popup:
         running_popup.window_close()
+    app.trace_display.canvas.get_tk_widget().focus_set()
 
 def filter_all(e=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
     if len(interface.recordings) == 0:
         return None
     if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
         return None
     interface.filter_mini()
 def filter_in_window(e=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
     if len(interface.recordings) == 0:
         return None
     if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
         return None
     interface.filter_mini(trace_display.ax.get_xlim())
 def delete_all(e=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
     if len(interface.recordings) == 0:
         return None
     if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
         return None
     interface.delete_all_events()
 def delete_in_window(e=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
     if len(interface.recordings) == 0:
         return None
     if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
@@ -110,6 +116,7 @@ def populate_decay_algorithms(e=None):
     changes['decay_algorithm'] = e
     pass
 def report(e=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
     if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
         return None
     data_display.report()
@@ -119,6 +126,7 @@ def load(parent):
     #                    Methods                     #
     ##################################################
     def _show_all():
+        app.trace_display.canvas.get_tk_widget().focus_set()
         global widgets
         for key in widgets:
             if key[:13] == 'data_display_':
@@ -126,12 +134,14 @@ def load(parent):
         data_display.show_columns(extract_columns2display())
 
     def _hide_all():
+        app.trace_display.canvas.get_tk_widget().focus_set()
         global widgets
         for key in widgets:
             if key[:13] == 'data_display_':
                 widgets[key].set('')
         data_display.show_columns(extract_columns2display())
     def apply_parameters(e=None):
+        app.trace_display.canvas.get_tk_widget().focus_set()
         global changed
         for i in parameters:
             if parameters[i] != app.widgets[i].get():
@@ -344,7 +354,7 @@ def load(parent):
     )
 
     def default():
-        optionframe.default(filter = 'detector_core_')
+        optionframe.default(filter = 'detector_core_', widgets=widgets)
         populate_decay_algorithms(widgets['detector_core_decay_algorithm'].get())
 
     optionframe.insert_button(
@@ -402,7 +412,7 @@ def load(parent):
     )
     optionframe.insert_button(
         text='Default',
-        command=lambda k='detector_filter_': optionframe.default(filter=k)
+        command=lambda k='detector_filter_', w=widgets: optionframe.default(filter=k, widgets=w)
     )
     global filter_all_button
     filter_all_button = optionframe.insert_button(
@@ -505,7 +515,7 @@ def load(parent):
     )
     optionframe.insert_button(
         text='Fit Columns',
-        command=data_display.dataframe.fit_columns
+        command=fit_columns
     )
     global report_button2
     report_button2 = optionframe.insert_button(
@@ -514,7 +524,11 @@ def load(parent):
     )
     report_button2.config(state='disabled')
     return frame
+def fit_columns(e=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
+    data_display.dataframe.fit_columns()
 def apply_columns():
+    app.trace_display.canvas.get_tk_widget().focus_set()
     data_display.show_columns(extract_columns2display())
 
 def populate_data_display():

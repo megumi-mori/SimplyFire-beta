@@ -22,7 +22,7 @@ class StyleTab(BaseModule):
         ttk.Label(self.frame, text='Main plot style', anchor=Tk.CENTER).grid(column=0, row=0, sticky='news')
 
 def load(parent):
-
+    global optionframe
     frame = ScrollableOptionFrame(parent)
     optionframe = frame.frame
     ##################################################
@@ -130,7 +130,7 @@ def load(parent):
     )
     optionframe.insert_button(
         text='Default',
-        command=lambda k='style', w=widgets: optionframe.default(filter=k, widgets=w)
+        command= default
     )
     ##################################################
     #                 Marker display                 #
@@ -171,6 +171,11 @@ def apply_styles(e=None):
     trace_display.canvas.get_tk_widget().focus_set()
     trace_display.apply_styles(entries)
 
+def default(e=None):
+    global optionframe
+    optionframe.default(filter='style', widgets=widgets)
+    app.trace_display.canvas.get_tk_widget().focus_set()
+
 def place_VarEntry(name, column, row, frame, width=None, validate_type=""):
     global widgets
     widgets[name] = VarEntry(frame, name=name, width=width,validate_type=validate_type)
@@ -178,10 +183,12 @@ def place_VarEntry(name, column, row, frame, width=None, validate_type=""):
     return widgets[name]
 
 def show_all(e=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
     for i in boxes:
         widgets[i[0]].var.set('1')
         interface.toggle_marker_display(i[0])
 def hide_all(e=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
     for i in boxes:
         widgets[i[0]].var.set("")
         interface.toggle_marker_display(i[0])

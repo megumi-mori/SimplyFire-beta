@@ -36,7 +36,7 @@ def load(parent):
     ##################################################
 
     frame = ScrollableOptionFrame(parent)
-
+    global optionframe
     optionframe = frame.frame
     ##################################################
     #                Visual Options                  #
@@ -109,11 +109,11 @@ def load(parent):
 
     optionframe.insert_button("Save As...", command=save_config_as)
 
-    optionframe.insert_button("Load", command=app.load_config)
+    optionframe.insert_button("Load", command=load_config)
 
     optionframe.insert_button(
         text='Default',
-        command=lambda w=widgets:optionframe.default(widgets=w)
+        command=default
     )
 
     optionframe.insert_title(
@@ -133,8 +133,15 @@ def load(parent):
     )
 
     return frame
+def load_config(e=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
+    app.load_config()
 
+def default(e=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
+    optionframe.default(widgets=widgets)
 def save_config_as():
+    app.trace_display.canvas.get_tk_widget().focus_set()
     d = filedialog.asksaveasfilename(filetypes=[('yaml file', '*.yaml')], defaultextension='.yaml').strip()
 
     if d:
@@ -145,11 +152,15 @@ def save_config_as():
     return d
 
 def save(event=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
     print(app.widgets)
     app.dump_user_setting(widgets['config_user_path'].get())
 
 
-def set_fontsize(fontsize):
+def set_fontsize(fontsize=None):
+    app.trace_display.canvas.get_tk_widget().focus_set()
+    if fontsize is None:
+        fontsize=widgets['font_size'].get()
     fontsize=int(float(fontsize))
     fonts = [
         "TkDefaultFont",
