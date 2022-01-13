@@ -106,7 +106,6 @@ def scroll_x_by(dir=1, percent=0):
         delta = new_lim[1] - default_xlim[1]
         new_lim = (new_lim[0] - delta, new_lim[1] - delta)
     ax.set_xlim(new_lim)
-    update_x_scrollbar(new_lim)
 
     global fig
     global ani
@@ -118,6 +117,8 @@ def scroll_x_by(dir=1, percent=0):
         repeat=False
     )
     ani._start()
+    update_x_scrollbar(new_lim)
+    scroll_y_by(0)
 
 
 def scroll_y_by(dir=1, percent=0):
@@ -139,6 +140,7 @@ def scroll_y_by(dir=1, percent=0):
         repeat=False
     )
     ani._start()
+    update_y_scrollbar(new_lim)
 
 
 def scroll_x_to(num):
@@ -161,6 +163,7 @@ def scroll_x_to(num):
         repeat=False
     )
     ani._start()
+    scroll_y_by(0)
 
 
 def scroll_y_to(num):
@@ -293,6 +296,7 @@ def zoom_x_by(direction=1, percent=0, event=None):
     )
     ani._start()
     update_x_scrollbar(new_lim)
+    scroll_y_by(0)
 
 def anim_func(idx):
     return None
@@ -317,6 +321,7 @@ def zoom_y_by(dir=1, percent=0, event=None):
         repeat=False
     )
     ani._start()
+    update_y_scrollbar(new_lim)
 
 
 # def zoom_by(axis, dir=1, percent=0, event=None):
