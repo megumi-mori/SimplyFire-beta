@@ -28,7 +28,7 @@ def load(parent):
     file_menu.add_command(label='Save channel as...', command=export_recording)
     file_menu.add_separator()
     file_menu.add_command(label='Open event file', command=open_events)
-    file_menu.add_command(label='Save event file', command=interface.save_events_dialogue)
+    # file_menu.add_command(label='Save event file', command=interface.save_events_dialogue)
     file_menu.add_command(label='Save event file as...', command=interface.save_events_as_dialogue)
 
     file_menu.add_separator()
@@ -85,6 +85,8 @@ def load(parent):
 
 def ask_open_trace():
     gc.collect()
+    if ask_save_events() is None:
+        return None
     fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('csv files', '*.csv'), ('All files', '*.*')])
     if not fname:
         return None
@@ -92,6 +94,17 @@ def ask_open_trace():
     app.compare_tab.start_msg.grid_forget()
     interface.focus()
     return fname
+
+def ask_save_events():
+    if interface.al.mini_df.shape[0]>0:
+        answer = messagebox.askyesnocancel(title='Save Events?', message='Save changes to the mini analysis data table?')
+        # yes = True, no = False, cancel = None
+        if answer is None:
+            return None
+        if answer:
+            return interface.save_events_dialogue()
+        return False
+    return True
 
 def export_events():
     if len(interface.recordings) == 0:
@@ -119,6 +132,8 @@ def export_recording(handle_duplicates=False):
     if len(interface.recordings)==0:
         messagebox.showerror(title='Save error', message='No recording to export. Please open a recording first.')
         return None
+    if ask_save_events() is None:
+        return None
     initialfname = interface.recordings[0].filename.split('.')[0] + '_Modified'
     try:
         filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('csv files', '*.csv'), ('All files', '*.*')],
@@ -126,10 +141,12 @@ def export_recording(handle_duplicates=False):
                                                 initialfile=initialfname)
 
         if filename is not None:
-            interface.recordings[0].save(filename)
-            print(f'saved file as {filename}')
+            interface.save_trace(filename)
+            # interface.recordings[0].save(filename)
+            interface.open_trace(filename, xlim=app.trace_display.ax.get_xlim(), ylim=app.trace_display.ax.get_ylim())
     except (FileExistsError):
         messagebox.showerror('Write error', message='Cannot overwrite an existing ABF file')
+
 
 def export_results():
     filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('ALl files', '*.*')],
