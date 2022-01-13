@@ -137,7 +137,7 @@ def configure(key, value):
 
 global recordings
 recordings = []
-def open_trace(fname, append=False):
+def open_trace(fname, append=False, xlim=None, ylim=None):
     # trace stored in analyzer
     global recordings
     try:
@@ -203,6 +203,11 @@ def open_trace(fname, append=False):
         if app.widgets['force_axis_limit'].get() == '1':
             trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
             trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
+        if xlim:
+            trace_display.set_axis_limit('x', xlim)
+        if ylim:
+            trace_display.set_axis_limit('y', ylim)
+
 
         graph_panel.y_scrollbar.config(state='normal')
         graph_panel.x_scrollbar.config(state='normal')
@@ -397,16 +402,18 @@ def save_events_as_dialogue(e=None):
             initialfilename = app.event_filename
         filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.event',
                                               initialfile=initialfilename)
+        if not filename:
+            return None
         try:
-            # al.mini_df.to_csv(filename, index=True)
-            # app.event_filename = filename
-            # print(filename)
             save_events(filename, mode='w')
+            app.data_display.saved = True
+            return filename
         except:
             messagebox.showerror('Write error', 'Could not write data to selected filename.')
-    else:
-        messagebox.showerror('Error', 'No minis to save')
-    return
+            return None
+    messagebox.showerror('Error', 'No minis to save')
+    return None
+
 
 def open_events(filename, log=True, undo=True, append=False):
     if len(recordings) == 0:
@@ -1413,3 +1420,15 @@ def focus():
     except:
         pass
     app.trace_display.canvas.get_tk_widget().focus_set()
+
+################################
+# I/O
+################################
+def save_trace(filename):
+    app.pb['value']=50
+    app.pb.update()
+    recordings[0].save(filename)
+    app.pb['value']=100
+    app.pb.update()
+    app.pb['value']=0
+    app.pb.update()
