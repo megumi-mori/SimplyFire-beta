@@ -96,13 +96,14 @@ def ask_open_trace():
     return fname
 
 def ask_save_events():
-    if interface.al.mini_df.shape[0]>0:
+    if interface.al.mini_df.shape[0]>0 and not app.data_display.saved:
         answer = messagebox.askyesnocancel(title='Save Events?', message='Save changes to the mini analysis data table?')
         # yes = True, no = False, cancel = None
         if answer is None:
+            print('answer is None')
             return None
         if answer:
-            return interface.save_events_dialogue()
+            return interface.save_events_as_dialogue()
         return False
     return True
 
@@ -132,20 +133,28 @@ def export_recording(handle_duplicates=False):
     if len(interface.recordings)==0:
         messagebox.showerror(title='Save error', message='No recording to export. Please open a recording first.')
         return None
-    if ask_save_events() is None:
+    save = ask_save_events()
+    if save is None:
         return None
     initialfname = interface.recordings[0].filename.split('.')[0] + '_Modified'
     try:
         filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('csv files', '*.csv'), ('All files', '*.*')],
                                                 defaultextension='.abf',
                                                 initialfile=initialfname)
-
-        if filename is not None:
+        print(filename)
+        if filename:
             interface.save_trace(filename)
             # interface.recordings[0].save(filename)
-            interface.open_trace(filename, xlim=app.trace_display.ax.get_xlim(), ylim=app.trace_display.ax.get_ylim())
+            interface.open_trace(filename, xlim=app.trace_display.ax.get_xlim(),
+                                 ylim=app.trace_display.ax.get_ylim())
+        else:
+            app.pb['value']=0
+            app.pb.update()
+            return None
     except (FileExistsError):
         messagebox.showerror('Write error', message='Cannot overwrite an existing ABF file')
+        print('recursive call')
+        export_recording()
 
 
 def export_results():
