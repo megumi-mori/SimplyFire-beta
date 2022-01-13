@@ -2002,7 +2002,7 @@ def point_line_min_distance(point, xs, ys, sampling_rate, radius=np.inf, xy_rati
         search_xlim = (max(0, int(point_idx - radius * sampling_rate)),  # search start index (0 or greater)
                        min(len(xs), int(point_idx + radius * sampling_rate)))  # search end index (len(xs) or less)
     xs_bool = (xs < xs[point_idx] + radius) & (xs > xs[point_idx] - radius)
-    ys_bool = (ys < ys[point_idx] + radius * xy_ratio) & (ys > ys[point_idx] - radius)
+    ys_bool = (ys < ys[point_idx] + radius / xy_ratio) & (ys > ys[point_idx] - radius/xy_ratio)
     min_d = np.inf
     min_i = None
     for i in range(search_xlim[0], search_xlim[1]):
