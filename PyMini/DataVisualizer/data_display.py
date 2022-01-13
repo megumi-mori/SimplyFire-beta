@@ -90,6 +90,8 @@ def add(data):
     dataframe.menu.entryconfig('Report stats', state=Tk.NORMAL)
     detector_tab.report_button.config(state='normal')
     detector_tab.report_button2.config(state='normal')
+    global saved
+    saved = False
     # detector_tab.filter_all_button.config(state='normal')
     # detector_tab.filter_in_window_button.config(state='normal')
 
@@ -108,6 +110,8 @@ def append(data):
         detector_tab.report_button2.config(state='normal')
         # detector_tab.filter_all_button.config(state='normal')
         # detector_tab.filter_in_window_button.config(state='normal')
+    global saved
+    saved = False
 
 
 def set(data):
@@ -115,6 +119,8 @@ def set(data):
     append(data)
         # detector_tab.filter_all_button.config(state='normal')
         # detector_tab.filter_in_window_button.config(state='normal')
+    global saved
+    saved = False
 
 
 
@@ -147,11 +153,15 @@ def clear():
     detector_tab.report_button2.config(state='disabled')
     # detector_tab.filter_all_button.config(state='disabled')
     # detector_tab.filter_in_window_button.config(state='disabled')
+    global saved
+    saved = False
 
 def delete_selected(e=None):
     if app.widgets['analysis_mode'].get() == 'mini':
         sel = dataframe.table.selection()
         interface.delete_event([i for i in sel])
+    global saved
+    saved = False
 
 
 def hide():
@@ -208,6 +218,8 @@ def delete_one(iid):
     except Exception as e:
         print('data_display delete one error: {}'.format(e))
         pass
+    global saved
+    saved = False
 
 def delete(selection):
     global table
@@ -219,6 +231,8 @@ def delete(selection):
         detector_tab.report_button2.config(state='disabled')
         # detector_tab.filter_all_button.config(state='disabled')
         # detector_tab.filter_in_window_button.config(state='disabled')
+    global saved
+    saved = False
 
 def report(event=None):
     global table
