@@ -420,6 +420,7 @@ def open_events(filename, log=True, undo=True, append=False):
             lambda f=temp_filename, l=False, u=False:open_events(f, l, u),
             lambda msg='Undo open event file':log_display.log(msg),
             update_event_marker,
+            lambda f = temp_filename: os.remove(f)
         ])
     filetype = os.path.splitext(filename)[1]
     if filetype == ".csv" or filetype == '.temp' or filetype =='.event':
@@ -669,6 +670,7 @@ def filter_mini(xlim=None):
             lambda f=temp_filename, l=False, u=False:open_events(f, l, u),
             lambda msg='Undo mini filtering':log_display.log(msg),
             update_event_marker,
+            lambda f=temp_filename: os.remove(f)
         ])
     app.pb.update()
     params = detector_tab.extract_mini_parameters()
@@ -959,6 +961,7 @@ def delete_event(selection, undo=True):
             ########### Save temp file ##############
             temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
                                          'temp_{}.temp'.format(get_temp_num()))
+            os.makedirs(os.path.dirname(temp_filename), exist_ok=True)
             al.mini_df[(al.mini_df['t'].isin(selection)) & (al.mini_df['channel'] == recordings[0].channel)].to_csv(
                 temp_filename)
             add_undo([
@@ -985,6 +988,7 @@ def delete_all_events(undo=True):
     ########## Save temp file ##############
         temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
                                      'temp_{}.temp'.format(get_temp_num()))
+        os.makedirs(os.path.dirname(temp_filename), exist_ok=True)
         al.mini_df[al.mini_df['channel'] == recordings[0].channel].to_csv(temp_filename)
         add_undo([
             lambda f=temp_filename, l=False, u=False, a=True: open_events(filename=f, log=l, undo=u, append=a),

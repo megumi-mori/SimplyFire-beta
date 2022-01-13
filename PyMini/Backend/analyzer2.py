@@ -315,6 +315,7 @@ class Recording():
             channels = range(self.channel_count)
         if not sweeps:
             sweeps = range(self.sweep_count)
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, 'w') as f:
             for c in channels:
                 for s in sweeps:
