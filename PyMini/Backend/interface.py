@@ -1411,4 +1411,5 @@ def focus():
             app.data_display.dataframe.table.focus_set()
             return None
     except:
-        app.trace_display.canvas.get_tk_widget().focus_set()
+        pass
+    app.trace_display.canvas.get_tk_widget().focus_set()

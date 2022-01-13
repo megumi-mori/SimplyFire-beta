@@ -456,7 +456,9 @@ def toolbar_toggle_zoom():
 
 # data_display and app.trace_display data item interaction
 def unselect_key(event):
-    app.data_display.unselect()
+    if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
+        app.data_display.unselect()
+        return None
     if app.widgets['trace_mode'].get() == 'overlay':
         interface.unhighlight_all_sweeps()
     pass
