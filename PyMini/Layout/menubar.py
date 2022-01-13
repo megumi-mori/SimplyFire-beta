@@ -138,7 +138,7 @@ def export_recording(handle_duplicates=False):
         return None
     initialfname = interface.recordings[0].filename.split('.')[0] + '_Modified'
     try:
-        filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('csv files', '*.csv'), ('All files', '*.*')],
+        filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('All files', '*.*')],
                                                 defaultextension='.abf',
                                                 initialfile=initialfname)
         print(filename)
