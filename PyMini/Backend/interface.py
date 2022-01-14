@@ -707,21 +707,34 @@ def select_single_mini(iid):
         param_guide.report(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear_plot=True)
 
 def select_left(e=None):
+    """
+    invoked when selection key (default = Space bar) is pressed while in mini analysis mode
+    If there are marked minis in the plot, the left most mini will be highlighted.
+    If a mini in the viewing window is already highlighted, the highlight will move to the proceeding mini.
+    """
+    # check if mini analysis mode is activated
     if app.widgets['analysis_mode'].get()!= 'mini':
         return None
-    xlim_left, xlim_right = app.trace_display.ax.get_xlim()
+    # get the x-axis limits
+    xlim_low, xlim_high = app.trace_display.ax.get_xlim()
+    # check if a trace is open
     if len(recordings)==0:
         return None
-    if al.mini_df.shape[0]==0:
+    # check if any mini has been detected
+    if len(app.data_display.table.get_children()) == 0:
         return None
+
+    # look for highlighted mini within the viewing window
     selection = app.data_display.dataframe.table.selection()
     if len(selection)>0:
-        max_xlim = float(selection[0])
-        for s in selection[1:]:
-            if float(s) > max_xlim and float(s) <xlim_right:
-                max_xlim = float(s)
-        xlim_left = max_xlim
-    df = al.mini_df[(al.mini_df.t < xlim_right) & (al.mini_df.t > xlim_left) & (
+        max_xlim = 0
+        for index in selection:
+            if float(index) > max_xlim and xlim_low < float(index) <xlim_high:
+                max_xlim = float(index)
+        xlim_low = max(max_xlim, xlim_low)
+
+    # look for mini data that match the criteria
+    df = al.mini_df[(al.mini_df.t < xlim_high) & (al.mini_df.t > xlim_low) & (
                 al.mini_df.channel == recordings[0].channel)].sort_values(by='t')
     if df.shape[0]>0:
         app.data_display.table.selection_set(str(df.iloc[0]['t']))
