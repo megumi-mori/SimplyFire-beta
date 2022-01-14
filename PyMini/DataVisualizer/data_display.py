@@ -85,13 +85,15 @@ def load(parent):
     table.bind('<Down>', select_next)
     return frame
 
-def add(data):
-    dataframe.add(data)
+def add(data, index='end'):
+    interface.config_data_tab('mini', state='disabled')
+    dataframe.add(data, index=index)
     dataframe.menu.entryconfig('Report stats', state=Tk.NORMAL)
     detector_tab.report_button.config(state='normal')
     detector_tab.report_button2.config(state='normal')
     global saved
     saved = False
+    interface.config_data_tab('mini', state='normal')
     # detector_tab.filter_all_button.config(state='normal')
     # detector_tab.filter_in_window_button.config(state='normal')
 

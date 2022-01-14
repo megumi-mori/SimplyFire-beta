@@ -92,22 +92,19 @@ def create_window():
     button_frame.grid(column=0, row=1, sticky='news')
 
     global accept_button
-    accept_button = ttk.Button(button_frame, text='Ignore filter\nparams')
+    accept_button = ttk.Button(button_frame, text='Ignore filter\nparams', command=accept)
     accept_button.grid(column=0, row=0, sticky='news')
     accept_button.config(state='disabled')
-    accept_button.bind('<Button>', accept)
 
     global reanalyze_button
-    reanalyze_button = ttk.Button(button_frame, text='Reanalyze')
+    reanalyze_button = ttk.Button(button_frame, text='Reanalyze', command=reanalyze)
     reanalyze_button.grid(column=1, row=0, sticky='news')
     reanalyze_button.config(state='disabled')
-    reanalyze_button.bind('<Button>', reanalyze)
 
     global reject_button
-    reject_button = ttk.Button(button_frame, text='Reject')
+    reject_button = ttk.Button(button_frame, text='Delete', command=reject)
     reject_button.grid(column=2, row=0, sticky='news')
     reject_button.config(state='disabled')
-    reject_button.bind('<Button>', reject)
 
     # global goto_button
     # goto_button = ttk.Button(button_frame, text='Select')
@@ -307,6 +304,7 @@ def reanalyze(e=None):
     global mini_data
     interface.reanalyze(mini_data)
     canvas.get_tk_widget().focus_set()
+    print('canvas focus set')
 
 def reject(e=None):
     global mini_data

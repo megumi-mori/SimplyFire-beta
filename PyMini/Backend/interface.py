@@ -752,8 +752,10 @@ def select_left(e=None):
 
 def reanalyze(data, accept_all=False):
     peak_idx = data['peak_idx']
+    insert_index = 'end'
     if al.mini_df.shape[0]>0:
         if al.mini_df['t'].isin([data['t']]).any():
+            insert_index = app.data_display.table.index(str(data['t']))
             delete_event([data['t']], undo=False)
 
     params = detector_tab.extract_mini_parameters()
@@ -790,7 +792,7 @@ def reanalyze(data, accept_all=False):
         al.mini_df = al.mini_df.append(Series(mini), ignore_index=True, sort=False)
         al.mini_df = al.mini_df.sort_values(by='t')
 
-        data_display.add({key: value for key,value in mini.items() if key in data_display.mini_header2config})
+        data_display.add({key: value for key,value in mini.items() if key in data_display.mini_header2config}, index=insert_index)
         update_event_marker()
         if int(app.widgets['config_undo_stack'].get()) > 0:
             if data['success']:
@@ -804,6 +806,8 @@ def reanalyze(data, accept_all=False):
                     lambda iid=[mini['t']], u=False: delete_event(iid, undo=u),
                     lambda msg='Undo reanalyze mini detection at {}'.format(data['t']): detector_tab.log(msg)
                 ])
+        app.data_display.table.selection_set(str(data['t']))
+
     if detector_tab.changed:
         log_display.search_update('Manual')
         log_display.param_update(detector_tab.changes)
