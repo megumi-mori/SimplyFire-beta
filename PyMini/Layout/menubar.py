@@ -1,5 +1,6 @@
 import tkinter as Tk
 from tkinter import ttk, filedialog, messagebox
+import os
 from PyMini.config import config
 from PyMini.utils.widget import VarWidget
 from PyMini.Backend import interface
@@ -25,7 +26,7 @@ def load(parent):
     menubar.add_cascade(label='File', menu=file_menu)
 
     file_menu.add_command(label="Open trace \t Ctrl+o", command=ask_open_trace)
-    file_menu.add_command(label='Save channel as...', command=export_recording)
+    file_menu.add_command(label='Save trace as...', command=ask_save_trace)
     file_menu.add_separator()
     file_menu.add_command(label='Open event file', command=open_events)
     # file_menu.add_command(label='Save event file', command=interface.save_events_dialogue)
@@ -96,16 +97,36 @@ def ask_open_trace():
     return fname
 
 def ask_save_events():
-    if interface.al.mini_df.shape[0]>0 and not app.data_display.saved:
+    if interface.al.mini_df.shape[0]>0:
         answer = messagebox.askyesnocancel(title='Save Events?', message='Save changes to the mini analysis data table?')
         # yes = True, no = False, cancel = None
         if answer is None:
-            print('answer is None')
             return None
         if answer:
             return interface.save_events_as_dialogue()
         return False
     return True
+
+def ask_save_trace(e=None, save_events=True):
+    if len(interface.recordings)==0:
+        messagebox.showerror(title='Error', message='No recording to export. Please open a recording first.')
+        return None
+    save = False
+    if save_events:
+        save = ask_save_events()
+    if save is not None:
+        initialfname = os.path.splitext(interface.recordings[0].filename)[0] + '_Modified'
+        try:
+            filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('All files', '*.*')],
+                                                    defaultextension='.abf',
+                                                    initialfile=initialfname)
+            if filename:
+                interface.save_trace(filename)
+                interface.open_trace(filename, xlim=app.trace_display.ax.get_xlim(),
+                             ylim=app.trace_display.ax.get_ylim())
+        except (FileExistsError):
+            messagebox.showerror(title='Error', message='ABF files cannot be overwritten. Please choose another filename.')
+            ask_save_trace(save_events=False)
 
 def export_events():
     if len(interface.recordings) == 0:
@@ -128,33 +149,6 @@ def export_evoked():
                                             initialfile=interface.recordings[0].filename.split('.')[
                                                             0] + '_evoked.csv')
     evoked_data_display.dataframe.export(filename)
-
-def export_recording(handle_duplicates=False):
-    if len(interface.recordings)==0:
-        messagebox.showerror(title='Save error', message='No recording to export. Please open a recording first.')
-        return None
-    save = ask_save_events()
-    if save is None:
-        return None
-    initialfname = interface.recordings[0].filename.split('.')[0] + '_Modified'
-    try:
-        filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('All files', '*.*')],
-                                                defaultextension='.abf',
-                                                initialfile=initialfname)
-        print(filename)
-        if filename:
-            interface.save_trace(filename)
-            # interface.recordings[0].save(filename)
-            interface.open_trace(filename, xlim=app.trace_display.ax.get_xlim(),
-                                 ylim=app.trace_display.ax.get_ylim())
-        else:
-            app.pb['value']=0
-            app.pb.update()
-            return None
-    except (FileExistsError):
-        messagebox.showerror('Write error', message='Cannot overwrite an existing ABF file')
-        print('recursive call')
-        export_recording()
 
 
 def export_results():
