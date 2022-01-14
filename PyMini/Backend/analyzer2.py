@@ -125,28 +125,26 @@ class Recording():
                                     self.sweep_count,
                                     axis=1)
 
-    def save(self, filename, channel=None, suffix=0, handle_error=False):
-        if channel is None:
-            channel = self.channel
+    def save(self, filename, channels=None, suffix=0, handle_error=False):
+        if channels is None:
+            channels = [i for i in range(self.channel_count)]
         if suffix > 0:
             fname = f'{filename.split(".")[0]}({suffix}).{filename.split(".")[1]}'
         else:
             fname = filename
         if os.path.exists(fname):
             if handle_error:
-                self.save(filename, channel, suffix+1, handle_error)
+                self.save(filename, channels, suffix+1, handle_error)
                 return
             else:
                 raise FileExistsError
         filetype = os.path.splitext(fname)[1]
         if filetype == '.abf':
-            self.write_abf(fname, channel)
+            self.write_abf(fname)
         elif filetype == '.csv':
-            self.write_csv(fname, channel)
-    def write_abf(self, filename, channel=None):
-        if channel is None:
-            channel = self.channel
-        writeABF1(self.y_data[channel], filename, self.sampling_rate, self.channel_units[channel])
+            self.write_csv(fname, channels)
+    def write_abf(self, filename):
+        writeABF1(self.y_data, filename, self.sampling_rate, self.channel_units)
 
     def write_csv(self, filename, channel=None):
         if channel is None:
