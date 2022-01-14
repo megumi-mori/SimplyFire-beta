@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from math import ceil, hypot, isnan, sqrt
 from datetime import datetime
 from pyabf import abf
-from pyabf.abfWriter import writeABF1
+from PyMini.utils import abfWriter
 
 from PyMini.config import config
 
@@ -144,7 +144,8 @@ class Recording():
         elif filetype == '.csv':
             self.write_csv(fname, channels)
     def write_abf(self, filename):
-        writeABF1(self.y_data, filename, self.sampling_rate, self.channel_units)
+        abfWriter.writeABF1(self.y_data, filename, sampleRateHz=self.sampling_rate, units=self.channel_units, labels=self.channel_labels)
+        # writeABF1(self.y_data, filename, self.sampling_rate, self.channel_units)
 
     def write_csv(self, filename, channel=None):
         if channel is None:

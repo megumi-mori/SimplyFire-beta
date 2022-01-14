@@ -2,7 +2,8 @@ import struct
 import numpy as np
 import pyabf
 from PyMini.Backend import analyzer2
-
+# from PyMini import app
+import time
 
 def writeABF1(ys, filename, sampleRateHz, units=['pA'], labels=['label1']):
     """
@@ -22,11 +23,11 @@ def writeABF1(ys, filename, sampleRateHz, units=['pA'], labels=['label1']):
     channelCount = ys.shape[0]
     sweepCount = ys.shape[1]
     sweepPointCount = ys.shape[2]
-    dataPointCount = sweepPointCount*sweepCount
+    dataPointCount = sweepPointCount*sweepCount*channelCount
 
     # predict how large our file must be and create a byte array of that size
     bytesPerPoint = 2
-    dataBlocks = int(channelCount*dataPointCount * bytesPerPoint / BLOCKSIZE) + 1
+    dataBlocks = int(dataPointCount * bytesPerPoint / BLOCKSIZE) + 1
     data = bytearray((dataBlocks + HEADER_BLOCKS) * BLOCKSIZE)
 
     # populate only the useful header data values
@@ -38,8 +39,8 @@ def writeABF1(ys, filename, sampleRateHz, units=['pA'], labels=['label1']):
     struct.pack_into('i', data, 40, HEADER_BLOCKS)  # lDataSectionPtr
     struct.pack_into('h', data, 100, 0)  # nDataFormat is 1 for float32
     struct.pack_into('h', data, 120, channelCount)  # nADCNumChannels
-    struct.pack_into('f', data, 122, 1e6 / sampleRateHz)  # fADCSampleInterval
-    struct.pack_into('i', data, 138, sweepPointCount)  # lNumSamplesPerEpisode
+    struct.pack_into('f', data, 122, 1e6 / sampleRateHz/channelCount)  # fADCSampleInterval
+    struct.pack_into('i', data, 138, sweepPointCount*channelCount)  # lNumSamplesPerEpisode
 
     # These ADC adjustments are used for integer conversion. It's a good idea
     # to populate these with non-zero values even when using float32 notation
@@ -90,44 +91,38 @@ def writeABF1(ys, filename, sampleRateHz, units=['pA'], labels=['label1']):
     dataByteOffset = BLOCKSIZE * HEADER_BLOCKS
     ys_interleaved = np.empty((channelCount*sweepCount*sweepPointCount), dtype=ys.dtype)
     ys = np.reshape(ys, (channelCount, 1, sweepCount*sweepPointCount))
-    # ys_interleaved = np.reshape(ys, (channelCount*sweepCount*sweepPointCount))
-    # for i in range(channelCount):
-    #     ys_interleaved[i::channelCount] = ys[i]
-    ys_interleaved[0::2]=np.reshape(ys[0], (sweepCount*sweepPointCount))
-    ys_interleaved[1::2] = np.reshape(ys[1], (sweepCount*sweepPointCount))
-
-    print(ys.shape)
-    print(ys_interleaved.shape)
-
+    for i in range(channelCount):
+        ys_interleaved[i::channelCount] = ys[i][0]
+    ys_interleaved = ys_interleaved * valueScale
     for i, value in enumerate(ys_interleaved):
         valueByteOffset = i*bytesPerPoint
         bytePosition = dataByteOffset + valueByteOffset
-        struct.pack_into('h', data, bytePosition, int(value*valueScale))
-    # for sweepNumber, sweepSignal in enumerate(ys_interleaved):
-    #     sweepByteOffset = sweepNumber * sweepPointCount * bytesPerPoint
-    #     for valueNumber, value in enumerate(sweepSignal):
-    #         valueByteOffset = valueNumber * bytesPerPoint
-    #         bytePosition = dataByteOffset + sweepByteOffset + valueByteOffset
-    #         struct.pack_into('h', data, bytePosition, int(value*valueScale))
-
+        struct.pack_into('h', data, bytePosition, int(value))
+        # app.pb['value'] = i/len(ys_interleaved)*100
+        # app.pb.update()
     # save the byte array to disk
-    with open(filename, 'wb') as f:
+    with open(filename, 'xb') as f:
         f.write(data)
     return
 
 if __name__=='__main__':
 
     # sampling_rate = 10000
-    # test_data=np.arange(0,10,1/sampling_rate)
-    # test_data = np.reshape(test_data, (1,len(test_data)))
-    # filename = 'write_test1.abf'
-    read_filename = "20112011-EJC test.abf"
-    recording = analyzer2.Recording(read_filename)
-    write_filename = 'write_test2.abf'
-    writeABF1(recording.get_y_matrix(mode='overlay'),write_filename, sampleRateHz=recording.sampling_rate,units=recording.channel_units, labels=recording.channel_labels)
+    # test_data=np.reshape(np.arange(0,10,1/sampling_rate), (1, 1, 10*sampling_rate))
+    # test_data2=np.reshape(np.arange(0,-10, -1/sampling_rate), (1,1,10*sampling_rate))
+    #
+    # test_data_combined = np.concatenate((test_data, test_data2), axis=0)
+    # print(test_data_combined.shape)
+    # print(test_data_combined[0].shape)
 
+    read_filename = "19911002-2.abf"
+    recording = analyzer2.Recording(read_filename)
+    write_filename = 'write_test_mEJC.abf'
+
+    sampling_rate = recording.sampling_rate
+    data = recording.y_data
+    print(f'shape of recording data: {data.shape}')
+    writeABF1(data, write_filename, sampleRateHz=sampling_rate,units=['mV', 'nA'], labels=['1', '2'])
     # filename = "19911002-2.abf"
-    data = pyabf.abf.ABF(write_filename)
-    print(data._dataGain)
-    print(data._dataOffset)
-    print(data.data)
+    reopen_data = pyabf.abf.ABF(write_filename)
+    print(f'shape of re-opened data: {reopen_data.data.shape}')
