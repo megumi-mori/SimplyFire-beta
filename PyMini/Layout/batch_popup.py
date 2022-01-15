@@ -35,8 +35,10 @@ def load():
             'Export evoked analysis table': export_evoked_data_display,
             'Export results table': export_results_display,
 
-            'Find all': lambda p=False: detector_tab.find_all(p),
-            'Find in window': lambda p=False: detector_tab.find_in_window(p),
+            # 'Find all': lambda p=False: detector_tab.find_find_all(p),
+            'Find all': detector_tab.find_all_button.invoke,
+            # 'Find in window': lambda p=False: detector_tab.find_in_window(p),
+            'Find in window': detector_tab.find_in_window_button.invoke,
             'Delete all': interface.delete_all_events,
             'Delete in window': detector_tab.delete_in_window,
             'Report stats (mini)': report_data_display,

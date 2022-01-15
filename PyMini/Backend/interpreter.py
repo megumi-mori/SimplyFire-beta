@@ -96,7 +96,6 @@ def initialize():
         bind_key_dp(key, press_function=lambda e:exec('global navigation_speed; navigation_speed=2'),
                  release_function=lambda e: exec('global navigation_speed; navigation_speed=1'))
 
-    print(config.key_zoom_in_x)
     for key in config.key_zoom_in_x:
         bind_key_dp(key, press_function=lambda e, d=1:zoom_x_key(e, d),
                  release_function=lambda e: stop_x_zoom())
@@ -143,14 +142,20 @@ def initialize():
     ######################################
     # Toolbar Toggle
     ######################################
-    print(config.key_toolbar_pan)
     for key in config.key_toolbar_pan:
-        print(f'toolbar_pan: {key}')
         bind_key_dp(key, press_function=lambda e:toolbar_toggle_pan())
     for key in config.key_toolbar_zoom:
         bind_key_dp(key, press_function=lambda e:toolbar_toggle_zoom())
 
-
+    #######################################
+    # Mini analysis
+    #######################################
+    for key in config.key_find_all:
+        bind_key(key, press_function=lambda e:app.detector_tab.find_all_button.invoke(), target=app.trace_display.canvas.get_tk_widget())
+        bind_key(key, press_function=lambda e:app.detector_tab.find_all_button.invoke(), target=app.data_display.table)
+    for key in config.key_find_in_window:
+        bind_key(key, press_function=lambda e:app.detector_tab.find_in_window_button.invoke(), target=app.trace_display.canvas.get_tk_widget())
+        bind_key(key, press_function=lambda e:app.detector_tab.find_in_window_button.invoke(), target=app.data_display.table)
     #######################################
     # Canvas Mouse Events
     #######################################

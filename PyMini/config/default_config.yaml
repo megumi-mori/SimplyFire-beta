@@ -275,3 +275,9 @@ default_key_undo:
 
 default_key_copy:
   - '<Control-c>'
+
+default_key_find_all:
+  - '<F4>'
+
+default_key_find_in_window:
+  - '<F5>'
