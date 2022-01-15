@@ -33,7 +33,6 @@ def _on_close():
     Uses the config module to write out user-defined parameters
     :return: None
     """
-    print('closing')
     global widgets
     if widgets['config_autosave'].get():
         try:
@@ -92,6 +91,8 @@ def load():
     root = Tk.Tk()
     root.title('PyMini v{}'.format(config.version))
     root.geometry('{}x{}'.format(config.geometry[0], config.geometry[1]))
+    if config.zoomed:
+        root.state('zoomed')
     root.bind('<Control-o>', lambda e:menubar.ask_open_trace())
 
     root.grid_rowconfigure(0, weight=1)
@@ -312,9 +313,12 @@ def dump_user_setting(filename=None):
             except:
                 d[key] = widgets[key].get()
         global cp
-        d['cp_width'] = cp.winfo_width()
-        d['gp_height'] = gp.winfo_height()
-        d['geometry'] = [root.winfo_width(), root.winfo_height()]
+        d['zoomed'] = root.state() == 'zoomed'
+        if not root.state() == 'zoomed':
+            d['cp_width'] = cp.winfo_width()
+            d['gp_height'] = gp.winfo_height()
+            d['geometry'] = [root.winfo_width(), root.winfo_height()]
+
         d['compare_color_list'] = config.compare_color_list
         d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
 

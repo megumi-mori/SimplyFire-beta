@@ -18,6 +18,7 @@ version : 'b2.0.5'
 default_geometry :
   - 900
   - 600
+default_zoomed : 0
 
 default_relative_cp_width : 0.25
 default_cp_width : 270
