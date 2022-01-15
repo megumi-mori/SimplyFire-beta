@@ -7,6 +7,7 @@ from PyMini.Backend import interface
 from PyMini.DataVisualizer import param_guide, data_display, trace_display, evoked_data_display, results_display
 import gc
 from PyMini import app
+# from PyMini.Layout import keybind_popup
 
 def load(parent):
     global widgets
@@ -73,6 +74,7 @@ def load(parent):
     menubar.add_cascade(label='Window', menu=window_menu)
     widgets['window_param_guide'] = VarWidget(name='window_param_guide')
     window_menu.add_command(label='Parameter-guide', command=_show_param_guide)
+    # window_menu.add_command(label='Key binder', command=_show_key_binder)
     if widgets['window_param_guide'].get() == '1':
         window_menu.invoke(window_menu.index('Parameter-guide'))
 
@@ -276,6 +278,8 @@ def undo_enable():
     global edit_menu
     edit_menu.entryconfig(0, state='normal')
 
+# def _show_key_binder(event=None):
+#     keybind_popup.load()
 def _show_param_guide(event=None):
     global widgets
     try:
