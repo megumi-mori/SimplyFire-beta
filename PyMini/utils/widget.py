@@ -423,6 +423,19 @@ class NavigationToolbar(NavigationToolbar2Tk):
         button.pack(side = Tk.LEFT, fill='y')
         return button
 
+    def pan(self):
+        NavigationToolbar2Tk.pan(self)
+        if self.mode == 'pan/zoom':
+            self.canvas.get_tk_widget().config(cursor='fleur')
+        else:
+            self.canvas.get_tk_widget().config(cursor='arrow')
+
+    def zoom(self):
+        NavigationToolbar2Tk.zoom(self)
+        if self.mode == 'zoom rect':
+            self.canvas.get_tk_widget().config(cursor='cross')
+        else:
+            self.canvas.get_tk_widget().config(cursor='arrow')
     def test(self, e=None):
         if self.mode == 'test':
             self.mode = None
