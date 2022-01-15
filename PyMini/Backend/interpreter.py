@@ -196,15 +196,30 @@ def bind_key(key, press_function=None, release_function=None, target=None, add='
     if key is None:
         return None
     # use for regular key press and release event binding
+    # key binding must have '<' and '>'
     if press_function is not None:
-        target.bind(key, press_function, add=add)
+        key_format=key.strip('<')
+        key_format=key_format.strip('>')
+        pkey_upper = key_format.split('-')
+        pkey_lower = key_format.split('-')
+        for i,k in enumerate(pkey_upper):
+            print(k)
+            if len(k) == 1:
+                pkey_upper[i] = k.upper()
+                pkey_lower[i] = k.lower()
+        pkey = ['-'.join(pkey_upper), '-'.join(pkey_lower)]
+        for k in pkey:
+            if '<' in key:
+                k = f'<{k}>'
+            try:
+                target.bind(k, press_function, add=add)
+            except: # remove key specifiers
+                target.bind(k.replace('_L', "").replace('_R', ""), press_function, add=add)
     if release_function is not None:
-        if key[0] == '<':
-            rkey = key.strip('<')
-            rkey = rkey.strip('>')
-        else:
-            rkey=key
-        target.bind('<KeyRelease-{}>'.format(rkey),
+        for k in pkey:
+            for r in k.split('-'):
+                if r!='Key':
+                    target.bind('<KeyRelease-{}>'.format(r),
                                 release_function, add="+")
 
 # app.trace_display mouse events

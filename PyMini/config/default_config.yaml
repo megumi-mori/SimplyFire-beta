@@ -215,13 +215,13 @@ default_analysis_mode : 'mini'
 # selection
 default_key_deselect:
   - '<Escape>'
-  - 'q'
-  - 'o'
+  - '<Key-q>'
+  - '<Key-o>'
 default_key_delete:
   - '<Delete>'
   - '<BackSpace>'
-  - 'e'
-  - 'u'
+  - '<Key-e>'
+  - '<Key-u>'
 default_key_select_all:
   - '<Control-a>'
 default_key_select_window:
@@ -235,38 +235,36 @@ default_key_scroll_rapid:
 #  - '<Shift_L>'
 #  - '<Shift_R>'
 default_key_pan_left :
-  - 'a'
+  - '<Key-a>'
 default_key_pan_right:
-  - 'd'
+  - '<Key-d>'
 default_key_pan_up:
-  - 'w'
+  - '<Key-w>'
 default_key_pan_down:
-  - 's'
+  - '<Key-s>'
 default_key_escape:
-  - 'q'
+  - '<Key-q>'
 default_key_erase:
-  - 'e'
+  - '<Key-e>'
 default_key_zoom_in_x:
   - 'j'
-  - 'D'
+  - '<Shift_L-d>'
 default_key_zoom_out_x:
   - 'l'
-  - 'A'
+  - '<Shift_L-a>'
 default_key_zoom_in_y:
   - 'i'
-  - 'W'
+  - '<Shift_L-w>'
 default_key_zoom_out_y:
   - 'k'
-  - 'S'
+  - '<Shift_L-s>'
 default_key_reset_focus:
   - '<space>'
 # toolbar
 default_key_toolbar_pan:
-  - 'p'
-  - 'c'
+  - '<Key-c>'
 default_key_toolbar_zoom:
-  - 'm'
-  - 'x'
+  - '<Key-x>'
 default_key_select:
   - '<space>'
 
