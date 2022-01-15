@@ -253,7 +253,8 @@ def _change_channel(num, save_undo=True):
         # for i, var in enumerate(sweep_tab.sweep_vars):
         #     if not var.get():
         #         trace_display.hide_sweep(i)
-    trace_display.canvas.draw()
+    # trace_display.canvas.draw()
+    trace_display.draw_ani()
     data_display.clear()
 
     populate_data_display()
@@ -571,7 +572,6 @@ def pick_event_manual(x):
     except:
         pass
     data_display.unselect()
-
     xlim=trace_display.ax.get_xlim()
     xlim = (min(xlim), max(xlim))
     ylim=trace_display.ax.get_ylim()
@@ -582,7 +582,6 @@ def pick_event_manual(x):
     r = (xlim[1]-xlim[0])*float(params['manual_radius'])/100
     xs = trace_display.ax.lines[0].get_xdata()
     ys = trace_display.ax.lines[0].get_ydata()
-
     guide = False
     if app.widgets['window_param_guide'].get() == '1':
         guide = True
@@ -596,8 +595,10 @@ def pick_event_manual(x):
         # param_guide.report(xs, ys, mini)
         param_guide.report(xs, ys, mini)
     if mini['success']:
-        data_display.add({key: value for key,value in mini.items() if key in data_display.mini_header2config})
         update_event_marker()
+        config_data_tab('mini', state='disabled')
+        data_display.add({key: value for key,value in mini.items() if key in data_display.mini_header2config})
+        config_data_tab('mini', state='normal')
         if int(app.widgets['config_undo_stack'].get()) > 0:
             add_undo([
                 lambda iid=[mini['t']], u=False:delete_event(iid, undo=u),
@@ -656,7 +657,8 @@ def find_mini_in_range(xlim=None, ylim=None):
                 lambda msg='Undo mini search': detector_tab.log(msg)
             ])
         update_event_marker()
-        trace_display.canvas.draw()
+        # trace_display.canvas.draw()
+        trace_display.draw_ani()
         data_display.append(df)
 
     if detector_tab.changed:
@@ -924,7 +926,8 @@ def toggle_marker_display(type):
     if app.widgets[type].get():
         getattr(trace_display, 'plot_{}'.format(type[5:]))(get_column("{}_coord_x".format(type[5:])),
                                                            get_column('{}_coord_y'.format(type[5:])))
-        trace_display.canvas.draw()
+        # trace_display.canvas.draw()
+        trace_display.draw_ani()
     else:
         trace_display.clear_markers(type[5:])
 
@@ -941,8 +944,8 @@ def highlight_selected_mini(selection):
             trace_display.center_plot_area(min(xs), max(xs), min(ys), max(ys))
     else:
         trace_display.clear_markers('highlight')
-    trace_display.canvas.draw()
-
+    # trace_display.canvas.draw()
+    trace_display.draw_ani()
 def highlight_events_in_range(xlim=None, ylim=None):
     # called when right click drag on plot surrounding peak event markers
     if xlim and xlim[0] > xlim[1]:
@@ -974,7 +977,8 @@ def update_event_marker():
             trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
         except:
             pass
-    trace_display.canvas.draw()
+    # trace_display.canvas.draw()
+    trace_display.draw_ani()
 
 def delete_event(selection, undo=True):
     if al.mini_df.shape[0]==0:
@@ -1077,8 +1081,8 @@ def plot_overlay(idx, fix_axis=False, fix_x=False, draw=False, append=False, swe
     if fix_x:
         trace_display.set_axis_limit('x', xlim)
     if draw:
-        trace_display.canvas.draw()
-
+        # trace_display.canvas.draw()
+        trace_display.draw_ani()
     app.pb['value'] = 0
     app.pb.update()
 
@@ -1120,13 +1124,14 @@ def hide_highlighted_sweep():
     for idx in trace_display.highlighted_sweep:
         sweep_tab.sweep_vars[idx].set(0)
         toggle_sweep(idx, 0, draw=False)
-    trace_display.canvas.draw()
-
+    # trace_display.canvas.draw()
+    trace_display.draw_ani()
 def highlight_all_sweeps():
     for i in range(len(sweep_tab.sweep_vars)):
         if sweep_tab.sweep_vars[i].get():
             trace_display.set_highlight_sweep(i, highlight=True, draw=False)
-    trace_display.canvas.draw()
+    # trace_display.canvas.draw()
+    trace_display.draw_ani()
     return
 
 def unhighlight_all_sweeps(draw=True):
@@ -1134,7 +1139,8 @@ def unhighlight_all_sweeps(draw=True):
         if sweep_tab.sweep_vars[i].get():
             trace_display.set_highlight_sweep(i, highlight=False, draw=False)
     if draw:
-        trace_display.canvas.draw()
+        # trace_display.canvas.draw()
+        trace_display.draw_ani()
     return
 
 def highlight_sweep_in_range(xlim=None, ylim=None, draw=True):
@@ -1152,8 +1158,8 @@ def highlight_sweep_in_range(xlim=None, ylim=None, draw=True):
     for i, s in get_sweep_in_range(xlim, ylim):
         trace_display.set_highlight_sweep(int(i), highlight=True, draw=False)
     if draw:
-        trace_display.canvas.draw()
-
+        # trace_display.canvas.draw()
+        trace_display.draw_ani()
 
 def get_sweep_in_range(xlim=None, ylim=None):
     ls = []
@@ -1213,8 +1219,8 @@ def update_plot_ys(sweeps):
     else:
         for s in sweeps:
             trace_display.get_sweep(s).set_ydata(recordings[0].get_ys(mode='overlay', sweep=s))
-    trace_display.canvas.draw()
-
+    # trace_display.canvas.draw()
+    trace_display.draw_ani()
 def adjust_baseline(all_channels=False, target='All sweeps', mode='mean', xlim=None, fixed_val=None):
     global recordings
     if len(recordings) == 0:
@@ -1333,7 +1339,8 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
     add_undo([
         delete_last_sweep,
         lambda s=visible_sweep_list, d=False: sweep_tab.show(s, d),
-        trace_display.canvas.draw,
+        # trace_display.canvas.draw,
+        trace_display.draw_ani,
         lambda msg='Undo trace averaging', h=True: log(msg, h)
     ])
     log('Trace Averaging', True)

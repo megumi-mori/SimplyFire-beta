@@ -1,6 +1,9 @@
 from PyMini import app
 from PyMini.Backend import interface
 from PyMini.config import config
+
+# debugging
+# from time import time
 def initialize():
 
     global navigation_speed
@@ -285,6 +288,7 @@ def plot_mouse_release(event):
     if app.widgets['trace_mode'].get() == 'overlay' and event.xdata is not None:
         # overlay, a trace may have been selected
         interface.select_trace_from_plot(event.xdata, event.ydata)
+        return None
     if app.widgets['trace_mode'].get() == 'continuous' and event.xdata is not None and app.widgets[
         'analysis_mode'].get() == 'mini' and event.button==1:
         interface.pick_event_manual(event.xdata)

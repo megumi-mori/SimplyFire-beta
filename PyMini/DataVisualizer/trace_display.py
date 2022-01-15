@@ -56,7 +56,8 @@ def load(parent):
     canvas.mpl_connect('motion_notify_event', _on_mouse_move)
     # canvas.mpl_connect('button_release_event', _on_mouse_release)
 
-    canvas.draw()
+    draw_ani()
+    # canvas.draw()
     # refresh()
     return frame
 
@@ -84,12 +85,18 @@ def start_animation():
     for l in ax.lines:
         ax.draw_artist(l)
         l.set_animated(True)
+    for c in ax.collections:
+        ax.draw_artist(c)
+        c.set_animated(True)
 
 
 def pause_animation():
     for l in ax.lines:
         ax.draw_artist(l)
         l.set_animated(False)
+    for c in ax.collections:
+        ax.draw_artist(c)
+        c.set_animated(False)
 
 
 def scroll_x_by(dir=1, percent=0):
@@ -109,14 +116,15 @@ def scroll_x_by(dir=1, percent=0):
 
     global fig
     global ani
-    ani = FuncAnimation(
-        fig,
-        anim_func,
-        frames=1,
-        interval=int(1),
-        repeat=False
-    )
-    ani._start()
+    # ani = FuncAnimation(
+    #     fig,
+    #     anim_func,
+    #     frames=1,
+    #     interval=int(1),
+    #     repeat=False
+    # )
+    draw_ani()
+    # ani._start()
     update_x_scrollbar(new_lim)
     scroll_y_by(0)
 
@@ -132,14 +140,15 @@ def scroll_y_by(dir=1, percent=0):
     ax.set_ylim(new_lim)
     global fig
     global ani
-    ani = FuncAnimation(
-        fig,
-        anim_func,
-        frames=1,
-        interval=int(1),
-        repeat=False
-    )
-    ani._start()
+    # ani = FuncAnimation(
+    #     fig,
+    #     anim_func,
+    #     frames=1,
+    #     interval=int(1),
+    #     repeat=False
+    # )
+    draw_ani()
+    # ani._start()
     update_y_scrollbar(new_lim)
 
 
@@ -155,14 +164,15 @@ def scroll_x_to(num):
     ax.set_xlim((start, end))
     global fig
     global ani
-    ani = FuncAnimation(
-        fig,
-        anim_func,
-        frames=1,
-        interval=int(1),
-        repeat=False
-    )
-    ani._start()
+    # ani = FuncAnimation(
+    #     fig,
+    #     anim_func,
+    #     frames=1,
+    #     interval=int(1),
+    #     repeat=False
+    # )
+    draw_ani()
+    # ani._start()
     scroll_y_by(0)
 
 
@@ -176,14 +186,15 @@ def scroll_y_to(num):
     ax.set_ylim((y1 - height, y1))
     global fig
     global ani
-    ani = FuncAnimation(
-        fig,
-        anim_func,
-        frames=1,
-        interval=int(1),
-        repeat=False
-    )
-    ani._start()
+    # ani = FuncAnimation(
+    #     fig,
+    #     anim_func,
+    #     frames=1,
+    #     interval=int(1),
+    #     repeat=False
+    # )
+    draw_ani()
+    # ani._start()
 
 
 def center_plot_on(x, y):
@@ -219,8 +230,8 @@ def center_plot_on(x, y):
         ax.set_ylim(new_ylim_bottom, new_ylim_top)
         new_ylim = (new_ylim_bottom, new_ylim_top)
     update_y_scrollbar(xlim=new_xlim, ylim=new_ylim)
-    canvas.draw()
-
+    # canvas.draw()
+    draw_ani()
 
 def center_plot_area(x1, x2, y1, y2):
     xlim = ax.get_xlim()
@@ -251,8 +262,8 @@ def center_plot_area(x1, x2, y1, y2):
     ax.set_ylim(new_ylim_bottom, new_ylim_top)
     update_y_scrollbar(xlim=(new_xlim_left, new_xlim_right), ylim=(new_ylim_bottom, new_ylim_top))
 
-    canvas.draw()
-
+    # canvas.draw()
+    draw_ani()
 
 def zoom_x_by(direction=1, percent=0, event=None):
     # direction 1 = zoom in, -1=zoom out
@@ -287,14 +298,15 @@ def zoom_x_by(direction=1, percent=0, event=None):
     ax.set_xlim(new_lim)
     global fig
     global ani
-    ani = FuncAnimation(
-        fig,
-        anim_func,
-        frames=1,
-        interval = int(1),
-        repeat=False
-    )
-    ani._start()
+    # ani = FuncAnimation(
+    #     fig,
+    #     anim_func,
+    #     frames=1,
+    #     interval = int(1),
+    #     repeat=False
+    # )
+    draw_ani()
+    # ani._start()
     update_x_scrollbar(new_lim)
     scroll_y_by(0)
 
@@ -313,14 +325,15 @@ def zoom_y_by(dir=1, percent=0, event=None):
     ax.set_ylim(new_lim)
     global fig
     global ani
-    ani = FuncAnimation(
-        fig,
-        anim_func,
-        frames=1,
-        interval=int(1),
-        repeat=False
-    )
-    ani._start()
+    # ani = FuncAnimation(
+    #     fig,
+    #     anim_func,
+    #     frames=1,
+    #     interval=int(1),
+    #     repeat=False
+    # )
+    draw_ani()
+    # ani._start()
     update_y_scrollbar(new_lim)
 
 
@@ -446,8 +459,8 @@ def clear():
         c.remove()
     ax.clear()
     gc.collect()
-    canvas.draw()
-
+    # canvas.draw()
+    draw_ani()
 
 def clear_markers(key=None):
     for t in temp:
@@ -468,8 +481,9 @@ def clear_markers(key=None):
         markers.clear()
         for c in ax.collections:
             c.remove()
-    canvas.draw()
+    # canvas.draw()
 
+    draw_ani()
 
 def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None):
     if 'sweep_{}'.format(idx) in sweeps:
@@ -486,7 +500,8 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None):
     if relim:
         ax.autoscale(enable=True, axis='both', tight=True)
         ax.relim()
-        canvas.draw()
+        # canvas.draw()
+        draw_ani()
         global default_xlim
         default_xlim = ax.get_xlim()
 
@@ -495,8 +510,9 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None):
 
 
     if draw:
-        canvas.draw()
+        # canvas.draw()
         # refresh()
+        draw_ani()
 
 def hide_sweep(idx, draw=False):
     try:
@@ -505,7 +521,8 @@ def hide_sweep(idx, draw=False):
     except:
         pass
     if draw:
-        canvas.draw()
+        # canvas.draw()
+        draw_ani()
 
 def show_sweep(idx, draw=False):
     sweeps['sweep_{}'.format(idx)].set_linestyle('-')
@@ -514,8 +531,8 @@ def show_sweep(idx, draw=False):
     except:
         pass
     if draw:
-        canvas.draw()
-
+        # canvas.draw()
+        draw_ani()
 def delete_last_sweep(draw=False):
     sweeps['sweep_{}'.format(len(sweeps) - 1)].remove()
     # print('length of ax lines after removing sweep: {}'.format(len(ax.lines)))
@@ -541,8 +558,10 @@ def toggle_sweep_highlight(idx, exclusive=True, draw=False):
             sweeps[l].set_linewidth(w)
         if idx in highlighted_sweep and len(highlighted_sweep) == 1:
             highlighted_sweep = []
-            canvas.draw()
-            return None
+            if draw:
+                # canvas.draw()
+                draw_ani()
+                return None
         highlighted_sweep = []
     if idx in highlighted_sweep:
         try:
@@ -559,8 +578,8 @@ def toggle_sweep_highlight(idx, exclusive=True, draw=False):
         except:
             pass
     if draw:
-        canvas.draw()
-
+        # canvas.draw()
+        draw_ani()
 def remove_highlight_sweep(draw=True):
     global highlighted_sweep
     for idx in highlighted_sweep:
@@ -572,7 +591,8 @@ def remove_highlight_sweep(draw=True):
             pass
     highlighted_sweep = []
     if draw:
-        canvas.draw()
+        # canvas.draw()
+        draw_ani()
 def set_highlight_sweep(idx, highlight=True, draw=True):
     if idx not in highlighted_sweep and highlight:
         try:
@@ -589,8 +609,8 @@ def set_highlight_sweep(idx, highlight=True, draw=True):
         except:
             pass
     if draw:
-        canvas.draw()
-
+        # canvas.draw()
+        draw_ani()
 
 def plot_highlight(xs, ys):
     try:
@@ -712,13 +732,15 @@ def apply_styles(keys, draw=True):
         except:
             pass
     if draw:
-        canvas.draw()
+        # canvas.draw()
+        draw_ani()
 
 
 def show_all_plot(update_default=False):
     ax.autoscale(enable=True, axis='both', tight=True)
     ax.relim()
-    canvas.draw()
+    # canvas.draw()
+    draw_ani()
     if update_default:
         global default_xlim
         default_xlim = ax.get_xlim()
@@ -745,8 +767,8 @@ def set_axis_limit(axis, lim):
     if axis == 'y':
         l = [float(e) if e != 'auto' else default_ylim[i] for i, e in enumerate(lim)]
         ax.set_ylim(l)
-    canvas.draw()
-
+    # canvas.draw()
+    draw_ani()
 
 class State():
     def __init__(self):
@@ -776,6 +798,7 @@ def draw_rect(coord_start, coord_end):
                       animated=True)
             ax.add_patch(rect)
         canvas.draw()
+        # draw_ani()
         global bg
         bg = canvas.copy_from_bbox(fig.bbox)
         ax.draw_artist(rect)
@@ -784,4 +807,15 @@ def draw_rect(coord_start, coord_end):
     if rect:
         ax.patches.remove(rect)
         rect = None
-        canvas.draw()
+        # canvas.draw()
+        draw_ani()
+def draw_ani():
+    global ani
+    ani = FuncAnimation(
+        fig,
+        anim_func,
+        frames=1,
+        interval=int(1),
+        repeat=False
+    )
+    ani._start()
