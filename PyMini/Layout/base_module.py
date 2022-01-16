@@ -1,4 +1,4 @@
-from utils.scrollable_option_frame import ScrollableOptionFrame
+from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
 
 class BaseModule(ScrollableOptionFrame):
     name = 'base_module'
