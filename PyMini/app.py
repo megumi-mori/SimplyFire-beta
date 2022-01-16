@@ -45,6 +45,7 @@ def _on_close():
     dump_config_var(key='key_', filename=config.config_keymap_path, title='Keymap')
     dump_system_setting()
     root.destroy()
+    app_root.destroy()
 
 def get_value(key, tab=None):
     try:
@@ -83,12 +84,14 @@ def set_value(key, value, tab=None):
 #                 pass
 #     return False
 
-def load():
+def load(splash):
+    global app_root
+    app_root = splash
     # tracemalloc.start()
     config.load()
-
     global root
-    root = Tk.Tk()
+    root = Tk.Toplevel()
+    root.lower(splash)
     root.title('SimpliFire v{}'.format(config.version))
     IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
     root.iconbitmap(os.path.join(IMG_DIR, 'logo.ico'))
@@ -96,10 +99,14 @@ def load():
     if config.zoomed:
         root.state('zoomed')
     root.bind('<Control-o>', lambda e:menubar.ask_open_trace())
-
+    global menu
+    menu = Tk.Menu(root)
+    root.config(menu=menu)
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)
-    root.lift()
+
+    frame = Tk.Frame(root, bg='red')
+    frame.grid(column=0, row=0, sticky='news')
 
     # root.bind(config.key_reset_focus, lambda e: data_display.table.focus_set())
 
@@ -145,8 +152,8 @@ def load():
 
     # must set up a graph object that can 'refresh' and 'plot' etc
     global gp
-    gp = graph_panel.load(None)
-    root.update()
+    gp = graph_panel.load(root)
+    root.update_idletasks()
     pw_2.add(gp)
     pw_2.paneconfig(gp, height=config.gp_height)
 
@@ -160,17 +167,17 @@ def load():
         'evoked': {'module': evoked_data_display, 'text': 'Evoked Data'}
     }
     for i, t in enumerate(data_tab_details):
-        data_tab_details[t]['tab'] = data_tab_details[t]['module'].load(None)
+        data_tab_details[t]['tab'] = data_tab_details[t]['module'].load(root)
         data_notebook.add(data_tab_details[t]['tab'], text=data_tab_details[t]['text'])
         data_tab_details[t]['index'] = i
 
     pw_2.add(data_notebook)
     dp_notebook.add(pw_2, text='trace')
 
-    log_frame = log_display.load(None)
+    log_frame = log_display.load(root)
     dp_notebook.add(log_frame, text='log')
 
-    results_frame = results_display.load(None)
+    results_frame = results_display.load(root)
     dp_notebook.add(results_frame, text='results', sticky='news')
 
 
@@ -184,12 +191,6 @@ def load():
     cp.grid(column=0, row=0, sticky='news')
     cp.grid_rowconfigure(0, weight=1)
     cp.grid_columnconfigure(0, weight=1)
-
-    # insert control panel in to left panel
-    # cp = Tk.Frame(left, bg='purple')
-    # cp.grid_columnconfigure(0, weight=1)
-    # cp.grid_rowconfigure(0, weight=1)
-    # cp.grid(column=0 ,row=0, sticky='news')
 
     global cp_notebook
     cp_notebook = ttk.Notebook(cp)
@@ -266,9 +267,7 @@ def load():
     ##################################################
 
     # set up menubar
-    global menu
-    menu = menubar.load(root)
-    root.config(menu=menu)
+    menubar.load(menu)
 
     menubar.analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
 
@@ -287,7 +286,8 @@ def load():
     data_display.fit_columns()
     evoked_data_display.fit_columns()
 
-    return root
+    ## root2 = root
+    return None
 
 
 def dump_user_setting(filename=None):

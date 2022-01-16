@@ -22,6 +22,7 @@ def load():
     stop = False
     global current_command
     current_command = None
+
     try:
         global window
         window.deiconify()
@@ -53,8 +54,10 @@ def load():
         create_window()
 
 def create_window():
+    global paused
+    paused = False
     global window
-    window = Tk.Toplevel(app.root)
+    window = Tk.Toplevel()
     window.geometry('600x600')
     # app.root.attributes('-disabled', True)
     window.lift()

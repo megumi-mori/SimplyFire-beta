@@ -1,17 +1,110 @@
 import tkinter as Tk
-import pkg_resources
+# import pkg_resources
 from os.path import join
-if __name__ == '__main__':
+from threading import Thread
+
+def load_splash():
+
+    # Tk.Label(splash, text='Now Loading').grid(column=0, row=0)
+
+    # canvas = Tk.Canvas(splash, width=650, height=480)
+    # canvas.pack()
+    # image = Tk.PhotoImage(file=join('img', 'loading_small_12fps.gif'))
+    # c_image = canvas.create_image(0,0,anchor=Tk.NW, image=image)
+    # frameCount=96
+    # frames = [Tk.PhotoImage(file=join('img', 'loading_small_12fps.gif'), format=f'gif -index {i}') for i in
+    #           range(frameCount)]
+    # def update(ind):
+    #     image = frames[ind]
+    #     ind += 1
+    #     if ind == frameCount:
+    #         ind=20
+    #     canvas.itemconfigure(c_image, image=image)
+    #     try:
+    #         splash.after(1000, update, ind)
+    #     except:
+    #         pass
+
+    # IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
+    # method 1:
+    global splash
     splash = Tk.Tk()
     splash.title('SimpliFire')
-    IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
-    splash.iconbitmap(join(IMG_DIR, 'logo.ico'))
-    Tk.Label(splash, text='Now Loading').grid(column=0, row=0)
-    splash.update()
+    frameCount = 41
+    frames = [Tk.PhotoImage(file=join('img','loading.gif'), format= f'gif -index {i}') for i in range(frameCount)]
+    label = Tk.Label(splash)
+    # label.configure(image=Tk.PhotoImage(file=join('img', 'logo.png')))
+    global app_start
+    app_start =False
+    def update(ind):
+        global app_start
+        frame = frames[ind]
+        ind+= 1
+        if ind==frameCount:
+            if not app_start:
+                load_app()
+                app_start = True
+            ind -=1
+        label.configure(image=frame)
+        splash.after(12, update, ind)
+        splash.update()
+    label.pack()
+    splash.after(0, update, 0)
+
+    # # method 2: (just a logo)
+    # global splash
+    # splash = Tk.Tk()
+    # splash.title('SimpliFire')
+    # splash.geometry('600x400')
+    # splash.grid_columnconfigure(0, weight=1)
+    # splash.grid_rowconfigure(0, weight=1)
+    #
+    # frameCount = 19
+    # global frames
+    # frames = [Tk.PhotoImage(file=join('img','loading_small_12fps.gif'), format= f'gif -index {i}') for i in range(frameCount)]
+    #
+    # label = Tk.Label(splash)
+    # label.configure(image=frames[18])
+    # label.pack(fill='both')
+    # splash.update()
+
+def load_app():
     from PyMini import app
-    splash.after(0, splash.destroy)
+
+    # splash.after(0, splash.destroy)
+    app.load(splash)
+
+    app.root.focus_force()
+    splash.withdraw()
+
+if __name__ == '__main__':
+
+    # t = Thread(target=load_splash)
+    # t.start()
+
+    # IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
+    # splash.iconbitmap(join('img', 'logo.ico'))
+    # # method 1:
+    # frameCount = 96
+    # frames = [Tk.PhotoImage(file=join('img','loading_small_12fps.gif'), format= f'gif -index {i}') for i in range(frameCount)]
+    # label = Tk.Label(splash)
+    # def update(ind):
+    #     frame = frames[ind]
+    #     ind+= 1
+    #     if ind==frameCount:
+    #         ind = 20
+    #     label.configure(image=frame)
+    #     splash.after(12, update, ind)
+    # label.pack()
+    # splash.after(0, update,0)
+
+    load_splash()
+    # splash.after(750, load_app)
     splash.mainloop()
 
-    root = app.load()
-    root.focus_force()
-    root.mainloop()
+
+    # t.root.quit()
+
+
+
+

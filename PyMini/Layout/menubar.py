@@ -9,13 +9,13 @@ import gc
 from PyMini import app
 # from PyMini.Layout import keybind_popup
 
-def load(parent):
+def load(menubar):
     global widgets
     widgets = {}
     global trace_mode
     trace_mode = 'continuous'
 
-    menubar = Tk.Menu(parent)
+    parent=menubar.master
 
     ##################################
     # add menu bar commands here

@@ -25,7 +25,7 @@ def load():
 
 def create_window():
     global window
-    window=Tk.Toplevel(app.root)
+    window=Tk.Toplevel()
     window.protocol('WM_DELETE_WINDOW', _on_close)
     window.title('Parameter guide')
     window.geometry('{}x{}'.format(config.geometry_param_guide[0], config.geometry_param_guide[1]))
