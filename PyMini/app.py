@@ -89,7 +89,9 @@ def load():
 
     global root
     root = Tk.Tk()
-    root.title('PyMini v{}'.format(config.version))
+    root.title('SimpliFire v{}'.format(config.version))
+    IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
+    root.iconbitmap(os.path.join(IMG_DIR, 'logo.ico'))
     root.geometry('{}x{}'.format(config.geometry[0], config.geometry[1]))
     if config.zoomed:
         root.state('zoomed')
@@ -101,7 +103,7 @@ def load():
 
     # root.bind(config.key_reset_focus, lambda e: data_display.table.focus_set())
 
-    IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
+
     global arrow_img
     arrow_img = Image.open(os.path.join(IMG_DIR, 'arrow.png'))
 
@@ -215,7 +217,6 @@ def load():
         cp_notebook.add(cp_tab_details[t]['tab'], text=cp_tab_details[t]['text'])
         cp_tab_details[t]['index'] = i
         globals()[cp_tab_details[t]['name']] = cp_tab_details[t]['module']
-    from Layout.style_tab import StyleTab
     # test = StyleTab(left, __import__(__name__), interface)
     # cp_notebook.add(test, text='test')
 
