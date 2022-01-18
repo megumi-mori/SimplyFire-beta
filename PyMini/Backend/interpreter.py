@@ -135,7 +135,7 @@ def initialize():
         except:
             pass
     for key in config.key_select:
-        bind_key_dp(key, press_function=interface.select_left)
+        bind_key_dp(key, release_function=interface.select_left)
 
 
 
@@ -197,17 +197,16 @@ def bind_key(key, press_function=None, release_function=None, target=None, add='
         return None
     # use for regular key press and release event binding
     # key binding must have '<' and '>'
+    key_format = key.strip('<')
+    key_format = key_format.strip('>')
+    pkey_upper = key_format.split('-')
+    pkey_lower = key_format.split('-')
+    for i, k in enumerate(pkey_upper):
+        if len(k) == 1:
+            pkey_upper[i] = k.upper()
+            pkey_lower[i] = k.lower()
+    pkey = ['-'.join(pkey_upper), '-'.join(pkey_lower)]
     if press_function is not None:
-        key_format=key.strip('<')
-        key_format=key_format.strip('>')
-        pkey_upper = key_format.split('-')
-        pkey_lower = key_format.split('-')
-        for i,k in enumerate(pkey_upper):
-            print(k)
-            if len(k) == 1:
-                pkey_upper[i] = k.upper()
-                pkey_lower[i] = k.lower()
-        pkey = ['-'.join(pkey_upper), '-'.join(pkey_lower)]
         for k in pkey:
             if '<' in key:
                 k = f'<{k}>'
