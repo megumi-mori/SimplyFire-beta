@@ -1,5 +1,5 @@
 import tkinter as Tk
-# import pkg_resources
+import pkg_resources
 from os.path import join
 from threading import Thread
 
@@ -25,13 +25,36 @@ def load_splash():
     #     except:
     #         pass
 
-    # IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
+    IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
+
     # method 1:
     global splash
-    splash = Tk.Tk()
-    splash.title('SimpliFire')
-    frameCount = 41
-    frames = [Tk.PhotoImage(file=join('img','loading.gif'), format= f'gif -index {i}') for i in range(frameCount)]
+    splash.title('SimplyFire')
+    # splash = Tk.Tk()
+    splash.wm_attributes('-toolwindow', True)
+
+    # frameCount = 42
+    # frames = [Tk.PhotoImage(file=join(IMG_DIR,'loading_12fps.gif'), format= f'gif -index {i}') for i in range(frameCount)]
+    # label = Tk.Label(splash)
+    # # label.configure(image=Tk.PhotoImage(file=join('img', 'logo.png')))
+    # global app_start
+    # app_start =False
+    # def update(ind):
+    #     global app_start
+    #     frame = frames[ind]
+    #     ind+= 1
+    #     if ind==frameCount:
+    #         ind =30
+    #     label.configure(image=frame)
+    #     if ind > 30:
+    #         splash.after(200, update, ind)
+    #     else:
+    #         splash.after(12, update, ind)
+    #     splash.update()
+    # label.pack()
+
+    frameCount = 28
+    frames = [Tk.PhotoImage(file=join(IMG_DIR,'loading.gif'), format= f'gif -index {i}') for i in range(frameCount)]
     label = Tk.Label(splash)
     # label.configure(image=Tk.PhotoImage(file=join('img', 'logo.png')))
     global app_start
@@ -41,16 +64,12 @@ def load_splash():
         frame = frames[ind]
         ind+= 1
         if ind==frameCount:
-            if not app_start:
-                load_app()
-                app_start = True
             ind -=1
         label.configure(image=frame)
-        splash.after(12, update, ind)
+        splash.after(30, update, ind)
         splash.update()
     label.pack()
     splash.after(0, update, 0)
-
     # # method 2: (just a logo)
     # global splash
     # splash = Tk.Tk()
@@ -74,8 +93,7 @@ def load_app():
     # splash.after(0, splash.destroy)
     app.load(splash)
 
-    app.root.focus_force()
-    splash.withdraw()
+
 
 if __name__ == '__main__':
 
@@ -98,7 +116,13 @@ if __name__ == '__main__':
     # label.pack()
     # splash.after(0, update,0)
 
-    load_splash()
+    # load_splash()
+    t = Thread(target = load_splash)
+    global splash
+    splash = Tk.Tk()
+    splash.after(0, t.start)
+    t2 = Thread(target = load_app)
+    splash.after(0, t2.start)
     # splash.after(750, load_app)
     splash.mainloop()
 

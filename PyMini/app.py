@@ -90,12 +90,13 @@ def load(splash):
     # tracemalloc.start()
     config.load()
     global root
+    global loaded
+    loaded = False
     root = Tk.Toplevel()
-    root.lower(splash)
-    root.title('SimpliFire v{}'.format(config.version))
+    root.withdraw()
+    root.title('SimplyFire v{}'.format(config.version))
     IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
-    root.iconbitmap(os.path.join(IMG_DIR, 'logo.ico'))
-    root.geometry('{}x{}'.format(config.geometry[0], config.geometry[1]))
+    root.iconbitmap(os.path.join(IMG_DIR, 'logo_bw.ico'))
     if config.zoomed:
         root.state('zoomed')
     root.bind('<Control-o>', lambda e:menubar.ask_open_trace())
@@ -115,7 +116,7 @@ def load(splash):
     arrow_img = Image.open(os.path.join(IMG_DIR, 'arrow.png'))
 
     global widgets
-
+    global pw
     pw = Tk.PanedWindow(
         root,
         orient=Tk.HORIZONTAL,
@@ -199,7 +200,6 @@ def load(splash):
     #############################################################
     # Insert custom tabs here to include in the control panel
     #############################################################
-
     global cp_tab_details
     cp_tab_details = {
         'mini': {'module': detector_tab, 'text': 'Analysis', 'partner': ['evoked'], 'name':'detector_rab'},
@@ -218,6 +218,9 @@ def load(splash):
         cp_notebook.add(cp_tab_details[t]['tab'], text=cp_tab_details[t]['text'])
         cp_tab_details[t]['index'] = i
         globals()[cp_tab_details[t]['name']] = cp_tab_details[t]['module']
+
+    # root.bind('<Configure>', print)
+
     # test = StyleTab(left, __import__(__name__), interface)
     # cp_notebook.add(test, text='test')
 
@@ -257,10 +260,8 @@ def load(splash):
     pw.add(right)
 
     # adjust frame width
-    # root.update()
+    root.update()
     pw.paneconfig(cp, width=int(config.cp_width))
-    pw.bind('<ButtonPress>', print)
-
 
     ##################################################
     #                    MENU BAR                    #
@@ -280,13 +281,19 @@ def load(splash):
 
     # set up event bindings
     interpreter.initialize()
-
+    root.deiconify()
     # # finalize the data viewer - table
+    root.geometry(config.geometry)
     root.update()
     data_display.fit_columns()
     evoked_data_display.fit_columns()
 
     ## root2 = root
+    loaded = True
+    root.focus_force()
+    splash.withdraw()
+    print(root.winfo_width())
+    print(root.winfo_height())
     return None
 
 
@@ -314,11 +321,12 @@ def dump_user_setting(filename=None):
             except:
                 d[key] = widgets[key].get()
         global cp
-        d['zoomed'] = root.state() == 'zoomed'
-        if not root.state() == 'zoomed':
-            d['cp_width'] = cp.winfo_width()
-            d['gp_height'] = gp.winfo_height()
-            d['geometry'] = [root.winfo_width(), root.winfo_height()]
+        if loaded:
+            d['zoomed'] = root.state() == 'zoomed'
+            if not root.state() == 'zoomed':
+                d['cp_width'] = cp.winfo_width()
+                d['gp_height'] = gp.winfo_height()
+                d['geometry'] = root.geometry().split('+')[0]
 
         d['compare_color_list'] = config.compare_color_list
         d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
