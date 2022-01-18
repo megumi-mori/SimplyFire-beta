@@ -714,7 +714,6 @@ def select_left(e=None):
     If there are marked minis in the plot, the left most mini will be highlighted.
     If a mini in the viewing window is already highlighted, the highlight will move to the proceeding mini.
     """
-    print('select_left called')
     # check if mini analysis mode is activated
     if app.widgets['analysis_mode'].get()!= 'mini':
         return None

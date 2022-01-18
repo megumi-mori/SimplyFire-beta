@@ -338,8 +338,7 @@ def report(xs, ys, data, clear_plot=False):
                   xs[int(min(data['peak_idx'] + data['decay_max_points'], len(xs) - 1))])
         )
         plot_start(data['start_coord_x'], data['start_coord_y'])
-    except Exception as e:  # start not found
-        print(f'param_guide report plot recording call {e}')
+    except:
         pass
 
     try:
@@ -355,8 +354,7 @@ def report(xs, ys, data, clear_plot=False):
                 xs[int(data['base_idx_L']):int(data['base_idx_R'])],
                 ys[int(data['base_idx_L']):int(data['base_idx_R'])]
             )
-    except Exception as e:
-        print(f'base idx plotting exception {e}')
+    except:
         pass
     try:
         msg_label.insert('Baseline: {:.3f} {}\n'.format(data['baseline'], data['baseline_unit']))
@@ -408,7 +406,7 @@ def report(xs, ys, data, clear_plot=False):
                            direction=data['direction'])
         plot_decay_point(data['decay_coord_x'], data['decay_coord_y'])
     except Exception as e:
-        print(e)
+        pass
     try:
         plot_halfwidth((data['halfwidth_start_coord_x'], data['halfwidth_start_coord_y']),
                                    (data['halfwidth_end_coord_x'], data['halfwidth_end_coord_y']))
