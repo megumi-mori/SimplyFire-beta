@@ -133,11 +133,61 @@ def load(parent):
         label='Number of steps to store in memory for undo (Experimental)',
     )
 
+    optionframe.insert_title(
+        text='Window size'
+    )
+    widgets['window_width'] = optionframe.insert_label_entry(
+        name='window_width',
+        label='Window width (px)',
+        value=config.geometry.split('x')[0],
+        default=config.default_geometry.split('x')[0]
+    )
+    widgets['window_width'].bind('<Return>', apply_geometry)
+    widgets['window_height'] = optionframe.insert_label_entry(
+        name='window_height',
+        label='Window height (px)',
+        value=config.geometry.split('x')[1],
+        default=config.default_geometry.split('x')[1]
+    )
+    widgets['window_height'].bind('<Return>', apply_geometry)
+    widgets['cp_width'] = optionframe.insert_label_entry(
+        name='cp_width',
+        label='Control panel width (px)',
+    )
+    widgets['cp_width'].bind('<Return>', apply_geometry)
+    widgets['gp_height'] = optionframe.insert_label_entry(
+        name='gp_height',
+        label='Graph panel height (px)'
+    )
+    widgets['gp_height'].bind('<Return>', apply_geometry)
+    app.root.bind('<Configure>', change_geometry_entries)
+    app.cp.bind('<Configure>', change_pw_entries)
+    app.gp.bind('<Configure>', change_gp_entries)
+
+
+
+    optionframe.insert_button(
+        text='Apply',
+        command=apply_geometry
+    )
     return frame
 def load_config(e=None):
     interface.focus()
     app.load_config()
 
+def apply_geometry(e=None):
+    app.root.geometry(f'{widgets["window_width"].get()}x{widgets["window_height"].get()}')
+    app.pw.paneconfig(app.cp, width=int(widgets['cp_width'].get()))
+    app.pw_2.paneconfig(app.gp, height=int(widgets['gp_height'].get()))
+def change_geometry_entries(e=None):
+    geometry = app.root.geometry().split('+')
+    geometry[0] = geometry[0].split('x')
+    widgets['window_width'].set(geometry[0][0])
+    widgets['window_height'].set(geometry[0][1])
+def change_gp_entries(e=None):
+    widgets['gp_height'].set(app.gp.winfo_height())
+def change_pw_entries(e=None):
+    widgets['cp_width'].set(app.cp.winfo_width())
 def default(e=None):
     interface.focus()
     optionframe.default(widgets=widgets)
