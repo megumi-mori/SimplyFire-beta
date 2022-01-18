@@ -677,7 +677,7 @@ class Analyzer():
                        channel=0,
                        sweeps=None,
                        auto_radius=None,
-                       kernel=None,
+                       kernel=100,
                        stride=None,
                        direction=1,
                        reference_df=True,
@@ -705,7 +705,7 @@ class Analyzer():
             sweeps: list of int indicating the sweeps to analyzer. If left None, all sweeps will be considered
             auto_radius: x-axis window to be considered per iteration in ms.
                 If left empty, defaults to the values indicated in kernel and stride parameters
-            kernel: float representing the x-axis window to consider per iteration.
+            kernel: int representing the number of indices to consider per iteration.
                 The most extreme data point within the kernel will be tested as a candidate mini peak.
                 Should be smaller than the shortest interval between two minis within the recording.
                 Larger kernel size can speed up the search.
