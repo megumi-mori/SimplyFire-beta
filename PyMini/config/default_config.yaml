@@ -12,12 +12,10 @@
 #################################################################
 
 # version
-version : 'b2.0.5'
+version : '2.0.6'
 
 #aesthetics
-default_geometry :
-  - 900
-  - 600
+default_geometry : '900x600'
 default_zoomed : 0
 
 default_relative_cp_width : 0.25
@@ -225,7 +223,8 @@ default_key_delete:
 default_key_select_all:
   - '<Control-a>'
 default_key_select_window:
-  - '<Control-A>'
+  - '<Control-Shift_L-A>'
+  - '<Control-Shift_R-A>'
 default_key_multi_select:
   - '<Shift_L>'
   - '<Shift_R>'
@@ -266,7 +265,7 @@ default_key_toolbar_pan:
 default_key_toolbar_zoom:
   - '<Key-x>'
 default_key_select:
-  - '<space>'
+  - '<Key-g>'
 
 default_key_undo:
   - '<Control-z>'
