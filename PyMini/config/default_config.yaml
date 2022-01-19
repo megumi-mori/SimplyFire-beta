@@ -12,7 +12,7 @@
 #################################################################
 
 # version
-version : '2.0.6'
+version : '2.1.0'
 
 #aesthetics
 default_geometry : '900x600'
@@ -166,6 +166,8 @@ default_style_trace_highlight_width: 0.25
 
 default_style_event_pick_offset : 0
 default_style_trace_pick_offset_percent : 10
+
+default_style_export_transparency: 1
 
 default_show_peak : "1"
 default_show_decay : "1"

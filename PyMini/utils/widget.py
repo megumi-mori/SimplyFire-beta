@@ -3,6 +3,7 @@ from tkinter import ttk, font
 from PyMini.config import config
 from PyMini.utils import validation
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+import matplotlib as mpl
 import yaml
 from PyMini import app
 import textwrap
@@ -411,7 +412,14 @@ class VarLabel(VarWidget, ttk.Label):
 
 class NavigationToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas, parent):
-        self.toolitems = [t for t in self.toolitems if t[0] in ('Pan', 'Zoom', 'Save')]
+        # self.toolitems = [t for t in self.toolitems if t[0] in ('Pan', 'Zoom', 'Save')]
+        self.toolitems = (
+            ('Pan', '', 'move', 'pan'),
+            # (None,None,None,None),
+            ('Zoom', '', 'zoom_to_rect', 'zoom'),
+            # (None,None,None,None),
+            ('Save', '', 'filesave', 'save_figure')
+        )
         NavigationToolbar2Tk.__init__(self, canvas, parent)
 
         # self.add_toolitem(name='test', position=-1, image='img/arrow.png')
@@ -448,6 +456,46 @@ class NavigationToolbar(NavigationToolbar2Tk):
 
         self.canvas.widgetlock(self)
 
+    def save_figure(self, *args):
+        #overwrite nagive save_figure function
+        filetypes = self.canvas.get_supported_filetypes().copy()
+        default_filetype = self.canvas.get_default_filetype()
+
+        # Tk doesn't provide a way to choose a default filetype,
+        # so we just have to put it first
+        default_filetype_name = filetypes.pop(default_filetype)
+        sorted_filetypes = ([(default_filetype, default_filetype_name)]
+                            + sorted(filetypes.items()))
+        tk_filetypes = [(name, '*.%s' % ext) for ext, name in sorted_filetypes]
+
+        # adding a default extension seems to break the
+        # asksaveasfilename dialog when you choose various save types
+        # from the dropdown.  Passing in the empty string seems to
+        # work - JDH!
+        # defaultextension = self.canvas.get_default_filetype()
+        defaultextension = ''
+        initialdir = os.path.expanduser(mpl.rcParams['savefig.directory'])
+        initialfile = self.canvas.get_default_filename()
+        fname = Tk.filedialog.asksaveasfilename(
+            master=self.canvas.get_tk_widget().master,
+            title='Save the figure',
+            filetypes=tk_filetypes,
+            defaultextension=defaultextension,
+            initialdir=initialdir,
+            initialfile=initialfile,
+            )
+
+        if fname in ["", ()]:
+            return
+        # Save dir for next time, unless empty str (i.e., use cwd).
+        if initialdir != "":
+            mpl.rcParams['savefig.directory'] = (
+                os.path.dirname(str(fname)))
+        try:
+            # This method will handle the delegation to the correct type
+            self.canvas.figure.savefig(fname, transparent=app.widgets['style_export_transparency'].get() == '1')
+        except Exception as e:
+            Tk.messagebox.showerror("Error saving file", str(e))
 
 
 class PseudoFrame():
@@ -619,7 +667,7 @@ class DataTable(Tk.Frame):
             for i, (idx, row) in enumerate(dataframe.iterrows()):
                 try:
                     self.table.insert('', 'end', iid=row[self.iid_header],
-                                      values=[row.get(k) for k in self.columns])
+                                      values=[row.get(k, None) for k in self.columns])
                     app.pb['value'] = i/total*100
                     app.pb.update()
                 except Exception as e:

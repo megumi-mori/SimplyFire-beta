@@ -165,6 +165,15 @@ def load(parent):
         command=hide_all
     )
     b.bind('<ButtonPress-1>', hide_all, add='+')
+    ####################################
+    # Export options
+    ####################################
+    widgets['style_export_transparency'] = optionframe.insert_label_checkbox(
+        name='style_export_transparency',
+        label='Export with transparent background',
+        onvalue='1',
+        offvalue='',
+    )
     return frame
 def apply_styles(e=None):
     global entries
