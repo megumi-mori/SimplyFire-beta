@@ -29,9 +29,9 @@ def load(menubar):
     file_menu.add_command(label="Open trace \t Ctrl+o", command=ask_open_trace)
     file_menu.add_command(label='Save trace as...', command=ask_save_trace)
     file_menu.add_separator()
-    file_menu.add_command(label='Open event file', command=open_events)
+    file_menu.add_command(label='Open mini data file', command=open_events)
     # file_menu.add_command(label='Save event file', command=interface.save_events_dialogue)
-    file_menu.add_command(label='Save event file as...', command=interface.save_events_as_dialogue)
+    file_menu.add_command(label='Save mini data as...', command=interface.save_events_as_dialogue)
 
     file_menu.add_separator()
     file_menu.add_command(label='Export mini analysis table', command=export_events)
@@ -164,7 +164,7 @@ def open_events():
     if len(interface.recordings)==0:
         messagebox.showerror('Open error', message='Please open a trace first')
         return None
-    filename = filedialog.askopenfilename(filetype=[('event files', '*.event'), ('All files', "*.*")],
+    filename = filedialog.askopenfilename(filetype=[('mini data files', '*.event *.minipy'), ('All files', "*.*")],
                                             defaultextension='.event')
     if filename:
         interface.open_events(filename)
