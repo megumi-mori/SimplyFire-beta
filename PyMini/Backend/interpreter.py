@@ -28,7 +28,7 @@ def initialize():
         bind_key(key, press_function=unselect_key, target=app.data_display.table, add="")
 
     for key in config.key_delete:
-        bind_key(key, press_function=delete_key, target=app.trace_display.canvas.get_tk_widget())
+        bind_key(key, release_function=delete_key, target=app.trace_display.canvas.get_tk_widget())
 
     for key in config.key_select_all:
         bind_key(key, press_function=select_all_key, target=app.trace_display.canvas.get_tk_widget())
