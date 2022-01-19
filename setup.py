@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name='PyMini',
-    version='b2.0.6',
+    version='b2.1.0',
     author='Megumi Mori GitHub@megumi-mori',
     packages=['PyMini'],
     pakage_dir={'PyMini': 'PyMini'},

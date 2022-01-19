@@ -1,5 +1,15 @@
 # PyMini
-
+- version b2.1.0
+  - New feature
+    - allow saved figures to have transparent background
+  - Fixed bugs
+    - key-binding not reacting when view mode = overlay and analysis mode = mini (fix widget focus targets)
+    - Matplotlib toolbar more responsive after removing the popup text
+  - Minor adjustments
+    - minipy files are part of the initial suggested filetypes when opening mini data files
+    - prompt for save/open mini files edited to 'Open mini data files' and 'Save mini data as...'
+  
+  
 - Jan 12, 2022 b2.0.5
   - fixed len recordings check in interface during filtering
   - easier navigation with arrow keys (for mini data table) and space bar to select first mini in view (or toggle to next)
