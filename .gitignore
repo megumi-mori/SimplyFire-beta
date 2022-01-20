@@ -1,0 +1,8 @@
+
+*.xml
+*.pyc
+PyMini/config/key_map.yaml
+PyMini/config/system_config.yaml
+PyMini/config/user_config.yaml
+*.temp
+*.iml
