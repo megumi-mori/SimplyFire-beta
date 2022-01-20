@@ -38,6 +38,7 @@ def _on_close():
         try:
             dump_user_setting()
         except:
+            Tk.messagebox.showinfo(title='Error', message='Error while writing out user preferences.\n Please select a new filename.')
             f = setting_tab.save_config_as()
             if f:
                 widgets['config_user_path'].set(f)
