@@ -559,7 +559,7 @@ def process_batch():
                         else:
                             batch_log.insert(f'Opening file {f}\n')
                         try:
-                            interface.open_trace(f)
+                            interface.open_recording(f)
                         except:
                             batch_log.insert(f'Error opening file.\n')
                     else:

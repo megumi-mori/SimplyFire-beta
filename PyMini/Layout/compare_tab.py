@@ -69,7 +69,7 @@ def add_trace(e=None):
     fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', '*.abf'), ('csv files', '*.csv'), ('All files', '*.*')])
     if not fname:
         return None
-    interface.open_trace(fname, append=True)
+    interface.open_recording(fname, append=True)
 
 
 def reset_trace_list(fname):

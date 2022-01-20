@@ -26,8 +26,8 @@ def load(menubar):
     file_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='File', menu=file_menu)
 
-    file_menu.add_command(label="Open recording \t Ctrl+o", command=ask_open_trace)
-    file_menu.add_command(label='Save recording data as...', command=ask_save_trace)
+    file_menu.add_command(label="Open recording \t Ctrl+o", command=ask_open_recording)
+    file_menu.add_command(label='Save recording data as...', command=ask_save_recording)
     file_menu.add_command(label='Export plot as...', command=ask_save_plot)
     file_menu.add_separator()
     file_menu.add_command(label='Open mini data file', command=open_events)
@@ -87,14 +87,14 @@ def load(menubar):
     undo_disable()
     return menubar
 
-def ask_open_trace():
+def ask_open_recording():
     gc.collect()
     if ask_save_events() is None:
         return None
     fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('csv files', '*.csv'), ('All files', '*.*')])
     if not fname:
         return None
-    interface.open_trace(fname)
+    interface.open_recording(fname)
     app.compare_tab.start_msg.grid_forget()
     interface.focus()
     return fname
@@ -113,7 +113,7 @@ def ask_save_events():
 def ask_save_plot(e=None):
     app.trace_display.canvas.toolbar.save_figure()
 
-def ask_save_trace(e=None, save_events=True):
+def ask_save_recording(e=None, save_events=True):
     if len(interface.recordings)==0:
         messagebox.showerror(title='Error', message='No recording to export. Please open a recording first.')
         return None
@@ -127,12 +127,12 @@ def ask_save_trace(e=None, save_events=True):
                                                     defaultextension='.abf',
                                                     initialfile=initialfname)
             if filename:
-                interface.save_trace(filename)
-                interface.open_trace(filename, xlim=app.trace_display.ax.get_xlim(),
-                             ylim=app.trace_display.ax.get_ylim())
+                interface.save_recording(filename)
+                interface.open_recording(filename, xlim=app.trace_display.ax.get_xlim(),
+                             ylim=app.trace_display.ax.get_ylim()) #move this to interface?
         except (FileExistsError):
             messagebox.showerror(title='Error', message='ABF files cannot be overwritten. Please choose another filename.')
-            ask_save_trace(save_events=False)
+            ask_save_recording(save_events=False)
 
 def export_events():
     if len(interface.recordings) == 0:
