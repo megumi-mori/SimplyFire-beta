@@ -5,24 +5,23 @@ from PyMini.Backend import analyzer2
 # from PyMini import app
 import time
 
-def writeABF1(ys, filename, sampleRateHz, units=['pA'], labels=['label1']):
+def writeABF1(recording, filename):
     """
     Create an ABF1 file from scratch and write it to disk.
     Files created with this function are compatible with MiniAnalysis.
     Data is expected to be a 3D numpy array [channels, sweep, datapoint].
     """
-    print(type(ys))
 
-    assert isinstance(ys, np.ndarray)
+    assert isinstance(recording.y_data, np.ndarray)
 
     # constants for ABF1 files
     BLOCKSIZE = 512
     HEADER_BLOCKS = 4
 
     # determine dimensions of data
-    channelCount = ys.shape[0]
-    sweepCount = ys.shape[1]
-    sweepPointCount = ys.shape[2]
+    channelCount = recording.y_data.shape[0]
+    sweepCount = recording.y_data.shape[1]
+    sweepPointCount = recording.y_data.shape[2]
     dataPointCount = sweepPointCount*sweepCount*channelCount
 
     # predict how large our file must be and create a byte array of that size
@@ -39,7 +38,7 @@ def writeABF1(ys, filename, sampleRateHz, units=['pA'], labels=['label1']):
     struct.pack_into('i', data, 40, HEADER_BLOCKS)  # lDataSectionPtr
     struct.pack_into('h', data, 100, 0)  # nDataFormat is 1 for float32
     struct.pack_into('h', data, 120, channelCount)  # nADCNumChannels
-    struct.pack_into('f', data, 122, 1e6 / sampleRateHz/channelCount)  # fADCSampleInterval
+    struct.pack_into('f', data, 122, 1e6 / recording.sampling_rate/channelCount)  # fADCSampleInterval
     struct.pack_into('i', data, 138, sweepPointCount*channelCount)  # lNumSamplesPerEpisode
 
     # These ADC adjustments are used for integer conversion. It's a good idea
@@ -51,7 +50,7 @@ def writeABF1(ys, filename, sampleRateHz, units=['pA'], labels=['label1']):
     lADCResolution = 2**15  # 16-bit signed = +/- 32768
 
     # determine the peak data deviation from zero
-    maxVal = np.max(np.abs(ys))
+    maxVal = np.max(np.abs(recording.y_data))
 
     # set the scaling factor to be the biggest allowable to accommodate the data
     fInstrumentScaleFactor = 100
@@ -65,13 +64,13 @@ def writeABF1(ys, filename, sampleRateHz, units=['pA'], labels=['label1']):
 
     # prepare units as a space-padded 8-byte string
     unitString = ['pA']*16
-    unitString[:len(units)] = units
+    unitString[:channelCount] = recording.channel_units
     for i in range(len(unitString)):
         while len(unitString[i]) < 8:
             unitString[i] += " "
 
     labelString = [' ']*16
-    labelString[:len(labels)] = labels
+    labelString[:channelCount] = recording.channel_names
     for i in range(len(labelString)):
         while len(labelString[i]) < 10:
             labelString[i] += " "
@@ -89,8 +88,8 @@ def writeABF1(ys, filename, sampleRateHz, units=['pA'], labels=['label1']):
 
     # fill data portion with scaled data from signal
     dataByteOffset = BLOCKSIZE * HEADER_BLOCKS
-    ys_interleaved = np.empty((channelCount*sweepCount*sweepPointCount), dtype=ys.dtype)
-    ys = np.reshape(ys, (channelCount, 1, sweepCount*sweepPointCount))
+    ys_interleaved = np.empty((channelCount*sweepCount*sweepPointCount), dtype=recording.y_data.dtype)
+    ys = np.reshape(recording.y_data, (channelCount, 1, sweepCount*sweepPointCount))
     for i in range(channelCount):
         ys_interleaved[i::channelCount] = ys[i][0]
     ys_interleaved = ys_interleaved * valueScale
@@ -115,14 +114,15 @@ if __name__=='__main__':
     # print(test_data_combined.shape)
     # print(test_data_combined[0].shape)
 
-    read_filename = "19911002-2.abf"
+    read_filename = "D:\megum\Documents\GitHub\PyMini-GHD\PyMini-GHD\\test_recordings\\20112011-EJC test.abf"
     recording = analyzer2.Recording(read_filename)
-    write_filename = 'write_test_mEJC.abf'
+    write_filename = 'D:\megum\Documents\GitHub\PyMini-GHD\PyMini-GHD\\test_recordings\write_test_mEJC.abf'
 
     sampling_rate = recording.sampling_rate
     data = recording.y_data
     print(f'shape of recording data: {data.shape}')
-    writeABF1(data, write_filename, sampleRateHz=sampling_rate,units=['mV', 'nA'], labels=['1', '2'])
+    writeABF1(recording, recording.y_data, write_filename)
     # filename = "19911002-2.abf"
     reopen_data = pyabf.abf.ABF(write_filename)
     print(f'shape of re-opened data: {reopen_data.data.shape}')
+    print(reopen_data.sweepCount)
