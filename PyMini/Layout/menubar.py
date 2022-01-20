@@ -71,6 +71,7 @@ def load(menubar):
     analysis_menu.add_separator()
 
     # Window menu
+    global window_menu
     window_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='Window', menu=window_menu)
     widgets['window_param_guide'] = VarWidget(name='window_param_guide')
