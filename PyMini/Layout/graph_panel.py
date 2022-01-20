@@ -13,14 +13,16 @@ import pkg_resources
 
 
 def load(parent):
+    global widgets
+    widgets = {}
     ##################################################
     #                    Methods                     #
     ##################################################
     def force_channel(event=None):
         if app.get_value('force_channel') == '1':
-            app.get_widget('force_channel_id').config(state='normal')
+           widgets['force_channel_id'].config(state='normal')
         else:
-            app.get_widget('force_channel_id').config(state='disabled')
+            widgets['force_channel_id'].config(state='disabled')
 
     def scroll_x(dir):
         # trace_display.start_animation()
@@ -162,9 +164,8 @@ def load(parent):
     navigation_toolbar = widget.NavigationToolbar(trace_display.canvas, toolbar_frame)
     navigation_toolbar.grid(column=0, row=0, sticky='news')
 
-
-    app.widgets['trace_info'] = widget.VarLabel(toolbar_frame, text='no file open')
-    app.widgets['trace_info'].grid(column=0, row=1, sticky='news')
+    widgets['trace_info'] = widget.VarLabel(toolbar_frame, text='no file open')
+    widgets['trace_info'].grid(column=0, row=1, sticky='news')
 
     channel_frame = scrollable_option_frame.OptionFrame(upper_frame)#, scrollbar = False)
     channel_frame.grid(column=1, row=0, sticky='ews')
@@ -172,7 +173,7 @@ def load(parent):
     channel_frame.grid_rowconfigure(1, weight=1)
     channel_frame.grid_columnconfigure(0, weight=1)
 
-    app.widgets['channel_option'] = channel_frame.insert_label_optionmenu(
+    widgets['channel_option'] = channel_frame.insert_label_optionmenu(
         name='channel_option',
         label='channel',
         value='',
@@ -180,7 +181,7 @@ def load(parent):
         options=[''],
     )
 
-    app.widgets['force_channel'] = channel_frame.insert_label_checkbox(
+    widgets['force_channel'] = channel_frame.insert_label_checkbox(
         name='force_channel',
         label='Always open the same channel:',
         onvalue=1,
@@ -188,13 +189,13 @@ def load(parent):
         command=force_channel
     )
 
-    app.widgets['force_channel_id'] = widget.VarEntry(
-        parent=app.widgets['force_channel'].master,
+    widgets['force_channel_id'] = widget.VarEntry(
+        parent=widgets['force_channel'].master,
         name='force_channel_id',
         validate_type='int'
     )
     force_channel()
-    app.widgets['force_channel_id'].grid(column=2, row=0, sticky='ews')
+    widgets['force_channel_id'].grid(column=2, row=0, sticky='ews')
 
     x_zoom_frame = Tk.Frame(frame, bg='orange')
     x_zoom_frame.grid_rowconfigure(0, weight=1)

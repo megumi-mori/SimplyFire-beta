@@ -226,8 +226,8 @@ def load(splash):
     # cp_notebook.add(test, text='test')
 
     # get reference to widgets
-    for key in ['mini', 'evoked', 'adjust',  'navigation', 'style', 'setting']:
-        for k, v in cp_tab_details[key]['module'].widgets.items():
+    for module in [detector_tab, evoked_tab, adjust_tab, navigation_tab, style_tab, setting_tab, graph_panel]:
+        for k, v in module.widgets.items():
             widgets[k] = v
     setting_tab.set_fontsize(widgets['font_size'].get())
     # set focus rules
