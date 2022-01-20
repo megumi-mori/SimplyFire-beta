@@ -696,11 +696,11 @@ def filter_mini(xlim=None):
     params = detector_tab.extract_mini_parameters()
     app.pb['value']=20
     app.pb.update()
+    global mini_df
     try:
-        new_df = al.filter_mini(mini_df=None, xlim=xlim, **params)
+        new_df = al.filter_mini(mini_df=mini_df, xlim=xlim, **params)
     except:
         pass
-    global mini_df
     mini_df = new_df
     app.pb['value']=40
     app.pb.update()
