@@ -324,22 +324,23 @@ def config_cp_tab(tab_name, **kwargs):
     Returns:
         None
     """
-    # check if current tab would be replaced by the new tab being displayed
-    try:
-        if kwargs['state'] == 'normal':
-            idx = app.cp_notebook.index('current')
-            if idx in [app.cp_tab_details[tab]['index'] for tab in app.cp_tab_details[tab_name]['partner']]:
-                idx = app.cp_tab_details[tab_name]['index']
-            for partner in app.cp_tab_details[tab_name]['partner']:
-                app.cp_notebook.tab(app.cp_tab_details[partner]['tab'], state='hidden')
-            app.cp_notebook.tab(app.cp_tab_details[tab_name]['tab'], state='normal')
-            app.cp_notebook.select(idx)
-            return
-    except Exception as e:
-        print(f'config_cp_tab error {e}')
-        pass
-    else:
-        app.cp_notebook.tab(app.cp_tab_details[tab_name]['tab'], **kwargs)
+    pass
+    # # check if current tab would be replaced by the new tab being displayed
+    # try:
+    #     if kwargs['state'] == 'normal':
+    #         idx = app.cp_notebook.index('current')
+    #         if idx in [app.cp_tab_details[tab]['index'] for tab in app.cp_tab_details[tab_name]['partner']]:
+    #             idx = app.cp_tab_details[tab_name]['index']
+    #         for partner in app.cp_tab_details[tab_name]['partner']:
+    #             app.cp_notebook.tab(app.cp_tab_details[partner]['tab'], state='hidden')
+    #         app.cp_notebook.tab(app.cp_tab_details[tab_name]['tab'], state='normal')
+    #         app.cp_notebook.select(idx)
+    #         return
+    # except Exception as e:
+    #     print(f'config_cp_tab error {e}')
+    #     pass
+    # else:
+    #     app.cp_notebook.tab(app.cp_tab_details[tab_name]['tab'], **kwargs)
 
 def config_data_tab(tab_name, **kwargs):
     """

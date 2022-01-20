@@ -11,7 +11,7 @@ from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, 
     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar,\
     compare_tab
 from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display, param_guide
-
+import importlib
 
 # debugging
 import tracemalloc
@@ -202,23 +202,24 @@ def load(splash):
     # Insert custom tabs here to include in the control panel
     #############################################################
     global cp_tab_details
-    cp_tab_details = {
-        'mini': {'module': detector_tab, 'text': 'Analysis', 'partner': ['evoked'], 'name':'detector_rab'},
-        'evoked': {'module': evoked_tab, 'text': 'Analysis', 'partner': ['mini'], 'name':'evoked_tab'},
-        'continuous': {'module': continuous_tab, 'text': 'View', 'partner': ['overlay', 'compare'], 'name':'continuous_tab'},
-        'overlay': {'module': sweep_tab, 'text': 'View', 'partner': ['continuous', 'compare'], 'name':'sweep_tab'},
-        'compare':{'module': compare_tab, 'text': 'View', 'partner': ['continuous', 'overlay'], 'name':'compare_tab'},
-        'adjust': {'module': adjust_tab, 'text': 'Adjust', 'partner': [], 'name':'adjust_tab'},
-        'navigation': {'module': navigation_tab, 'text': 'Navi', 'partner': [], 'name':'navigation_tab'},
-        'style':{'module': style_tab, 'text': 'Style', 'partner': [], 'name':'style_tab'},
-        'setting':{'module': setting_tab, 'text': 'Setting', 'partner': [], 'name':'setting_tab'}
-    }
 
-    for i, t in enumerate(cp_tab_details):
-        cp_tab_details[t]['tab'] = cp_tab_details[t]['module'].load(cp)
-        cp_notebook.add(cp_tab_details[t]['tab'], text=cp_tab_details[t]['text'])
-        cp_tab_details[t]['index'] = i
-        globals()[cp_tab_details[t]['name']] = cp_tab_details[t]['module']
+    # cp_tab_details = {
+    #     'mini': {'module': detector_tab, 'text': 'Analysis', 'partner': ['evoked'], 'name':'detector_rab'},
+    #     'evoked': {'module': evoked_tab, 'text': 'Analysis', 'partner': ['mini'], 'name':'evoked_tab'},
+    #     'continuous': {'module': continuous_tab, 'text': 'View', 'partner': ['overlay', 'compare'], 'name':'continuous_tab'},
+    #     'overlay': {'module': sweep_tab, 'text': 'View', 'partner': ['continuous', 'compare'], 'name':'sweep_tab'},
+    #     'compare':{'module': compare_tab, 'text': 'View', 'partner': ['continuous', 'overlay'], 'name':'compare_tab'},
+    #     'adjust': {'module': adjust_tab, 'text': 'Adjust', 'partner': [], 'name':'adjust_tab'},
+    #     'navigation': {'module': navigation_tab, 'text': 'Navi', 'partner': [], 'name':'navigation_tab'},
+    #     'style':{'module': style_tab, 'text': 'Style', 'partner': [], 'name':'style_tab'},
+    #     'setting':{'module': setting_tab, 'text': 'Setting', 'partner': [], 'name':'setting_tab'}
+    # }
+    #
+    # for i, t in enumerate(cp_tab_details):
+    #     cp_tab_details[t]['tab'] = cp_tab_details[t]['module'].load(cp)
+    #     cp_notebook.add(cp_tab_details[t]['tab'], text=cp_tab_details[t]['text'])
+    #     cp_tab_details[t]['index'] = i
+    #     globals()[cp_tab_details[t]['name']] = cp_tab_details[t]['module']
 
     # root.bind('<Configure>', print)
 
@@ -226,20 +227,20 @@ def load(splash):
     # cp_notebook.add(test, text='test')
 
     # get reference to widgets
-    for module in [detector_tab, evoked_tab, adjust_tab, navigation_tab, style_tab, setting_tab, graph_panel]:
-        for k, v in module.widgets.items():
-            widgets[k] = v
-    setting_tab.set_fontsize(widgets['font_size'].get())
-    # set focus rules
-    for key in widgets:
-        if type(widgets[key]) == widget.VarEntry:
-            widgets[key].bind('<Return>', lambda e: interface.focus(), add='+')
-        if type(widgets[key]) == widget.VarCheckbutton:
-            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
-        if type(widgets[key]) == widget.VarOptionmenu:
-            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
-        if type(widgets[key]) == widget.VarCheckbutton:
-            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
+    # for module in [detector_tab, evoked_tab, adjust_tab, navigation_tab, style_tab, setting_tab, graph_panel]:
+    #     for k, v in module.widgets.items():
+    #         widgets[k] = v
+    # setting_tab.set_fontsize(widgets['font_size'].get())
+    # # set focus rules
+    # for key in widgets:
+    #     if type(widgets[key]) == widget.VarEntry:
+    #         widgets[key].bind('<Return>', lambda e: interface.focus(), add='+')
+    #     if type(widgets[key]) == widget.VarCheckbutton:
+    #         widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
+    #     if type(widgets[key]) == widget.VarOptionmenu:
+    #         widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
+    #     if type(widgets[key]) == widget.VarCheckbutton:
+    #         widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
 
     # set up font adjustment bar
     # fb = font_bar.load(left, config.font_size)
@@ -277,6 +278,22 @@ def load(splash):
 
     for k, v in menubar.widgets.items():
         widgets[k] = v
+
+
+    with open(os.path.join(config.CONFIG_DIR, 'modules.yaml')) as f:
+        cp_tabs = yaml.safe_load(f)
+        directories = next(os.walk(pkg_resources.resource_filename('PyMini', 'Modules/')))[1]
+        # directories = os.listdir()
+        for index, module_name in enumerate(directories):
+            try:
+                module = importlib.import_module(f'PyMini.Modules.{module_name}.{module_name}')
+                globals()[module_name] = module.TabModule()
+                cp_notebook.add(globals()[module_name].frame, text=globals()[module_name].label)
+                globals()[module_name].index = index
+                cp_notebook.tab(globals()[module_name].frame, state='hidden')
+            except Exception as e:
+                print(e)
+                pass
     # set up closing sequence
     root.protocol('WM_DELETE_WINDOW', _on_close)
 
