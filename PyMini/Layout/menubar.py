@@ -52,7 +52,7 @@ def load(menubar):
     # track trace_mode
     trace_var = Tk.StringVar(parent, 0)
     widgets['trace_mode'] = trace_var
-    view_menu.add_radiobutton(label='Continous', command=set_view_continuous, variable=trace_var,
+    view_menu.add_radiobutton(label='Continuous', command=set_view_continuous, variable=trace_var,
                               value='continuous')
     view_menu.add_radiobutton(label='Overlay', command=set_view_overlay, variable=trace_var, value='overlay')
     view_menu.add_radiobutton(label='Comparison', command=set_view_compare, variable=trace_var, value='compare')
