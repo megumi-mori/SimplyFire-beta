@@ -4,7 +4,7 @@ from PyMini import app
 from tkinter import filedialog, messagebox
 import tkinter as Tk
 
-import pandas
+import pandas as pd
 from PyMini.DataVisualizer import data_display, log_display, trace_display, param_guide, results_display, evoked_data_display
 import os
 import pkg_resources
@@ -13,56 +13,23 @@ from PyMini.Layout import sweep_tab, detector_tab, graph_panel,  adjust_tab, men
 import matplotlib as mpl
 from PyMini.Backend import interpreter, analyzer2
 import gc
-import pandas as pd
 from pandas import Series
 import numpy as np
 from threading import Thread
 
 from time import time
 # This module is the workhorse of the GUI
-# All functions that connect inputs from the user to processes in the background should pass through here
-# Any functions that require communications between different modules should be done here
-#
-# mini_df = pd.DataFrame(columns = [
-#     # panel -- make sure this matches with the config2header dict
-#     # = analyzer generates the data
-#     't',  #
-#     'amp',  #
-#     'amp_unit',  #
-#     'decay_const', #
-#     'decay_unit', #
-#     'decay_func', #
-#     'rise_const',  #
-#     'rise_unit',  #
-#     'halfwidth', #
-#     'halfwidth_unit', #
-#     'baseline',  #
-#     'baseline_unit',  #
-#             #'auc',
-#     't_start',  #
-#     't_end',  #
-#     'channel',  #
-#     # plot
-#     'peak_idx', #
-#     'peak_coord_x',  # (x,y) #
-#     'peak_coord_y',  #
-#     'decay_coord_x',
-#     'decay_coord_y',
-#     'start_coord_x',  #
-#     'start_coord_y',  #
-#     'start_idx',  #
-#     'end_coord_x',  #
-#     'end_coord_y',  #
-#     'end_idx',  #
-#     'decay_fit', #
-#
-#     # data
-#
-#     'datetime'  #
-# ])
+# Use this module to connect analysis functions to the GUI
+from PyMini.utils import abfWriter
+global mini_df
+mini_df = pd.DataFrame()
 
 global al
 al = analyzer2.Analyzer()
+
+##########################
+# Undo controls
+##########################
 def get_temp_num():
     global temp_num
     try:
@@ -128,7 +95,7 @@ def undo(e=None):
         menubar.undo_disable()
 
 
-def configure(key, value):
+def configure(key, value): # delete?
     globals()[key] = value
 
 #################################
@@ -136,38 +103,56 @@ def configure(key, value):
 #################################
 
 global recordings
+# store recording data in a list
+# use index 0 for analysis
+# use index > 0 only for comparison mode
+
 recordings = []
-def open_trace(fname, append=False, xlim=None, ylim=None):
-    # trace stored in analyzer
+def open_recording(fname: str,
+               append: bool=False,
+               xlim: tuple=None,
+               ylim: tuple=None) -> None:
+    """
+    Opens electrophysiology recording data and stores it in recordings list
+    
+    fname: string, path to the file to be opened
+    append: True/False, if append, data will be appended to the recordings list 
+    xlim: float tuple, if not None, used to set the x-axis limits of the GUI
+    ylim: float tuple, if not None, used to set the y-axis limist of the GUI
+    """
+    # import data as a Recording object
     global recordings
     try:
-        record = al.open_file(fname)
-    except:
-        messagebox.showerror('Read file error', 'The selected file could not be opened.')
+        record = analyzer2.Recording(fname)
+    except Exception as e:
+        messagebox.showerror('Read file error', f'The selected file could not be opened.\nError code: {e}')
         return None
     try:
         log_display.open_update(fname)
     except:
         return None
 
+    # reset data from previous file
     clear_undo()
-    if not append:
-        al.clear_mini_df()
+    global mini_df
+    if not append: # open a new file for analysis
+        mini_df = mini_df.iloc[0:0]
         data_display.clear()
         evoked_data_display.clear()
         # update save file directory
-        if app.widgets['config_file_autodir'].get() == '1':
+        if app.setting_tab.widgets['config_file_autodir'].get() == '1':
             mpl.rcParams['savefig.directory'] = os.path.split(fname)[0]
 
-        # check if channel number is specified by user:
+        # set to channel specified by the user
         if app.widgets['force_channel'].get() == '1':
             try:
                 record.set_channel(int(app.widgets['force_channel_id'].get()))  # 0 indexing
             except (IndexError): # forced channel does not exist
-                record.set_channel(0) # force to open the first channel
+                record.set_channel(0) # revert to the first channel
                 pass
         else:
             record.set_channel(0)
+        # update file info displayed in the GUI
         app.widgets['trace_info'].set(
             '{}: {}Hz : {} channel{}'.format(
                 record.filename,
@@ -176,8 +161,8 @@ def open_trace(fname, append=False, xlim=None, ylim=None):
                 's' if record.channel_count > 1 else ""
             )
         )
-        trace_display.ax.autoscale(enable=True, axis='both', tight=True)
-        sweep_tab.populate_list(record.sweep_count)
+        app.trace_display.ax.autoscale(enable=True, axis='both', tight=True)
+        app.sweep_tab.populate_list(record.sweep_count)
         while len(recordings) > 0:
             r = recordings.pop()
             del r
@@ -201,19 +186,19 @@ def open_trace(fname, append=False, xlim=None, ylim=None):
     param_guide.update()
     if not append:
         if app.widgets['force_axis_limit'].get() == '1':
-            trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
-            trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
+            app.trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
+            app.trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
         if xlim:
-            trace_display.set_axis_limit('x', xlim)
+            app.trace_display.set_axis_limit('x', xlim)
         if ylim:
-            trace_display.set_axis_limit('y', ylim)
+            app.trace_display.set_axis_limit('y', ylim)
 
 
-        graph_panel.y_scrollbar.config(state='normal')
-        graph_panel.x_scrollbar.config(state='normal')
+        app.graph_panel.y_scrollbar.config(state='normal')
+        app.graph_panel.x_scrollbar.config(state='normal')
 
-        trace_display.update_x_scrollbar()
-        trace_display.update_y_scrollbar()
+        app.trace_display.update_x_scrollbar()
+        app.trace_display.update_y_scrollbar()
 
         app.widgets['channel_option'].clear_options()
         for i in range(record.channel_count):
@@ -227,33 +212,48 @@ def open_trace(fname, append=False, xlim=None, ylim=None):
     app.pb['value'] = 0
     app.pb.update()
 
-    # trace_display.refresh()
-def _change_channel(num, save_undo=True):
-    global recordings
+def save_recording(filename):
+    app.pb['value']=50
+    app.pb.update()
+    # recordings[0].save(filename)
+    abfWriter.writeABF1(recordings[0], filename)
+    app.pb['value']=100
+    app.pb.update()
+    app.pb['value']=0
+    app.pb.update()
 
+def _change_channel(num: int,
+                    save_undo: bool=True) -> None:
+    """
+    Changes the channel data displayed on the GUI
+
+    num: int, channel number (0 indexing) to be displayed
+    save_undo: bool, whether or not to store the change in the undo stack (False if using this call as part of an undo command)
+    """
+    global recordings
+    # store process in undo
     if save_undo and num != recordings[0].channel:
         add_undo(lambda n= recordings[0].channel, s=False:_change_channel(n, s))
 
     try:
         for r in recordings:
             r.set_channel(num)
-        log_display.log('@ graph_viewer: switch to channel {}'.format(num))
+        log_display.log(f'@ graph_viewer: switch to channel {num}')
     except:
         for r in recordings:
             r.set_channel(0)
-        log_display.log('@ graph_viewer: unable to switch to channel {}. Reverting to channel 0'.format(num))
-    app.widgets['channel_option'].set('{}: {}'.format(recordings[0].channel, recordings[0].y_label)) #0 indexing for channel num
+        log_display.log(f'@ graph_viewer: unable to switch to channel {num}. Reverting to channel 0')
+    app.widgets['channel_option'].set(f'{recordings[0].channel}: {recordings[0].y_label}') #0 indexing for channel num
+
+    # plot data points
     if app.widgets['trace_mode'].get() == 'continuous':
         plot_continuous(recordings[0], fix_x=True, draw=False)
     elif app.widgets['trace_mode'].get() == 'compare':
         for i,r in enumerate(recordings):
             plot_overlay(i, fix_x=True, draw=False, append=(i!=0))
-    else:
+    elif app.widgets['trace_mode'].get() == 'overlay':
         plot_overlay(0, fix_x=True, draw=False)
-        # for i, var in enumerate(sweep_tab.sweep_vars):
-        #     if not var.get():
-        #         trace_display.hide_sweep(i)
-    # trace_display.canvas.draw()
+    # add other modes here
     trace_display.draw_ani()
     data_display.clear()
 
@@ -365,6 +365,7 @@ def config_data_tab(tab_name, **kwargs):
 ######################################
 
 def save_events(filename, mode='w', suffix_num=0, handle_error=True):
+    global mini_df
     if suffix_num > 0:
         fname = f'{os.path.splitext(filename)[0]}({suffix_num}){os.path.splitext(filename)[1]}'
     else:
@@ -373,7 +374,7 @@ def save_events(filename, mode='w', suffix_num=0, handle_error=True):
         with open(fname, mode) as f:
             f.write(f'@filename:{recordings[0].filename}\n')
             f.write(f'@version:{app.config.version}\n')
-            f.write(al.mini_df.to_csv(index=False))
+            f.write(mini_df.to_csv(index=False))
     except (FileExistsError):
         if handle_error:
             save_events(filename, mode, suffix_num+1)
@@ -385,8 +386,9 @@ def save_events_dialogue(e=None):
     if not app.event_filename:
         save_events_as_dialogue()
         return None
+    global mini_df
     try:
-        if len(al.mini_df) > 0:
+        if len(mini_df) > 0:
             save_events(app.event_filename, mode='w')
         else:
             messagebox.showerror('Error', 'No minis to save')
@@ -396,7 +398,8 @@ def save_events_dialogue(e=None):
 
 
 def save_events_as_dialogue(e=None):
-    if len(al.mini_df) > 0:
+    global mini_df
+    if len(mini_df) > 0:
         try:
             initialfilename = os.path.splitext(recordings[0].filename)[0] + '.event'
         except:
@@ -417,6 +420,7 @@ def save_events_as_dialogue(e=None):
 
 
 def open_events(filename, log=True, undo=True, append=False):
+    global mini_df
     if len(recordings) == 0:
         # recording file not open yet
         messagebox.showerror('Open error', 'Please open a recording file first.')
@@ -438,12 +442,12 @@ def open_events(filename, log=True, undo=True, append=False):
     df = df.replace({np.nan: None})
     df['compound'] = df['compound'].replace([0.0, 1.0], [False, True])
     if not append:
-        al.mini_df = df
+        mini_df = df
         app.event_filename = filename
         data_display.clear()
         populate_data_display()
     else:
-        al.mini_df = al.mini_df.append(df)
+        mini_df = mini_df.append(df)
         data_display.append(df[df.channel == recordings[0].channel])
     update_event_marker()
     if log:
@@ -555,10 +559,11 @@ def open_events_mini(filename):
         return df
 
 def populate_data_display():
+    global mini_df
     try:
-        xs = al.mini_df.index.where(al.mini_df['channel'] == recordings[0].channel)
+        xs = mini_df.index.where(mini_df['channel'] == recordings[0].channel)
         xs = xs.dropna()
-        data_display.set(al.mini_df.loc[xs])
+        data_display.set(mini_df.loc[xs])
     except:
         pass
 
@@ -586,11 +591,16 @@ def pick_event_manual(x):
     if app.widgets['window_param_guide'].get() == '1':
         guide = True
         param_guide.clear()
-
+    global mini_df
     mini = al.find_mini_manual(xlim=(max(x-r, xlim[0]), min(x+r,xlim[1])), xs=xs, ys=ys, x_sigdig=recordings[0].x_sigdig,
                                sampling_rate=recordings[0].sampling_rate, channel=recordings[0].channel,
-                               reference_df=True, y_unit=recordings[0].y_unit,
+                               reference_df=mini_df, y_unit=recordings[0].y_unit,
                                x_unit=recordings[0].x_unit, **params)
+    if mini['success']:
+        mini_df = mini_df.append(mini,
+                                           ignore_index=True,
+                                           sort=False)
+        mini_df = mini_df.sort_values(by='t')
     if guide:
         # param_guide.report(xs, ys, mini)
         param_guide.report(xs, ys, mini)
@@ -645,11 +655,12 @@ def find_mini_in_range(xlim=None, ylim=None):
     #     lambda msg='Undo auto mini detection in range: {} - {}'.format(xlim[0], xlim[1]): detector_tab.log(msg)
     # ])
     params = detector_tab.extract_mini_parameters()
-
+    global mini_df
     df = al.find_mini_auto(xlim=xlim, xs=xs, ys=ys, x_sigdig=recordings[0].x_sigdig,
                                sampling_rate=recordings[0].sampling_rate, channel=recordings[0].channel,
-                      reference_df=True, y_unit=recordings[0].y_unit,
+                      reference_df=mini_df, y_unit=recordings[0].y_unit,
                                x_unit=recordings[0].x_unit, progress_bar=app.pb, **params)
+    mini_df = pd.concat([mini_df,df])
     if df.shape[0]>0:
         if int(app.widgets['config_undo_stack'].get()) > 0:
             add_undo([
@@ -689,7 +700,8 @@ def filter_mini(xlim=None):
         new_df = al.filter_mini(mini_df=None, xlim=xlim, **params)
     except:
         pass
-    al.mini_df = new_df
+    global mini_df
+    mini_df = new_df
     app.pb['value']=40
     app.pb.update()
     data_display.clear()
@@ -704,7 +716,7 @@ def filter_mini(xlim=None):
     app.pb.update()
 
 def select_single_mini(iid):
-    data = al.mini_df[al.mini_df.t == float(iid)].squeeze().to_dict()
+    data = mini_df[mini_df.t == float(iid)].squeeze().to_dict()
     if app.widgets['window_param_guide'].get() == '1':
         param_guide.report(trace_display.ax.lines[0].get_xdata(), trace_display.ax.lines[0].get_ydata(), data, clear_plot=True)
 
@@ -736,8 +748,8 @@ def select_left(e=None):
         xlim_low = max(max_xlim, xlim_low)
 
     # look for mini data that match the criteria
-    df = al.mini_df[(al.mini_df.t < xlim_high) & (al.mini_df.t > xlim_low) & (
-                al.mini_df.channel == recordings[0].channel)].sort_values(by='t')
+    df = mini_df[(mini_df.t < xlim_high) & (mini_df.t > xlim_low) & (
+                mini_df.channel == recordings[0].channel)].sort_values(by='t')
     if df.shape[0]>0:
         app.data_display.table.selection_set(str(df.iloc[0]['t']))
     else:
@@ -755,8 +767,9 @@ def select_left(e=None):
 def reanalyze(data, accept_all=False):
     peak_idx = data['peak_idx']
     insert_index = 'end'
-    if al.mini_df.shape[0]>0:
-        if al.mini_df['t'].isin([data['t']]).any():
+    global mini_df
+    if mini_df.shape[0]>0:
+        if mini_df['t'].isin([data['t']]).any():
             insert_index = app.data_display.table.index(str(data['t']))
             delete_event([data['t']], undo=False)
 
@@ -791,8 +804,8 @@ def reanalyze(data, accept_all=False):
         # param_guide.report(xs, ys, mini)
         param_guide.report(xs, ys, mini)
     if mini['success']:
-        al.mini_df = al.mini_df.append(Series(mini), ignore_index=True, sort=False)
-        al.mini_df = al.mini_df.sort_values(by='t')
+        mini_df = mini_df.append(Series(mini), ignore_index=True, sort=False)
+        mini_df = mini_df.sort_values(by='t')
 
         data_display.add({key: value for key,value in mini.items() if key in data_display.mini_header2config}, index=insert_index)
         update_event_marker()
@@ -821,7 +834,8 @@ def add_event(data):
     # populate this and replace with repeated calls in interpreter
     # also include add to data display after removing calls
     data_display.add({key:value for key, value in data.items() if key in data_display.mini_header2config})
-    al.mini_df = al.mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
+    global mini_df
+    mini_df = mini_df.append(pd.Series(data, name=data['t']), ignore_index=False, verify_integrity=True, sort=True)
 
 def report_to_param_guide(xs, ys, data, clear=False):
     if clear:
@@ -907,19 +921,20 @@ def report_to_param_guide(xs, ys, data, clear=False):
 
 def get_column(colname, t = None):
     global recordings
+    global mini_df
     if len(recordings) == 0:
         return None
-    if len(al.mini_df) == 0:
+    if len(mini_df) == 0:
         return None
     if t:
         try:
-            return list(al.mini_df[al.mini_df['t'].isin(t)][colname])
+            return list(mini_df[mini_df['t'].isin(t)][colname])
         except:
-            return al.mini_df[al.mini_df.t.isin(t)][colname]
+            return mini_df[mini_df.t.isin(t)][colname]
     else:
-        xs = al.mini_df.index.where(al.mini_df['channel'] == recordings[0].channel)
+        xs = mini_df.index.where(mini_df['channel'] == recordings[0].channel)
         xs = xs.dropna()
-        return list(al.mini_df.loc[xs][colname])
+        return list(mini_df.loc[xs][colname])
 
 
 def toggle_marker_display(type):
@@ -952,16 +967,17 @@ def highlight_events_in_range(xlim=None, ylim=None):
         xlim = (xlim[1], xlim[0])
     if ylim and ylim[0] > ylim[1]:
         ylim = (ylim[1], ylim[0])
-    if al.mini_df.shape[0] == 0:
+    global mini_df
+    if mini_df.shape[0] == 0:
         return None
-    mini_df = al.mini_df[al.mini_df['channel'] == recordings[0].channel]
+    df = mini_df[mini_df['channel'] == recordings[0].channel]
     if xlim:
-        mini_df = mini_df[al.mini_df['t'] > xlim[0]]
-        mini_df = mini_df[mini_df['t'] < xlim[1]]
+        df = df[mini_df['t'] > xlim[0]]
+        df = df[df['t'] < xlim[1]]
     if ylim:
-        mini_df = mini_df[mini_df['peak_coord_y'] > ylim[0]]
-        mini_df = mini_df[mini_df['peak_coord_y'] < ylim[1]]
-    data_display.table.selection_set([str(x) for x in mini_df['t']])
+        df = df[df['peak_coord_y'] > ylim[0]]
+        df = df[df['peak_coord_y'] < ylim[1]]
+    data_display.table.selection_set([str(x) for x in df['t']])
 
 
 def update_event_marker():
@@ -981,7 +997,8 @@ def update_event_marker():
     trace_display.draw_ani()
 
 def delete_event(selection, undo=True):
-    if al.mini_df.shape[0]==0:
+    global mini_df
+    if mini_df.shape[0]==0:
         return None
     if len(selection)>0:
         selection = [float(i) for i in selection]
@@ -990,40 +1007,42 @@ def delete_event(selection, undo=True):
             temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
                                          'temp_{}.temp'.format(get_temp_num()))
             os.makedirs(os.path.dirname(temp_filename), exist_ok=True)
-            al.mini_df[(al.mini_df['t'].isin(selection)) & (al.mini_df['channel'] == recordings[0].channel)].to_csv(
+            mini_df[(mini_df['t'].isin(selection)) & (mini_df['channel'] == recordings[0].channel)].to_csv(
                 temp_filename)
             add_undo([
                 lambda f=temp_filename: open_events(temp_filename, log=False, undo=False, append=True),
                 lambda f=temp_filename: os.remove(f)
             ])
-        al.mini_df = al.mini_df[(~al.mini_df['t'].isin(selection)) | (al.mini_df['channel'] != recordings[0].channel)]
+        mini_df = mini_df[(~mini_df['t'].isin(selection)) | (mini_df['channel'] != recordings[0].channel)]
         data_display.delete(selection)
         update_event_marker() ##### maybe make this separate
     if app.widgets['window_param_guide'].get():
         param_guide.clear()
 
 def delete_events_in_range(xlim, undo=True):
-    if al.mini_df.shape[0] == 0:
+    global mini_df
+    if mini_df.shape[0] == 0:
         return None
-    selection=al.mini_df[(al.mini_df['t']>xlim[0]) &
-               (al.mini_df['t']<xlim[1]) &
-               (al.mini_df['channel'] == recordings[0].channel)].t.values
+    selection=mini_df[(mini_df['t']>xlim[0]) &
+               (mini_df['t']<xlim[1]) &
+               (mini_df['channel'] == recordings[0].channel)].t.values
     delete_event(selection, undo=undo)
 def delete_all_events(undo=True):
-    if al.mini_df.shape[0] == 0:
+    global mini_df
+    if mini_df.shape[0] == 0:
         return None
     if int(app.widgets['config_undo_stack'].get()) > 0 and undo:
     ########## Save temp file ##############
         temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
                                      'temp_{}.temp'.format(get_temp_num()))
         os.makedirs(os.path.dirname(temp_filename), exist_ok=True)
-        al.mini_df[al.mini_df['channel'] == recordings[0].channel].to_csv(temp_filename)
+        mini_df[mini_df['channel'] == recordings[0].channel].to_csv(temp_filename)
         add_undo([
             lambda f=temp_filename, l=False, u=False, a=True: open_events(filename=f, log=l, undo=u, append=a),
             lambda f=temp_filename:os.remove(f)
         ])
     try:
-        al.mini_df = al.mini_df[al.mini_df['channel']!=recordings[0].channel]
+        mini_df = mini_df[mini_df['channel']!=recordings[0].channel]
         data_display.clear()
         update_event_marker()
     except:
@@ -1448,11 +1467,3 @@ def focus():
 ################################
 # I/O
 ################################
-def save_trace(filename):
-    app.pb['value']=50
-    app.pb.update()
-    recordings[0].save(filename)
-    app.pb['value']=100
-    app.pb.update()
-    app.pb['value']=0
-    app.pb.update()

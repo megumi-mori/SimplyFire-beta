@@ -29,7 +29,7 @@ class Recording():
 
     def _open_file(self, filename):
         self.filetype = os.path.splitext(filename)[1]
-        _, self.filename = os.path.split(filename)
+        self.filedir, self.filename = os.path.split(filename)
 
         if self.filetype == '.abf':
             self.read_abf(filename)
@@ -680,7 +680,7 @@ class Analyzer():
                        kernel=100,
                        stride=None,
                        direction=1,
-                       reference_df=True,
+                       reference_df=None,
                        progress_bar=None,
                        **kwargs
                        ):
@@ -713,7 +713,7 @@ class Analyzer():
                 Recommended to be less than kernel.
                 Larger strides can speed up the search.
             direction: int
-            reference_df: bool whether to check for duplicates in mini_df and update newly found minis to mini_df
+            reference_df: pd.DataFrame to check for duplicates
             progress_bar: object pass a progress bar object. The value of the progressbar must be updatable using
                 progress_bar['value'] = int
             **kwargs: see list of parameters in analyze_candidate_mini()
@@ -817,11 +817,9 @@ class Analyzer():
                 pass
             self.print_time('end iter', show_time)
         new_df = DataFrame.from_dict(hits)
-        if reference_df:
-            if len(self.mini_df.index)>0:
-                self.mini_df = pd.concat([self.mini_df,new_df]) # indexing is NOT UNIQUE
-            else:
-                self.mini_df = new_df
+        # if reference_df:
+        #     if len(reference_df.index)>0:
+        #         new_df = pd.concat([reference_df,new_df]) # indexing is NOT UNIQUE
         return new_df
 
 
@@ -836,7 +834,7 @@ class Analyzer():
                          channel=0,
                          sweeps=None,
                          direction=1,
-                         reference_df=True,
+                         reference_df=None,
                          offset: int = 0,
                          **kwargs
                          ):
@@ -857,7 +855,7 @@ class Analyzer():
             channel: int indicating the channel number to analyze. Only required if xs and ys are not provided
             sweeps: list of int indicating the sweeps to analyzer. If left None, all sweeps will be considered
             direction: int
-            reference_df: bool whether to check for duplicates in mini_df and update newly found minis to mini_df
+            reference_df: pd.DataFrame to check for duplicates
             offset: used to change the indexing of the xs and ys arrays
             **kwargs: see list of parameters in find_single_mini()
 
@@ -900,12 +898,12 @@ class Analyzer():
             )
             mini['xlim_idx_L'] = xlim_idx[0]
             mini['xlim_idx_R'] = xlim_idx[1]
-            if reference_df and mini['success']:
-                self.mini_df = self.mini_df.append(Series(mini),
-                                                   ignore_index=True,
-                                                   sort=False)
-                self.mini_df = self.mini_df.sort_values(by='t')
-            return mini
+            # if reference_df and mini['success']:
+            #     self.mini_df = self.mini_df.append(Series(mini),
+            #                                        ignore_index=True,
+            #                                        sort=False)
+            #     self.mini_df = self.mini_df.sort_values(by='t')
+            return Series(mini)
         return {'success': False, 'failure':'peak could not be found', 'xlim_idx':xlim_idx}
 
     def find_peak_recursive(self,
@@ -1302,7 +1300,7 @@ class Analyzer():
                                x_sigdig=None,
                                sampling_rate=None,
                                channel=0,
-                               reference_df=True,
+                               reference_df=None,
                                reanalyze=False,
                                ## parameters defined in GUI ##
                                direction=1,
@@ -1373,8 +1371,7 @@ class Analyzer():
                 See calculate_mini_decay() for algorithm on decay constant calculation.
             max_decay: float indicating the maximum decay constant accepted in a candidate mini.
                 See calculate_mini_decay() for algorithm on decay constant calculation.
-            reference_df: bool indicating whether to compare the results against previously found minis stored in mini_df.
-                Must be set to True for compound analysis.
+            reference_df: pd.DataFrame to compare the results against previously found minis
             reanalyze: bool indicating whether the candidate mini is already in mini_df
                 Set to True if reanalyzing a previously found mini.
                 If set to False, previously found minis will be ignored.
@@ -1406,8 +1403,8 @@ class Analyzer():
                 prev_peak = None
         elif prev_peak_idx: # had index provided
             try:
-                prev_peak = self.mini_df.loc[(self.mini_df['peak_idx'] == prev_peak_idx) &
-                                         (self.mini_df['channel'] == channel)].squeeze().to_dict()
+                prev_peak = reference_df.loc[(reference_df['peak_idx'] == prev_peak_idx) &
+                                         (reference_df['channel'] == channel)].squeeze().to_dict()
             except:
                 prev_peak = None
         # initiate mini data dict
@@ -1432,11 +1429,11 @@ class Analyzer():
             mini['t'] = round(mini['t'], x_sigdig)  # round the x_value of the peak to indicated number of digits
 
         # check if the peak is duplicate of existing mini data
-        if reference_df and not reanalyze:
+        if reference_df is not None and not reanalyze:
             try:
-                if mini['t'] in self.mini_df.t.values:
-                    mini = self.mini_df.loc[(self.mini_df['t'] == mini['t']) &
-                                                 (self.mini_df['channel'] == channel)].squeeze().to_dict()
+                if mini['t'] in reference_df.t.values:
+                    mini = reference_df.loc[(reference_df['t'] == mini['t']) &
+                                                 (reference_df['channel'] == channel)].squeeze().to_dict()
                     mini['success'] = False
                     mini['failure'] = 'Mini was previously found'
                     return mini
@@ -1471,15 +1468,13 @@ class Analyzer():
         # find baseline/start of event
         mini['start_idx'] = baseline_idx + offset
 
-        if reference_df and len(self.mini_df.index) > 0 or prev_peak is not None:
-            # try:
+        if reference_df is not None or prev_peak is not None:
             # find the peak of the previous mini
             # peak x-value must be stored in the column 't'
             # check that the channels are the same
-            # try:
             try:
-                prev_peak_candidate_idx = self.mini_df.loc[(self.mini_df['channel'] == channel) & (
-                                self.mini_df['t'] < mini['t'])].peak_idx
+                prev_peak_candidate_idx = reference_df.loc[(reference_df['channel'] == channel) & (
+                                reference_df['t'] < mini['t'])].peak_idx
                 prev_peak_candidate_idx = max(prev_peak_candidate_idx)
             except:
                 prev_peak_candidate_idx = None
@@ -1489,8 +1484,8 @@ class Analyzer():
                 if (prev_peak_idx is not None and prev_peak_idx < prev_peak_candidate_idx) or prev_peak_idx is None:
                     prev_peak_idx = prev_peak_candidate_idx
 
-                    prev_peak = self.mini_df.loc[(self.mini_df['peak_idx'] == prev_peak_idx) &
-                                             (self.mini_df['channel'] == channel)].squeeze().to_dict()
+                    prev_peak = reference_df.loc[(reference_df['peak_idx'] == prev_peak_idx) &
+                                             (reference_df['channel'] == channel)].squeeze().to_dict()
             if prev_peak is not None:
                 prev_peak_idx_offset = int(prev_peak['peak_idx']) - offset
                 #check if previous peak has decayed sufficiently
@@ -1834,7 +1829,7 @@ class Analyzer():
         xlim: tuple representing the x-axis limits to apply the filter. If None, all entries in the dataframe are considered
         """
         if mini_df is None:
-            mini_df = self.mini_df
+            return None
         if xlim is None:
             xlim = (0.0, np.inf)
         if min_amp is not None:
@@ -1868,7 +1863,7 @@ class Analyzer():
     # save/load
     ####################
     def load_minis_from_file(self, filename):
-        self.mini_df = pd.read_csv(filename, index_col=0)
+        return pd.read_csv(filename, index_col=0)
 
     ############## others
     # def mark_greater_than_baseline(self,
@@ -1964,8 +1959,8 @@ class Analyzer():
     #             start_idx += 1
     #             peak_idx += 1
     #     return None
-    def calculate_frequency(self, channel):
-        df = self.mini_df[self.mini_df['channel']==channel]
+    def calculate_frequency(self, mini_df, channel):
+        df = mini_df[mini_df['channel']==channel]
         freq = (df['t'].max() - df['t'].min())/df.shape[0]
 
         return freq
