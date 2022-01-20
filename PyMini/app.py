@@ -100,7 +100,7 @@ def load(splash):
     root.iconbitmap(os.path.join(IMG_DIR, 'logo_bw.ico'))
     if config.zoomed:
         root.state('zoomed')
-    root.bind('<Control-o>', lambda e:menubar.ask_open_trace())
+    root.bind('<Control-o>', lambda e:menubar.ask_open_recording())
     global menu
     menu = Tk.Menu(root)
     root.config(menu=menu)
