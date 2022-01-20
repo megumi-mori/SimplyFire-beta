@@ -26,8 +26,9 @@ def load(menubar):
     file_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='File', menu=file_menu)
 
-    file_menu.add_command(label="Open trace \t Ctrl+o", command=ask_open_trace)
-    file_menu.add_command(label='Save trace as...', command=ask_save_trace)
+    file_menu.add_command(label="Open recording \t Ctrl+o", command=ask_open_trace)
+    file_menu.add_command(label='Save recording data as...', command=ask_save_trace)
+    file_menu.add_command(label='Export plot as...', command=ask_save_plot)
     file_menu.add_separator()
     file_menu.add_command(label='Open mini data file', command=open_events)
     # file_menu.add_command(label='Save event file', command=interface.save_events_dialogue)
@@ -108,6 +109,9 @@ def ask_save_events():
             return interface.save_events_as_dialogue()
         return False
     return True
+
+def ask_save_plot(e=None):
+    app.trace_display.canvas.toolbar.save_figure()
 
 def ask_save_trace(e=None, save_events=True):
     if len(interface.recordings)==0:
