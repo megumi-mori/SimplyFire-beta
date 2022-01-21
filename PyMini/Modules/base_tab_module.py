@@ -40,11 +40,11 @@ class BaseTabModule(object):
         if self.status_var.get():
             app.cp_notebook.tab(self.frame, state='normal')
             if table:
-                app.data_notebook.tab(app.data_notebook_dict[self.name], state='normal')
+                app.data_notebook.tab(app.get_data_module(self.name), state='normal')
         else:
             app.cp_notebook.tab(self.frame, state='hidden')
             if table:
-                app.data_notebook.tab(app.data_notebook_dict[self.name], state='hidden')
+                app.data_notebook.tab(app.get_data_module(self.name), state='hidden')
 
     def insert_title(self, **kwargs):
         title = self.optionframe.insert_title(**kwargs)

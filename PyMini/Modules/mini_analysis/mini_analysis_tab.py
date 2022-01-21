@@ -246,6 +246,54 @@ class ModuleTab(BaseTabModule):
             command=self.apply_filter_window
         )
 
+        self.data_display_options = [
+            ('data_display_time', 'Peak time'),
+            ('data_display_amplitude', 'Amplitude'),
+            ('data_display_decay', 'Decay constant'),
+            # ('data_display_decay_func', 'Decay function'),
+            ('data_display_rise', 'Rise duration'),
+            ('data_display_halfwidth', 'Halfwidth'),
+            ('data_display_baseline', 'Baseline'),
+            # ('data_display_start', 'Start time'),
+            # ('data_display_end', 'End time'),
+            ('data_display_channel', 'Channel'),
+            ('data_display_std', 'Stdev'),
+            ('data_display_direction', 'Direction'),
+            ('data_display_compound', 'Compound')
+        ]
+
+        for option in self.data_display_options:
+            self.insert_label_checkbox(
+                name=option[0],
+                label=option[1],
+                command=self.apply_column_options,
+                onvalue='1',
+                offvalue=""
+            )
+        self.mini_header2config = {
+            't':'data_display_time',
+            'amp': 'data_display_amplitude',
+            'amp_unit': 'data_display_amplitude',
+            'decay_const': 'data_display_decay',
+            'decay_unit': 'data_display_decay',
+            # ('decay_func', 'data_display_decay_func'),
+            # ('decay_t', 'data_display_decay_time'),
+            'rise_const': 'data_display_rise',
+            'rise_unit': 'data_display_rise',
+            'halfwidth': 'data_display_halfwidth',
+            'halfwidth_unit':'data_display_halfwidth',
+            'baseline':'data_display_baseline',
+            'baseline_unit': 'data_display_baseline',
+            'channel': 'data_display_channel',
+            'stdev': 'data_display_std',
+            'stdev_unit': 'data_display_std',
+            'direction': 'data_display_direction',
+            'compound': 'data_display_compound'
+    }
+    def apply_column_options(self, e=None):
+        app.get_data_module(self.name).show_columns(
+            [k for k,v in self.mini_header2config.items() if self.widgets[v].get()]
+        )
     def apply_parameters(self, e=None):
         app.interface.focus()
         for i in self.parameters:

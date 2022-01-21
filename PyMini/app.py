@@ -290,7 +290,7 @@ def load(splash):
                     cp_notebook.add(tab.frame, text=tab.tab_label)
                     tab.cp_index = index
                     cp_notebook.tab(tab.frame, state='hidden')
-                    control_panel_dict[tab.name] = tab.frame
+                    control_panel_dict[tab.name] = tab
                 if module_config.get('data_notebook', None):
                     module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["data_notebook"]}')
                     table = module_table.ModuleTable()
@@ -302,7 +302,6 @@ def load(splash):
             except Exception as e:
                 print(e)
                 pass
-
         # # only show one tab at a time
         # global data_tab_details
         # data_tab_details = {
@@ -332,6 +331,18 @@ def load(splash):
     print(root.winfo_width())
     print(root.winfo_height())
     return None
+
+def get_cp_frame(name):
+    return control_panel_dict[name].frame
+
+def get_cp_module(name):
+    return control_panel_dict[name]
+
+def get_data_module(name):
+    return data_notebook_dict[name]
+
+def get_data_module_table(name):
+    return data_notebook_dict[name].table
 
 
 def dump_user_setting(filename=None):
