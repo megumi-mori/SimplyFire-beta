@@ -6,3 +6,10 @@ PyMini/config/system_config.yaml
 PyMini/config/user_config.yaml
 *.temp
 *.iml
+PyMini.egg-info/dependency_links.txt
+PyMini.egg-info/PKG-INFO
+PyMini.egg-info/requires.txt
+PyMini.egg-info/SOURCES.txt
+PyMini.egg-info/top_level.txt
+*.abf
+*.minipy
