@@ -1460,7 +1460,7 @@ class Analyzer():
         if delta_x is None or delta_x == 0:
             base_idx = (baseline_idx - lag, baseline_idx)
         else:
-            base_idx = (int(peak_idx - delta_x - lag/2), int(peak_idx - delta_x+lag/2))
+            base_idx = (int(peak_idx - delta_x-lag), int(peak_idx - delta_x+lag))
         mini['base_idx_L'] = base_idx[0] + offset
         mini['base_idx_R'] = base_idx[1] + offset
         self.print_time('baseline', show_time)
