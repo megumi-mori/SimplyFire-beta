@@ -346,17 +346,17 @@ def config_data_tab(tab_name, **kwargs):
     """
     use this function to enable a disabled tab
     """
-    try:
-        if kwargs['state'] == 'normal':
-            for key, tab in app.data_tab_details.items():
-                app.data_notebook.tab(tab['tab'], state='hidden')
-            pass
-    except:
-        pass
-    app.data_notebook.tab(app.data_tab_details[tab_name]['tab'], **kwargs)
-    app.data_notebook.select(app.data_tab_details[tab_name]['index'])
-    app.root.update()
-    app.data_tab_details[tab_name]['module'].fit_columns()
+    # try:
+    #     if kwargs['state'] == 'normal':
+    #         for key, tab in app.data_tab_details.items():
+    #             app.data_notebook.tab(tab['tab'], state='hidden')
+    #         pass
+    # except:
+    #     pass
+    # app.data_notebook.tab(app.data_tab_details[tab_name]['tab'], **kwargs)
+    # app.data_notebook.select(app.data_tab_details[tab_name]['index'])
+    # app.root.update()
+    # app.data_tab_details[tab_name]['module'].fit_columns()
 
     pass
 

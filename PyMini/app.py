@@ -162,16 +162,7 @@ def load(splash):
     global data_notebook
     data_notebook = ttk.Notebook(pw_2)
 
-    # only show one tab at a time
-    global data_tab_details
-    data_tab_details = {
-        'mini':{'module': data_display, 'text': 'Mini Data'},
-        'evoked': {'module': evoked_data_display, 'text': 'Evoked Data'}
-    }
-    for i, t in enumerate(data_tab_details):
-        data_tab_details[t]['tab'] = data_tab_details[t]['module'].load(root)
-        data_notebook.add(data_tab_details[t]['tab'], text=data_tab_details[t]['text'])
-        data_tab_details[t]['index'] = i
+
 
     pw_2.add(data_notebook)
     dp_notebook.add(pw_2, text='trace')
@@ -278,33 +269,61 @@ def load(splash):
 
     for k, v in menubar.widgets.items():
         widgets[k] = v
+    global control_panel_dict
+    control_panel_dict = {}
 
+    global data_notebook_dict
+    data_notebook_dict = {}
 
     with open(os.path.join(config.CONFIG_DIR, 'modules.yaml')) as f:
-        cp_tabs = yaml.safe_load(f)
-        directories = next(os.walk(pkg_resources.resource_filename('PyMini', 'Modules/')))[1]
-        # directories = os.listdir()
-        for index, module_name in enumerate(directories):
+        module_list = yaml.safe_load(f)['modules']
+        for index, module_name in enumerate(module_list):
+            # load modules
+            module_path = os.path.join(pkg_resources.resource_filename('PyMini', 'Modules'), module_name)
             try:
-                module = importlib.import_module(f'PyMini.Modules.{module_name}.{module_name}')
-                globals()[module_name] = module.TabModule()
-                cp_notebook.add(globals()[module_name].frame, text=globals()[module_name].label)
-                globals()[module_name].index = index
-                cp_notebook.tab(globals()[module_name].frame, state='hidden')
+                with open(os.path.join(module_path, 'config.yaml'), 'r') as config_file:
+                    module_config = yaml.safe_load(config_file)
+                if module_config.get('control_panel', None):
+                    module_tab = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["control_panel"]}')
+                    tab = module_tab.ModuleTab()
+                    globals()[module_config['control_panel']] = tab
+                    cp_notebook.add(tab.frame, text=tab.tab_label)
+                    tab.cp_index = index
+                    cp_notebook.tab(tab.frame, state='hidden')
+                    control_panel_dict[tab.name] = tab.frame
+                if module_config.get('data_notebook', None):
+                    module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["data_notebook"]}')
+                    table = module_table.ModuleTable()
+                    globals()[module_config['data_notebook']] = table
+                    data_notebook.add(table, text=table.tab_label)
+                    table.dp_index = index
+                    data_notebook.tab(table, state='hidden')
+                    data_notebook_dict[table.name] = table
             except Exception as e:
                 print(e)
                 pass
+
+        # # only show one tab at a time
+        # global data_tab_details
+        # data_tab_details = {
+        #     'mini': {'module': data_display, 'text': 'Mini Data'},
+        #     'evoked': {'module': evoked_data_display, 'text': 'Evoked Data'}
+        # }
+        # for i, t in enumerate(data_tab_details):
+        #     data_tab_details[t]['tab'] = data_tab_details[t]['module'].load(root)
+        #     data_notebook.add(data_tab_details[t]['tab'], text=data_tab_details[t]['text'])
+        #     data_tab_details[t]['index'] = i
     # set up closing sequence
     root.protocol('WM_DELETE_WINDOW', _on_close)
 
     # set up event bindings
-    interpreter.initialize()
+    # interpreter.initialize()
     root.deiconify()
     # # finalize the data viewer - table
     root.geometry(config.geometry)
     root.update()
-    data_display.fit_columns()
-    evoked_data_display.fit_columns()
+    # data_display.fit_columns()
+    # evoked_data_display.fit_columns()
 
     ## root2 = root
     loaded = True

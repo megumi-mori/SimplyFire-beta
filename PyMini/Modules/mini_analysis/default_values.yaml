@@ -1,0 +1,61 @@
+#detector parameters
+detector_core_direction : 'positive'
+detector_core_search_radius : 5.0
+detector_core_auto_radius : 80
+detector_core_lag_ms : 10
+detector_core_deltax_ms: 0
+detector_core_min_peak2peak: 5
+detector_core_std_lag_ms: 10
+
+detector_core_decay_algorithm: 'Curve fit'
+detector_core_decay_p_amp: 37
+detector_core_decay_ss_min: 0
+detector_core_decay_ss_max: 10
+detector_core_decay_ss_interval: 0.01
+detector_core_decay_best_guess: 4
+detector_core_decay_max_interval : 25
+
+detector_core_compound: 1
+detector_core_extrapolation_length: 100
+detector_core_p_valley: 50.0
+detector_core_max_compound_interval: 50
+detector_core_update_events : 0
+detector_core_extrapolate_hw: 1
+
+detector_filter_min_amp : 0.3
+detector_filter_max_amp: 'None'
+detector_filter_min_decay : 0
+detector_filter_max_decay : 'None'
+detector_min_auc : 0
+detector_filter_min_hw : 0
+detector_filter_max_hw : 'None'
+detector_filter_min_rise : 0
+detector_filter_max_rise : 'None'
+detector_filter_min_dr: 0
+detector_filter_max_dr: 'None'
+detector_filter_min_s2n: 0
+detector_filter_max_s2n: 'None'
+
+detector_decay_func_type : '1'
+detector_decay_func_constant : "1"
+detector_decay_fit_ftol : 1e-08
+detector_show_fit : '1'
+
+data_export_all : 1
+data_display_time : 1
+data_display_amplitude : 1
+data_display_amplitude_unit : 1
+data_display_decay : 1
+data_display_decay_unit : 1
+data_display_decay_func : 1
+data_display_decay_time : 1
+data_display_rise : 1
+data_display_rise_unit : 1
+data_display_halfwidth : 1
+data_display_halfwidth_unit : 1
+data_display_baseline : 1
+data_display_baseline_unit : 1
+data_display_std: 1
+data_display_channel : 1
+data_display_direction : 1
+data_display_compound: 1

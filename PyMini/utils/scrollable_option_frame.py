@@ -175,6 +175,7 @@ class OptionFrame(Tk.Frame):
 
     def insert_button(
             self,
+            name="",
             text="",
             command=None,
 
