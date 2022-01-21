@@ -996,7 +996,7 @@ class Analyzer():
                 idx -= 1
                 tma = tma + (ys[idx - lag] - ys[idx]) * direction / lag # update trailing avg
                 if tma >= ys[idx] * direction:
-                    return idx, tma * direction
+                    return idx+1, tma * direction
             else:
                 return None, None
 
@@ -1004,7 +1004,7 @@ class Analyzer():
         tma = np.mean(ys[int(peak_idx-delta_x):int(peak_idx - delta_x+lag)])*direction
         while idx > peak_idx - delta_x:
             if tma >= ys[idx] * direction:
-                return idx, tma*direction
+                return idx+1, tma*direction
             idx -= 1
         else:
             return None, None
@@ -1451,7 +1451,6 @@ class Analyzer():
                                                               lag=lag,
                                                               delta_x=delta_x,
                                                               direction=direction)
-
         # check if baseline calculation was successful
         if baseline_idx is None:  # not successful
             mini['success'] = False
