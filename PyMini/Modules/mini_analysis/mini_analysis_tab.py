@@ -333,6 +333,8 @@ class ModuleControl(BaseControlModule):
 
         app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
         app.trace_display.canvas.mpl_connect('pick_event', self.select_from_event_pick)
+        for key in app.config.key_delete:
+            app.trace_display.canvas.get_tk_widget().bind(key, self.delete_from_canvas)
 
     def _apply_column_options(self, e=None):
         app.get_data_table(self.name).show_columns(
@@ -408,9 +410,12 @@ class ModuleControl(BaseControlModule):
                             (self.mini_df['channel'] == app.interface.channel)].t.values
         self.delete_selection(selection)
 
+    def delete_from_canvas(self, selection, undo=True):
+        self.module_table.delete_selection()
+
 
     def delete_selection(self, selection):
-        # pass list of strings (corresponding to 't' column) to delete
+        # pass list of floats (corresponding to 't' column) to delete
         self.mini_df = self.mini_df[(~self.mini_df['t'].isin(selection))|(self.mini_df['channel']!=app.interface.channel)]
         self.module_table.delete(selection)
         self.update_event_markers()

@@ -1,6 +1,7 @@
 from PyMini import app
 from PyMini.Modules.base_table_module import BaseTableModule
 from collections import OrderedDict
+from PyMini.utils.widget import DataTable
 
 class ModuleTable(BaseTableModule):
     def __init__(self):
@@ -30,11 +31,16 @@ class ModuleTable(BaseTableModule):
             ('direction', 'data_display_direction'),
             ('compound', 'data_display_compound')
         ])
+        for key in app.config.key_delete:
+            self.table.bind(key, self.delete_selection, add="")
         self.define_columns(tuple([key for key in self.mini_header2config]),iid_header='t')
         self.bind("<<OpenRecording>>", self.clear)
 
         self.table.bind('<<TreeviewSelect>>', self.report_selection)
 
-    def report_selection(self, event):
+    def report_selection(self, event=None):
         self.module_control.select_from_table(self.table.selection())
+
+    def delete_selection(self, event=None):
+        self.module_control.delete_selection([float(s) for s in self.table.selection()])
 

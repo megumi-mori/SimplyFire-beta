@@ -58,6 +58,7 @@ class BaseTableModule(DataTable):
             return
         tab.module_table = self
         self.module_control = tab
+        self.status_var = self.module_control.status_var
 
     def popup(self, event):
         try:
@@ -66,11 +67,19 @@ class BaseTableModule(DataTable):
             self.menu.grab_release()
 
     def update_module_display(self):
+        print(self.status_var.get())
         if self.status_var.get():
-            self.enable_tab()
+            self.show_tab()
             self.fit_columns()
         else:
-            app.data_notebook.tab(self, state='hidden')
+            self.hide_tab()
+
+    def show_tab(self):
+        app.data_notebook.tab(self, state='normal')
+        app.data_notebook.select(self)
+
+    def hide_tab(self):
+        app.data_notebook.tab(self, state='hidden')
 
     def enable_tab(self):
         if self.is_visible():

@@ -44,10 +44,11 @@ class BaseControlModule(Frame):
         self.make_panel = self.optionframe.make_panel
 
     def update_module_display(self, table=False):
+        print(self.status_var.get())
         if self.status_var.get():
-            app.cp_notebook.tab(self, state='normal')
+            self.show_tab()
         else:
-            app.cp_notebook.tab(self, state='hidden')
+            self.hide_tab()
         if table:
             self.module_table.update_module_display()
 
@@ -102,6 +103,12 @@ class BaseControlModule(Frame):
     def is_enabled(self):
         return app.cp_notebook.tab(self, option='state') == 'normal'
 
+    def show_tab(self):
+        app.cp_notebook.tab(self, state='normal')
+        app.cp_notebook.select(self)
+
+    def hide_tab(self):
+        app.cp_notebook.tab(self, state='hidden')
     def enable_tab(self):
         if self.is_visible():
             app.cp_notebook.tab(self, state='normal')
