@@ -307,7 +307,7 @@ def plot_continuous(recording, fix_axis=False, draw=True, fix_x=False, fix_y=Fal
     #
     #     data_display.append(al.mini_df.loc[xs])
 
-    update_event_marker()
+    # update_event_marker()
 
 def delete_last_sweep():
     recordings[0].delete_last_sweep()
@@ -988,73 +988,73 @@ def highlight_events_in_range(xlim=None, ylim=None):
     data_display.table.selection_set([str(x) for x in df['t']])
 
 
-def update_event_marker():
-    global recordings
-    if len(recordings)==0:
-        return None
-    # if app.widgets['show_peak'].get():
-    trace_display.plot_peak(get_column('peak_coord_x'), get_column('peak_coord_y'))
-    # if app.widgets['show_start'].get():
-    trace_display.plot_start(get_column('start_coord_x'), get_column('start_coord_y'))
-    # if app.widgets['show_decay'].get():
-    try:
-        trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
-    except:
-        pass
-    # trace_display.canvas.draw()
-    trace_display.draw_ani()
+# def update_event_marker():
+#     global recordings
+#     if len(recordings)==0:
+#         return None
+#     # if app.widgets['show_peak'].get():
+#     trace_display.plot_peak(get_column('peak_coord_x'), get_column('peak_coord_y'))
+#     # if app.widgets['show_start'].get():
+#     trace_display.plot_start(get_column('start_coord_x'), get_column('start_coord_y'))
+#     # if app.widgets['show_decay'].get():
+#     try:
+#         trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
+#     except:
+#         pass
+#     # trace_display.canvas.draw()
+#     trace_display.draw_ani()
 
-def delete_event(selection, undo=True):
-    global mini_df
-    if mini_df.shape[0]==0:
-        return None
-    if len(selection)>0:
-        selection = [float(i) for i in selection]
-        if int(app.widgets['config_undo_stack'].get()) > 0 and undo:
-            ########### Save temp file ##############
-            temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
-                                         'temp_{}.temp'.format(get_temp_num()))
-            os.makedirs(os.path.dirname(temp_filename), exist_ok=True)
-            mini_df[(mini_df['t'].isin(selection)) & (mini_df['channel'] == recordings[0].channel)].to_csv(
-                temp_filename)
-            add_undo([
-                lambda f=temp_filename: open_events(temp_filename, log=False, undo=False, append=True),
-                lambda f=temp_filename: os.remove(f)
-            ])
-        mini_df = mini_df[(~mini_df['t'].isin(selection)) | (mini_df['channel'] != recordings[0].channel)]
-        data_display.delete(selection)
-        update_event_marker() ##### maybe make this separate
-    if app.widgets['window_param_guide'].get():
-        param_guide.clear()
+# def delete_event(selection, undo=True):
+#     global mini_df
+#     if mini_df.shape[0]==0:
+#         return None
+#     if len(selection)>0:
+#         selection = [float(i) for i in selection]
+#         if int(app.widgets['config_undo_stack'].get()) > 0 and undo:
+#             ########### Save temp file ##############
+#             temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
+#                                          'temp_{}.temp'.format(get_temp_num()))
+#             os.makedirs(os.path.dirname(temp_filename), exist_ok=True)
+#             mini_df[(mini_df['t'].isin(selection)) & (mini_df['channel'] == recordings[0].channel)].to_csv(
+#                 temp_filename)
+#             add_undo([
+#                 lambda f=temp_filename: open_events(temp_filename, log=False, undo=False, append=True),
+#                 lambda f=temp_filename: os.remove(f)
+#             ])
+#         mini_df = mini_df[(~mini_df['t'].isin(selection)) | (mini_df['channel'] != recordings[0].channel)]
+#         data_display.delete(selection)
+#         update_event_marker() ##### maybe make this separate
+#     if app.widgets['window_param_guide'].get():
+#         param_guide.clear()
 
-def delete_events_in_range(xlim, undo=True):
-    global mini_df
-    if mini_df.shape[0] == 0:
-        return None
-    selection=mini_df[(mini_df['t']>xlim[0]) &
-               (mini_df['t']<xlim[1]) &
-               (mini_df['channel'] == recordings[0].channel)].t.values
-    delete_event(selection, undo=undo)
-def delete_all_events(undo=True):
-    global mini_df
-    if mini_df.shape[0] == 0:
-        return None
-    if int(app.widgets['config_undo_stack'].get()) > 0 and undo:
-    ########## Save temp file ##############
-        temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
-                                     'temp_{}.temp'.format(get_temp_num()))
-        os.makedirs(os.path.dirname(temp_filename), exist_ok=True)
-        mini_df[mini_df['channel'] == recordings[0].channel].to_csv(temp_filename)
-        add_undo([
-            lambda f=temp_filename, l=False, u=False, a=True: open_events(filename=f, log=l, undo=u, append=a),
-            lambda f=temp_filename:os.remove(f)
-        ])
-    try:
-        mini_df = mini_df[mini_df['channel']!=recordings[0].channel]
-        data_display.clear()
-        update_event_marker()
-    except:
-        pass
+# def delete_events_in_range(xlim, undo=True):
+#     global mini_df
+#     if mini_df.shape[0] == 0:
+#         return None
+#     selection=mini_df[(mini_df['t']>xlim[0]) &
+#                (mini_df['t']<xlim[1]) &
+#                (mini_df['channel'] == recordings[0].channel)].t.values
+#     delete_event(selection, undo=undo)
+# def delete_all_events(undo=True):
+#     global mini_df
+#     if mini_df.shape[0] == 0:
+#         return None
+#     if int(app.widgets['config_undo_stack'].get()) > 0 and undo:
+#     ########## Save temp file ##############
+#         temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
+#                                      'temp_{}.temp'.format(get_temp_num()))
+#         os.makedirs(os.path.dirname(temp_filename), exist_ok=True)
+#         mini_df[mini_df['channel'] == recordings[0].channel].to_csv(temp_filename)
+#         add_undo([
+#             lambda f=temp_filename, l=False, u=False, a=True: open_events(filename=f, log=l, undo=u, append=a),
+#             lambda f=temp_filename:os.remove(f)
+#         ])
+#     try:
+#         mini_df = mini_df[mini_df['channel']!=recordings[0].channel]
+#         data_display.clear()
+#         update_event_marker()
+#     except:
+#         pass
 
 
 

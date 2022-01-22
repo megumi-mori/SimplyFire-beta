@@ -194,7 +194,7 @@ def set_analysis_mini():
         interface.config_cp_tab('mini', state='disabled')
         interface.config_data_tab('mini', state='disabled')
         pass
-    interface.update_event_marker()
+    # interface.update_event_marker()
     app.pb['value'] = 0
     app.pb.update()
     pass

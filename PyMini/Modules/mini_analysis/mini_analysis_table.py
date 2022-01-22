@@ -33,5 +33,8 @@ class ModuleTable(BaseTableModule):
         self.define_columns(tuple([key for key in self.mini_header2config]),iid_header='t')
         self.bind("<<OpenRecording>>", self.clear)
 
+        self.table.bind('<<TreeviewSelect>>', self.report_selection)
 
+    def report_selection(self, event):
+        self.module_control.select_from_table(self.table.selection())
 

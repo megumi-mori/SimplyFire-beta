@@ -37,10 +37,11 @@ def initialize():
         bind_key_dp(key, press_function=select_window_key)
 
 
-    # for key in config.key_multi_select:
-    #     bind_key_dp(key,
-    #              press_function=lambda e:exec('global multi_select; multi_select=True'),
-    #              release_function=lambda e: exec('global multi_select; multi_select=False'))
+    for key in config.key_multi_select:
+        bind_key(key,
+                 press_function=lambda e:exec('global multi_select; multi_select=True'),
+                 release_function=lambda e: exec('global multi_select; multi_select=False'),
+                 target=app.trace_display.canvas.get_tk_widget())
 
     #######################
     # navigation keys
@@ -254,26 +255,25 @@ def plot_mouse_move(event):
 def plot_event_pick(event):
     global event_pick
     event_pick = True
-    if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
-        xdata, ydata = event.artist.get_offsets()[event.ind][0]
-        if multi_select:
-            try:
-                app.data_display.table.selection_toggle(str(xdata))
-                # app.data_display.table.see(str(xdata))
-            except:
-                app.data_display.table.selection_toggle(str(round(xdata,interface.recordings[0].x_sigdig)))
-                # app.data_display.table.see(str(round(xdata, interface.recordings[0].x_sigdig)))
-            return
-        try:
-            app.data_display.table.selection_set(str(xdata))
-            # app.data_display.table.see(str(xdata))
-        except:
-            app.data_display.table.selection_set(str(round(xdata, interface.recordings[0].x_sigdig)))
+    # if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
+    #     xdata, ydata = event.artist.get_offsets()[event.ind][0]
+    #     if multi_select:
+    #         try:
+    #             app.data_display.table.selection_toggle(str(xdata))
+    #             # app.data_display.table.see(str(xdata))
+    #         except:
+    #             app.data_display.table.selection_toggle(str(round(xdata,interface.recordings[0].x_sigdig)))
+    #             # app.data_display.table.see(str(round(xdata, interface.recordings[0].x_sigdig)))
+    #         return
+    #     try:
+    #         app.data_display.table.selection_set(str(xdata))
+    #         # app.data_display.table.see(str(xdata))
+    #     except:
+    #         app.data_display.table.selection_set(str(round(xdata, interface.recordings[0].x_sigdig)))
             # app.data_display.table.see(str(round(xdata, interface.recordings[0].x_sigdig)))
         # data_display.toggle_one(str(xdata))
 
 def plot_mouse_release(event):
-    print('interpreter plot mouse release called')
     global event_pick
     if event_pick:
         event_pick = False
@@ -295,13 +295,14 @@ def plot_mouse_release(event):
         # take care of rect multiselection here
         if event.xdata and event.ydata:
             drag_coord_end = (event.xdata, event.ydata)
-        if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
-            interface.highlight_events_in_range((drag_coord_start[0], drag_coord_end[0]),
-                                             (drag_coord_start[1], drag_coord_end[1]))
-        elif app.widgets['trace_mode'].get() == 'overlay':
-            interface.highlight_sweep_in_range((drag_coord_start[0], drag_coord_end[0]),
-                                             (drag_coord_start[1], drag_coord_end[1]),
-                                               draw=True)
+        # if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
+        #     interface.highlight_events_in_range((drag_coord_start[0], drag_coord_end[0]),
+        #                                      (drag_coord_start[1], drag_coord_end[1]))
+        # elif app.widgets['trace_mode'].get() == 'overlay':
+        #     interface.highlight_sweep_in_range((drag_coord_start[0], drag_coord_end[0]),
+        #                                      (drag_coord_start[1], drag_coord_end[1]),
+        #                                        draw=True)
+        app.root.event_generate('<<DrawRect>>')
         drag_coord_end = None
         drag_coord_start = None
         app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
@@ -466,9 +467,9 @@ def unselect_key(event):
     pass
 
 def delete_key(event):
-    if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
-        app.data_display.delete_selected()
-        return
+    # if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
+    #     app.data_display.delete_selected()
+    #     return
     if app.widgets['trace_mode'].get() == 'overlay':
         interface.hide_highlighted_sweep()
 
@@ -479,15 +480,15 @@ def delete_key(event):
 def select_all_key(event):
     # if app.widgets['trace_mode'].get() == 'overlay':
     #     interface.highlight_all_sweeps()
-    if app.widgets['analysis_mode'].get() == 'mini' and app.root.focus_get() == app.trace_display.canvas.get_tk_widget():
-        app.data_display.dataframe.select_all()
+    # if app.widgets['analysis_mode'].get() == 'mini' and app.root.focus_get() == app.trace_display.canvas.get_tk_widget():
+    #     app.data_display.dataframe.select_all()
     pass
 
 def select_window_key(event=None):
     xlim = app.trace_display.ax.get_xlim()
     ylim = app.trace_display.ax.get_ylim()
-    if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
-        interface.highlight_events_in_range(xlim, ylim)
-    elif app.widgets['trace_mode'].get() == 'overlay':
-        interface.highlight_sweep_in_range(xlim, ylim,
-                                           draw=True)
+    # if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
+    #     interface.highlight_events_in_range(xlim, ylim)
+    # elif app.widgets['trace_mode'].get() == 'overlay':
+    #     interface.highlight_sweep_in_range(xlim, ylim,
+    #                                        draw=True)

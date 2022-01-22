@@ -40,7 +40,7 @@ class BaseTableModule(DataTable):
         # self.datatable.menu.add_command(label='Fit columns', command=self.datatable.fit_columns)
         # self.datatable.menu.add_command(label='Clear data', command=self.datatable.clear)
 
-        self.module_table = None
+        self.module_control = None
 
     def add(self, datadict, parent="", index='end'):
         self.disable_tab()
@@ -73,13 +73,17 @@ class BaseTableModule(DataTable):
             app.data_notebook.tab(self, state='hidden')
 
     def enable_tab(self):
-        app.data_notebook.tab(self, state='normal')
-        app.data_notebook.select(self)
-
-
+        if self.is_visible():
+            app.data_notebook.tab(self, state='normal')
+            app.data_notebook.select(self)
 
     def disable_tab(self):
-        app.data_notebook.tab(self, state='disabled')
+        if self.is_visible():
+            app.data_notebook.tab(self, state='disabled')
+
+    def is_visible(self):
+        state = app.data_notebook.tab(self, option='state')
+        return state == 'normal' or state == 'disabled'
 
 
 

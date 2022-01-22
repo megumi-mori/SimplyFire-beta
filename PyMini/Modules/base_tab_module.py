@@ -46,14 +46,10 @@ class BaseControlModule(Frame):
     def update_module_display(self, table=False):
         if self.status_var.get():
             app.cp_notebook.tab(self, state='normal')
-            if table:
-                app.data_notebook.tab(self.module_table, state='normal')
-                self.module_table.fit_columns()
-
         else:
             app.cp_notebook.tab(self, state='hidden')
-            if table:
-                app.data_notebook.tab(app.get_data_frame(self.name), state='hidden')
+        if table:
+            self.module_table.update_module_display()
 
     def insert_title(self, **kwargs):
         title = self.optionframe.insert_title(**kwargs)
@@ -98,6 +94,22 @@ class BaseControlModule(Frame):
         # use this method to check if the tab is in focus
         # use dict to allow for other locations for modules in the future
         return app.get_tab_focus()['control_panel'] == str(self)
+
+    def is_visible(self):
+        state = app.cp_notebook.tab(self, option='state')
+        return state == 'normal' or state == 'disabled'
+
+    def is_enabled(self):
+        return app.cp_notebook.tab(self, option='state') == 'normal'
+
+    def enable_tab(self):
+        if self.is_visible():
+            app.cp_notebook.tab(self, state='normal')
+            app.cp_notebook.select(self)
+
+    def disable_tab(self):
+        if self.is_visible():
+            app.cp_notebook.tab(self, state='disabled')
     def hide_label_widget(self, widget):
         widget.master.master.grid_remove()
 
