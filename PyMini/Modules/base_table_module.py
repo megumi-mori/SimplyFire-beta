@@ -42,6 +42,16 @@ class BaseTableModule(DataTable):
 
         self.module_table = None
 
+    def add(self, datadict, parent="", index='end'):
+        self.disable_tab()
+        super().add(datadict, parent, index)
+        self.enable_tab()
+
+    def append(self, dataframe):
+        self.disable_tab()
+        super().append(dataframe)
+        self.enable_tab()
+
     def connect_to_control(self, tab):
         # connects the control panel to the table and vice versa
         if tab is None:

@@ -29,6 +29,7 @@ class BaseControlModule(Frame):
         self.tab_label = tab_label
         self.status_var = BooleanVar()
         self.widgets = {}
+        self.module_table = None
         app.menubar.window_menu.add_checkbutton(label=self.menu_label, command=lambda t=has_table:self.update_module_display(t), variable=self.status_var,
                                        onvalue=True, offvalue=False)
         if scrollbar:
@@ -46,7 +47,9 @@ class BaseControlModule(Frame):
         if self.status_var.get():
             app.cp_notebook.tab(self, state='normal')
             if table:
-                app.data_notebook.tab(app.get_data_frame(self.name), state='normal')
+                app.data_notebook.tab(self.module_table, state='normal')
+                self.module_table.fit_columns()
+
         else:
             app.cp_notebook.tab(self, state='hidden')
             if table:

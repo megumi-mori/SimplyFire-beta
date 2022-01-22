@@ -1,5 +1,5 @@
 import matplotlib.backend_bases
-
+from tkinter import messagebox
 from PyMini.Modules.base_tab_module import BaseControlModule
 from PyMini import app
 from . import analysis
@@ -40,13 +40,16 @@ class ModuleControl(BaseControlModule):
             text="Mini Analysis"
         )
         self.find_all_button = self.insert_button(
-            text='Find all'
+            text='Find all',
+            command=self.find_all
         )
         self.insert_button(
-            text='Delete all'
+            text='Delete all',
+            command=lambda undo=True:self.delete_all(undo)
         )
         self.insert_button(
-            text='Find in\nwindow'
+            text='Find in\nwindow',
+            command=self.find_range
         )
         self.insert_button(
             text='Delete in\nwindow'
@@ -326,7 +329,9 @@ class ModuleControl(BaseControlModule):
             command=self._columns_hide_all
         )
         # event bindings:
-        self.frame.bind('<<LoadComplete>>', self._apply_column_options)
+        app.root.bind('<<LoadComplete>>', self._apply_column_options)
+        app.root.bind('<<OpenRecording>>', lambda save=False:self.delete_all(save))
+
         app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
 
     def _apply_column_options(self, e=None):
@@ -345,17 +350,57 @@ class ModuleControl(BaseControlModule):
     def apply_filter_window(self, e=None):
         pass
 
+    def delete_all(self, undo=True):
+        # deal with undo later
+        self.mini_df = self.mini_df.iloc[0:0]
+        self.module_table.clear()
+        self.update_event_markers()
+
     def find_manual(self, event: matplotlib.backend_bases.Event=None):
+        self.module_table.unselect()
         mini = analysis.find_mini_manual(event.xdata, self.get_params(), self.mini_df)
         if mini['success']:
             self.mini_df = self.mini_df.append(mini,
                                      ignore_index=True,
                                      sort=False)
             self.mini_df = self.mini_df.sort_values(by='t')
-            self.module_table.disable_tab()
             self.module_table.add({key:value for key,value in mini.items() if key in self.mini_header2config})
-            self.module_table.enable_tab()
             self.update_event_markers()
+
+    def find_all(self, event=None):
+        self.module_table.unselect()
+        df = analysis.find_mini_in_range(self.get_params(), self.mini_df)
+        self.mini_df = pd.concat([self.mini_df, df])
+        if df.shape[0] > 0:
+            # if int(app.widgets['config_undo_stack'].get()) > 0:
+            #     add_undo([
+            #         lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
+            #         lambda msg='Undo mini search': detector_tab.log(msg)
+            #     ])
+            self.update_event_markers()
+            self.module_table.append(df)
+
+        # if detector_tab.changed:
+        #     log_display.search_update('Auto')
+        #     log_display.param_update(detector_tab.changes)
+        #     detector_tab.changes = {}
+        #     detector_tab.changed = False
+        app.pb['value'] = 0
+        app.pb.update()
+    def find_range(self, event=None):
+        self.module_table.unselect()
+        df = analysis.find_mini_in_range(self.get_params(), self.mini_df,
+                                         xlim=app.trace_display.ax.get_xlim(),
+                                         ylim=app.trace_display.ax.get_ylim())
+        self.mini_df = pd.concat([self.mini_df, df])
+        if df.shape[0] > 0:
+            # if int(app.widgets['config_undo_stack'].get()) > 0:
+            #     add_undo([
+            #         lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
+            #         lambda msg='Undo mini search': detector_tab.log(msg)
+            #     ])
+            self.update_event_markers()
+            self.module_table.append(df)
 
     def get_params(self):
         params = {}
@@ -401,6 +446,9 @@ class ModuleControl(BaseControlModule):
         if len(app.interface.recordings) == 0:
             return None
         if self.has_focus():
+            if app.menubar.widgets['trace_mode'].get() != 'continuous':
+                messagebox.showerror(title='Error', message='Please switch to continuous mode to analyze minis.')
+                return None
             self.module_table.unselect()
             self.find_manual(event)
             pass
@@ -460,35 +508,39 @@ class ModuleControl(BaseControlModule):
             self.markers['peak'].remove()
         except:
             pass
-        self.markers['peak'] = app.trace_display.ax.scatter(xs, ys, marker='o', color=self.peak_color,
+        try:
+            self.markers['peak'] = app.trace_display.ax.scatter(xs, ys, marker='o', color=self.peak_color,
                                                             s=self.peak_size**2, picker=True, animated=False)
+        except:
+            pass
 
     def plot_decay(self, xs, ys):
         try:
             self.markers['decay'].remove()
         except:
             pass
-        self.markers['decay'] = app.trace_display.ax.plot(xs, ys, marker='x', color=self.decay_color,
+        try:
+            self.markers['decay'], = app.trace_display.ax.plot(xs, ys, marker='x', color=self.decay_color,
                                                           markersize=self.decay_size, linestyle='None',
                                                           animated=False)
+        except:
+            pass
 
     def plot_start(self, xs, ys):
         try:
             self.markers['start'].remove()
         except:
             pass
-        self.markers['start'] = app.trace_display.ax.plot(xs, ys, marker='x', color=self.start_color,
+        try:
+            self.markers['start'], = app.trace_display.ax.plot(xs, ys, marker='x', color=self.start_color,
                                                           markersize=self.start_size, linestyle='None',
                                                           animated=False)
-    def update_module_display(self, table=True):
-        super().update_module_display(table=True)
-        self.module_table.fit_columns()
+        except:
+            pass
 
     def update_event_markers(self):
-        if len(app.interface.recordings) == 0:
-            # called without any opened traces
-            return None
         self.plot_peak(self.extract_column('peak_coord_x'), self.extract_column('peak_coord_y'))
         self.plot_decay(self.extract_column('decay_coord_x'), self.extract_column('decay_coord_y'))
         self.plot_start(self.extract_column('start_coord_x'), self.extract_column('start_coord_y'))
-        app.trace_display.canvas.draw()
+        app.trace_display.draw_ani()
+        # app.trace_display.canvas.draw()

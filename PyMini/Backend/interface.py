@@ -131,7 +131,8 @@ def open_recording(fname: str,
         log_display.open_update(fname)
     except:
         return None
-    app.root.event_generate('<<OpenRecording>>')
+    if not append:
+        app.root.event_generate('<<OpenRecording>>')
     # reset data from previous file
     clear_undo()
     global mini_df

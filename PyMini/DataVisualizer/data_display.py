@@ -199,7 +199,7 @@ def select_prev(e=None):
             return None
     table.selection_set(table.get_children()[-1])
 def unselect(e=None):
-    dataframe.unselect()
+    # dataframe.unselect()
     try:
         param_guide.clear()
     except Exception as e:
