@@ -1,10 +1,14 @@
-from PyMini.Modules.base_tab_module import BaseTabModule
-from PyMini.Modules.base_table_module import BaseTableModule
+import matplotlib.backend_bases
+
+from PyMini.Modules.base_tab_module import BaseControlModule
 from PyMini import app
-class ModuleTab(BaseTabModule):
+from . import analysis
+import pandas as pd
+class ModuleControl(BaseControlModule):
     def __init__(self):
-        super(ModuleTab, self).__init__(
-            name='Mini Analysis',
+        super(ModuleControl, self).__init__(
+            name= 'mini_analysis',
+            menu_label='Mini Analysis',
             tab_label='Mini',
             parent=app.root,
             scrollbar=True,
@@ -15,6 +19,23 @@ class ModuleTab(BaseTabModule):
         self.changes = {}
         self.changed = False
         self.parameters = {}
+
+        self.module_table = None
+        self.mini_df = pd.DataFrame()
+
+        self.markers = {'peak':None, 'decay':None, 'start':None}
+
+        # plotting parameters:
+        self.peak_color = 'green'
+        self.decay_color = 'blue'
+        self.start_color = 'red'
+        self.highlight_color = 'red'
+
+        self.peak_size = 5
+        self.decay_size = 5
+        self.start_size = 5
+        self.highlight_size = 5
+
         self.insert_title(
             text="Mini Analysis"
         )
@@ -40,8 +61,13 @@ class ModuleTab(BaseTabModule):
         self.insert_title(
             text='Core parameters'
         )
-        global core_params
-        core_params = {
+        self.insert_label_optionmenu(
+            name='detector_core_direction',
+            label='Direction',
+            options=['positive', 'negative']
+        )
+
+        self.core_params = {
             'manual_radius': {'id': 'detector_core_search_radius',
                               'label': 'Search radius in % of visible x-axis (Manual)', 'validation': 'float',
                               'conversion': float},
@@ -49,27 +75,27 @@ class ModuleTab(BaseTabModule):
                             'label': 'Search window in ms (Auto)', 'validation': 'float', 'conversion': float},
             'delta_x_ms': {'id': 'detector_core_deltax_ms',
                            'label': 'Points before peak to estimate baseline (ms)',
-                           'validation': 'positive_int/zero',
-                           'conversion': int},
+                           'validation': 'float/zero',
+                           'conversion': float},
             'lag_ms': {'id': 'detector_core_lag_ms',
                        'label': 'Window of data points averaged to find start of mini (ms):',
                        'validation': 'float', 'conversion': float}
         }
-        for k, d in core_params.items():
+        for k, d in self.core_params.items():
             self.insert_label_entry(
                 name=d['id'],
                 label=d['label'],
                 validate_type=d['validation']
             )
-            self.widgets[d['id']].bind('<Return>', self.apply_parameters, add='+')
-            self.widgets[d['id']].bind('<FocusOut>', self.apply_parameters, add='+')
+            self.widgets[d['id']].bind('<Return>', self._apply_parameters, add='+')
+            self.widgets[d['id']].bind('<FocusOut>', self._apply_parameters, add='+')
             self.parameters[d['id']] = self.widgets[d['id']].get()
             self.changes[d['id']] = self.widgets[d['id']].get()
         self.insert_label_checkbox(
             name='detector_core_extrapolate_hw',
             label='Use decay to extrapolate halfwidth',
-            onvalue=1,
-            offvalue=0
+            onvalue='1',
+            offvalue=""
         )
         self.insert_title(
             text='Decay fitting options'
@@ -131,8 +157,8 @@ class ModuleTab(BaseTabModule):
                 validate_type=d['validation']
             )
             entry.master.master.grid_remove()
-            entry.bind('<Return>', self.apply_parameters, add='+')
-            entry.bind('<FocusOut>', self.apply_parameters, add='+')
+            entry.bind('<Return>', self._apply_parameters, add='+')
+            entry.bind('<FocusOut>', self._apply_parameters, add='+')
             self.parameters[d['id']] = entry.get()
             self.changes[d['id']] = entry.get()
         self.populate_decay_algorithms(self.widgets['detector_core_decay_algorithm'].get())
@@ -167,15 +193,15 @@ class ModuleTab(BaseTabModule):
                 label=d['label'],
                 validate_type=d['validation']
             )
-            entry.bind('<Return>', self.apply_parameters, add='+')
-            entry.bind('<FocusOut>', self.apply_parameters, add='+')
+            entry.bind('<Return>', self._apply_parameters, add='+')
+            entry.bind('<FocusOut>', self._apply_parameters, add='+')
             self.parameters[d['id']] = entry.get()
             self.changes[d['id']] = entry.get()
         self.populate_compound_params()
 
         self.insert_button(
             text='Apply',
-            command=self.apply_parameters
+            command=self._apply_parameters
         )
 
         self.insert_button(
@@ -223,14 +249,14 @@ class ModuleTab(BaseTabModule):
                 label=d['label'],
                 validate_type=d['validation']
             )
-            entry.bind('<Return>', self.apply_parameters, add='+')
-            entry.bind('<FocusOut>', self.apply_parameters, add='+')
+            entry.bind('<Return>', self._apply_parameters, add='+')
+            entry.bind('<FocusOut>', self._apply_parameters, add='+')
             self.parameters[d['id']] = entry.get()
             self.changes[d['id']] = entry.get()
 
         self.insert_button(
             text='Confirm',
-            command=self.apply_parameters
+            command=self._apply_parameters
         )
 
         self.insert_button(
@@ -266,7 +292,7 @@ class ModuleTab(BaseTabModule):
             self.insert_label_checkbox(
                 name=option[0],
                 label=option[1],
-                command=self.apply_column_options,
+                command=self._apply_column_options,
                 onvalue='1',
                 offvalue=""
             )
@@ -289,12 +315,25 @@ class ModuleTab(BaseTabModule):
             'stdev_unit': 'data_display_std',
             'direction': 'data_display_direction',
             'compound': 'data_display_compound'
-    }
-    def apply_column_options(self, e=None):
-        app.get_data_module(self.name).show_columns(
+        }
+
+        self.insert_button(
+            text='Show All',
+            command=self._columns_show_all
+        )
+        self.insert_button(
+            text='Hide All',
+            command=self._columns_hide_all
+        )
+        # event bindings:
+        self.frame.bind('<<LoadComplete>>', self._apply_column_options)
+        app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
+
+    def _apply_column_options(self, e=None):
+        app.get_data_table(self.name).show_columns(
             [k for k,v in self.mini_header2config.items() if self.widgets[v].get()]
         )
-    def apply_parameters(self, e=None):
+    def _apply_parameters(self, e=None):
         app.interface.focus()
         for i in self.parameters:
             if self.parameters[i] != self.widgets[i].get():
@@ -305,10 +344,95 @@ class ModuleTab(BaseTabModule):
 
     def apply_filter_window(self, e=None):
         pass
+
+    def find_manual(self, event: matplotlib.backend_bases.Event=None):
+        mini = analysis.find_mini_manual(event.xdata, self.get_params(), self.mini_df)
+        if mini['success']:
+            self.mini_df = self.mini_df.append(mini,
+                                     ignore_index=True,
+                                     sort=False)
+            self.mini_df = self.mini_df.sort_values(by='t')
+            self.module_table.disable_tab()
+            self.module_table.add({key:value for key,value in mini.items() if key in self.mini_header2config})
+            self.module_table.enable_tab()
+            self.update_event_markers()
+
+    def get_params(self):
+        params = {}
+        params['direction'] = {'negative': -1, 'positive': 1}[
+            self.widgets['detector_core_direction'].get()]  # convert direction to int value
+        params['compound'] = self.widgets['detector_core_compound'].get() == '1'
+        params['decay_algorithm'] = self.widgets['detector_core_decay_algorithm'].get()
+
+        for k, d in self.core_params.items():
+            try:
+                params[k] = d['conversion'](self.widgets[d['id']].get())
+            except:
+                if self.widgets[d['id']].get() == 'None':
+                    params[k] = None
+                else:
+                    params[k] = self.widgets[d['id']].get()
+        for k, d in self.filter_params.items():
+            try:
+                params[k] = d['conversion'](self.widgets[d['id']].get())
+            except:
+                if self.widgets[d['id']].get() == 'None' or self.widgets[d['id']].get() == '':
+                    params[k] = None
+                else:
+                    params[k] = self.widgets[d['id']].get()
+        for k, d in self.decay_params.items():
+            try:
+                params[k] = d['conversion'](self.widgets[d['id']].get())
+            except:
+                if self.widgets[d['id']].get() == 'None':
+                    params[k] = None
+                else:
+                    params[k] = self.widgets[d['id']].get()
+        if params['compound']:
+            for k, d in self.compound_params.items():
+                params[k] = self.widgets[d['id']].get()
+        return params
+
+    def canvas_mouse_release(self, event: matplotlib.backend_bases.Event=None):
+        if event.button != 1:
+            return None
+        if app.trace_display.canvas.toolbar.mode != "":
+            return None
+        if len(app.interface.recordings) == 0:
+            return None
+        if self.has_focus():
+            self.module_table.unselect()
+            self.find_manual(event)
+            pass
+    def _columns_show_all(self, e=None):
+        for option in self.data_display_options:
+            self.widgets[option[0]].set('1')
+        self._apply_column_options()
+    def _columns_hide_all(self, e=None):
+        for option in self.data_display_options:
+            self.widgets[option[0]].set('')
+        self._apply_column_options()
     def default_core_params(self, e=None):
         self.set_to_default('detector_core')
         self.populate_decay_algorithms()
         self.populate_compound_params()
+
+    def extract_column(self, colname: str, t: list=None) -> list:
+        # extract data for a specific column from the mini dataframe
+        if len(app.interface.recordings) == 0:
+            return None
+        if len(self.mini_df.index) == 0:
+            return None
+        if t:
+            try:
+                return list(self.mini_df[self.mini_df['t'].isin(t)][colname])
+            except:
+                return self.mini_df[self.mini_df.t.isin(t)][colname]
+        else:
+            xs = self.mini_df.index.where(self.mini_df['channel'] == app.interface.channel)
+            xs = xs.dropna()
+            return list(self.mini_df.loc[xs][colname])
+
     def populate_decay_algorithms(self, e=None):
         algorithm = self.widgets['detector_core_decay_algorithm'].get()
         for k, d in self.decay_params.items():
@@ -331,3 +455,40 @@ class ModuleTab(BaseTabModule):
             for k,d in self.compound_params.items():
                 self.hide_label_widget(self.widgets[d['id']])
 
+    def plot_peak(self, xs, ys):
+        try:
+            self.markers['peak'].remove()
+        except:
+            pass
+        self.markers['peak'] = app.trace_display.ax.scatter(xs, ys, marker='o', color=self.peak_color,
+                                                            s=self.peak_size**2, picker=True, animated=False)
+
+    def plot_decay(self, xs, ys):
+        try:
+            self.markers['decay'].remove()
+        except:
+            pass
+        self.markers['decay'] = app.trace_display.ax.plot(xs, ys, marker='x', color=self.decay_color,
+                                                          markersize=self.decay_size, linestyle='None',
+                                                          animated=False)
+
+    def plot_start(self, xs, ys):
+        try:
+            self.markers['start'].remove()
+        except:
+            pass
+        self.markers['start'] = app.trace_display.ax.plot(xs, ys, marker='x', color=self.start_color,
+                                                          markersize=self.start_size, linestyle='None',
+                                                          animated=False)
+    def update_module_display(self, table=True):
+        super().update_module_display(table=True)
+        self.module_table.fit_columns()
+
+    def update_event_markers(self):
+        if len(app.interface.recordings) == 0:
+            # called without any opened traces
+            return None
+        self.plot_peak(self.extract_column('peak_coord_x'), self.extract_column('peak_coord_y'))
+        self.plot_decay(self.extract_column('decay_coord_x'), self.extract_column('decay_coord_y'))
+        self.plot_start(self.extract_column('start_coord_x'), self.extract_column('start_coord_y'))
+        app.trace_display.canvas.draw()

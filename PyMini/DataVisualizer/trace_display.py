@@ -492,9 +492,10 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None):
         except:
             pass
     if not color:
-        color = app.widgets['style_trace_line_color'].get()
+        # color = app.widgets['style_trace_line_color'].get()
+        color='Black'
     sweeps['sweep_{}'.format(idx)], = ax.plot(xs, ys,
-                                              linewidth=app.widgets['style_trace_line_width'].get(),
+                                              # linewidth=app.widgets['style_trace_line_width'].get(),
                                               c=color,
                                               animated=False)  # pickradius=int(app.widgets['style_event_pick_offset'].get())
     if relim:

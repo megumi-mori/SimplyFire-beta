@@ -376,7 +376,7 @@ class Analyzer():
         self.plot_mode = plot_mode
 
         # initialize dataframes
-        self.mini_df = DataFrame()
+        # self.mini_df = DataFrame()
 
 
     def open_file(self, filename):

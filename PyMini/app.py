@@ -100,7 +100,7 @@ def load(splash):
     root.iconbitmap(os.path.join(IMG_DIR, 'logo_bw.ico'))
     if config.zoomed:
         root.state('zoomed')
-    root.bind('<Control-o>', lambda e:menubar.ask_open_trace())
+    root.bind('<Control-o>', lambda e:menubar.ask_open_recording())
     global menu
     menu = Tk.Menu(root)
     root.config(menu=menu)
@@ -277,31 +277,36 @@ def load(splash):
 
     with open(os.path.join(config.CONFIG_DIR, 'modules.yaml')) as f:
         module_list = yaml.safe_load(f)['modules']
-        for index, module_name in enumerate(module_list):
+        tab_index = 0
+        table_index = 0
+        for module_name in module_list:
             # load modules
             module_path = os.path.join(pkg_resources.resource_filename('PyMini', 'Modules'), module_name)
-            try:
-                with open(os.path.join(module_path, 'config.yaml'), 'r') as config_file:
-                    module_config = yaml.safe_load(config_file)
-                if module_config.get('control_panel', None):
-                    module_tab = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["control_panel"]}')
-                    tab = module_tab.ModuleTab()
-                    globals()[module_config['control_panel']] = tab
-                    cp_notebook.add(tab.frame, text=tab.tab_label)
-                    tab.cp_index = index
-                    cp_notebook.tab(tab.frame, state='hidden')
-                    control_panel_dict[tab.name] = tab
-                if module_config.get('data_notebook', None):
-                    module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["data_notebook"]}')
-                    table = module_table.ModuleTable()
-                    globals()[module_config['data_notebook']] = table
-                    data_notebook.add(table, text=table.tab_label)
-                    table.dp_index = index
-                    data_notebook.tab(table, state='hidden')
-                    data_notebook_dict[table.name] = table
-            except Exception as e:
-                print(e)
-                pass
+            # try:
+            with open(os.path.join(module_path, 'config.yaml'), 'r') as config_file:
+                module_config = yaml.safe_load(config_file)
+            tab=None
+            if module_config.get('control_panel', None):
+                module_tab = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["control_panel"]}')
+                tab = module_tab.ModuleControl()
+                cp_notebook.add(tab, text=tab.tab_label)
+                tab.cp_index = tab_index
+                # cp_notebook.tab(tab.frame, state='hidden')
+                control_panel_dict[tab.name] = tab
+                tab_index += 1
+            if module_config.get('data_notebook', None):
+                module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["data_notebook"]}')
+                table = module_table.ModuleTable()
+                data_notebook.add(table, text=table.tab_label)
+                table.dp_index = table_index
+                # data_notebook.tab(table.frame, state='hidden')
+                data_notebook_dict[table.name] = table
+                table_index += 1
+                table.connect_to_control(tab)
+
+            # except Exception as e:
+            #     print(e)
+            #     pass
         # # only show one tab at a time
         # global data_tab_details
         # data_tab_details = {
@@ -313,27 +318,43 @@ def load(splash):
         #     data_notebook.add(data_tab_details[t]['tab'], text=data_tab_details[t]['text'])
         #     data_tab_details[t]['index'] = i
     # set up closing sequence
+
     root.protocol('WM_DELETE_WINDOW', _on_close)
 
     # set up event bindings
-    # interpreter.initialize()
+    interpreter.initialize()
     root.deiconify()
     # # finalize the data viewer - table
     root.geometry(config.geometry)
     root.update()
     # data_display.fit_columns()
     # evoked_data_display.fit_columns()
+    for key, datatab in data_notebook_dict.items():
+        datatab.fit_columns()
+        data_notebook.tab(datatab, state='hidden')
+    for key, cptab in control_panel_dict.items():
+        cp_notebook.tab(cptab, state='hidden')
+
+    for modulename in config.default_module_list:
+        menubar.window_menu.invoke(control_panel_dict[modulename].menu_label)
+    data_notebook.select(data_notebook_dict[config.default_module_list[0]])
+    cp_notebook.select(control_panel_dict[config.default_module_list[0]])
 
     ## root2 = root
     loaded = True
     root.focus_force()
     splash.withdraw()
-    print(root.winfo_width())
-    print(root.winfo_height())
+
+    root.event_generate('<<LoadCompleted>>', when='tail')
     return None
 
+def get_tab_focus():
+    focus = {}
+    focus['control_panel'] = cp_notebook.select()
+    focus['data_panel'] = data_notebook.select()
+    return focus
 def get_cp_frame(name):
-    return control_panel_dict[name].frame
+    return control_panel_dict[name]
 
 def get_cp_module(name):
     return control_panel_dict[name]
@@ -341,8 +362,11 @@ def get_cp_module(name):
 def get_data_module(name):
     return data_notebook_dict[name]
 
-def get_data_module_table(name):
-    return data_notebook_dict[name].table
+def get_data_frame(name):
+    return data_notebook_dict[name]
+
+def get_data_table(name):
+    return data_notebook_dict[name]
 
 
 def dump_user_setting(filename=None):

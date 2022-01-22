@@ -131,29 +131,33 @@ def open_recording(fname: str,
         log_display.open_update(fname)
     except:
         return None
-
+    app.root.event_generate('<<OpenRecording>>')
     # reset data from previous file
     clear_undo()
     global mini_df
+    global channel
     if not append: # open a new file for analysis
         mini_df = mini_df.iloc[0:0]
-        data_display.clear()
-        evoked_data_display.clear()
+        # data_display.clear()
+        # evoked_data_display.clear()
         # update save file directory
-        if app.setting_tab.widgets['config_file_autodir'].get() == '1':
-            mpl.rcParams['savefig.directory'] = os.path.split(fname)[0]
+        # if app.setting_tab.widgets['config_file_autodir'].get() == '1':
+        #     mpl.rcParams['savefig.directory'] = os.path.split(fname)[0]
 
         # set to channel specified by the user
-        if app.widgets['force_channel'].get() == '1':
+        if app.graph_panel.widgets['force_channel'].get() == '1':
             try:
-                record.set_channel(int(app.widgets['force_channel_id'].get()))  # 0 indexing
+                record.set_channel(int(app.graph_panel.widgets['force_channel_id'].get()))  # 0 indexing
+                channel = int(app.graph_panel.widgets['force_channel_id'].get())
             except (IndexError): # forced channel does not exist
                 record.set_channel(0) # revert to the first channel
+                channel = 0
                 pass
         else:
             record.set_channel(0)
+            channel = 0
         # update file info displayed in the GUI
-        app.widgets['trace_info'].set(
+        app.graph_panel.widgets['trace_info'].set(
             '{}: {}Hz : {} channel{}'.format(
                 record.filename,
                 record.sampling_rate,
@@ -162,32 +166,32 @@ def open_recording(fname: str,
             )
         )
         app.trace_display.ax.autoscale(enable=True, axis='both', tight=True)
-        app.sweep_tab.populate_list(record.sweep_count)
+        # app.sweep_tab.populate_list(record.sweep_count)
         while len(recordings) > 0:
             r = recordings.pop()
             del r
     recordings.append(record)
-    if not append:
-        app.compare_tab.reset_trace_list(fname)
-    else:
-        app.compare_tab.increase_trace_list(fname)
-        try:
-            record.set_channel(recordings[0].channel)
-        except:
-            _change_channel(0, save_undo=False) # cannot open channel
+    # if not append:
+    #     app.compare_tab.reset_trace_list(fname)
+    # else:
+    #     app.compare_tab.increase_trace_list(fname)
+    #     try:
+    #         record.set_channel(recordings[0].channel)
+    #     except:
+    #         _change_channel(0, save_undo=False) # cannot open channel
 
-    if app.widgets['trace_mode'].get() == 'continuous':
+    if app.menubar.widgets['trace_mode'].get() == 'continuous':
         plot_continuous(record)
-    elif app.widgets['trace_mode'].get() == 'overlay':
+    elif app.menubar.widgets['trace_mode'].get() == 'overlay':
         plot_overlay(0, append=False)
     else:
         plot_overlay(len(recordings)-1, fix_x=append, append=append)
 
     param_guide.update()
     if not append:
-        if app.widgets['force_axis_limit'].get() == '1':
-            app.trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
-            app.trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
+        # if app.graph_panel.widgets['force_axis_limit'].get() == '1':
+        #     app.trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
+        #     app.trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
         if xlim:
             app.trace_display.set_axis_limit('x', xlim)
         if ylim:
@@ -200,14 +204,14 @@ def open_recording(fname: str,
         app.trace_display.update_x_scrollbar()
         app.trace_display.update_y_scrollbar()
 
-        app.widgets['channel_option'].clear_options()
+        app.graph_panel.widgets['channel_option'].clear_options()
         for i in range(record.channel_count):
-            app.widgets['channel_option'].add_command(
+            app.graph_panel.widgets['channel_option'].add_command(
                 label='{}: {}'.format(i, record.channel_labels[i]),
                 command=lambda c=i:_change_channel(c)
             )
     # starting channel was set earlier in the code
-        app.widgets['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
+        app.graph_panel.widgets['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
 
     app.pb['value'] = 0
     app.pb.update()
@@ -234,28 +238,30 @@ def _change_channel(num: int,
     # store process in undo
     if save_undo and num != recordings[0].channel:
         add_undo(lambda n= recordings[0].channel, s=False:_change_channel(n, s))
-
+    global channel
     try:
+        channel = num
         for r in recordings:
             r.set_channel(num)
         log_display.log(f'@ graph_viewer: switch to channel {num}')
     except:
+        channel = 0
         for r in recordings:
             r.set_channel(0)
         log_display.log(f'@ graph_viewer: unable to switch to channel {num}. Reverting to channel 0')
-    app.widgets['channel_option'].set(f'{recordings[0].channel}: {recordings[0].y_label}') #0 indexing for channel num
+    app.graph_panel.widgets['channel_option'].set(f'{recordings[0].channel}: {recordings[0].y_label}') #0 indexing for channel num
 
     # plot data points
-    if app.widgets['trace_mode'].get() == 'continuous':
+    if app.menubar.widgets['trace_mode'].get() == 'continuous':
         plot_continuous(recordings[0], fix_x=True, draw=False)
-    elif app.widgets['trace_mode'].get() == 'compare':
+    elif app.menubar.widgets['trace_mode'].get() == 'compare':
         for i,r in enumerate(recordings):
             plot_overlay(i, fix_x=True, draw=False, append=(i!=0))
-    elif app.widgets['trace_mode'].get() == 'overlay':
+    elif app.menubar.widgets['trace_mode'].get() == 'overlay':
         plot_overlay(0, fix_x=True, draw=False)
     # add other modes here
     trace_display.draw_ani()
-    data_display.clear()
+    # data_display.clear()
 
     populate_data_display()
     update_event_marker()
@@ -281,10 +287,10 @@ def plot_continuous(recording, fix_axis=False, draw=True, fix_x=False, fix_y=Fal
                              recording.get_ys(mode='continuous'),
                              draw=draw,
                              relim=True)
-    trace_display.ax.set_xlabel(recording.x_label, fontsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.set_ylabel(recording.y_label, fontsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.set_xlabel(recording.x_label)#, fontsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.set_ylabel(recording.y_label)#, fontsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.tick_params(axis='x', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
 
     if fix_axis:
         trace_display.set_axis_limit('x', xlim)
@@ -985,15 +991,15 @@ def update_event_marker():
     global recordings
     if len(recordings)==0:
         return None
-    if app.widgets['show_peak'].get():
-        trace_display.plot_peak(get_column('peak_coord_x'), get_column('peak_coord_y'))
-    if app.widgets['show_start'].get():
-        trace_display.plot_start(get_column('start_coord_x'), get_column('start_coord_y'))
-    if app.widgets['show_decay'].get():
-        try:
-            trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
-        except:
-            pass
+    # if app.widgets['show_peak'].get():
+    trace_display.plot_peak(get_column('peak_coord_x'), get_column('peak_coord_y'))
+    # if app.widgets['show_start'].get():
+    trace_display.plot_start(get_column('start_coord_x'), get_column('start_coord_y'))
+    # if app.widgets['show_decay'].get():
+    try:
+        trace_display.plot_decay(get_column('decay_coord_x'), get_column('decay_coord_y'))
+    except:
+        pass
     # trace_display.canvas.draw()
     trace_display.draw_ani()
 

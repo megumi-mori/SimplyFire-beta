@@ -5,7 +5,8 @@ from collections import OrderedDict
 class ModuleTable(BaseTableModule):
     def __init__(self):
         super(ModuleTable, self).__init__(
-            name='Mini Analysis',
+            name='mini_analysis',
+            menu_label='Mini Analysis',
             tab_label='Mini',
             parent=app.root
         )
@@ -30,10 +31,7 @@ class ModuleTable(BaseTableModule):
             ('compound', 'data_display_compound')
         ])
         self.define_columns(tuple([key for key in self.mini_header2config]),iid_header='t')
+        self.bind("<<OpenRecording>>", self.clear)
 
-    def add(self, data, index='end'):
-        app.data_notebook.tab(self, state='disabled')
-        self.add(data, index=index)
-        app.data_notebook.tab(self, state='normal')
 
 

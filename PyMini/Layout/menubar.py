@@ -96,19 +96,19 @@ def ask_open_recording():
     if not fname:
         return None
     interface.open_recording(fname)
-    app.compare_tab.start_msg.grid_forget()
+    # app.compare_tab.start_msg.grid_forget()
     interface.focus()
     return fname
 
 def ask_save_events():
-    if interface.al.mini_df.shape[0]>0:
-        answer = messagebox.askyesnocancel(title='Save Events?', message='Save changes to the mini analysis data table?')
-        # yes = True, no = False, cancel = None
-        if answer is None:
-            return None
-        if answer:
-            return interface.save_events_as_dialogue()
-        return False
+    # if interface.al.mini_df.shape[0]>0:
+    #     answer = messagebox.askyesnocancel(title='Save Events?', message='Save changes to the mini analysis data table?')
+    #     # yes = True, no = False, cancel = None
+    #     if answer is None:
+    #         return None
+    #     if answer:
+    #         return interface.save_events_as_dialogue()
+    #     return False
     return True
 
 def ask_save_plot(e=None):

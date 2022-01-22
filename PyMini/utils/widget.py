@@ -23,27 +23,25 @@ class VarWidget():
     ):
         self.name = name
         self.var = Tk.StringVar()
+        if default is not None:
+            self.default=default
+        else:
+            if config.default_vars.get('default_{}'.format(name), None):
+                self.default = config.default_vars['default_{}'.format(name)]
+            else:
+                self.default=""
         if value is not None:
             try:
                 self.var.set(value)
             except:
                 pass
-            if default is not None:
-                self.default=default
-            else:
-                self.default = config.default_vars['default_{}'.format(name)]
-            return
-
-        try:
-            self.var.set(config.user_vars[name])
-            self.default = config.default_vars['default_{}'.format(name)]
-        except:
-            try:
+        else:
+            if config.user_vars.get(name, None):
+                self.var.set(config.user_vars[name])
+            elif config.system_vars.get(name, None):
                 self.var.set(config.system_vars[name])
-                self.default = config.default_vars['system_default_{}'.format(name)]
-            except:
-                self.var.set('')
-                self.default = ''
+            else:
+                self.var.set(self.default)
         self.undo_value = self.get()
         self.interface = interface
 

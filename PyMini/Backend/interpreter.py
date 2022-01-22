@@ -25,7 +25,7 @@ def initialize():
     ################################
     for key in config.key_deselect:
         bind_key(key, press_function=unselect_key, target=app.trace_display.canvas.get_tk_widget())
-        bind_key(key, press_function=unselect_key, target=app.data_display.table, add="")
+        # bind_key(key, press_function=unselect_key, target=app.data_display.table, add="")
 
     for key in config.key_delete:
         bind_key(key, release_function=delete_key, target=app.trace_display.canvas.get_tk_widget())
@@ -37,10 +37,10 @@ def initialize():
         bind_key_dp(key, press_function=select_window_key)
 
 
-    for key in config.key_multi_select:
-        bind_key_dp(key,
-                 press_function=lambda e:exec('global multi_select; multi_select=True'),
-                 release_function=lambda e: exec('global multi_select; multi_select=False'))
+    # for key in config.key_multi_select:
+    #     bind_key_dp(key,
+    #              press_function=lambda e:exec('global multi_select; multi_select=True'),
+    #              release_function=lambda e: exec('global multi_select; multi_select=False'))
 
     #######################
     # navigation keys
@@ -150,12 +150,12 @@ def initialize():
     #######################################
     # Mini analysis
     #######################################
-    for key in config.key_find_all:
-        bind_key(key, press_function=lambda e:app.detector_tab.find_all_button.invoke(), target=app.trace_display.canvas.get_tk_widget())
-        bind_key(key, press_function=lambda e:app.detector_tab.find_all_button.invoke(), target=app.data_display.table)
-    for key in config.key_find_in_window:
-        bind_key(key, press_function=lambda e:app.detector_tab.find_in_window_button.invoke(), target=app.trace_display.canvas.get_tk_widget())
-        bind_key(key, press_function=lambda e:app.detector_tab.find_in_window_button.invoke(), target=app.data_display.table)
+    # for key in config.key_find_all:
+    #     bind_key(key, press_function=lambda e:app.detector_tab.find_all_button.invoke(), target=app.trace_display.canvas.get_tk_widget())
+    #     bind_key(key, press_function=lambda e:app.detector_tab.find_all_button.invoke(), target=app.data_display.table)
+    # for key in config.key_find_in_window:
+    #     bind_key(key, press_function=lambda e:app.detector_tab.find_in_window_button.invoke(), target=app.trace_display.canvas.get_tk_widget())
+    #     bind_key(key, press_function=lambda e:app.detector_tab.find_in_window_button.invoke(), target=app.data_display.table)
     #######################################
     # Canvas Mouse Events
     #######################################
@@ -182,11 +182,16 @@ def initialize():
 def bind_key_dp(key, press_function=None, release_function=None, add='+'):
     if key is None:
         return None
-    bind_key(key, press_function, release_function, app.data_display.table, add=add)
+    # bind_key(key, press_function, release_function, app.data_display.table, add=add)
     bind_key(key, press_function, release_function, app.trace_display.canvas.get_tk_widget(), add=add)
-    bind_key(key, press_function, release_function, app.results_display.table, add=add)
-    bind_key(key, press_function, release_function, app.evoked_data_display.table, add=add)
+    # bind_key(key, press_function, release_function, app.results_display.table, add=add)
+    # bind_key(key, press_function, release_function, app.evoked_data_display.table, add=add)
 
+def bind_key_plot(key, press_function=None, release_function=None, add='+'):
+    # use this instead
+    if key is None:
+        return None
+    bind_key(key, press_function, release_function, app.trace_display.canvas.get_tk_widget(), add=add)
 def bind_key_pg(key, press_function=None, release_function=None, add='+'):
     if key is None:
         return None
@@ -268,6 +273,7 @@ def plot_event_pick(event):
         # data_display.toggle_one(str(xdata))
 
 def plot_mouse_release(event):
+    print('interpreter plot mouse release called')
     global event_pick
     if event_pick:
         event_pick = False
@@ -301,16 +307,16 @@ def plot_mouse_release(event):
         app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
         return None
 
-    if event.button == 3:
-        return None
-
-    if app.widgets['trace_mode'].get() == 'overlay' and event.xdata is not None:
-        # overlay, a trace may have been selected
-        interface.select_trace_from_plot(event.xdata, event.ydata)
-        return None
-    if app.widgets['trace_mode'].get() == 'continuous' and event.xdata is not None and app.widgets[
-        'analysis_mode'].get() == 'mini' and event.button==1:
-        interface.pick_event_manual(event.xdata)
+    # if event.button == 3:
+    #     return None
+    #
+    # if app.widgets['trace_mode'].get() == 'overlay' and event.xdata is not None:
+    #     # overlay, a trace may have been selected
+    #     interface.select_trace_from_plot(event.xdata, event.ydata)
+    #     return None
+    # if app.widgets['trace_mode'].get() == 'continuous' and event.xdata is not None and app.widgets[
+    #     'analysis_mode'].get() == 'mini' and event.button==1:
+    #     interface.pick_event_manual(event.xdata)
 
 # app.trace_display navigation by key-press
 def scroll_x_key(event, direction):
