@@ -1960,7 +1960,7 @@ class Analyzer():
     #     return None
     def calculate_frequency(self, mini_df, channel):
         df = mini_df[mini_df['channel']==channel]
-        freq = (df['t'].max() - df['t'].min())/df.shape[0]
+        freq = df.shape[0]/(df['t'].max() - df['t'].min())
 
         return freq
 
