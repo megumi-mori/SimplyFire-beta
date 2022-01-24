@@ -245,7 +245,7 @@ def report(event=None):
             'num_minis': 0,
         })
         return None
-    mini_df = interface.al.mini_df[interface.al.mini_df['channel']==interface.recordings[0].channel]
+    mini_df = interface.mini_df[interface.mini_df['channel']==interface.recordings[0].channel]
     if mini_df.shape[0] == 0:
         return None
     data = {
@@ -278,7 +278,7 @@ def report(event=None):
     if 'compound' in dataframe.columns:
         data['num_compound'] = mini_df['compound'].sum()
     # calculate frequency
-    data['Hz'] = interface.al.calculate_frequency(interface.recordings[0].channel)
+    data['Hz'] = interface.al.calculate_frequency(mini_df, interface.recordings[0].channel)
 
 
     results_display.dataframe.add(data)
