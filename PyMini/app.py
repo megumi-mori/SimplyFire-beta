@@ -366,6 +366,10 @@ def load_module(module_name):
         # data_notebook.tab(table.frame, state='hidden')
         data_notebook_dict[table.name] = table
         table.connect_to_control(tab)
+    if module_config.get('load', None):
+        module_loader = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["load"]}')
+        modules_dict[module_name]['load'] = module_loader
+        module_loader.load()
 def get_tab_focus():
     focus = {}
     focus['control_panel'] = cp_notebook.select()
@@ -408,7 +412,7 @@ def dump_user_setting(filename=None):
     print('Writing out configuration variables....')
     if filename is None:
         # filename = widgets['config_user_path'].var.get().strip()
-        filename = 'config/test_user_config.yaml'
+        filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
         print('writing dump user config {}'.format(filename))
         f.write("#################################################################\n")

@@ -181,13 +181,8 @@ def open_recording(fname: str,
     #     except:
     #         _change_channel(0, save_undo=False) # cannot open channel
 
-    if app.menubar.widgets['trace_mode'].get() == 'continuous':
-        plot_continuous(record)
-    elif app.menubar.widgets['trace_mode'].get() == 'overlay':
-        plot_overlay(0, append=False)
-    else:
-        plot_overlay(len(recordings)-1, fix_x=append, append=append)
-
+    plot()
+    app.trace_display.draw_ani()
     param_guide.update()
     if not append:
         # if app.graph_panel.widgets['force_axis_limit'].get() == '1':
@@ -252,15 +247,19 @@ def _change_channel(num: int,
         log_display.log(f'@ graph_viewer: unable to switch to channel {num}. Reverting to channel 0')
     app.graph_panel.widgets['channel_option'].set(f'{recordings[0].channel}: {recordings[0].y_label}') #0 indexing for channel num
 
+    xlim = app.trace_display.ax.get_xlim()
     # plot data points
-    if app.menubar.widgets['trace_mode'].get() == 'continuous':
-        plot_continuous(recordings[0], fix_x=True, draw=False)
-    elif app.menubar.widgets['trace_mode'].get() == 'compare':
-        for i,r in enumerate(recordings):
-            plot_overlay(i, fix_x=True, draw=False, append=(i!=0))
-    elif app.menubar.widgets['trace_mode'].get() == 'overlay':
-        plot_overlay(0, fix_x=True, draw=False)
+    plot()
+    # if app.menubar.widgets['trace_mode'].get() == 'continuous':
+    #     plot_continuous(recordings[0], fix_x=True, draw=False)
+    # elif app.menubar.widgets['trace_mode'].get() == 'compare':
+    #     for i,r in enumerate(recordings):
+    #         plot_overlay(r, fix_x=True, draw=False, append=(i!=0))
+    # elif app.menubar.widgets['trace_mode'].get() == 'overlay':
+    #     plot_overlay(recordings[0], fix_x=True, draw=False)
     # add other modes here
+    trace_display.set_axis_limit('x', xlim)
+
     trace_display.draw_ani()
     # data_display.clear()
 
@@ -272,8 +271,19 @@ def _change_channel(num: int,
     app.pb['value'] = 0
     app.pb.update()
 
+def plot():
+    if len(recordings) == 0:
+        return
+    if app.menubar.widgets['trace_mode'].get() == 'continuous':
+        plot_continuous(recordings[0])
+    elif app.menubar.widgets['trace_mode'].get() == 'compare':
+        for i,r in enumerate(recordings):
+            plot_overlay(r, append=(i!=0))
+    elif app.menubar.widgets['trace_mode'].get() == 'overlay':
+        plot_overlay(recordings[0])
+    pass
 
-def plot_continuous(recording, fix_axis=False, draw=True, fix_x=False, fix_y=False):
+def plot_continuous(recording, fix_axis=False, draw=False, fix_x=False, fix_y=False):
     global idx_offset
     idx_offset = 0
     if fix_axis:
@@ -1063,8 +1073,7 @@ def highlight_events_in_range(xlim=None, ylim=None):
 # Sweeps
 #######################################
 
-def plot_overlay(idx, fix_axis=False, fix_x=False, draw=False, append=False, sweeps=None):
-    recording = recordings[idx]
+def plot_overlay(recording, fix_axis=False, fix_x=False, draw=False, append=False, sweeps=None):
     global idx_offset
     if fix_axis:
         xlim = trace_display.get_axis_limits('x')

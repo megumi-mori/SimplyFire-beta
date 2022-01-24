@@ -456,6 +456,26 @@ def clear():
         except:
             pass
     sweeps.clear()
+    gc.collect()
+    # canvas.draw()
+    draw_ani()
+
+def refresh():
+    for t in temp:
+        temp[t].remove()
+    temp.clear()
+    for m in markers.keys():
+        try:
+            markers[m].remove()
+        except:
+            pass
+    markers.clear()
+    for s in sweeps.keys():
+        try:
+            sweeps[s].remove()
+        except:
+            pass
+    sweeps.clear()
     for l in ax.lines:
         l.remove()
     for c in ax.collections:
@@ -464,6 +484,7 @@ def clear():
     gc.collect()
     # canvas.draw()
     draw_ani()
+
 
 def clear_markers(key=None):
     for t in temp:

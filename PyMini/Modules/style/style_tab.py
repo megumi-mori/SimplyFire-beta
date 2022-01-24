@@ -22,14 +22,14 @@ class ModuleControl(BaseControlModule):
         self.main_style_panel.grid_columnconfigure(0, weight=1)
         self.main_style_panel.grid_columnconfigure(1, weight=1)
         self.main_style_panel.grid_columnconfigure(2, weight=1)
-        color_width = 10
-        size_width =5
+        self.color_width = 10
+        self.size_width =5
 
-        label_column=1
-        size_column=2
-        color_column=3
+        self.label_column=1
+        self.size_column=2
+        self.color_column=3
 
-        row=0
+        self.row=0
 
         ttk.Label(self.main_style_panel, text='size', justify=Tk.CENTER).grid(column=size_column, row=row, sticky='news')
         ttk.Label(self.main_style_panel, text='color', justify=Tk.CENTER).grid(column=color_column, row=row, sticky='news')
@@ -37,7 +37,7 @@ class ModuleControl(BaseControlModule):
         row+= 1
         ttk.Label(self.main_style_panel, text='Trace plot').grid(column=label_column, row=row, sticky='news')
         self.place_VarEntry(name='style_trace_line_width', column=size_column, row=row, frame=self.main_style_panel,
-                       width=size_width)
+                       width=size_width, validate_type='float')
         self.place_VarEntry(name='style_trace_line_color', column=color_column, row=row, frame=self.main_style_panel,
                        width=color_width, validate_type='color')
 
@@ -52,6 +52,9 @@ class ModuleControl(BaseControlModule):
         self.widgets[name].grid(column=column, row=row, sticky='news')
 
     def apply_styles(self, event=None):
+        app.trace_display.trace_color = self.widgets['style_trace_line_color'].get()
+        app.trace_display.trace_width = float(self.widgets['style_trace_line_width'].get())
+        app.interface.plot()
         pass
 
     def apply_default(self, event=None):
