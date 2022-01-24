@@ -43,3 +43,6 @@ def delete_selected(e=None):
     dataframe.delete_selected()
     # if len(dataframe.table.get_children()) == 0:
     #     dataframe.menu.entryconfig(0, state=Tk.DISABLED)
+
+def report(data):
+    dataframe.add(data)

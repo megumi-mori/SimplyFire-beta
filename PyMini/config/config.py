@@ -78,7 +78,6 @@ def convert_to_path(paths):
     :param paths: path in a list
     :return:
     """
-    os.path.isdir(os.path.split)
     if isinstance(paths, str):
         return paths.strip()
     # p = [i if i != "DIR" else DIR for i in paths]

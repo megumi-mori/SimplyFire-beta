@@ -44,6 +44,10 @@ default_param_guide_height:
 # temp file save path
 default_temp_path :
   - 'temp'
+
+# modules
+default_start_module:
+  - 'style'
 ## navigation
 #default_min_x : 'auto'
 #default_max_x : 'auto'
@@ -175,7 +179,7 @@ default_temp_path :
 #default_show_end : ""
 #
 #system
-#default_config_user_path : "user_config.yaml"
+default_config_user_path : "teset_user_config.yaml"
 default_config_system_path : 'system_config.yaml'
 default_config_keymap_path: 'key_map.yaml'
 default_config_autoload : 1

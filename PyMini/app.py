@@ -34,14 +34,14 @@ def _on_close():
     :return: None
     """
     global widgets
-    if widgets['config_autosave'].get():
-        try:
-            dump_user_setting()
-        except:
-            Tk.messagebox.showinfo(title='Error', message='Error while writing out user preferences.\n Please select a new filename.')
-            f = setting_tab.save_config_as()
-            if f:
-                widgets['config_user_path'].set(f)
+    # if widgets['config_autosave'].get():
+    # try:
+    dump_user_setting()
+    # except:
+    #     Tk.messagebox.showinfo(title='Error', message='Error while writing out user preferences.\n Please select a new filename.')
+    #     f = setting_tab.save_config_as()
+    #     if f:
+    #         widgets['config_user_path'].set(f)
 
     dump_config_var(key='key_', filename=config.config_keymap_path, title='Keymap')
     dump_system_setting()
@@ -217,21 +217,23 @@ def load(splash):
     # test = StyleTab(left, __import__(__name__), interface)
     # cp_notebook.add(test, text='test')
 
+    for k, v in graph_panel.widgets.items():
+        widgets[k] = v
     # get reference to widgets
     # for module in [detector_tab, evoked_tab, adjust_tab, navigation_tab, style_tab, setting_tab, graph_panel]:
     #     for k, v in module.widgets.items():
     #         widgets[k] = v
     # setting_tab.set_fontsize(widgets['font_size'].get())
     # # set focus rules
-    # for key in widgets:
-    #     if type(widgets[key]) == widget.VarEntry:
-    #         widgets[key].bind('<Return>', lambda e: interface.focus(), add='+')
-    #     if type(widgets[key]) == widget.VarCheckbutton:
-    #         widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
-    #     if type(widgets[key]) == widget.VarOptionmenu:
-    #         widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
-    #     if type(widgets[key]) == widget.VarCheckbutton:
-    #         widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
+    for key in widgets:
+        if type(widgets[key]) == widget.VarEntry:
+            widgets[key].bind('<Return>', lambda e: interface.focus(), add='+')
+        if type(widgets[key]) == widget.VarCheckbutton:
+            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
+        if type(widgets[key]) == widget.VarOptionmenu:
+            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
+        if type(widgets[key]) == widget.VarCheckbutton:
+            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
 
     # set up font adjustment bar
     # fb = font_bar.load(left, config.font_size)
@@ -263,7 +265,7 @@ def load(splash):
     # set up menubar
     menubar.load(menu)
 
-    menubar.analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
+    # menubar.analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
 
     globals()['menubar'] = menubar
 
@@ -275,34 +277,14 @@ def load(splash):
     global data_notebook_dict
     data_notebook_dict = {}
 
+    global modules_dict
+    modules_dict = {}
+
     with open(os.path.join(config.CONFIG_DIR, 'modules.yaml')) as f:
         module_list = yaml.safe_load(f)['modules']
-        tab_index = 0
-        table_index = 0
         for module_name in module_list:
-            # load modules
-            module_path = os.path.join(pkg_resources.resource_filename('PyMini', 'Modules'), module_name)
-            # try:
-            with open(os.path.join(module_path, 'config.yaml'), 'r') as config_file:
-                module_config = yaml.safe_load(config_file)
-            tab=None
-            if module_config.get('control_panel', None):
-                module_tab = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["control_panel"]}')
-                tab = module_tab.ModuleControl()
-                cp_notebook.add(tab, text=tab.tab_label)
-                tab.cp_index = tab_index
-                # cp_notebook.tab(tab.frame, state='hidden')
-                control_panel_dict[tab.name] = tab
-                tab_index += 1
-            if module_config.get('data_notebook', None):
-                module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["data_notebook"]}')
-                table = module_table.ModuleTable()
-                data_notebook.add(table, text=table.tab_label)
-                table.dp_index = table_index
-                # data_notebook.tab(table.frame, state='hidden')
-                data_notebook_dict[table.name] = table
-                table_index += 1
-                table.connect_to_control(tab)
+            load_module(module_name)
+
 
             # except Exception as e:
             #     print(e)
@@ -335,19 +317,55 @@ def load(splash):
     for key, cptab in control_panel_dict.items():
         cp_notebook.tab(cptab, state='hidden')
 
-    for modulename in config.default_module_list:
+    for modulename in config.start_module:
         menubar.window_menu.invoke(control_panel_dict[modulename].menu_label)
-    data_notebook.select(data_notebook_dict[config.default_module_list[0]])
-    cp_notebook.select(control_panel_dict[config.default_module_list[0]])
+    try:
+        data_notebook.select(data_notebook_dict[config.start_module[0]])
+    except:
+        pass
+    try:
+        cp_notebook.select(control_panel_dict[config.start_module[0]])
+    except:
+        pass
 
     ## root2 = root
     loaded = True
+    root.event_generate('<<LoadCompleted>>')
+
     root.focus_force()
     splash.withdraw()
-
-    root.event_generate('<<LoadCompleted>>', when='tail')
     return None
 
+def load_module(module_name):
+    global modules_dict
+    if modules_dict.get(module_name, None):
+        return
+    modules_dict[module_name] = {}
+    # load modules
+    module_path = os.path.join(pkg_resources.resource_filename('PyMini', 'Modules'), module_name)
+    # try:
+    with open(os.path.join(module_path, 'config.yaml'), 'r') as config_file:
+        module_config = yaml.safe_load(config_file)
+    if module_config.get('dependencies', None):
+        # has dependencies
+        for req_module_name in module_config['dependencies']:
+            load_module(req_module_name)
+    tab = None
+    if module_config.get('control_panel', None):
+        module_tab = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["control_panel"]}')
+        tab = module_tab.ModuleControl()
+        cp_notebook.add(tab, text=tab.tab_label)
+        # cp_notebook.tab(tab.frame, state='hidden')
+        control_panel_dict[tab.name] = tab
+        modules_dict[module_name]['control_panel'] = tab
+    if module_config.get('data_notebook', None):
+        module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["data_notebook"]}')
+        table = module_table.ModuleTable()
+        data_notebook.add(table, text=table.tab_label)
+        modules_dict[module_name]['data_notebook'] = table
+        # data_notebook.tab(table.frame, state='hidden')
+        data_notebook_dict[table.name] = table
+        table.connect_to_control(tab)
 def get_tab_focus():
     focus = {}
     focus['control_panel'] = cp_notebook.select()
@@ -368,13 +386,29 @@ def get_data_frame(name):
 def get_data_table(name):
     return data_notebook_dict[name]
 
+def advance_progress_bar(value, mode='determinate'):
+    if mode == 'determinate':
+        pb['value'] += value
+    else:
+        pb['value'] = (pb['value'] + value) % 100
+    pb.update()
+def set_progress_bar(value):
+    global pb
+    pb['value'] = value
+    pb.update()
+
+def clear_progress_bar():
+    global pb
+    pb['value'] = 0
+    pb.update()
 
 def dump_user_setting(filename=None):
     global widgets
     ignore = ['config_', '_log', 'temp_']
     print('Writing out configuration variables....')
     if filename is None:
-        filename = widgets['config_user_path'].var.get().strip()
+        # filename = widgets['config_user_path'].var.get().strip()
+        filename = 'config/test_user_config.yaml'
     with open(filename, 'w') as f:
         print('writing dump user config {}'.format(filename))
         f.write("#################################################################\n")
@@ -400,9 +434,13 @@ def dump_user_setting(filename=None):
                 d['gp_height'] = gp.winfo_height()
                 d['geometry'] = root.geometry().split('+')[0]
 
-        d['compare_color_list'] = config.compare_color_list
-        d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
-
+        # d['compare_color_list'] = config.compare_color_list
+        # d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
+        d['start_module'] = []
+        for modulename in control_panel_dict:
+            d[modulename] = control_panel_dict[modulename].get_widget_dict()
+            if control_panel_dict[modulename].status_var.get():
+                d['start_module'].append(modulename)
         print('save output:')
         f.write(yaml.safe_dump(d))
         # pymini.pb.clear()
@@ -419,7 +457,8 @@ def dump_system_setting():
         f.write("#################################################################\n")
         f.write("\n")
 
-        f.write(yaml.safe_dump(dict([(key, widgets[key].get()) for key in widgets if 'config' in key])))
+        # f.write(yaml.safe_dump(dict([(key, widgets[key].get()) for key in widgets if 'config' in key])))
+        f.write(yaml.safe_dump(dict([(n, getattr(config, n)) for n in config.user_vars if 'config' in n])))
     print('Completed')
 
 def dump_config_var(key, filename, title=None):

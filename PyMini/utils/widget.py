@@ -1,7 +1,7 @@
 import tkinter as Tk
 from tkinter import ttk, font
 from PyMini.config import config
-from PyMini.utils import validation
+from PyMini.utils import validation, writer
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import matplotlib as mpl
 import yaml
@@ -569,6 +569,10 @@ class DataTable(Tk.Frame):
     # def get_element(self, e):
     #     print(self.table.identify_region(e.x, e.y))
 
+    def add_menu_separator(self):
+        self.menu.add_separator()
+
+
     def copy(self, event=None):
         selected = self.table.selection()
         text = ""
@@ -675,7 +679,8 @@ class DataTable(Tk.Frame):
             print(f'widget dataframe append error {e}')
             pass
     def set(self, dataframe):
-        self.clear()
+        self.table.selection_remove(*self.table.selection())
+        self.table.delete(*self.table.get_children())
         self.append(dataframe)
 
     def fit_columns(self, event=None):
@@ -705,10 +710,18 @@ class DataTable(Tk.Frame):
     def unselect(self, event=None):
         self.table.selection_remove(*self.table.selection())
 
-    def select(self, iid):
-        self.table.selection_set(str(iid))
-        self.table.see(str(iid))
-
+    def selection_set(self, iid):
+        self.table.selection_set(*[str(i) for i in iid])
+        try:
+            self.table.see(str(iid[-1]))
+        except:
+            pass
+    def selection_toggle(self, iid):
+        self.table.selection_toggle(*[str(i) for i in iid])
+        try:
+            self.table.see(self.table.selection()[-1])
+        except:
+            pass
     def delete(self, iid):
         try:
             self.table.selection_remove(*[str(i) for i in iid])
@@ -722,23 +735,15 @@ class DataTable(Tk.Frame):
         self.table.delete(*selection)
         return selection
 
-    def export(self, filename, mode='w', suffix_num=0, handle_error=True):
-        if suffix_num > 0:
-            new_filename = f'{os.path.splitext(filename)[0]}({suffix_num}){os.path.splitext(filename)[1]}'
-        else:
-            new_filename = filename
-        try:
-            with open(new_filename, mode) as f:
-                items = self.table.get_children()
-                f.write(','.join(self.displaycolumns))
+    def export(self, filename, mode='w'):
+        with open(filename, mode) as f:
+            items = self.table.get_children()
+            f.write(','.join(self.displaycolumns))
+            f.write('\n')
+            for i in items:
+                data = self.table.set(i)
+                f.write(','.join([str(data.get(c)) for c in self.displaycolumns]))
                 f.write('\n')
-                for i in items:
-                    data = self.table.set(i)
-                    f.write(','.join([str(data.get(c)) for c in self.displaycolumns]))
-                    f.write('\n')
-        except (FileExistsError):
-            if handle_error:
-                self.export(filename, mode, suffix_num+1)
 
 
 

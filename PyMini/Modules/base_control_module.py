@@ -5,6 +5,8 @@ from tkinter import BooleanVar, Frame
 from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame, OptionFrame
 import yaml
 import os
+import tkinter as Tk
+
 class BaseControlModule(Frame):
     def __init__(self,
                  name:str,
@@ -20,6 +22,10 @@ class BaseControlModule(Frame):
                 self.default = yaml.safe_load(f)
         except:
             self.default = {}
+        try:
+            self.values = app.config.user_vars[name]
+        except:
+            self.values = {}
         super().__init__(parent)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -30,7 +36,7 @@ class BaseControlModule(Frame):
         self.status_var = BooleanVar()
         self.widgets = {}
         self.module_table = None
-        app.menubar.window_menu.add_checkbutton(label=self.menu_label, command=lambda t=has_table:self.update_module_display(t), variable=self.status_var,
+        app.menubar.window_menu.add_checkbutton(label=self.menu_label, command=self.update_module_display, variable=self.status_var,
                                        onvalue=True, offvalue=False)
         if scrollbar:
             self.frame = ScrollableOptionFrame(self)
@@ -43,14 +49,18 @@ class BaseControlModule(Frame):
         self.insert_panel = self.optionframe.insert_panel
         self.make_panel = self.optionframe.make_panel
 
-    def update_module_display(self, table=False):
-        print(self.status_var.get())
+    def update_module_display(self, event=None):
+        print('update module display called')
         if self.status_var.get():
+            print('show tab')
             self.show_tab()
         else:
+            print('hide tab')
             self.hide_tab()
-        if table:
+        try:
             self.module_table.update_module_display()
+        except:
+            pass
 
     def insert_title(self, **kwargs):
         title = self.optionframe.insert_title(**kwargs)
@@ -61,7 +71,8 @@ class BaseControlModule(Frame):
         return title
 
     def insert_label_entry(self, **kwargs):
-        entry = self.optionframe.insert_label_entry(default=self.default[kwargs['name']], **kwargs)
+        entry = self.optionframe.insert_label_entry(value=self.values.get(kwargs['name'], None),
+                                                    default=self.default.get(kwargs['name'], None), **kwargs)
         try:
             self.widgets[kwargs['name']] = entry
         except:
@@ -77,7 +88,8 @@ class BaseControlModule(Frame):
         return button
 
     def insert_label_checkbox(self, **kwargs):
-        checkbox = self.optionframe.insert_label_checkbox(default=self.default[kwargs['name']], **kwargs)
+        checkbox = self.optionframe.insert_label_checkbox(value=self.values.get(kwargs['name'], None),
+                                                          default=self.default.get(kwargs['name'],None), **kwargs)
         try:
             self.widgets[kwargs['name']] = checkbox
         except:
@@ -85,7 +97,8 @@ class BaseControlModule(Frame):
         return checkbox
 
     def insert_label_optionmenu(self, **kwargs):
-        optionmenu = self.optionframe.insert_label_optionmenu(default=self.default[kwargs['name']], **kwargs)
+        optionmenu = self.optionframe.insert_label_optionmenu(value=self.values.get(kwargs['name'],None),
+                                                              default=self.default[kwargs['name']], **kwargs)
         try:
             self.widgets[kwargs['name']] = optionmenu
         except:
@@ -109,6 +122,7 @@ class BaseControlModule(Frame):
 
     def hide_tab(self):
         app.cp_notebook.tab(self, state='hidden')
+
     def enable_tab(self):
         if self.is_visible():
             app.cp_notebook.tab(self, state='normal')
@@ -130,3 +144,10 @@ class BaseControlModule(Frame):
                     self.widgets[k].set(self.default[k])
             else:
                 self.widgets[k].set(self.default[k])
+
+    def insert_file_menu(self):
+        self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)
+        app.menubar.file_menu.add_cascade(label=self.name, menu=self.file_menu)
+
+    def get_widget_dict(self):
+        return {k:self.widgets[k].get() for k in self.widgets}

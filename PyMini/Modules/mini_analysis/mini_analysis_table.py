@@ -32,15 +32,21 @@ class ModuleTable(BaseTableModule):
             ('compound', 'data_display_compound')
         ])
         for key in app.config.key_delete:
-            self.table.bind(key, self.delete_selection, add="")
+            self.table.bind(key, self.delete_selected, add="")
         self.define_columns(tuple([key for key in self.mini_header2config]),iid_header='t')
         self.bind("<<OpenRecording>>", self.clear)
 
-        self.table.bind('<<TreeviewSelect>>', self.report_selection)
+        self.table.bind('<<TreeviewSelect>>', self.report_selected)
 
-    def report_selection(self, event=None):
+    def report_selected(self, event=None):
         self.module_control.select_from_table(self.table.selection())
 
-    def delete_selection(self, event=None):
+    def clear(self, event=None):
+        self.module_control.delete_all(True)
+
+    def delete_selected(self, event=None):
         self.module_control.delete_selection([float(s) for s in self.table.selection()])
+
+    def report(self, event=None):
+        self.module_control.report_results()
 

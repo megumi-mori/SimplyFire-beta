@@ -49,7 +49,10 @@ def load(parent):
     state = State()
     state.press = False
     state.move = False
-
+    global trace_color
+    trace_color = 'Black'
+    global trace_width
+    trace_width = 1
     # connect user events:
     # canvas.mpl_connect('pick_event', _on_event_pick)
     canvas.mpl_connect('button_press_event', _on_mouse_press)
@@ -485,17 +488,21 @@ def clear_markers(key=None):
 
     draw_ani()
 
-def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None):
+def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None):
     if 'sweep_{}'.format(idx) in sweeps:
         try:
             sweeps['sweep_{}'.format(idx)].remove()
         except:
             pass
+    global trace_color
     if not color:
         # color = app.widgets['style_trace_line_color'].get()
-        color='Black'
+        color = trace_color
+    global trace_width
+    if not width:
+        width=trace_width
     sweeps['sweep_{}'.format(idx)], = ax.plot(xs, ys,
-                                              # linewidth=app.widgets['style_trace_line_width'].get(),
+                                              linewidth=width,
                                               c=color,
                                               animated=False)  # pickradius=int(app.widgets['style_event_pick_offset'].get())
     if relim:

@@ -264,11 +264,11 @@ def _change_channel(num: int,
     trace_display.draw_ani()
     # data_display.clear()
 
-    populate_data_display()
-    update_event_marker()
+    # populate_data_display()
+    # update_event_marker()
 
     param_guide.update()
-
+    app.root.event_generate('<<ChangeChannel>>')
     app.pb['value'] = 0
     app.pb.update()
 
@@ -374,19 +374,19 @@ def config_data_tab(tab_name, **kwargs):
 
 def save_events(filename, mode='w', suffix_num=0, handle_error=True):
     global mini_df
-    if suffix_num > 0:
-        fname = f'{os.path.splitext(filename)[0]}({suffix_num}){os.path.splitext(filename)[1]}'
-    else:
-        fname = filename
-    try:
-        with open(fname, mode) as f:
-            f.write(f'@filename:{recordings[0].filename}\n')
-            f.write(f'@version:{app.config.version}\n')
-            f.write(mini_df.to_csv(index=False))
-    except (FileExistsError):
-        if handle_error:
-            save_events(filename, mode, suffix_num+1)
-        pass
+    # if suffix_num > 0:
+    #     fname = f'{os.path.splitext(filename)[0]}({suffix_num}){os.path.splitext(filename)[1]}'
+    # else:
+    #     fname = filename
+    # try:
+    #     with open(fname, mode) as f:
+    #         f.write(f'@filename:{recordings[0].filename}\n')
+    #         f.write(f'@version:{app.config.version}\n')
+    #         f.write(mini_df.to_csv(index=False))
+    # except (FileExistsError):
+    #     if handle_error:
+    #         save_events(filename, mode, suffix_num+1)
+    #     pass
 
 
 
@@ -405,166 +405,166 @@ def save_events_dialogue(e=None):
     return None
 
 
-def save_events_as_dialogue(e=None):
-    global mini_df
-    if len(mini_df) > 0:
-        try:
-            initialfilename = os.path.splitext(recordings[0].filename)[0] + '.event'
-        except:
-            initialfilename = app.event_filename
-        filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.event',
-                                              initialfile=initialfilename)
-        if not filename:
-            return None
-        try:
-            save_events(filename, mode='w')
-            app.data_display.saved = True
-            return filename
-        except:
-            messagebox.showerror('Write error', 'Could not write data to selected filename.')
-            return None
-    messagebox.showerror('Error', 'No minis to save')
-    return None
+# def save_events_as_dialogue(e=None):
+#     global mini_df
+#     if len(mini_df) > 0:
+#         try:
+#             initialfilename = os.path.splitext(recordings[0].filename)[0] + '.event'
+#         except:
+#             initialfilename = app.event_filename
+#         filename=filedialog.asksaveasfilename(filetypes=[('event files', '*.event'), ('All files', '*.*')], defaultextension='.event',
+#                                               initialfile=initialfilename)
+#         if not filename:
+#             return None
+#         try:
+#             save_events(filename, mode='w')
+#             app.data_display.saved = True
+#             return filename
+#         except:
+#             messagebox.showerror('Write error', 'Could not write data to selected filename.')
+#             return None
+#     messagebox.showerror('Error', 'No minis to save')
+#     return None
 
 
-def open_events(filename, log=True, undo=True, append=False):
-    global mini_df
-    if len(recordings) == 0:
-        # recording file not open yet
-        messagebox.showerror('Open error', 'Please open a recording file first.')
-    if undo and int(app.widgets['config_undo_stack'].get()) > 0:
-        temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
-        save_events(temp_filename)
-        add_undo([
-            data_display.clear,
-            lambda f=temp_filename, l=False, u=False:open_events(f, l, u),
-            lambda msg='Undo open event file':log_display.log(msg),
-            update_event_marker,
-            lambda f = temp_filename: os.remove(f)
-        ])
-    filetype = os.path.splitext(filename)[1]
-    if filetype == ".csv" or filetype == '.temp' or filetype =='.event':
-        df = open_events_csv(filename)
-    elif filetype == ".minipy":
-        df = open_events_mini(filename)
-    df = df.replace({np.nan: None})
-    df['compound'] = df['compound'].replace([0.0, 1.0], [False, True])
-    if not append:
-        mini_df = df
-        app.event_filename = filename
-        data_display.clear()
-        populate_data_display()
-    else:
-        mini_df = mini_df.append(df)
-        data_display.append(df[df.channel == recordings[0].channel])
-    update_event_marker()
-    if log:
-        log_display.open_update('mini data: {}'.format(filename))
-    app.pb['value']=0
-    app.pb.update()
+# def open_events(filename, log=True, undo=True, append=False):
+#     global mini_df
+#     if len(recordings) == 0:
+#         # recording file not open yet
+#         messagebox.showerror('Open error', 'Please open a recording file first.')
+#     if undo and int(app.widgets['config_undo_stack'].get()) > 0:
+#         temp_filename = os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'), 'temp_{}.temp'.format(get_temp_num()))
+#         save_events(temp_filename)
+#         add_undo([
+#             data_display.clear,
+#             lambda f=temp_filename, l=False, u=False:open_events(f, l, u),
+#             lambda msg='Undo open event file':log_display.log(msg),
+#             update_event_marker,
+#             lambda f = temp_filename: os.remove(f)
+#         ])
+#     filetype = os.path.splitext(filename)[1]
+#     if filetype == ".csv" or filetype == '.temp' or filetype =='.event':
+#         df = open_events_csv(filename)
+#     elif filetype == ".minipy":
+#         df = open_events_mini(filename)
+#     df = df.replace({np.nan: None})
+#     df['compound'] = df['compound'].replace([0.0, 1.0], [False, True])
+#     if not append:
+#         mini_df = df
+#         app.event_filename = filename
+#         data_display.clear()
+#         populate_data_display()
+#     else:
+#         mini_df = mini_df.append(df)
+#         data_display.append(df[df.channel == recordings[0].channel])
+#     update_event_marker()
+#     if log:
+#         log_display.open_update('mini data: {}'.format(filename))
+#     app.pb['value']=0
+#     app.pb.update()
 
-def open_events_csv(filename):
-    df = pd.read_csv(filename, comment='@')
-    return df
-
-def open_events_mini(filename):
-    """
-    open mini files from Minipy (ancestral version)
-    """
-    channel = 0
-    minis = []
-    header_idx = {}
-    with open(filename, 'r') as f:
-        lines = f.readlines()
-        for l in lines:
-            info = l.strip().split(',')
-            if info[0] == "@Trace":
-                recording_filename = info[1]
-            elif info[0] == '@Channel':
-                channel = int(info[1])
-            elif info[0] == '@Header':
-                for i,h in enumerate(info):
-                    header_idx[h] = i
-                xs = recordings[0].get_xs(mode='continuous', channel=channel)
-                ys= recordings[0].get_ys(mode='continuous', channel=channel)
-            elif info[0] == '@Data':
-                mini = {
-                    't':float(info[header_idx['x']]),
-                    'peak_coord_x':float(info[header_idx['x']]),
-                    'peak_coord_y':float(info[header_idx['y']]),
-                    'amp':float(info[header_idx['Vmax']])*float(info[header_idx['direction']]),
-                    'baseline':float(info[header_idx['baseline']]),
-                    'compound': False,
-                    'decay_A':float(info[header_idx['Vmax']]),
-                    'decay_const':float(info[header_idx['tau']])*1000,
-                    'decay_baseline':0,
-                    'decay_coord_x':float(info[header_idx['tau_x']]),
-                    'decay_coord_y':float(info[header_idx['tau_y']]),
-                    'decay_max_points':int(float(app.widgets['detector_core_decay_max_interval'].get())/1000*recordings[0].sampling_rate),
-                    'failure':None,
-                    'lag':int(info[header_idx['lag']]),
-                    'rise_const':float(info[header_idx['rise_time']])*1000,
-                    'start_coord_x':float(info[header_idx['left_x']]),
-                    'start_coord_y':float(info[header_idx['left_y']]),
-                    'amp_unit':recordings[0].channel_units[channel],
-                    'baseline_unit':recordings[0].channel_units[channel],
-                    'decay_unit':'ms',
-                    'halfwidth_unit': 'ms',
-                    'rise_unit':'ms',
-                    'channel':channel,
-                    'delta_x':0,
-                    'direction':int(info[header_idx['direction']]),
-                    'end_coord_x':float(info[header_idx['right_x']]),
-                    'end_coord_y':float(info[header_idx['right_y']]),
-                    'max_amp':np.inf,
-                    'min_amp':0.0,
-                    'max_rise': np.inf,
-                    'min_rise': 0.0,
-                    'max_decay': np.inf,
-                    'min_decay': 0.0,
-                    'max_hw': np.inf,
-                    'min_hw': 0.0,
-                    'max_s2n':np.inf,
-                    'min_s2n':0.0,
-                    'stdev_unit':recordings[0].channel_units[channel],
-                    'success':True,
-                }
-                pass
-                mini['start_idx'] = int(analyzer2.search_index(mini['start_coord_x'], xs, rate=recordings[0].sampling_rate))
-                mini['baseline_idx'] = mini['start_idx']
-                mini['base_idx_L'] = mini['start_idx'] - mini['lag']
-                mini['base_idx_R'] = mini['start_idx']
-                mini['decay_idx'] = int(analyzer2.search_index(mini['start_coord_x']+mini['decay_const'], xs, rate=recordings[0].sampling_rate))
-                mini['peak_idx'] = int(analyzer2.search_index(mini['peak_coord_x'], xs, rate=recordings[0].sampling_rate))
-                mini['decay_start_idx'] = mini['peak_idx']
-                mini['end_idx'] = analyzer2.search_index(mini['end_coord_x'], xs, rate=recordings[0].sampling_rate)
-                mini['stdev'] = np.std(ys[mini['base_idx_L']:mini['base_idx_R']])
-
-                #try finding halfwidth
-                hw_start_idx,hw_end_idx = al.find_mini_halfwidth(amp=mini['amp'],
-                                                                 xs=xs[mini['baseline_idx']:mini['end_idx']],
-                                                                 ys=ys[mini['baseline_idx']:mini['end_idx']],
-                                                                 peak_idx=mini['peak_idx'] - mini['baseline_idx'],
-                                                                 baseline=mini['baseline'],
-                                                                 direction=mini['direction'])
-                if hw_start_idx is not None and hw_end_idx is None:
-                    if app.widgets['detector_core_extrapolate_hw'].get():
-                        t = np.log(0.5)*(-1)*mini['decay_const']/1000
-                        hw_end_idx = analyzer2.search_index(xs[mini['peak_idx']]+t,xs[mini['baseline_idx']:], recordings[0].sampling_rate)
-                if hw_start_idx is None or hw_end_idx is None:
-                    mini['halfwidth'] = 0 # could not be calculated
-                else:
-                    mini['halfwidth_start_idx'] = hw_start_idx + mini['baseline_idx']
-                    mini['halfwidth_end_idx'] = hw_end_idx + mini['baseline_idx']
-                    mini['halfwidth'] = (xs[int(mini['halfwidth_end_idx'])] - xs[int(mini['halfwidth_start_idx'])])*1000
-                    mini['halfwidth_start_coord_x'] = xs[mini['halfwidth_start_idx']]
-                    mini['halfwidth_end_coord_x'] = xs[mini['halfwidth_end_idx']]
-                    mini['halfwidth_start_coord_y'] = mini['halfwidth_end_coord_y'] = mini['baseline']+0.5*mini['amp']
-
-
-                minis.append(mini)
-        df = pd.DataFrame.from_dict(minis)
-        return df
+# def open_events_csv(filename):
+#     df = pd.read_csv(filename, comment='@')
+#     return df
+#
+# def open_events_mini(filename):
+#     """
+#     open mini files from Minipy (ancestral version)
+#     """
+#     channel = 0
+#     minis = []
+#     header_idx = {}
+#     with open(filename, 'r') as f:
+#         lines = f.readlines()
+#         for l in lines:
+#             info = l.strip().split(',')
+#             if info[0] == "@Trace":
+#                 recording_filename = info[1]
+#             elif info[0] == '@Channel':
+#                 channel = int(info[1])
+#             elif info[0] == '@Header':
+#                 for i,h in enumerate(info):
+#                     header_idx[h] = i
+#                 xs = recordings[0].get_xs(mode='continuous', channel=channel)
+#                 ys= recordings[0].get_ys(mode='continuous', channel=channel)
+#             elif info[0] == '@Data':
+#                 mini = {
+#                     't':float(info[header_idx['x']]),
+#                     'peak_coord_x':float(info[header_idx['x']]),
+#                     'peak_coord_y':float(info[header_idx['y']]),
+#                     'amp':float(info[header_idx['Vmax']])*float(info[header_idx['direction']]),
+#                     'baseline':float(info[header_idx['baseline']]),
+#                     'compound': False,
+#                     'decay_A':float(info[header_idx['Vmax']]),
+#                     'decay_const':float(info[header_idx['tau']])*1000,
+#                     'decay_baseline':0,
+#                     'decay_coord_x':float(info[header_idx['tau_x']]),
+#                     'decay_coord_y':float(info[header_idx['tau_y']]),
+#                     'decay_max_points':int(float(app.widgets['detector_core_decay_max_interval'].get())/1000*recordings[0].sampling_rate),
+#                     'failure':None,
+#                     'lag':int(info[header_idx['lag']]),
+#                     'rise_const':float(info[header_idx['rise_time']])*1000,
+#                     'start_coord_x':float(info[header_idx['left_x']]),
+#                     'start_coord_y':float(info[header_idx['left_y']]),
+#                     'amp_unit':recordings[0].channel_units[channel],
+#                     'baseline_unit':recordings[0].channel_units[channel],
+#                     'decay_unit':'ms',
+#                     'halfwidth_unit': 'ms',
+#                     'rise_unit':'ms',
+#                     'channel':channel,
+#                     'delta_x':0,
+#                     'direction':int(info[header_idx['direction']]),
+#                     'end_coord_x':float(info[header_idx['right_x']]),
+#                     'end_coord_y':float(info[header_idx['right_y']]),
+#                     'max_amp':np.inf,
+#                     'min_amp':0.0,
+#                     'max_rise': np.inf,
+#                     'min_rise': 0.0,
+#                     'max_decay': np.inf,
+#                     'min_decay': 0.0,
+#                     'max_hw': np.inf,
+#                     'min_hw': 0.0,
+#                     'max_s2n':np.inf,
+#                     'min_s2n':0.0,
+#                     'stdev_unit':recordings[0].channel_units[channel],
+#                     'success':True,
+#                 }
+#                 pass
+#                 mini['start_idx'] = int(analyzer2.search_index(mini['start_coord_x'], xs, rate=recordings[0].sampling_rate))
+#                 mini['baseline_idx'] = mini['start_idx']
+#                 mini['base_idx_L'] = mini['start_idx'] - mini['lag']
+#                 mini['base_idx_R'] = mini['start_idx']
+#                 mini['decay_idx'] = int(analyzer2.search_index(mini['start_coord_x']+mini['decay_const'], xs, rate=recordings[0].sampling_rate))
+#                 mini['peak_idx'] = int(analyzer2.search_index(mini['peak_coord_x'], xs, rate=recordings[0].sampling_rate))
+#                 mini['decay_start_idx'] = mini['peak_idx']
+#                 mini['end_idx'] = analyzer2.search_index(mini['end_coord_x'], xs, rate=recordings[0].sampling_rate)
+#                 mini['stdev'] = np.std(ys[mini['base_idx_L']:mini['base_idx_R']])
+#
+#                 #try finding halfwidth
+#                 hw_start_idx,hw_end_idx = al.find_mini_halfwidth(amp=mini['amp'],
+#                                                                  xs=xs[mini['baseline_idx']:mini['end_idx']],
+#                                                                  ys=ys[mini['baseline_idx']:mini['end_idx']],
+#                                                                  peak_idx=mini['peak_idx'] - mini['baseline_idx'],
+#                                                                  baseline=mini['baseline'],
+#                                                                  direction=mini['direction'])
+#                 if hw_start_idx is not None and hw_end_idx is None:
+#                     if app.widgets['detector_core_extrapolate_hw'].get():
+#                         t = np.log(0.5)*(-1)*mini['decay_const']/1000
+#                         hw_end_idx = analyzer2.search_index(xs[mini['peak_idx']]+t,xs[mini['baseline_idx']:], recordings[0].sampling_rate)
+#                 if hw_start_idx is None or hw_end_idx is None:
+#                     mini['halfwidth'] = 0 # could not be calculated
+#                 else:
+#                     mini['halfwidth_start_idx'] = hw_start_idx + mini['baseline_idx']
+#                     mini['halfwidth_end_idx'] = hw_end_idx + mini['baseline_idx']
+#                     mini['halfwidth'] = (xs[int(mini['halfwidth_end_idx'])] - xs[int(mini['halfwidth_start_idx'])])*1000
+#                     mini['halfwidth_start_coord_x'] = xs[mini['halfwidth_start_idx']]
+#                     mini['halfwidth_end_coord_x'] = xs[mini['halfwidth_end_idx']]
+#                     mini['halfwidth_start_coord_y'] = mini['halfwidth_end_coord_y'] = mini['baseline']+0.5*mini['amp']
+#
+#
+#                 minis.append(mini)
+#         df = pd.DataFrame.from_dict(minis)
+#         return df
 
 def populate_data_display():
     global mini_df
@@ -712,6 +712,7 @@ def filter_mini(xlim=None):
     mini_df = new_df
     app.pb['value']=40
     app.pb.update()
+    data_display.clear()
     data_display.clear()
     app.pb['value']=60
     app.pb.update()

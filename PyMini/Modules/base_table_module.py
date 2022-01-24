@@ -8,7 +8,7 @@ class BaseTableModule(DataTable):
                  name: str,
                  menu_label:str,
                  tab_label: str,
-                 parent: object
+                 parent: object,
                  ):
         super().__init__(parent)
         # self.grid_columnconfigure(0, weight=1)
@@ -32,15 +32,15 @@ class BaseTableModule(DataTable):
                                                 command=self.update_module_display,
                                                 variable=self.status_var,
                                                 onvalue=True, offvalue=False)
-        # self.datatable.menu.add_command(label='Copy selection', command=self.datatable.copy)
-        # self.datatable.menu.add_command(label='Select all', command=self.datatable.select_all)
-        # self.datatable.menu.add_command(label='Delete selected', command=self.datatable.delete_selected)
-        #
-        # self.datatable.menu.add_separator()
-        # self.datatable.menu.add_command(label='Fit columns', command=self.datatable.fit_columns)
-        # self.datatable.menu.add_command(label='Clear data', command=self.datatable.clear)
-
         self.module_control = None
+        self.add_menu_command(label='Copy selection', command=self.copy)
+        self.add_menu_command(label='Select all', command=self.select_all)
+        self.add_menu_command(label='Delete selected', command=self.delete_selected)
+
+        self.add_menu_separator()
+        self.add_menu_command(label='Fit columns', command=self.fit_columns)
+        self.add_menu_command(label='Clear data', command=self.clear)
+        self.add_menu_command(label='Report stats', command=self.report)
 
     def add(self, datadict, parent="", index='end'):
         self.disable_tab()
@@ -52,6 +52,11 @@ class BaseTableModule(DataTable):
         super().append(dataframe)
         self.enable_tab()
 
+    def set(self, dataframe):
+        self.disable_tab()
+        super().set(dataframe)
+        self.enable_tab()
+
     def connect_to_control(self, tab):
         # connects the control panel to the table and vice versa
         if tab is None:
@@ -60,14 +65,7 @@ class BaseTableModule(DataTable):
         self.module_control = tab
         self.status_var = self.module_control.status_var
 
-    def popup(self, event):
-        try:
-            self.menu.tk_popup(event.x_root, event.y_root)
-        finally:
-            self.menu.grab_release()
-
     def update_module_display(self):
-        print(self.status_var.get())
         if self.status_var.get():
             self.show_tab()
             self.fit_columns()
@@ -94,5 +92,9 @@ class BaseTableModule(DataTable):
         state = app.data_notebook.tab(self, option='state')
         return state == 'normal' or state == 'disabled'
 
+
+    def insert_file_menu(self):
+        self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)
+        app.menubar.file_menu.add_cascade(label=self.name, menu=self.file_menu)
 
 

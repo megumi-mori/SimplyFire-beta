@@ -29,15 +29,16 @@ def load(menubar):
     file_menu.add_command(label="Open recording \t Ctrl+o", command=ask_open_recording)
     file_menu.add_command(label='Save recording data as...', command=ask_save_recording)
     file_menu.add_separator()
-    file_menu.add_command(label='Open mini data file', command=open_events)
+    # file_menu.add_command(label='Open mini data file', command=open_events)
     # file_menu.add_command(label='Save event file', command=interface.save_events_dialogue)
-    file_menu.add_command(label='Save mini data as...', command=interface.save_events_as_dialogue)
+    # file_menu.add_command(label='Save mini data as...', command=interface.save_events_as_dialogue)
 
     file_menu.add_separator()
     file_menu.add_command(label='Export plot', command=ask_save_plot)
-    file_menu.add_command(label='Export mini analysis table', command=export_events)
+    # file_menu.add_command(label='Export mini analysis table', command=export_events)
     file_menu.add_command(label='Export evoked analysis table', command=export_evoked)
     file_menu.add_command(label='Export results table', command=export_results)
+    file_menu.add_separator()
 
     # Edit menu
     global edit_menu
@@ -297,6 +298,10 @@ def _show_param_guide(event=None):
     except:
         param_guide.load()
 
+def make_file_menu_cascade(label):
+    cascade = Tk.Menu(file_menu, tearoff=0)
+    file_menu.add_cascade(label=label, menu=cascade)
+    return cascade
 # class Menubar():
 #     def __init__(self, parent):
 #         self.widgets = {}

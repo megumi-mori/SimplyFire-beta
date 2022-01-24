@@ -19,9 +19,11 @@ def load(parent):
     #                    Methods                     #
     ##################################################
     def force_channel(event=None):
-        if app.get_value('force_channel') == '1':
+        if widgets['force_channel'].get() == '1':
            widgets['force_channel_id'].config(state='normal')
+           print('normal!')
         else:
+            print('not normal!')
             widgets['force_channel_id'].config(state='disabled')
 
     def scroll_x(dir):

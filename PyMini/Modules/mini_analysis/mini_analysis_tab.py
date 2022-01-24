@@ -1,9 +1,11 @@
 import matplotlib.backend_bases
-from tkinter import messagebox
-from PyMini.Modules.base_tab_module import BaseControlModule
+from PyMini.Modules.base_control_module import BaseControlModule
 from PyMini import app
-from . import analysis
+from PyMini.utils import writer
+from . import analysis, mini_analysis
 import pandas as pd
+import os
+from tkinter import filedialog, messagebox
 class ModuleControl(BaseControlModule):
     def __init__(self):
         super(ModuleControl, self).__init__(
@@ -16,16 +18,21 @@ class ModuleControl(BaseControlModule):
             has_table=True
         )
 
+        # variable attributes
         self.changes = {}
         self.changed = False
         self.parameters = {}
 
-        self.module_table = None
-        self.mini_df = pd.DataFrame()
+        self.mini_df = pd.DataFrame(columns=['compound'])
+        self.mini_df = self.mini_df.astype({'compound':bool}) # set column types as necessary
 
+        self.saved = True # track if mini data has been saved
+        self.mini_filename = ""
+
+        # variables for plotting
         self.markers = {'peak':None, 'decay':None, 'start':None}
         self.event_pick = False
-        # plotting parameters:
+
         self.peak_color = 'green'
         self.decay_color = 'blue'
         self.start_color = 'red'
@@ -36,6 +43,511 @@ class ModuleControl(BaseControlModule):
         self.start_size = 5
         self.highlight_size = 5
 
+        # GUI set up
+        self._load_layout() # all widget placements in GUI
+        self._load_binding() # all event bindings in GUI
+        self._modify_GUI() # change other GUI components
+
+
+    def _apply_column_options(self, e=None):
+        app.get_data_table(self.name).show_columns(
+            [k for k,v in self.mini_header2config.items() if self.widgets[v].get()]
+        )
+    def _apply_parameters(self, e=None):
+        app.interface.focus()
+        for i in self.parameters:
+            if self.parameters[i] != self.widgets[i].get():
+                self.changes[i] = self.widgets[i].get()
+                self.changed = True
+
+    def _columns_show_all(self, e=None):
+        for option in self.data_display_options:
+            self.widgets[option[0]].set('1')
+        self._apply_column_options()
+    def _columns_hide_all(self, e=None):
+        for option in self.data_display_options:
+            self.widgets[option[0]].set('')
+        self._apply_column_options()
+
+    def filter_all(self, e=None):
+        if self.mini_df.shape[0] == 0:
+            return None
+        # deal with undo later
+        params = self.get_params()
+        self.mini_df = mini_analysis.filter_mini(mini_df=self.mini_df, xlim=None, **params)
+        self.update_event_markers()
+        self.update_module_table()
+        app.clear_progress_bar()
+        pass
+
+    def filter_window(self, e=None):
+        if self.mini_df.shape[0] == 0:
+            return None
+        params=self.get_params()
+        xlim = app.trace_display.ax.get_xlim()
+        self.mini_df = mini_analysis.filter_mini(mini_df=self.mini_df, xlim=xlim, **params)
+        self.update_event_markers()
+        self.update_module_table()
+        app.clear_progress_bar()
+        pass
+
+    def canvas_mouse_release(self, event: matplotlib.backend_bases.Event=None):
+        if not self.has_focus():
+            return None
+        if self.event_pick:
+            self.event_pick = False
+            return None
+        if event.button != 1:
+            return None
+        if app.trace_display.canvas.toolbar.mode != "":
+            return None
+        if len(app.interface.recordings) == 0:
+            return None
+        if self.has_focus():
+            if app.menubar.widgets['trace_mode'].get() != 'continuous':
+                messagebox.showerror(title='Error', message='Please switch to continuous mode to analyze minis.')
+                return None
+            self.module_table.unselect()
+            self.find_manual(event)
+            pass
+
+    def change_channel(self, event=None):
+        self.module_table.set(self.extract_channel_subset())
+        self.update_event_markers()
+        pass
+
+    def default_core_params(self, e=None):
+        self.set_to_default('detector_core')
+        self.populate_decay_algorithms()
+        self.populate_compound_params()
+
+    def delete_clear(self, undo=True):
+        # deal with undo later
+        # use this to clear the entire mini dataframe (all channels)
+        self.mini_df = self.mini_df.iloc[0:0]
+        self.module_table.clear()
+        self.update_event_markers()
+
+    def delete_all(self, undo=True):
+        # deal with undo later
+        # use this to clear the mini data for the current channel
+        try:
+            self.mini_df = self.mini_df[self.mini_df['channel']!=app.interface.channel]
+        except:
+            # no data yet
+            pass
+        self.update_event_markers()
+        self.update_module_table()
+    def delete_in_window(self, undo=True):
+        # deal with undo later
+        xlim = app.trace_display.ax.get_xlim()
+        selection = self.mini_df[(self.mini_df['t'] > xlim[0]) &
+                            (self.mini_df['t'] < xlim[1]) &
+                            (self.mini_df['channel'] == app.interface.channel)].t.values
+        self.delete_selection(selection)
+
+    def delete_from_canvas(self, selection, undo=True):
+        self.module_table.delete_selected() # make this direct within  class?
+
+
+    def delete_selection(self, selection):
+        # pass list of floats (corresponding to 't' column) to delete
+        self.mini_df = self.mini_df[(~self.mini_df['t'].isin(selection))|(self.mini_df['channel']!=app.interface.channel)]
+        self.module_table.delete(selection)
+        self.update_event_markers()
+
+    def extract_column(self, colname: str, t: list=None) -> list:
+        # extract data for a specific column from the mini dataframe
+        try:
+            return list(self.extract_channel_subset(t)[colname])
+        except:
+            return None
+
+    def extract_channel_subset(self, t: list=None) -> pd.DataFrame:
+        # extract mini data from current channel
+        if len(app.interface.recordings) == 0:
+            return None
+        if self.mini_df.shape[0] == 0:
+            return None
+        if t:
+            return self.mini_df[(self.mini_df['t'].isin(t)) & (self.mini_df['channel'] == app.interface.channel)]
+        else:
+            return self.mini_df[self.mini_df['channel'] == app.interface.channel]
+
+    def find_manual(self, event: matplotlib.backend_bases.Event=None):
+        self.module_table.unselect()
+        if event.xdata is None:
+            return None
+        mini = analysis.find_mini_manual(event.xdata, self.get_params(), self.mini_df)
+        if mini['success']:
+            self.mini_df = self.mini_df.append(mini,
+                                     ignore_index=True,
+                                     sort=False)
+            self.mini_df = self.mini_df.sort_values(by='t')
+            self.module_table.add({key:value for key,value in mini.items() if key in self.mini_header2config})
+            self.update_event_markers()
+            self.saved = False # track change
+
+    def find_all(self, event=None):
+        self.module_table.unselect()
+        df = analysis.find_mini_in_range(self.get_params(), self.mini_df)
+        self.mini_df = pd.concat([self.mini_df, df])
+        if df.shape[0] > 0:
+            # if int(app.widgets['config_undo_stack'].get()) > 0:
+            #     add_undo([
+            #         lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
+            #         lambda msg='Undo mini search': detector_tab.log(msg)
+            #     ])
+            self.update_event_markers()
+            self.module_table.append(df)
+            self.saved = False # track change
+
+        # if detector_tab.changed:
+        #     log_display.search_update('Auto')
+        #     log_display.param_update(detector_tab.changes)
+        #     detector_tab.changes = {}
+        #     detector_tab.changed = False
+        app.clear_progress_bar()
+    def find_range(self, event=None):
+        self.module_table.unselect()
+        df = analysis.find_mini_in_range(self.get_params(), self.mini_df,
+                                         xlim=app.trace_display.ax.get_xlim(),
+                                         ylim=app.trace_display.ax.get_ylim())
+        self.mini_df = pd.concat([self.mini_df, df])
+        if df.shape[0] > 0:
+            # if int(app.widgets['config_undo_stack'].get()) > 0:
+            #     add_undo([
+            #         lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
+            #         lambda msg='Undo mini search': detector_tab.log(msg)
+            #     ])
+            self.update_event_markers()
+            self.module_table.append(df)
+        app.clear_progress_bar()
+
+    def get_params(self):
+        params = {}
+        params['direction'] = {'negative': -1, 'positive': 1}[
+            self.widgets['detector_core_direction'].get()]  # convert direction to int value
+        params['compound'] = self.widgets['detector_core_compound'].get() == '1'
+        params['decay_algorithm'] = self.widgets['detector_core_decay_algorithm'].get()
+
+        for k, d in self.core_params.items():
+            try:
+                params[k] = d['conversion'](self.widgets[d['id']].get())
+            except:
+                if self.widgets[d['id']].get() == 'None':
+                    params[k] = None
+                else:
+                    params[k] = self.widgets[d['id']].get()
+        for k, d in self.filter_params.items():
+            try:
+                params[k] = d['conversion'](self.widgets[d['id']].get())
+            except:
+                if self.widgets[d['id']].get() == 'None' or self.widgets[d['id']].get() == '':
+                    params[k] = None
+                else:
+                    params[k] = self.widgets[d['id']].get()
+        for k, d in self.decay_params.items():
+            try:
+                params[k] = d['conversion'](self.widgets[d['id']].get())
+            except:
+                if self.widgets[d['id']].get() == 'None':
+                    params[k] = None
+                else:
+                    params[k] = self.widgets[d['id']].get()
+        if params['compound']:
+            for k, d in self.compound_params.items():
+                params[k] = self.widgets[d['id']].get()
+        return params
+
+    def populate_decay_algorithms(self, e=None):
+        algorithm = self.widgets['detector_core_decay_algorithm'].get()
+        for k, d in self.decay_params.items():
+            if algorithm in d['algorithm']:
+                self.show_label_widget(self.widgets[d['id']])
+            else:
+                self.hide_label_widget(self.widgets[d['id']])
+        self.record_param_change('decay algorithm', algorithm)
+
+    def populate_compound_params(self, e=None):
+        state = self.widgets['detector_core_compound'].get()
+        if state:
+            for k,d in self.compound_params.items():
+                self.show_label_widget(self.widgets[d['id']])
+        else:
+            for k,d in self.compound_params.items():
+                self.hide_label_widget(self.widgets[d['id']])
+
+    def plot_peak(self, xs, ys):
+        try:
+            self.markers['peak'].remove()
+        except:
+            pass
+        try:
+            self.markers['peak'] = app.trace_display.ax.scatter(xs, ys, marker='o', color=self.peak_color,
+                                                            s=self.peak_size**2, picker=True, animated=False)
+        except:
+            pass
+
+    def plot_decay(self, xs, ys):
+        try:
+            self.markers['decay'].remove()
+        except:
+            pass
+        try:
+            self.markers['decay'], = app.trace_display.ax.plot(xs, ys, marker='x', color=self.decay_color,
+                                                          markersize=self.decay_size, linestyle='None',
+                                                          animated=False)
+        except:
+            pass
+
+    def plot_highlight(self, xs, ys):
+        try:
+            self.markers['highlight'].remove()
+        except:
+            pass
+        try:
+            self.markers['highlight'], = app.trace_display.ax.plot(xs, ys, marker='o', c=self.highlight_color,
+                                                                   markersize=self.highlight_size, linestyle='None',
+                                                                   animated=False)
+        except:
+            pass
+    def plot_start(self, xs, ys):
+        try:
+            self.markers['start'].remove()
+        except:
+            pass
+        try:
+            self.markers['start'], = app.trace_display.ax.plot(xs, ys, marker='x', color=self.start_color,
+                                                          markersize=self.start_size, linestyle='None',
+                                                          animated=False)
+        except:
+            pass
+
+    def record_param_change(self, pname, pvalue):
+        self.changed = True
+        self.changes[pname] = pvalue
+
+    def report_results(self):
+        if len(app.interface.recordings) == 0:
+            messagebox.showerror('Error', 'Please open a recording file first')
+            return None
+        if self.mini_df.shape[0] == 0:
+            app.results_display.report({
+                'filename': app.interface.recordings[0].filename,
+                'analysis': 'mini',
+                'num_minis': 0,
+                'channel': app.interface.recordings.channel
+            })
+            return None
+        mini_df = self.mini_df[self.mini_df['channel'] == app.interface.channel]
+        if mini_df.shape[0] == 0:
+            app.results_display.report({
+                'filename': app.interface.recordings[0].filename,
+                'analysis': 'mini',
+                'num_minis': 0,
+                'channel': app.interface.recordings.channel
+            })
+            return None
+        data = {
+            'filename': app.interface.recordings[0].filename,
+            'analysis': 'mini',
+            'num_minis': mini_df.shape[0]
+        }
+        if 'amp' in self.module_table.columns:
+            data['amp'] = mini_df['amp'].mean()
+            data['amp_unit'] = mini_df['amp_unit'].iloc[0]
+            data['amp_std'] = mini_df['amp'].std()
+        if 'decay_const' in self.module_table.columns:
+            data['decay_const'] = mini_df['decay_const'].mean()
+            data['decay_unit'] = mini_df['decay_unit'].iloc[0]
+            data['decay_std'] = mini_df['decay_const'].std()
+        if 'rise_const' in self.module_table.columns:
+            data['rise_const'] = mini_df['rise_const'].mean()
+            data['rise_unit'] = mini_df['rise_unit'].iloc[0]
+            data['decay_std'] = mini_df['rise_const'].std()
+        if 'halfwidth' in self.module_table.columns:
+            data['halfwidth'] = mini_df['halfwidth'].mean()
+            data['halfwidth_unit'] = mini_df['halfwidth_unit'].iloc[0]
+            data['halfwidth_std'] = mini_df['halfwidth'].std()
+        if 'baseline' in self.module_table.columns:
+            data['baseline'] = mini_df['baseline'].mean()
+            data['baseline_unit'] = mini_df['baseline_unit'].iloc[0]
+            data['baseline_std'] = mini_df['baseline'].std()
+        if 'channel' in self.module_table.columns:
+            data['channel'] = app.interface.recordings[0].channel
+        if 'compound' in self.module_table.columns:
+            data['num_compound'] = mini_df['compound'].sum()
+        # calculate frequency
+        data['Hz'] = mini_df.shape[0]/(mini_df['t'].max() - mini_df['t'].min())
+
+        app.results_display.report(data)
+    def save_minis(self, filename, overwrite=True):
+        if overwrite:
+            mode = 'w'
+        else:
+            mode = 'x'
+        filename = writer.format_save_filename(filename, overwrite)
+        with open(filename, mode) as f:
+            f.write(f'@filename: {app.interface.recordings[0].filename}\n')
+            f.write(f'@version: {app.config.version}\n')
+            f.write(self.mini_df.to_csv(index=False))
+        self.saved = True
+        app.clear_progress_bar()
+
+    def save_minis_dialogue(self, event=None):
+        if len(app.interface.recordings) == 0:
+            messagebox.showerror('Error', 'Please open a recording file first')
+            return None
+        if self.mini_df.shape[0] == 0:
+            if not messagebox.askyesno('Warning', 'No minis to save. Proceed?'):
+                return None
+        if not self.mini_filename:
+            initialfilename = os.path.splitext(app.interface.recordings[0].filename)[0]
+
+        filename = filedialog.asksaveasfilename(filetypes=[('mini file', '*.mini'),('csv file', '*.csv'), ('All files', '*.*')],
+                                     defaultextension='.mini',
+                                     initialfile=initialfilename)
+        if not filename:
+            return None
+        try:
+            self.save_minis(filename, overwrite=True)
+            self.saved = True
+            return filename
+        except Exception as e:
+            messagebox.showerror('Error', f'Could not write data to file.\n Error: {e}')
+            return None
+
+    def export_minis_dialogue(self, event=None):
+        if len(app.interface.recordings) == 0:
+            messagebox.showerror('Error', 'Please open a recording file first')
+            return None
+        if self.mini_df.shape[0] == 0:
+            if not messagebox.askyesno('Warning', 'No minis to export. Proceed?'):
+                return None
+        if not self.mini_filename:
+            initialfilename = os.path.splitext(app.interface.recordings[0].filename)[0]+self.name
+
+        filename = filedialog.asksaveasfilename(filetypes=[('csv file', '*.csv')],
+                                     defaultextension='.csv',
+                                     initialfile=initialfilename)
+        if not filename:
+            return None
+        try:
+            self.module_table.export(filename, mode='w')
+            app.clear_progress_bar()
+            return filename
+        except Exception as e:
+            messagebox.showerror('Error', f'Could not write data to file.\n Error: {e}')
+            app.clear_progress_bar()
+            return None
+
+    def open_minis(self, filename):
+        if len(app.interface.recordings) == 0:
+            messagebox.showerror('Error', 'Please open a recording file first')
+            return None
+        # handle undo later
+        filetype = os.path.splitext(filename)[1]
+        if filetype not in ('.mini','.csv','.temp','.minipy'):
+            if not messagebox.askyesno('Warning', f'{filetype} is not a recognized filetype. The file may not be read properly. Proceed?'):
+                return
+        df = analysis.open_minis(filename)
+        self.mini_df = df
+
+        self.update_module_table()
+        self.update_event_markers()
+
+        self.saved = True
+        app.clear_progress_bar()
+
+    def open_minis_dialogue(self, event=None):
+        if not self.saved and self.mini_df.shape[0]>0:
+            choice = messagebox.askyesnocancel('Warning', 'Save mini data?')
+            if choice is None:
+                return
+            if choice:
+                self.save_minis_dialogue()
+
+        if len(app.interface.recordings) == 0:
+            messagebox.showerror('Error', 'Please open a recording file first')
+            return None
+        filename = filedialog.askopenfilename(filetype=[('mini data files', '*.mini *.minipy *.csv'), ('All files', "*.*")],
+                                              defaultextension='.mini')
+        if filename:
+            self.open_minis(filename)
+        app.clear_progress_bar()
+
+    def select_from_event_pick(self, event=None):
+        if not self.has_focus():
+            return None
+        self.event_pick = True # use this to avoid invoking other mouse-related events
+        xdata, ydata = event.artist.get_offsets()[event.ind][0]
+        if app.interpreter.multi_select:
+            self.module_table.selection_toggle([round(xdata, app.interface.recordings[0].x_sigdig)])
+        else:
+            self.module_table.selection_set([round(xdata, app.interface.recordings[0].x_sigdig)])
+
+    def select_from_table(self, selection):
+        if not self.is_enabled():
+            return None
+        # pass a list of str for 't' column (index for table)
+        selection = [float(i) for i in selection] # convert to float
+        if selection:
+            xs = self.extract_column('peak_coord_x', selection)
+            ys = self.extract_column('peak_coord_y', selection)
+            if len(selection) == 1:
+                app.trace_display.center_plot_on(xs, ys)
+            elif len(selection) > 1:
+                app.trace_display.center_plot_area(min(xs), max(xs), min(ys), max(ys))
+        else:
+            xs = None
+            ys = None
+        self.plot_highlight(xs, ys) # get peak coordinates
+        app.trace_display.draw_ani()
+
+    def select_from_rect(self, event=None):
+        if not self.has_focus():
+            return None
+
+        xlim = (app.interpreter.drag_coord_start[0], app.interpreter.drag_coord_end[0])
+        xlim = (min(xlim), max(xlim))
+        ylim = (app.interpreter.drag_coord_start[1], app.interpreter.drag_coord_end[1])
+        ylim = (min(ylim), max(ylim))
+
+        if self.mini_df.shape[0] == 0:
+            return None
+        df = self.mini_df[self.mini_df['channel'] == app.interface.channel]
+        df = df[(df['t'] > xlim[0]) & (df['t'] < xlim[1])
+                & (df['peak_coord_y'] > ylim[0]) & (df['peak_coord_y'] < ylim[1])]
+
+        self.module_table.select(list(df['t']))
+    def select_clear(self, event=None):
+        if not self.has_focus():
+            return None
+        self.module_table.unselect()
+    def update_event_markers(self):
+        self.plot_peak(self.extract_column('peak_coord_x'), self.extract_column('peak_coord_y'))
+        self.plot_decay(self.extract_column('decay_coord_x'), self.extract_column('decay_coord_y'))
+        self.plot_start(self.extract_column('start_coord_x'), self.extract_column('start_coord_y'))
+        app.trace_display.draw_ani()
+        # app.trace_display.canvas.draw()
+
+    def update_module_table(self):
+        self.module_table.set(self.extract_channel_subset())
+
+    def update_module_display(self, table=False):
+        super().update_module_display()
+        if self.status_var.get():
+            self.update_event_markers()
+        else:
+            for m in self.markers:
+                try:
+                    self.markers[m].remove()
+                except:
+                    pass
+            app.trace_display.draw_ani()
+
+    def _load_layout(self):
         self.insert_title(
             text="Mini Analysis"
         )
@@ -45,7 +557,7 @@ class ModuleControl(BaseControlModule):
         )
         self.insert_button(
             text='Delete all',
-            command=lambda undo=True:self.delete_all(undo)
+            command=lambda undo=True: self.delete_all(undo)
         )
         self.insert_button(
             text='Find in\nwindow',
@@ -53,7 +565,7 @@ class ModuleControl(BaseControlModule):
         )
         self.insert_button(
             text='Delete in\nwindow',
-            command=lambda undo=True:self.delete_in_window(undo)
+            command=lambda undo=True: self.delete_in_window(undo)
         )
         self.insert_button(
             text='Report stats'
@@ -262,15 +774,15 @@ class ModuleControl(BaseControlModule):
 
         self.insert_button(
             text='Default',
-            command=lambda filter = 'detector_filter': self.set_to_default(filter)
+            command=lambda filter='detector_filter': self.set_to_default(filter)
         )
         self.insert_button(
             text='Apply filter\n(all)',
-            command=self.apply_filter_all,
+            command=self.filter_all,
         )
         self.insert_button(
             text='Apply filter\n(window)',
-            command=self.apply_filter_window
+            command=self.filter_window
         )
 
         self.data_display_options = [
@@ -298,7 +810,7 @@ class ModuleControl(BaseControlModule):
                 offvalue=""
             )
         self.mini_header2config = {
-            't':'data_display_time',
+            't': 'data_display_time',
             'amp': 'data_display_amplitude',
             'amp_unit': 'data_display_amplitude',
             'decay_const': 'data_display_decay',
@@ -308,8 +820,8 @@ class ModuleControl(BaseControlModule):
             'rise_const': 'data_display_rise',
             'rise_unit': 'data_display_rise',
             'halfwidth': 'data_display_halfwidth',
-            'halfwidth_unit':'data_display_halfwidth',
-            'baseline':'data_display_baseline',
+            'halfwidth_unit': 'data_display_halfwidth',
+            'baseline': 'data_display_baseline',
             'baseline_unit': 'data_display_baseline',
             'channel': 'data_display_channel',
             'stdev': 'data_display_std',
@@ -326,318 +838,24 @@ class ModuleControl(BaseControlModule):
             text='Hide All',
             command=self._columns_hide_all
         )
+
+    def _load_binding(self):
         # event bindings:
-        app.root.bind('<<LoadComplete>>', self._apply_column_options)
-        app.root.bind('<<OpenRecording>>', lambda save=False:self.delete_clear(save))
-        app.root.bind('<<DrawRect>>', self.select_from_rect)
+        app.root.bind('<<LoadCompleted>>', self._apply_column_options, add='+')
+        app.root.bind('<<OpenRecording>>', lambda save=False: self.delete_clear(save), add="+")
+        app.root.bind('<<DrawRect>>', self.select_from_rect, add="+")
+        app.root.bind('<<ChangeChannel>>', self.change_channel, add="")
 
         app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
         app.trace_display.canvas.mpl_connect('pick_event', self.select_from_event_pick)
         for key in app.config.key_delete:
-            app.trace_display.canvas.get_tk_widget().bind(key, self.delete_from_canvas)
-
-    def _apply_column_options(self, e=None):
-        app.get_data_table(self.name).show_columns(
-            [k for k,v in self.mini_header2config.items() if self.widgets[v].get()]
-        )
-    def _apply_parameters(self, e=None):
-        app.interface.focus()
-        for i in self.parameters:
-            if self.parameters[i] != self.widgets[i].get():
-                self.changes[i] = self.widgets[i].get()
-                self.changed = True
-
-    def _columns_show_all(self, e=None):
-        for option in self.data_display_options:
-            self.widgets[option[0]].set('1')
-        self._apply_column_options()
-    def _columns_hide_all(self, e=None):
-        for option in self.data_display_options:
-            self.widgets[option[0]].set('')
-        self._apply_column_options()
-
-    def apply_filter_all(self, e=None):
-        pass
-
-    def apply_filter_window(self, e=None):
-        pass
-
-    def canvas_mouse_release(self, event: matplotlib.backend_bases.Event=None):
-        if self.event_pick:
-            self.event_pick = False
-            return None
-        if event.button != 1:
-            return None
-        if app.trace_display.canvas.toolbar.mode != "":
-            return None
-        if len(app.interface.recordings) == 0:
-            return None
-        if self.has_focus():
-            if app.menubar.widgets['trace_mode'].get() != 'continuous':
-                messagebox.showerror(title='Error', message='Please switch to continuous mode to analyze minis.')
-                return None
-            self.module_table.unselect()
-            self.find_manual(event)
-            pass
-
-    def default_core_params(self, e=None):
-        self.set_to_default('detector_core')
-        self.populate_decay_algorithms()
-        self.populate_compound_params()
-
-    def delete_clear(self, undo=True):
-        # deal with undo later
-        # use this to clear the entire mini dataframe (all channels)
-        self.mini_df = self.mini_df.iloc[0:0]
-        self.module_table.clear()
-        self.update_event_markers()
-
-    def delete_all(self, undo=True):
-        # deal with undo later
-        # use this to clear the mini data for the current channel
-        try:
-            self.mini_df = self.mini_df[self.mini_df['channel']!=app.interface.channel]
-        except:
-            # no data yet
-            pass
-        self.module_table.clear()
-        self.update_event_markers()
-    def delete_in_window(self, undo=True):
-        # deal with undo later
-        xlim = app.trace_display.ax.get_xlim()
-        selection = self.mini_df[(self.mini_df['t'] > xlim[0]) &
-                            (self.mini_df['t'] < xlim[1]) &
-                            (self.mini_df['channel'] == app.interface.channel)].t.values
-        self.delete_selection(selection)
-
-    def delete_from_canvas(self, selection, undo=True):
-        self.module_table.delete_selection()
+            app.trace_display.canvas.get_tk_widget().bind(key, self.delete_from_canvas, add='+')
+        for key in app.config.key_deselect:
+            app.trace_display.canvas.get_tk_widget().bind(key, self.select_clear, add='+')
 
 
-    def delete_selection(self, selection):
-        # pass list of floats (corresponding to 't' column) to delete
-        self.mini_df = self.mini_df[(~self.mini_df['t'].isin(selection))|(self.mini_df['channel']!=app.interface.channel)]
-        self.module_table.delete(selection)
-        self.update_event_markers()
-
-    def extract_column(self, colname: str, t: list=None) -> list:
-        # extract data for a specific column from the mini dataframe
-        if len(app.interface.recordings) == 0:
-            return None
-        if len(self.mini_df.index) == 0:
-            return None
-        if t:
-            try:
-                return list(self.mini_df[self.mini_df['t'].isin(t)][colname])
-            except:
-                return list(self.mini_df[self.mini_df.t.isin(t)][colname])
-        else:
-            df = self.mini_df[self.mini_df['channel'] == app.interface.channel][colname]
-            return list(df)
-
-    def find_manual(self, event: matplotlib.backend_bases.Event=None):
-        self.module_table.unselect()
-        if event.xdata is None:
-            return None
-        mini = analysis.find_mini_manual(event.xdata, self.get_params(), self.mini_df)
-        if mini['success']:
-            self.mini_df = self.mini_df.append(mini,
-                                     ignore_index=True,
-                                     sort=False)
-            self.mini_df = self.mini_df.sort_values(by='t')
-            self.module_table.add({key:value for key,value in mini.items() if key in self.mini_header2config})
-            self.update_event_markers()
-
-    def find_all(self, event=None):
-        self.module_table.unselect()
-        df = analysis.find_mini_in_range(self.get_params(), self.mini_df)
-        self.mini_df = pd.concat([self.mini_df, df])
-        if df.shape[0] > 0:
-            # if int(app.widgets['config_undo_stack'].get()) > 0:
-            #     add_undo([
-            #         lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
-            #         lambda msg='Undo mini search': detector_tab.log(msg)
-            #     ])
-            self.update_event_markers()
-            self.module_table.append(df)
-
-        # if detector_tab.changed:
-        #     log_display.search_update('Auto')
-        #     log_display.param_update(detector_tab.changes)
-        #     detector_tab.changes = {}
-        #     detector_tab.changed = False
-        app.pb['value'] = 0
-        app.pb.update()
-    def find_range(self, event=None):
-        self.module_table.unselect()
-        df = analysis.find_mini_in_range(self.get_params(), self.mini_df,
-                                         xlim=app.trace_display.ax.get_xlim(),
-                                         ylim=app.trace_display.ax.get_ylim())
-        self.mini_df = pd.concat([self.mini_df, df])
-        if df.shape[0] > 0:
-            # if int(app.widgets['config_undo_stack'].get()) > 0:
-            #     add_undo([
-            #         lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
-            #         lambda msg='Undo mini search': detector_tab.log(msg)
-            #     ])
-            self.update_event_markers()
-            self.module_table.append(df)
-
-    def get_params(self):
-        params = {}
-        params['direction'] = {'negative': -1, 'positive': 1}[
-            self.widgets['detector_core_direction'].get()]  # convert direction to int value
-        params['compound'] = self.widgets['detector_core_compound'].get() == '1'
-        params['decay_algorithm'] = self.widgets['detector_core_decay_algorithm'].get()
-
-        for k, d in self.core_params.items():
-            try:
-                params[k] = d['conversion'](self.widgets[d['id']].get())
-            except:
-                if self.widgets[d['id']].get() == 'None':
-                    params[k] = None
-                else:
-                    params[k] = self.widgets[d['id']].get()
-        for k, d in self.filter_params.items():
-            try:
-                params[k] = d['conversion'](self.widgets[d['id']].get())
-            except:
-                if self.widgets[d['id']].get() == 'None' or self.widgets[d['id']].get() == '':
-                    params[k] = None
-                else:
-                    params[k] = self.widgets[d['id']].get()
-        for k, d in self.decay_params.items():
-            try:
-                params[k] = d['conversion'](self.widgets[d['id']].get())
-            except:
-                if self.widgets[d['id']].get() == 'None':
-                    params[k] = None
-                else:
-                    params[k] = self.widgets[d['id']].get()
-        if params['compound']:
-            for k, d in self.compound_params.items():
-                params[k] = self.widgets[d['id']].get()
-        return params
-
-
-
-    def populate_decay_algorithms(self, e=None):
-        algorithm = self.widgets['detector_core_decay_algorithm'].get()
-        for k, d in self.decay_params.items():
-            if algorithm in d['algorithm']:
-                self.show_label_widget(self.widgets[d['id']])
-            else:
-                self.hide_label_widget(self.widgets[d['id']])
-        self.record_change('decay algorithm', algorithm)
-
-
-
-    def populate_compound_params(self, e=None):
-        state = self.widgets['detector_core_compound'].get()
-        if state:
-            for k,d in self.compound_params.items():
-                self.show_label_widget(self.widgets[d['id']])
-        else:
-            for k,d in self.compound_params.items():
-                self.hide_label_widget(self.widgets[d['id']])
-
-    def plot_peak(self, xs, ys):
-        try:
-            self.markers['peak'].remove()
-        except:
-            pass
-        try:
-            self.markers['peak'] = app.trace_display.ax.scatter(xs, ys, marker='o', color=self.peak_color,
-                                                            s=self.peak_size**2, picker=True, animated=False)
-        except:
-            pass
-
-    def plot_decay(self, xs, ys):
-        try:
-            self.markers['decay'].remove()
-        except:
-            pass
-        try:
-            self.markers['decay'], = app.trace_display.ax.plot(xs, ys, marker='x', color=self.decay_color,
-                                                          markersize=self.decay_size, linestyle='None',
-                                                          animated=False)
-        except:
-            pass
-
-    def plot_highlight(self, xs, ys):
-        try:
-            self.markers['highlight'].remove()
-        except:
-            pass
-        try:
-            self.markers['highlight'], = app.trace_display.ax.plot(xs, ys, marker='o', c=self.highlight_color,
-                                                                   markersize=self.highlight_size, linestyle='None',
-                                                                   animated=False)
-        except:
-            pass
-    def plot_start(self, xs, ys):
-        try:
-            self.markers['start'].remove()
-        except:
-            pass
-        try:
-            self.markers['start'], = app.trace_display.ax.plot(xs, ys, marker='x', color=self.start_color,
-                                                          markersize=self.start_size, linestyle='None',
-                                                          animated=False)
-        except:
-            pass
-    def record_change(self, pname, pvalue):
-        self.changed =  True
-        self.changes[pname] = pvalue
-
-    def select_from_event_pick(self, event=None):
-        if not self.has_focus():
-            return None
-        self.event_pick = True # use this to avoid invoking other mouse-related events
-        xdata, ydata = event.artist.get_offsets()[event.ind][0]
-        if app.interpreter.multi_select:
-            self.module_table.table.selection_toggle(str(round(xdata, app.interface.recordings[0].x_sigdig)))
-        else:
-            self.module_table.table.selection_set(str(round(xdata, app.interface.recordings[0].x_sigdig)))
-
-    def select_from_table(self, selection):
-        if not self.is_enabled():
-            return None
-        # pass a list of str for 't' column (index for table)
-        selection = [float(i) for i in selection] # convert to float
-        if selection:
-            xs = self.extract_column('peak_coord_x', selection)
-            ys = self.extract_column('peak_coord_y', selection)
-            if len(selection) == 1:
-                app.trace_display.center_plot_on(xs, ys)
-            elif len(selection) > 1:
-                app.trace_display.center_plot_area(min(xs), max(xs), min(ys), max(ys))
-        else:
-            xs = None
-            ys = None
-        self.plot_highlight(xs, ys) # get peak coordinates
-        app.trace_display.draw_ani()
-
-    def select_from_rect(self, event=None):
-        if not self.has_focus():
-            return None
-
-        xlim = (app.interpreter.drag_coord_start[0], app.interpreter.drag_coord_end[0])
-        xlim = (min(xlim), max(xlim))
-        ylim = (app.interpreter.drag_coord_start[1], app.interpreter.drag_coord_end[1])
-        ylim = (min(ylim), max(ylim))
-
-        if self.mini_df.shape[0] == 0:
-            return None
-        df = self.mini_df[self.mini_df['channel'] == app.interface.channel]
-        df = df[(df['t'] > xlim[0]) & (df['t'] < xlim[1])
-                & (df['peak_coord_y'] > ylim[0]) & (df['peak_coord_y'] < ylim[1])]
-
-        self.module_table.table.selection_set(list(df['t']))
-
-    def update_event_markers(self):
-        self.plot_peak(self.extract_column('peak_coord_x'), self.extract_column('peak_coord_y'))
-        self.plot_decay(self.extract_column('decay_coord_x'), self.extract_column('decay_coord_y'))
-        self.plot_start(self.extract_column('start_coord_x'), self.extract_column('start_coord_y'))
-        app.trace_display.draw_ani()
-        # app.trace_display.canvas.draw()
+    def _modify_GUI(self):
+        file_menu = app.menubar.make_file_menu_cascade(self.menu_label)
+        file_menu.add_command(label='Open mini file', command=self.open_minis_dialogue)
+        file_menu.add_command(label='Save minis as...', command=self.save_minis_dialogue)
+        file_menu.add_command(label='Export table', command=self.export_minis_dialogue)

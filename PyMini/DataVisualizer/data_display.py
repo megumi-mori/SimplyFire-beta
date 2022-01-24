@@ -212,73 +212,73 @@ def unselect(e=None):
 #     interface.highlight_selected_mini([float(iid)])
 #     dataframe.select(iid)
 
-def delete_one(iid):
-    print('data_Display delete one: {}'.format(iid))
-    try:
-        # dataframe.delete([iid])
-        interface.delete_event([iid])
-    except Exception as e:
-        print('data_display delete one error: {}'.format(e))
-        pass
-    global saved
-    saved = False
+# def delete_one(iid):
+#     print('data_Display delete one: {}'.format(iid))
+#     try:
+#         # dataframe.delete([iid])
+#         interface.delete_event([iid])
+#     except Exception as e:
+#         print('data_display delete one error: {}'.format(e))
+#         pass
+#     global saved
+#     saved = False
 
-def delete(selection):
-    global table
-    table.selection_remove(*selection)
-    table.delete(*selection)
-    if len(dataframe.table.get_children()) == 0:
-        dataframe.menu.entryconfig('Report stats', state=Tk.DISABLED)
-        detector_tab.report_button.config(state='disabled')
-        detector_tab.report_button2.config(state='disabled')
-        # detector_tab.filter_all_button.config(state='disabled')
-        # detector_tab.filter_in_window_button.config(state='disabled')
-    global saved
-    saved = False
+# def delete(selection):
+#     global table
+#     table.selection_remove(*selection)
+#     table.delete(*selection)
+#     if len(dataframe.table.get_children()) == 0:
+#         dataframe.menu.entryconfig('Report stats', state=Tk.DISABLED)
+#         detector_tab.report_button.config(state='disabled')
+#         detector_tab.report_button2.config(state='disabled')
+#         # detector_tab.filter_all_button.config(state='disabled')
+#         # detector_tab.filter_in_window_button.config(state='disabled')
+#     global saved
+#     saved = False
 
-def report(event=None):
-    global table
-    if len(table.get_children())==0:
-        results_display.dataframe.add({
-            'filename':interface.recordings[0].filename,
-            'analysis': 'mini',
-            'num_minis': 0,
-        })
-        return None
-    mini_df = interface.al.mini_df[interface.al.mini_df['channel']==interface.recordings[0].channel]
-    if mini_df.shape[0] == 0:
-        return None
-    data = {
-        'filename': interface.recordings[0].filename,
-        'analysis': 'mini',
-        'num_minis': mini_df.shape[0]
-    }
-    if 'amp' in dataframe.columns:
-        data['amp'] = mini_df['amp'].mean()
-        data['amp_unit']= mini_df['amp_unit'].iloc[0]
-        data['amp_std']= mini_df['amp'].std()
-    if 'decay_const' in dataframe.columns:
-        data['decay_const'] = mini_df['decay_const'].mean()
-        data['decay_unit'] = mini_df['decay_unit'].iloc[0]
-        data['decay_std'] = mini_df['decay_const'].std()
-    if 'rise_const' in dataframe.columns:
-        data['rise_const'] = mini_df['rise_const'].mean()
-        data['rise_unit'] = mini_df['rise_unit'].iloc[0]
-        data['decay_std'] = mini_df['rise_const'].std()
-    if 'halfwidth' in dataframe.columns:
-        data['halfwidth'] = mini_df['halfwidth'].mean()
-        data['halfwidth_unit'] = mini_df['halfwidth_unit'].iloc[0]
-        data['halfwidth_std'] = mini_df['halfwidth'].std()
-    if 'baseline' in dataframe.columns:
-        data['baseline'] = mini_df['baseline'].mean()
-        data['baseline_unit'] = mini_df['baseline_unit'].iloc[0]
-        data['baseline_std'] = mini_df['baseline'].std()
-    if 'channel' in dataframe.columns:
-        data['channel'] = interface.recordings[0].channel
-    if 'compound' in dataframe.columns:
-        data['num_compound'] = mini_df['compound'].sum()
-    # calculate frequency
-    data['Hz'] = interface.al.calculate_frequency(interface.recordings[0].channel)
-
-
-    results_display.dataframe.add(data)
+# def report(event=None):
+#     global table
+#     if len(table.get_children())==0:
+#         results_display.dataframe.add({
+#             'filename':interface.recordings[0].filename,
+#             'analysis': 'mini',
+#             'num_minis': 0,
+#         })
+#         return None
+#     mini_df = interface.al.mini_df[interface.al.mini_df['channel']==interface.recordings[0].channel]
+#     if mini_df.shape[0] == 0:
+#         return None
+#     data = {
+#         'filename': interface.recordings[0].filename,
+#         'analysis': 'mini',
+#         'num_minis': mini_df.shape[0]
+#     }
+#     if 'amp' in dataframe.columns:
+#         data['amp'] = mini_df['amp'].mean()
+#         data['amp_unit']= mini_df['amp_unit'].iloc[0]
+#         data['amp_std']= mini_df['amp'].std()
+#     if 'decay_const' in dataframe.columns:
+#         data['decay_const'] = mini_df['decay_const'].mean()
+#         data['decay_unit'] = mini_df['decay_unit'].iloc[0]
+#         data['decay_std'] = mini_df['decay_const'].std()
+#     if 'rise_const' in dataframe.columns:
+#         data['rise_const'] = mini_df['rise_const'].mean()
+#         data['rise_unit'] = mini_df['rise_unit'].iloc[0]
+#         data['decay_std'] = mini_df['rise_const'].std()
+#     if 'halfwidth' in dataframe.columns:
+#         data['halfwidth'] = mini_df['halfwidth'].mean()
+#         data['halfwidth_unit'] = mini_df['halfwidth_unit'].iloc[0]
+#         data['halfwidth_std'] = mini_df['halfwidth'].std()
+#     if 'baseline' in dataframe.columns:
+#         data['baseline'] = mini_df['baseline'].mean()
+#         data['baseline_unit'] = mini_df['baseline_unit'].iloc[0]
+#         data['baseline_std'] = mini_df['baseline'].std()
+#     if 'channel' in dataframe.columns:
+#         data['channel'] = interface.recordings[0].channel
+#     if 'compound' in dataframe.columns:
+#         data['num_compound'] = mini_df['compound'].sum()
+#     # calculate frequency
+#     data['Hz'] = interface.al.calculate_frequency(interface.recordings[0].channel)
+#
+#
+#     results_display.dataframe.add(data)

@@ -1,0 +1,61 @@
+#################################################################
+# PyMini user configurations
+#################################################################
+
+analysis_mode: mini
+channel_option: ''
+cp_width: 265
+force_channel: '1'
+force_channel_id: 1
+geometry: 1180x824
+gp_height: 476
+mini_analysis:
+  data_display_amplitude: '1'
+  data_display_baseline: '1'
+  data_display_channel: '1'
+  data_display_compound: '1'
+  data_display_decay: '1'
+  data_display_direction: '1'
+  data_display_halfwidth: '1'
+  data_display_rise: '1'
+  data_display_std: '1'
+  data_display_time: '1'
+  detector_core_auto_radius: 40.0
+  detector_core_compound: '1'
+  detector_core_decay_algorithm: Curve fit
+  detector_core_decay_best_guess: 4.0
+  detector_core_decay_max_interval: 25.0
+  detector_core_decay_p_amp: 37.0
+  detector_core_decay_ss_interval: 0.01
+  detector_core_decay_ss_max: 10.0
+  detector_core_decay_ss_min: 0.0
+  detector_core_deltax_ms: 20.1
+  detector_core_direction: positive
+  detector_core_extrapolate_hw: '1'
+  detector_core_lag_ms: 10.1
+  detector_core_max_compound_interval: 50.0
+  detector_core_min_peak2peak: 5.0
+  detector_core_p_valley: 50.0
+  detector_core_search_radius: 5.0
+  detector_filter_max_amp: null
+  detector_filter_max_decay: null
+  detector_filter_max_dr: null
+  detector_filter_max_hw: null
+  detector_filter_max_rise: null
+  detector_filter_max_s2n: null
+  detector_filter_min_amp: 0.3
+  detector_filter_min_decay: 0.0
+  detector_filter_min_dr: 0.0
+  detector_filter_min_hw: 0.0
+  detector_filter_min_rise: 0.0
+  detector_filter_min_s2n: 0.0
+start_module:
+- mini_analysis
+- style
+style:
+  style_trace_line_color: black
+  style_trace_line_width: '0.25'
+trace_info: ''
+trace_mode: continuous
+window_param_guide: ''
+zoomed: false
