@@ -281,7 +281,7 @@ def plot():
             plot_overlay(r, append=(i!=0))
     elif app.menubar.widgets['trace_mode'].get() == 'overlay':
         plot_overlay(recordings[0])
-    pass
+    app.root.event_generate("<<Plot>>")
 
 def plot_continuous(recording, fix_axis=False, draw=False, fix_x=False, fix_y=False):
     global idx_offset
@@ -310,7 +310,6 @@ def plot_continuous(recording, fix_axis=False, draw=False, fix_x=False, fix_y=Fa
         trace_display.set_axis_limit('x', xlim)
     if fix_y:
         trace_display.set_axis_limit('y', ylim)
-
     # if len(al.mini_df.index)>0:
     #     xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
     #     xs = xs.dropna()

@@ -1,2 +1,7 @@
-control_panel: 'mini_analysis_tab'
-data_notebook: 'mini_analysis_table'
+dependencies:
+  - 'style'
+GUI_components:
+  mini_analysis_tab:
+    location: 'control_panel'
+  mini_analysis_table:
+    location: 'data_notebook'

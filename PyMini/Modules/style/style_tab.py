@@ -29,17 +29,17 @@ class ModuleControl(BaseControlModule):
         self.size_column=2
         self.color_column=3
 
-        self.row=0
+        row=0
 
-        ttk.Label(self.main_style_panel, text='size', justify=Tk.CENTER).grid(column=size_column, row=row, sticky='news')
-        ttk.Label(self.main_style_panel, text='color', justify=Tk.CENTER).grid(column=color_column, row=row, sticky='news')
+        ttk.Label(self.main_style_panel, text='size', justify=Tk.CENTER).grid(column=self.size_column, row=row, sticky='news')
+        ttk.Label(self.main_style_panel, text='color', justify=Tk.CENTER).grid(column=self.color_column, row=row, sticky='news')
 
         row+= 1
-        ttk.Label(self.main_style_panel, text='Trace plot').grid(column=label_column, row=row, sticky='news')
-        self.place_VarEntry(name='style_trace_line_width', column=size_column, row=row, frame=self.main_style_panel,
-                       width=size_width, validate_type='float')
-        self.place_VarEntry(name='style_trace_line_color', column=color_column, row=row, frame=self.main_style_panel,
-                       width=color_width, validate_type='color')
+        ttk.Label(self.main_style_panel, text='Trace plot').grid(column=self.label_column, row=row, sticky='news')
+        self.place_VarEntry(name='style_trace_line_width', column=self.size_column, row=row, frame=self.main_style_panel,
+                       width=self.size_width, validate_type='float')
+        self.place_VarEntry(name='style_trace_line_color', column=self.color_column, row=row, frame=self.main_style_panel,
+                       width=self.color_width, validate_type='color')
 
         for w in self.widgets:
             self.widgets[w].bind('<Return>', self.apply_styles, add='+')

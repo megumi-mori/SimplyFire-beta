@@ -316,7 +316,6 @@ def load(splash):
         data_notebook.tab(datatab, state='hidden')
     for key, cptab in control_panel_dict.items():
         cp_notebook.tab(cptab, state='hidden')
-
     for modulename in config.start_module:
         menubar.window_menu.invoke(control_panel_dict[modulename].menu_label)
     try:
@@ -351,25 +350,25 @@ def load_module(module_name):
         for req_module_name in module_config['dependencies']:
             load_module(req_module_name)
     tab = None
-    if module_config.get('control_panel', None):
-        module_tab = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["control_panel"]}')
-        tab = module_tab.ModuleControl()
-        cp_notebook.add(tab, text=tab.tab_label)
-        # cp_notebook.tab(tab.frame, state='hidden')
-        control_panel_dict[tab.name] = tab
-        modules_dict[module_name]['control_panel'] = tab
-    if module_config.get('data_notebook', None):
-        module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["data_notebook"]}')
-        table = module_table.ModuleTable()
-        data_notebook.add(table, text=table.tab_label)
-        modules_dict[module_name]['data_notebook'] = table
-        # data_notebook.tab(table.frame, state='hidden')
-        data_notebook_dict[table.name] = table
-        table.connect_to_control(tab)
-    if module_config.get('load', None):
-        module_loader = importlib.import_module(f'PyMini.Modules.{module_name}.{module_config["load"]}')
-        modules_dict[module_name]['load'] = module_loader
-        module_loader.load()
+    for component, details in module_config['GUI_components'].items():
+        if details['location'] == 'load':
+            module_loader = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
+            module_loader.load()
+        if details['location'] == 'control_panel':
+            module_tab = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
+            tab = module_tab.ModuleControl()
+            cp_notebook.add(tab, text=tab.tab_label)
+            # cp_notebook.tab(tab.frame, state='hidden')
+            control_panel_dict[tab.name] = tab
+            modules_dict[module_name]['control_panel'] = tab
+        if details['location'] == 'data_notebook':
+            module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
+            table = module_table.ModuleTable()
+            data_notebook.add(table, text=table.tab_label)
+            modules_dict[module_name]['data_notebook'] = table
+            # data_notebook.tab(table.frame, state='hidden')
+            data_notebook_dict[table.name] = table
+            table.connect_to_control(tab)
 def get_tab_focus():
     focus = {}
     focus['control_panel'] = cp_notebook.select()

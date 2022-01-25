@@ -1,11 +1,15 @@
 import matplotlib.backend_bases
 from PyMini.Modules.base_control_module import BaseControlModule
 from PyMini import app
-from PyMini.utils import writer
+from PyMini.utils import writer, widget
 from . import analysis, mini_analysis
 import pandas as pd
 import os
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
+import tkinter as Tk
+import numpy as np
+from PyMini.Backend import analyzer2
+
 class ModuleControl(BaseControlModule):
     def __init__(self):
         super(ModuleControl, self).__init__(
@@ -38,7 +42,7 @@ class ModuleControl(BaseControlModule):
         self.start_color = 'red'
         self.highlight_color = 'red'
 
-        self.peak_size = 5
+        self.peak_size = self.values.get('style_mini_size', self.default['style_mini_size'])
         self.decay_size = 5
         self.start_size = 5
         self.highlight_size = 5
@@ -108,7 +112,10 @@ class ModuleControl(BaseControlModule):
                 messagebox.showerror(title='Error', message='Please switch to continuous mode to analyze minis.')
                 return None
             self.module_table.unselect()
-            self.find_manual(event)
+            try:
+                self.find_mini_manual(event.xdata)
+            except:
+                pass
             pass
 
     def change_channel(self, event=None):
@@ -174,23 +181,52 @@ class ModuleControl(BaseControlModule):
         else:
             return self.mini_df[self.mini_df['channel'] == app.interface.channel]
 
-    def find_manual(self, event: matplotlib.backend_bases.Event=None):
-        self.module_table.unselect()
-        if event.xdata is None:
+    def find_mini_manual(self, x):
+        if x is None:
             return None
-        mini = analysis.find_mini_manual(event.xdata, self.get_params(), self.mini_df)
+        self.module_table.unselect()
+        xlim = app.trace_display.ax.get_xlim()
+        r = (xlim[1] - xlim[0]) * float(self.widgets['detector_core_search_radius'].get()) / 100
+
+        self.find_mini_at(min(x-r, xlim[0]), max(x+r,xlim[1]))
+
+    def find_mini_at(self, x1, x2):
+        """
+        calls mini analysis algorithm centered around x, with
+        """
+        # convert % x-axis to points search using sampling rate?
+
+        xs = app.trace_display.ax.lines[0].get_xdata()
+        ys = app.trace_display.ax.lines[0].get_ydata()
+        params = self.get_params()
+
+        mini = app.interface.al.find_mini_manual(xlim=(x1, x2), xs=xs, ys=ys,
+                                                 x_sigdig=app.interface.recordings[0].x_sigdig,
+                                                 sampling_rate=app.interface.recordings[0].sampling_rate,
+                                                 channel=app.interface.recordings[0].channel,
+                                                 reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
+                                                 x_unit=app.interface.recordings[0].x_unit, **params)
         if mini['success']:
             self.mini_df = self.mini_df.append(mini,
-                                     ignore_index=True,
-                                     sort=False)
+                                               ignore_index=True,
+                                               sort=False)
             self.mini_df = self.mini_df.sort_values(by='t')
-            self.module_table.add({key:value for key,value in mini.items() if key in self.mini_header2config})
+            self.module_table.add({key: value for key, value in mini.items() if key in self.mini_header2config})
             self.update_event_markers()
-            self.saved = False # track change
-
-    def find_all(self, event=None):
+            self.saved = False  # track change
+    def find_mini_all(self, event=None):
         self.module_table.unselect()
-        df = analysis.find_mini_in_range(self.get_params(), self.mini_df)
+        try:
+            xs = app.trace_display.ax.lines[0].get_xdata()
+            ys = app.trace_display.ax.lines[0].get_ydata()
+        except: # no traces yet
+            return
+        params = self.get_params()
+        df = app.interface.al.find_mini_auto(xlim=None, xs=xs, ys=ys, x_sigdig=app.interface.recordings[0].x_sigdig,
+                               sampling_rate=app.interface.recordings[0].sampling_rate, channel=app.interface.recordings[0].channel,
+                      reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
+                               x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
+
         self.mini_df = pd.concat([self.mini_df, df])
         if df.shape[0] > 0:
             # if int(app.widgets['config_undo_stack'].get()) > 0:
@@ -208,11 +244,21 @@ class ModuleControl(BaseControlModule):
         #     detector_tab.changes = {}
         #     detector_tab.changed = False
         app.clear_progress_bar()
-    def find_range(self, event=None):
+
+    def find_mini_range(self, event=None):
         self.module_table.unselect()
-        df = analysis.find_mini_in_range(self.get_params(), self.mini_df,
-                                         xlim=app.trace_display.ax.get_xlim(),
-                                         ylim=app.trace_display.ax.get_ylim())
+        try:
+            xs = app.trace_display.ax.lines[0].get_xdata()
+            ys = app.trace_display.ax.lines[0].get_ydata()
+        except:  # no traces yet
+            return
+        params = self.get_params()
+        df = app.interface.al.find_mini_auto(xlim=app.trace_display.ax.get_xlim(), xs=xs, ys=ys, x_sigdig=app.interface.recordings[0].x_sigdig,
+                                             sampling_rate=app.interface.recordings[0].sampling_rate,
+                                             channel=app.interface.recordings[0].channel,
+                                             reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
+                                             x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
+
         self.mini_df = pd.concat([self.mini_df, df])
         if df.shape[0] > 0:
             # if int(app.widgets['config_undo_stack'].get()) > 0:
@@ -451,7 +497,13 @@ class ModuleControl(BaseControlModule):
         if filetype not in ('.mini','.csv','.temp','.minipy'):
             if not messagebox.askyesno('Warning', f'{filetype} is not a recognized filetype. The file may not be read properly. Proceed?'):
                 return
-        df = analysis.open_minis(filename)
+        filetype = os.path.splitext(filename)[1]
+        if filetype in ('.csv', '.temp', '.event', '.mini'):
+            df = self.open_mini_csv(filename)
+        elif filetype == '.minipy':
+            df = self.open_minipy(filename)
+        df = df.replace({np.nan: None})
+
         self.mini_df = df
 
         self.update_module_table()
@@ -459,6 +511,122 @@ class ModuleControl(BaseControlModule):
 
         self.saved = True
         app.clear_progress_bar()
+
+    def open_mini_csv(self,filename):
+        df = pd.read_csv(filename, comment='@')
+        return df
+
+    def open_minipy(self,filename):
+        """
+        open mini files from Minipy (ancestral version)
+        """
+        channel = 0
+        minis = []
+        header_idx = {}
+        with open(filename, 'r') as f:
+            lines = f.readlines()
+            for l in lines:
+                info = l.strip().split(',')
+                if info[0] == "@Trace":
+                    recording_filename = info[1]
+                elif info[0] == '@Channel':
+                    channel = int(info[1])
+                elif info[0] == '@Header':
+                    for i, h in enumerate(info):
+                        header_idx[h] = i
+                    xs = app.interface.recordings[0].get_xs(mode='continuous', channel=channel)
+                    ys = app.interface.recordings[0].get_ys(mode='continuous', channel=channel)
+                elif info[0] == '@Data':
+                    mini = {
+                        't': float(info[header_idx['x']]),
+                        'peak_coord_x': float(info[header_idx['x']]),
+                        'peak_coord_y': float(info[header_idx['y']]),
+                        'amp': float(info[header_idx['Vmax']]) * float(info[header_idx['direction']]),
+                        'baseline': float(info[header_idx['baseline']]),
+                        'compound': False,
+                        'decay_A': float(info[header_idx['Vmax']]),
+                        'decay_const': float(info[header_idx['tau']]) * 1000,
+                        'decay_baseline': 0,
+                        'decay_coord_x': float(info[header_idx['tau_x']]),
+                        'decay_coord_y': float(info[header_idx['tau_y']]),
+                        'decay_max_points': int(
+                            float(app.widgets['detector_core_decay_max_interval'].get()) / 1000 * app.interface.recordings[
+                                0].sampling_rate),
+                        'failure': None,
+                        'lag': int(info[header_idx['lag']]),
+                        'rise_const': float(info[header_idx['rise_time']]) * 1000,
+                        'start_coord_x': float(info[header_idx['left_x']]),
+                        'start_coord_y': float(info[header_idx['left_y']]),
+                        'amp_unit': app.interface.recordings[0].channel_units[channel],
+                        'baseline_unit': app.interface.recordings[0].channel_units[channel],
+                        'decay_unit': 'ms',
+                        'halfwidth_unit': 'ms',
+                        'rise_unit': 'ms',
+                        'channel': channel,
+                        'delta_x': 0,
+                        'direction': int(info[header_idx['direction']]),
+                        'end_coord_x': float(info[header_idx['right_x']]),
+                        'end_coord_y': float(info[header_idx['right_y']]),
+                        'max_amp': np.inf,
+                        'min_amp': 0.0,
+                        'max_rise': np.inf,
+                        'min_rise': 0.0,
+                        'max_decay': np.inf,
+                        'min_decay': 0.0,
+                        'max_hw': np.inf,
+                        'min_hw': 0.0,
+                        'max_s2n': np.inf,
+                        'min_s2n': 0.0,
+                        'stdev_unit': app.interface.recordings[0].channel_units[channel],
+                        'success': True,
+                    }
+                    pass
+                    mini['start_idx'] = int(analyzer2.search_index(mini['start_coord_x'], xs,
+                                                                   rate=app.interface.recordings[0].sampling_rate))
+                    mini['baseline_idx'] = mini['start_idx']
+                    mini['base_idx_L'] = mini['start_idx'] - mini['lag']
+                    mini['base_idx_R'] = mini['start_idx']
+                    mini['decay_idx'] = int(analyzer2.search_index(mini['start_coord_x'] + mini['decay_const'], xs,
+                                                                   rate=app.interface.recordings[0].sampling_rate))
+                    mini['peak_idx'] = int(analyzer2.search_index(mini['peak_coord_x'], xs,
+                                                                  rate=app.interface.recordings[0].sampling_rate))
+                    mini['decay_start_idx'] = mini['peak_idx']
+                    mini['end_idx'] = analyzer2.search_index(mini['end_coord_x'], xs,
+                                                             rate=app.interface.recordings[0].sampling_rate)
+                    mini['stdev'] = np.std(ys[mini['base_idx_L']:mini['base_idx_R']])
+
+                    # try finding halfwidth
+                    hw_start_idx, hw_end_idx = app.interface.al.find_mini_halfwidth(amp=mini['amp'],
+                                                                                    xs=xs[mini['baseline_idx']:mini[
+                                                                                        'end_idx']],
+                                                                                    ys=ys[mini['baseline_idx']:mini[
+                                                                                        'end_idx']],
+                                                                                    peak_idx=mini['peak_idx'] - mini[
+                                                                                        'baseline_idx'],
+                                                                                    baseline=mini['baseline'],
+                                                                                    direction=mini['direction'])
+                    if hw_start_idx is not None and hw_end_idx is None:
+                        if app.widgets['detector_core_extrapolate_hw'].get():
+                            t = np.log(0.5) * (-1) * mini['decay_const'] / 1000
+                            hw_end_idx = analyzer2.search_index(xs[mini['peak_idx']] + t, xs[mini['baseline_idx']:],
+                                                                app.interface.recordings[0].sampling_rate)
+                    if hw_start_idx is None or hw_end_idx is None:
+                        mini['halfwidth'] = 0  # could not be calculated
+                    else:
+                        mini['halfwidth_start_idx'] = hw_start_idx + mini['baseline_idx']
+                        mini['halfwidth_end_idx'] = hw_end_idx + mini['baseline_idx']
+                        mini['halfwidth'] = (xs[int(mini['halfwidth_end_idx'])] - xs[
+                            int(mini['halfwidth_start_idx'])]) * 1000
+                        mini['halfwidth_start_coord_x'] = xs[mini['halfwidth_start_idx']]
+                        mini['halfwidth_end_coord_x'] = xs[mini['halfwidth_end_idx']]
+                        mini['halfwidth_start_coord_y'] = mini['halfwidth_end_coord_y'] = mini['baseline'] + 0.5 * mini[
+                            'amp']
+
+                    minis.append(mini)
+            if len(minis) > 0:
+                df = pd.DataFrame.from_dict(minis)
+                return df
+            return pd.DataFrame()  # empty
 
     def open_minis_dialogue(self, event=None):
         if not self.saved and self.mini_df.shape[0]>0:
@@ -520,12 +688,14 @@ class ModuleControl(BaseControlModule):
         df = df[(df['t'] > xlim[0]) & (df['t'] < xlim[1])
                 & (df['peak_coord_y'] > ylim[0]) & (df['peak_coord_y'] < ylim[1])]
 
-        self.module_table.select(list(df['t']))
+        self.module_table.selection_set(list(df['t']))
     def select_clear(self, event=None):
         if not self.has_focus():
             return None
         self.module_table.unselect()
-    def update_event_markers(self):
+    def update_event_markers(self, event=None):
+        if not self.is_visible():
+            return None
         self.plot_peak(self.extract_column('peak_coord_x'), self.extract_column('peak_coord_y'))
         self.plot_decay(self.extract_column('decay_coord_x'), self.extract_column('decay_coord_y'))
         self.plot_start(self.extract_column('start_coord_x'), self.extract_column('start_coord_y'))
@@ -553,7 +723,7 @@ class ModuleControl(BaseControlModule):
         )
         self.find_all_button = self.insert_button(
             text='Find all',
-            command=self.find_all
+            command=self.find_mini_all
         )
         self.insert_button(
             text='Delete all',
@@ -561,7 +731,7 @@ class ModuleControl(BaseControlModule):
         )
         self.insert_button(
             text='Find in\nwindow',
-            command=self.find_range
+            command=self.find_mini_range
         )
         self.insert_button(
             text='Delete in\nwindow',
@@ -845,6 +1015,7 @@ class ModuleControl(BaseControlModule):
         app.root.bind('<<OpenRecording>>', lambda save=False: self.delete_clear(save), add="+")
         app.root.bind('<<DrawRect>>', self.select_from_rect, add="+")
         app.root.bind('<<ChangeChannel>>', self.change_channel, add="")
+        app.root.bind('<<Plot>>', self.update_event_markers, add='+')
 
         app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
         app.trace_display.canvas.mpl_connect('pick_event', self.select_from_event_pick)
@@ -855,7 +1026,70 @@ class ModuleControl(BaseControlModule):
 
 
     def _modify_GUI(self):
+        # menubar
         file_menu = app.menubar.make_file_menu_cascade(self.menu_label)
         file_menu.add_command(label='Open mini file', command=self.open_minis_dialogue)
         file_menu.add_command(label='Save minis as...', command=self.save_minis_dialogue)
         file_menu.add_command(label='Export table', command=self.export_minis_dialogue)
+
+        # style tab
+        style_tab = app.modules_dict['style']['control_panel']
+        style_tab.optionframe.insert_separator()
+        style_tab.insert_title(
+            text='Mini Analysis plot style'
+        )
+        panel = style_tab.make_panel(separator=False)
+        panel.grid_columnconfigure(0, weight=1)
+        panel.grid_columnconfigure(1, weight=1)
+        panel.grid_columnconfigure(2, weight=1)
+
+        row = 0
+        ttk.Label(panel, text='size', justify=Tk.CENTER).grid(column=style_tab.size_column, row=row,
+                                                                              sticky='news')
+        ttk.Label(panel, text='color', justify=Tk.CENTER).grid(column=style_tab.color_column, row=row,
+                                                                               sticky='news')
+        def place_VarEntry(name, column, row, frame, width=None, validate_type=""):
+            self.widgets[name] = widget.VarEntry(frame, name=name, width=width, validate_type=validate_type,
+                                          value=self.values.get(name, None), default=self.default.get(name, None))
+            self.widgets[name].grid(column=column, row=row, sticky='news')
+
+        row += 1
+        ttk.Label(panel, text='Peak marker').grid(column=style_tab.label_column, row=row, sticky='news')
+        place_VarEntry(name='style_mini_size', column=style_tab.size_column, row=row, frame=panel,
+                            width=style_tab.size_width, validate_type='float')
+        place_VarEntry(name='style_mini_color', column=style_tab.color_column, row=row, frame=panel,
+                            width=style_tab.color_width, validate_type='color')
+        row += 1
+        ttk.Label(panel, text='Start marker').grid(column=style_tab.label_column, row=row, sticky='news')
+        place_VarEntry(name='style_start_size', column=style_tab.size_column, row=row, frame=panel,
+                       width=style_tab.size_width, validate_type='float')
+        place_VarEntry(name='style_start_color', column=style_tab.color_column, row=row, frame=panel,
+                       width=style_tab.color_width, validate_type='color')
+
+        row += 1
+        ttk.Label(panel, text='Decay marker').grid(column=style_tab.label_column, row=row, sticky='news')
+        place_VarEntry(name='style_decay_size', column=style_tab.size_column, row=row, frame=panel,
+                       width=style_tab.size_width, validate_type='float')
+        place_VarEntry(name='style_decay_color', column=style_tab.color_column, row=row, frame=panel,
+                       width=style_tab.color_width, validate_type='color')
+
+        def _apply_styles(event=None):
+            app.interface.focus()
+            self.peak_size = float(self.widgets['style_mini_size'].get())
+            self.peak_color = self.widgets['style_mini_color'].get()
+            self.start_size = float(self.widgets['style_start_size'].get())
+            self.start_color = self.widgets['style_start_color'].get()
+            self.decay_size = float(self.widgets['style_decay_size'].get())
+            self.decay_color = self.widgets['style_decay_color'].get()
+
+            self.update_event_markers()
+
+        def _apply_default(event=None):
+            app.interface.focus()
+            self.set_to_default(filter='style_')
+
+        for w in self.widgets:
+            if 'style' in w:
+                self.widgets[w].bind('<Return>', _apply_styles, add='+')
+        style_tab.insert_button(text='Apply', command= _apply_styles)
+        style_tab.insert_button(text='Default', command= _apply_default)

@@ -59,3 +59,11 @@ data_display_std: 1
 data_display_channel : 1
 data_display_direction : 1
 data_display_compound: 1
+
+
+style_mini_color: 'green'
+style_mini_size: 5
+style_start_color: 'red'
+style_start_size: 5
+style_decay_color: 'blue'
+style_decay_size: 5

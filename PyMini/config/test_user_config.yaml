@@ -7,7 +7,7 @@ channel_option: '1: I2 (nA)'
 cp_width: 270
 force_channel: '1'
 force_channel_id: 1
-geometry: 900x683
+geometry: 900x673
 gp_height: 450
 mini_analysis:
   data_display_amplitude: '1'
@@ -29,8 +29,8 @@ mini_analysis:
   detector_core_decay_ss_interval: 0.01
   detector_core_decay_ss_max: 10.0
   detector_core_decay_ss_min: 0.0
-  detector_core_deltax_ms: 0.0
-  detector_core_direction: positive
+  detector_core_deltax_ms: 20.0
+  detector_core_direction: negative
   detector_core_extrapolate_hw: '1'
   detector_core_lag_ms: 10.0
   detector_core_max_compound_interval: 50.0
@@ -43,18 +43,24 @@ mini_analysis:
   detector_filter_max_hw: null
   detector_filter_max_rise: null
   detector_filter_max_s2n: null
-  detector_filter_min_amp: 0.5
+  detector_filter_min_amp: 0.2
   detector_filter_min_decay: 0.0
   detector_filter_min_dr: 0.0
   detector_filter_min_hw: 0.0
   detector_filter_min_rise: 0.0
   detector_filter_min_s2n: 0.0
+  style_decay_color: blue
+  style_decay_size: 5.0
+  style_mini_color: red
+  style_mini_size: 5.0
+  style_start_color: red
+  style_start_size: 5.0
 start_module:
-- mini_analysis
 - style
+- mini_analysis
 style:
   style_trace_line_color: black
-  style_trace_line_width: 0.25
+  style_trace_line_width: 1.0
 trace_info: ''
 trace_mode: continuous
 window_param_guide: '0'

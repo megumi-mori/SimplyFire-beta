@@ -16,6 +16,7 @@ class OptionFrame(Tk.Frame):
 
         self.num_row = 0
         self.col_button = 0
+        self.num_frames = 0
 
     def insert_label_widget_panel(self, frame, name, separator=True):
         """
@@ -139,6 +140,7 @@ class OptionFrame(Tk.Frame):
             separator=True
     ):
         panel = Tk.Frame(self)
+        self.num_frames += 1
         panel.grid_columnconfigure(0, weight=1)
         self.insert_panel(panel, separator)
         return panel
@@ -181,11 +183,12 @@ class OptionFrame(Tk.Frame):
 
     ):
         if self.col_button > 0:
-            panel = self.children['!frame{}'.format(self.num_row if self.num_row>1 else "")]
+            panel = self.children['!frame{}'.format(self.num_frames if self.num_frames>1 else "")]
             panel.grid_columnconfigure(1, weight=1)
             row = self.num_row - 1
         else:
             panel = Tk.Frame(self)
+            self.num_frames += 1
             panel.grid_columnconfigure(0, weight=1)
 
             row = self.num_row

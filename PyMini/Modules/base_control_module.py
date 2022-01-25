@@ -141,9 +141,9 @@ class BaseControlModule(Frame):
         for k, v in self.widgets.items():
             if filter:
                 if filter in k:
-                    self.widgets[k].set(self.default[k])
+                    self.widgets[k].set_to_default()
             else:
-                self.widgets[k].set(self.default[k])
+                self.widgets[k].set_to_default()
 
     def insert_file_menu(self):
         self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)

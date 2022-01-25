@@ -179,7 +179,7 @@ default_start_module:
 #default_show_end : ""
 #
 #system
-default_config_user_path : "teset_user_config.yaml"
+default_config_user_path : "test_user_config.yaml"
 default_config_system_path : 'system_config.yaml'
 default_config_keymap_path: 'key_map.yaml'
 default_config_autoload : 1
