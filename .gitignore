@@ -14,3 +14,5 @@ PyMini.egg-info/top_level.txt
 PyMini/test_output.abf
 test_recordings/24 female delta cntrl 0.74.minipy
 test_recordings/21d20024 boxcar11.abf
+PyMini/config/test_user_config.yaml
+PyMini/config/test_user_config.yaml

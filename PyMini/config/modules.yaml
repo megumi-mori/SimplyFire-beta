@@ -5,3 +5,5 @@
 modules:
   - 'mini_analysis'
   - 'style'
+  - 'sweeps'
+  - 'post_processing'

@@ -121,6 +121,7 @@ def open_recording(fname: str,
     ylim: float tuple, if not None, used to set the y-axis limist of the GUI
     """
     # import data as a Recording object
+
     global recordings
     try:
         record = analyzer2.Recording(fname)
@@ -144,7 +145,6 @@ def open_recording(fname: str,
         # update save file directory
         # if app.setting_tab.widgets['config_file_autodir'].get() == '1':
         #     mpl.rcParams['savefig.directory'] = os.path.split(fname)[0]
-
         # set to channel specified by the user
         if app.graph_panel.widgets['force_channel'].get() == '1':
             try:
@@ -180,10 +180,9 @@ def open_recording(fname: str,
     #         record.set_channel(recordings[0].channel)
     #     except:
     #         _change_channel(0, save_undo=False) # cannot open channel
-
     plot()
     app.trace_display.draw_ani()
-    param_guide.update()
+    # param_guide.update()
     if not append:
         # if app.graph_panel.widgets['force_axis_limit'].get() == '1':
         #     app.trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
@@ -206,6 +205,7 @@ def open_recording(fname: str,
                 label='{}: {}'.format(i, record.channel_labels[i]),
                 command=lambda c=i:_change_channel(c)
             )
+
     # starting channel was set earlier in the code
         app.graph_panel.widgets['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
 

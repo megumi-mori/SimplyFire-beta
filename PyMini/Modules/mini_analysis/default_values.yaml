@@ -67,3 +67,5 @@ style_start_color: 'red'
 style_start_size: 5
 style_decay_color: 'blue'
 style_decay_size: 5
+style_highlight_color: 'yellow'
+style_highlight_size: 5

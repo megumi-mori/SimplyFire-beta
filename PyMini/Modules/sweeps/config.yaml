@@ -1,0 +1,3 @@
+GUI_components:
+  sweeps_tab:
+    location: 'control_panel'

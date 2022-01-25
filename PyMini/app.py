@@ -15,7 +15,7 @@ import importlib
 
 # debugging
 import tracemalloc
-
+import time
 
 
 
@@ -485,3 +485,12 @@ def load_config(e=None):
             widgets[c].set(v)
         except:
             pass
+
+def print_time_lapse(msg=""):
+    global t0
+    try:
+        print(f"{msg}: {time.time() - t0}")
+    except:
+        print(msg)
+        pass
+    t0 = time.time()

@@ -2,7 +2,7 @@ import matplotlib.backend_bases
 from PyMini.Modules.base_control_module import BaseControlModule
 from PyMini import app
 from PyMini.utils import writer, widget
-from . import analysis, mini_analysis
+from . import mini_analysis
 import pandas as pd
 import os
 from tkinter import filedialog, messagebox, ttk
@@ -188,7 +188,7 @@ class ModuleControl(BaseControlModule):
         xlim = app.trace_display.ax.get_xlim()
         r = (xlim[1] - xlim[0]) * float(self.widgets['detector_core_search_radius'].get()) / 100
 
-        self.find_mini_at(min(x-r, xlim[0]), max(x+r,xlim[1]))
+        self.find_mini_at(max(x-r, xlim[0]), min(x+r,xlim[1]))
 
     def find_mini_at(self, x1, x2):
         """
@@ -350,14 +350,18 @@ class ModuleControl(BaseControlModule):
     def plot_highlight(self, xs, ys):
         try:
             self.markers['highlight'].remove()
-        except:
+        except Exception as e:
+            print(e)
             pass
         try:
             self.markers['highlight'], = app.trace_display.ax.plot(xs, ys, marker='o', c=self.highlight_color,
                                                                    markersize=self.highlight_size, linestyle='None',
-                                                                   animated=False)
-        except:
+                                                                   animated=False, alpha=0.5)
+        except Exception as e:
+            print(e)
             pass
+        if xs is None:
+            print(self.markers['highlight'].get_xdata())
     def plot_start(self, xs, ys):
         try:
             self.markers['start'].remove()
@@ -645,6 +649,8 @@ class ModuleControl(BaseControlModule):
             self.open_minis(filename)
         app.clear_progress_bar()
 
+    def select_all(self, event=None):
+        self.module_table.select_all()
     def select_from_event_pick(self, event=None):
         if not self.has_focus():
             return None
@@ -699,6 +705,14 @@ class ModuleControl(BaseControlModule):
         self.plot_peak(self.extract_column('peak_coord_x'), self.extract_column('peak_coord_y'))
         self.plot_decay(self.extract_column('decay_coord_x'), self.extract_column('decay_coord_y'))
         self.plot_start(self.extract_column('start_coord_x'), self.extract_column('start_coord_y'))
+        try:
+            hxs = self.markers['highlight'].get_xdata()
+            hys = self.markers['highlight'].get_ydata()
+            print(hxs, hys)
+            self.plot_highlight(hxs, hys)
+        except:
+            pass
+
         app.trace_display.draw_ani()
         # app.trace_display.canvas.draw()
 
@@ -1023,6 +1037,8 @@ class ModuleControl(BaseControlModule):
             app.trace_display.canvas.get_tk_widget().bind(key, self.delete_from_canvas, add='+')
         for key in app.config.key_deselect:
             app.trace_display.canvas.get_tk_widget().bind(key, self.select_clear, add='+')
+        for key in app.config.key_select_all:
+            app.trace_display.canvas.get_tk_widget().bind(key, self.select_all, add='+')
 
 
     def _modify_GUI(self):
@@ -1073,6 +1089,13 @@ class ModuleControl(BaseControlModule):
         place_VarEntry(name='style_decay_color', column=style_tab.color_column, row=row, frame=panel,
                        width=style_tab.color_width, validate_type='color')
 
+        row += 1
+        ttk.Label(panel, text='Highlight marker').grid(column=style_tab.label_column, row=row, sticky='news')
+        place_VarEntry(name='style_highlight_size', column=style_tab.size_column, row=row, frame=panel,
+                       width=style_tab.size_width, validate_type='float')
+        place_VarEntry(name='style_highlight_color', column=style_tab.color_column, row=row, frame=panel,
+                       width=style_tab.color_width, validate_type='color')
+
         def _apply_styles(event=None):
             app.interface.focus()
             self.peak_size = float(self.widgets['style_mini_size'].get())
@@ -1081,7 +1104,23 @@ class ModuleControl(BaseControlModule):
             self.start_color = self.widgets['style_start_color'].get()
             self.decay_size = float(self.widgets['style_decay_size'].get())
             self.decay_color = self.widgets['style_decay_color'].get()
+            self.highlight_size = float(self.widgets['style_highlight_size'].get())
+            self.highlight_color = self.widgets['style_highlight_color'].get()
 
+            # for key in ['decay', 'start', 'highlight']:
+            #     try:
+            #         self.markers[key].set_color(self.widgets[f'style_{key}_color'].get())
+            #         self.markers[key].set_markersize(float(self.widgets[f'style_{key}_size'].get()))
+            #     except Exception as e:
+            #         print(e)
+            #         pass
+            # try:
+            #     self.markers['peak'].set_color(self.widgets['style_peak_color'].get())
+            #     self.markers['peak'].set_sizes(float(self.widgets['style_peak_size'].get())**2)
+            # except:
+            #     pass
+            #
+            # app.trace_display.draw_ani()
             self.update_event_markers()
 
         def _apply_default(event=None):
