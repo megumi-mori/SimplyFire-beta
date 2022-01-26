@@ -110,8 +110,12 @@ class BaseControlModule(Frame):
         return app.get_tab_focus()['control_panel'] == str(self)
 
     def is_visible(self):
-        state = app.cp_notebook.tab(self, option='state')
-        return state == 'normal' or state == 'disabled'
+        try:
+            state = app.cp_notebook.tab(self, option='state')
+            return state == 'normal' or state == 'disabled'
+        except:
+            # not yet managed by the notebook widget
+            return None
 
     def is_enabled(self):
         return app.cp_notebook.tab(self, option='state') == 'normal'

@@ -14,6 +14,8 @@ class OptionFrame(Tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
         self.num_row = 0
         self.col_button = 0
         self.num_frames = 0

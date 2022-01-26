@@ -360,8 +360,6 @@ class ModuleControl(BaseControlModule):
         except Exception as e:
             print(e)
             pass
-        if xs is None:
-            print(self.markers['highlight'].get_xdata())
     def plot_start(self, xs, ys):
         try:
             self.markers['start'].remove()
@@ -1132,3 +1130,5 @@ class ModuleControl(BaseControlModule):
                 self.widgets[w].bind('<Return>', _apply_styles, add='+')
         style_tab.insert_button(text='Apply', command= _apply_styles)
         style_tab.insert_button(text='Default', command= _apply_default)
+
+        _apply_styles()

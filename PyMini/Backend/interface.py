@@ -208,7 +208,7 @@ def open_recording(fname: str,
 
     # starting channel was set earlier in the code
         app.graph_panel.widgets['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
-
+    app.root.event_generate('<<OpenedRecording>>')
     app.pb['value'] = 0
     app.pb.update()
 
@@ -297,7 +297,8 @@ def plot_continuous(recording, fix_axis=False, draw=False, fix_x=False, fix_y=Fa
     trace_display.plot_trace(recording.get_xs(mode='continuous'),
                              recording.get_ys(mode='continuous'),
                              draw=draw,
-                             relim=True)
+                             relim=True,
+                             name='Sweep_0')
     trace_display.ax.set_xlabel(recording.x_label)#, fontsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.set_ylabel(recording.y_label)#, fontsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
@@ -1098,7 +1099,7 @@ def plot_overlay(recording, fix_axis=False, fix_x=False, draw=False, append=Fals
                                  recording.get_ys(mode='overlay', sweep=i),
                                  draw=False,
                                  relim=False,
-                                 idx=i + idx_offset,
+                                 name = f"Sweep_{i + idx_offset}",
                                  color=color)
     trace_display.show_all_plot(update_default=True)
     if app.widgets['trace_mode'].get() == 'overlay':

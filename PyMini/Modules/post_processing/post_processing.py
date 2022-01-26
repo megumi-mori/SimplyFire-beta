@@ -13,3 +13,4 @@ class ModuleControl(BaseControlModule):
                  has_table=False
                  )
         pass
+

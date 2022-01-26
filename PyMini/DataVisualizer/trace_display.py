@@ -509,10 +509,13 @@ def clear_markers(key=None):
 
     draw_ani()
 
-def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None):
-    if 'sweep_{}'.format(idx) in sweeps:
+def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None, name=""):
+    global sweeps
+    if sweeps.get(name, None):
         try:
-            sweeps['sweep_{}'.format(idx)].remove()
+            l = sweeps[name]
+            l.remove()
+            del l
         except:
             pass
     global trace_color
@@ -522,7 +525,9 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None):
     global trace_width
     if not width:
         width=trace_width
-    sweeps['sweep_{}'.format(idx)], = ax.plot(xs, ys,
+    if name == "":
+        name = f'Sweep_{len(sweeps)}'
+    sweeps[name], = ax.plot(xs, ys,
                                               linewidth=width,
                                               c=color,
                                               animated=False)  # pickradius=int(app.widgets['style_event_pick_offset'].get())
