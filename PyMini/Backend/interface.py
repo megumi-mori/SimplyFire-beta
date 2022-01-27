@@ -17,7 +17,7 @@ from pandas import Series
 import numpy as np
 from threading import Thread
 
-from time import time
+import time
 # This module is the workhorse of the GUI
 # Use this module to connect analysis functions to the GUI
 from PyMini.utils import abfWriter
@@ -121,7 +121,7 @@ def open_recording(fname: str,
     ylim: float tuple, if not None, used to set the y-axis limist of the GUI
     """
     # import data as a Recording object
-
+    # app.t0=time.time()
     global recordings
     try:
         record = analyzer2.Recording(fname)
@@ -208,7 +208,11 @@ def open_recording(fname: str,
 
     # starting channel was set earlier in the code
         app.graph_panel.widgets['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
+    # print(f'interface finished opening: {time.time() - app.t0}')
+    # app.t0 = time.time()
     app.root.event_generate('<<OpenedRecording>>')
+    # print(f'end of all bindings: {time.time() - app.t0}')
+    # app.t0 = time.time()
     app.pb['value'] = 0
     app.pb.update()
 

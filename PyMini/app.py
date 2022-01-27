@@ -86,6 +86,9 @@ def set_value(key, value, tab=None):
 #     return False
 
 def load(splash):
+    # debugging:
+    global t0
+    t0 = time.time()
     global app_root
     app_root = splash
     # tracemalloc.start()

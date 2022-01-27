@@ -10,6 +10,8 @@ import tkinter as Tk
 import numpy as np
 from PyMini.Backend import analyzer2
 
+# debugging
+import time
 class ModuleControl(BaseControlModule):
     def __init__(self):
         super(ModuleControl, self).__init__(
@@ -95,13 +97,11 @@ class ModuleControl(BaseControlModule):
         app.clear_progress_bar()
         pass
 
-    def canvas_mouse_release(self, event: matplotlib.backend_bases.Event=None):
+    def canvas_mouse_release(self, event=None):
         if not self.has_focus():
             return None
         if self.event_pick:
             self.event_pick = False
-            return None
-        if event.button != 1:
             return None
         if app.trace_display.canvas.toolbar.mode != "":
             return None
@@ -113,7 +113,7 @@ class ModuleControl(BaseControlModule):
                 return None
             self.module_table.unselect()
             try:
-                self.find_mini_manual(event.xdata)
+                self.find_mini_manual(app.interpreter.mouse_event.xdata)
             except:
                 pass
             pass
@@ -154,11 +154,15 @@ class ModuleControl(BaseControlModule):
         self.delete_selection(selection)
 
     def delete_from_canvas(self, selection, undo=True):
+        if not self.has_focus():
+            return None
         self.module_table.delete_selected() # make this direct within  class?
 
 
     def delete_selection(self, selection):
         # pass list of floats (corresponding to 't' column) to delete
+        if len(selection) == 0:
+            return None
         self.mini_df = self.mini_df[(~self.mini_df['t'].isin(selection))|(self.mini_df['channel']!=app.interface.channel)]
         self.module_table.delete(selection)
         self.update_event_markers()
@@ -1025,11 +1029,12 @@ class ModuleControl(BaseControlModule):
         # event bindings:
         app.root.bind('<<LoadCompleted>>', self._apply_column_options, add='+')
         app.root.bind('<<OpenRecording>>', lambda save=False: self.delete_clear(save), add="+")
-        app.root.bind('<<DrawRect>>', self.select_from_rect, add="+")
+        app.root.bind('<<CanvasDrawRect>>', self.select_from_rect, add="+")
         app.root.bind('<<ChangeChannel>>', self.change_channel, add="")
         app.root.bind('<<Plot>>', self.update_event_markers, add='+')
 
-        app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
+        app.root.bind("<<CanvasMouseRelease>>", self.canvas_mouse_release, add='+')
+        # app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
         app.trace_display.canvas.mpl_connect('pick_event', self.select_from_event_pick)
         for key in app.config.key_delete:
             app.trace_display.canvas.get_tk_widget().bind(key, self.delete_from_canvas, add='+')

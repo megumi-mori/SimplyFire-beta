@@ -3,9 +3,10 @@ from PyMini.Backend import interface
 from PyMini.config import config
 
 # debugging
-# from time import time
+import time
 def initialize():
-
+    global mouse_event
+    mouse_event = None
     global navigation_speed
     navigation_speed = 1
     global multi_select
@@ -274,6 +275,10 @@ def plot_event_pick(event):
         # data_display.toggle_one(str(xdata))
 
 def plot_mouse_release(event):
+    print(f'interpreter plot mouse release called: {time.time() - app.t0}')
+
+    global t0
+    t0 = time.time()
     global event_pick
     if event_pick:
         event_pick = False
@@ -302,11 +307,17 @@ def plot_mouse_release(event):
         #     interface.highlight_sweep_in_range((drag_coord_start[0], drag_coord_end[0]),
         #                                      (drag_coord_start[1], drag_coord_end[1]),
         #                                        draw=True)
-        app.root.event_generate('<<DrawRect>>')
+        app.root.event_generate('<<CanvasDrawRect>>') # events bound to this will have access to drag_coord_start and drag_coord_end
         drag_coord_end = None
         drag_coord_start = None
         app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
         return None
+    global mouse_event
+    mouse_event = event
+    if event.button == 1:
+        app.root.event_generate('<<CanvasMouseRelease>>')
+    if event.button == 3:
+        app.root.event_generate('<<CanvasMouseRightRelease>>')
 
     # if event.button == 3:
     #     return None
