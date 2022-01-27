@@ -9,6 +9,7 @@ import gc
 from PyMini import app
 # from PyMini.Layout import keybind_popup
 
+import time
 def load(menubar):
     global widgets
     widgets = {}
@@ -94,6 +95,7 @@ def ask_open_recording():
     if ask_save_events() is None:
         return None
     fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('csv files', '*.csv'), ('All files', '*.*')])
+    app.root.update()
     if not fname:
         return None
     interface.open_recording(fname)
