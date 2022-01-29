@@ -155,3 +155,7 @@ class BaseControlModule(Frame):
 
     def get_widget_dict(self):
         return {k:self.widgets[k].get() for k in self.widgets}
+
+    def call_if_focus(self, function):
+        if self.has_focus():
+            function()

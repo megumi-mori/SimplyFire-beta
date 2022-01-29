@@ -33,11 +33,29 @@ class ModuleControl(BaseControlModule):
         self._load_binding()
 
         pass
+    def canvas_draw_rect(self, event=None):
 
+        selection = []
+        xlim = (app.interpreter.drag_coord_start[0], app.interpreter.drag_coord_end[0])
+        ylim = (app.interpreter.drag_coord_start[1], app.interpreter.drag_coord_end[1])
+        xlim = (min(xlim), max(xlim))
+        ylim = (min(ylim), max(ylim))
+        for i, name in enumerate(app.trace_display.sweeps.keys()): # get keys
+            xs = app.trace_display.sweeps[name].get_xdata()
+            ys = app.trace_display.sweeps[name].get_ydata()
+            print(xs, ys)
+            if analyzer2.contains_line(xlim, ylim, xs, ys, app.interface.recordings[0].sampling_rate):
+                print('contains!')
+                selection.append(name)
+        self.set_highlight(selection, draw=True)
+    # elif app.widgets['trace_mode'].get() == 'overlay':
+    #     interface.highlight_sweep_in_range((drag_coord_start[0], drag_coord_end[0]),
+    #                                      (drag_coord_start[1], drag_coord_end[1]),
+    #                                        draw=True)
     def canvas_mouse_release(self, event=None):
-        if not self.has_focus():
-            return None
         if len(app.interface.recordings) == 0:
+            return None
+        if not app.interpreter.mouse_event.xdata:
             return None
         min_d = np.inf
         pick = None
@@ -58,13 +76,13 @@ class ModuleControl(BaseControlModule):
                     min_d = d
                     pick = i
         if pick is None:
-            self.remove_highlight([namevar.get() for namevar in self.sweep_namevars])
+            self.remove_highlight([namevar.get() for namevar in self.sweep_namevars], draw=False)
         else:
             if app.interpreter.multi_select:
-                self.set_highlight([self.sweep_namevars[pick].get()])
+                self.set_highlight([self.sweep_namevars[pick].get()], draw=False)
             else:
-                self.remove_highlight([namevar.get() for namevar in self.sweep_namevars])
-                self.set_highlight([self.sweep_namevars[pick].get()])
+                self.remove_highlight([namevar.get() for namevar in self.sweep_namevars], draw=False)
+                self.set_highlight([self.sweep_namevars[pick].get()], draw=False)
         app.trace_display.draw_ani()
     def populate_sweeps(self, event=None):
         frame = self.list_frame.get_frame() #get the internal frame in list_frame
@@ -151,23 +169,25 @@ class ModuleControl(BaseControlModule):
         app.interface.focus()
 
     ##### control sweep visibility #####
-    def show_all(self, event=None):
+    def show_all(self, event=None, draw=True):
         for v in self.sweep_vars:
             v.set(True)
         for v in self.sweep_namevars:
             app.trace_display.sweeps[v.get()].set_linestyle('-')
-        app.trace_display.draw_ani()
+        if draw:
+            app.trace_display.draw_ani()
         app.interface.focus()
 
-    def hide_all(self, event=None):
+    def hide_all(self, event=None, draw=True):
         for v in self.sweep_vars:
             v.set(False)
         for v in self.sweep_namevars:
             app.trace_display.sweeps[v.get()].set_linestyle('None')
-        app.trace_display.draw_ani()
+        if draw:
+            app.trace_display.draw_ani()
         app.interface.focus()
 
-    def hide_selected(self, event=None):
+    def hide_selected(self, event=None, draw=True):
         for i, v in enumerate(self.sweep_vars):
             sweep = app.trace_display.sweeps[self.sweep_namevars[i].get()]
             if sweep.get_color() == self.highlight_color:
@@ -175,35 +195,40 @@ class ModuleControl(BaseControlModule):
                 sweep.set_linestyle('None')
                 sweep.set_color(app.trace_display.trace_color)
                 sweep.set_linewidth(app.trace_display.trace_width)
-        app.trace_display.draw_ani()
+        if draw:
+            app.trace_display.draw_ani()
 
 
 
 
     ##### control sweep highlight #####
-    def set_highlight(self, selection:list):
+    def set_highlight(self, selection:list, draw=True):
         for name in selection:
             app.trace_display.sweeps[name].set_color(self.highlight_color)
             app.trace_display.sweeps[name].set_linewidth(float(self.highlight_width))
-        pass
+        if draw:
+            app.trace_display.draw_ani()
 
-    def remove_highlight(self, selection:list):
+    def remove_highlight(self, selection:list, draw=True):
         for name in selection:
             app.trace_display.sweeps[name].set_color(app.trace_display.trace_color)
             app.trace_display.sweeps[name].set_linewidth(float(app.trace_display.trace_width))
-        pass
+        if draw:
+            app.trace_display.draw_ani()
 
-    def clear_higlight(self, event=None):
+    def clear_higlight(self, event=None, draw=True):
         for namevar in self.sweep_namevars:
             app.trace_display.sweeps[namevar.get()].set_color(app.trace_display.trace_color)
             app.trace_display.sweeps[namevar.get()].set_linewidth(app.trace_display.trace_width)
-        app.trace_display.draw_ani()
+        if draw:
+            app.trace_display.draw_ani()
 
-    def highlight_all(self, event=None):
+    def highlight_all(self, event=None, draw=True):
         for namevar in self.sweep_namevars:
             app.trace_display.sweeps[namevar.get()].set_color(self.highlight_color)
             app.trace_display.sweeps[namevar.get()].set_linewidth(self.highlight_width)
-        app.trace_display.draw_ani()
+        if draw:
+            app.trace_display.draw_ani()
 
 
     def _load_layout(self):
@@ -229,12 +254,11 @@ class ModuleControl(BaseControlModule):
         app.root.bind('<<OpenedRecording>>', self.populate_sweeps)
         app.root.bind('<<ChangeTraceMode>>', self.populate_sweeps)
         # app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
-        app.root.bind("<<CanvasMouseRelease>>", self.canvas_mouse_release, add="+")
+        app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release: self.call_if_focus(func), add="+")
+        app.root.bind("<<CanvasDrawRect>>", lambda e, func=self.canvas_draw_rect: self.call_if_focus(func), add='+')
         for key in app.config.key_deselect:
-            app.trace_display.canvas.get_tk_widget().bind(key, self.clear_higlight, add='+')
+            app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=self.clear_higlight: self.call_if_focus(func), add='+')
         for key in app.config.key_select_all:
-            app.trace_display.canvas.get_tk_widget().bind(key, self.highlight_all, add='+')
+            app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=self.highlight_all: self.call_if_focus(func), add='+')
         for key in app.config.key_delete:
-            app.trace_display.canvas.get_tk_widget().bind(key, self.hide_selected, add='+')
-
-        pass
+            app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=self.hide_selected: self.call_if_focus(func), add='+')
