@@ -335,6 +335,7 @@ def load(splash):
     root.event_generate('<<LoadCompleted>>')
 
     root.focus_force()
+    interface.focus()
     splash.withdraw()
     return None
 
