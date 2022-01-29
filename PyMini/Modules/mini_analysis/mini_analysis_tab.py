@@ -12,6 +12,7 @@ from PyMini.Backend import analyzer2
 
 # debugging
 import time
+import inspect
 class ModuleControl(BaseControlModule):
     def __init__(self):
         super(ModuleControl, self).__init__(
@@ -23,7 +24,7 @@ class ModuleControl(BaseControlModule):
             filename=__file__,
             has_table=True
         )
-
+        self.update_counter = 0
         # variable attributes
         self.changes = {}
         self.changed = False
@@ -98,8 +99,6 @@ class ModuleControl(BaseControlModule):
         pass
 
     def canvas_mouse_release(self, event=None):
-        if not self.has_focus():
-            return None
         if self.event_pick:
             self.event_pick = False
             return None
@@ -120,7 +119,7 @@ class ModuleControl(BaseControlModule):
 
     def change_channel(self, event=None):
         self.module_table.set(self.extract_channel_subset())
-        self.update_event_markers()
+        # self.update_event_markers()
         pass
 
     def default_core_params(self, e=None):
@@ -128,14 +127,15 @@ class ModuleControl(BaseControlModule):
         self.populate_decay_algorithms()
         self.populate_compound_params()
 
-    def delete_clear(self, undo=True):
+    def delete_clear(self, undo=True, draw=True):
         # deal with undo later
         # use this to clear the entire mini dataframe (all channels)
         self.mini_df = self.mini_df.iloc[0:0]
-        self.module_table.clear()
-        self.update_event_markers()
+        self.update_module_table()
+        if draw:
+            self.update_event_markers()
 
-    def delete_all(self, undo=True):
+    def delete_all(self, undo=True, draw=True):
         # deal with undo later
         # use this to clear the mini data for the current channel
         try:
@@ -143,7 +143,8 @@ class ModuleControl(BaseControlModule):
         except:
             # no data yet
             pass
-        self.update_event_markers()
+        if draw:
+            self.update_event_markers()
         self.update_module_table()
     def delete_in_window(self, undo=True):
         # deal with undo later
@@ -153,9 +154,7 @@ class ModuleControl(BaseControlModule):
                             (self.mini_df['channel'] == app.interface.channel)].t.values
         self.delete_selection(selection)
 
-    def delete_from_canvas(self, selection, undo=True):
-        if not self.has_focus():
-            return None
+    def delete_from_canvas(self, undo=True):
         self.module_table.delete_selected() # make this direct within  class?
 
 
@@ -354,16 +353,16 @@ class ModuleControl(BaseControlModule):
     def plot_highlight(self, xs, ys):
         try:
             self.markers['highlight'].remove()
-        except Exception as e:
-            print(e)
+            self.markers['highlight'] = None
+        except:
             pass
         try:
             self.markers['highlight'], = app.trace_display.ax.plot(xs, ys, marker='o', c=self.highlight_color,
                                                                    markersize=self.highlight_size, linestyle='None',
                                                                    animated=False, alpha=0.5)
-        except Exception as e:
-            print(e)
+        except:
             pass
+
     def plot_start(self, xs, ys):
         try:
             self.markers['start'].remove()
@@ -702,6 +701,7 @@ class ModuleControl(BaseControlModule):
             return None
         self.module_table.unselect()
     def update_event_markers(self, event=None):
+        self.update_counter = (self.update_counter + 1) %4
         if not self.is_visible():
             return None
         self.plot_peak(self.extract_column('peak_coord_x'), self.extract_column('peak_coord_y'))
@@ -710,7 +710,6 @@ class ModuleControl(BaseControlModule):
         try:
             hxs = self.markers['highlight'].get_xdata()
             hys = self.markers['highlight'].get_ydata()
-            print(hxs, hys)
             self.plot_highlight(hxs, hys)
         except:
             pass
@@ -1028,20 +1027,20 @@ class ModuleControl(BaseControlModule):
     def _load_binding(self):
         # event bindings:
         app.root.bind('<<LoadCompleted>>', self._apply_column_options, add='+')
-        app.root.bind('<<OpenRecording>>', lambda save=False: self.delete_clear(save), add="+")
-        app.root.bind('<<CanvasDrawRect>>', self.select_from_rect, add="+")
+        app.root.bind('<<OpenRecording>>', lambda save=False, draw=False: self.delete_clear(save, draw), add="+")
+        app.root.bind('<<CanvasDrawRect>>', lambda e, func=self.select_from_rect: self.call_if_focus(func), add="+")
         app.root.bind('<<ChangeChannel>>', self.change_channel, add="")
         app.root.bind('<<Plot>>', self.update_event_markers, add='+')
 
-        app.root.bind("<<CanvasMouseRelease>>", self.canvas_mouse_release, add='+')
+        app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release:self.call_if_focus(func), add='+')
         # app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
         app.trace_display.canvas.mpl_connect('pick_event', self.select_from_event_pick)
         for key in app.config.key_delete:
-            app.trace_display.canvas.get_tk_widget().bind(key, self.delete_from_canvas, add='+')
+            app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=self.delete_from_canvas: self.call_if_focus(func), add='+')
         for key in app.config.key_deselect:
-            app.trace_display.canvas.get_tk_widget().bind(key, self.select_clear, add='+')
+            app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=self.select_clear: self.call_if_focus(func), add='+')
         for key in app.config.key_select_all:
-            app.trace_display.canvas.get_tk_widget().bind(key, self.select_all, add='+')
+            app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=self.select_all: self.call_if_focus(func), add='+')
 
 
     def _modify_GUI(self):
@@ -1099,7 +1098,8 @@ class ModuleControl(BaseControlModule):
         place_VarEntry(name='style_highlight_color', column=style_tab.color_column, row=row, frame=panel,
                        width=style_tab.color_width, validate_type='color')
 
-        def _apply_styles(event=None):
+        def _apply_styles(event=None, draw=True):
+            print('apply styles called')
             app.interface.focus()
             self.peak_size = float(self.widgets['style_mini_size'].get())
             self.peak_color = self.widgets['style_mini_color'].get()
@@ -1124,7 +1124,8 @@ class ModuleControl(BaseControlModule):
             #     pass
             #
             # app.trace_display.draw_ani()
-            self.update_event_markers()
+            if draw:
+                self.update_event_markers()
 
         def _apply_default(event=None):
             app.interface.focus()
@@ -1136,4 +1137,4 @@ class ModuleControl(BaseControlModule):
         style_tab.insert_button(text='Apply', command= _apply_styles)
         style_tab.insert_button(text='Default', command= _apply_default)
 
-        _apply_styles()
+        _apply_styles(draw=False)
