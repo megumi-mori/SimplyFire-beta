@@ -43,15 +43,10 @@ class ModuleControl(BaseControlModule):
         for i, name in enumerate(app.trace_display.sweeps.keys()): # get keys
             xs = app.trace_display.sweeps[name].get_xdata()
             ys = app.trace_display.sweeps[name].get_ydata()
-            print(xs, ys)
             if analyzer2.contains_line(xlim, ylim, xs, ys, app.interface.recordings[0].sampling_rate):
-                print('contains!')
                 selection.append(name)
         self.set_highlight(selection, draw=True)
-    # elif app.widgets['trace_mode'].get() == 'overlay':
-    #     interface.highlight_sweep_in_range((drag_coord_start[0], drag_coord_end[0]),
-    #                                      (drag_coord_start[1], drag_coord_end[1]),
-    #                                        draw=True)
+
     def canvas_mouse_release(self, event=None):
         if len(app.interface.recordings) == 0:
             return None
