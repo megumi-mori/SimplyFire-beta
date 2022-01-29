@@ -1478,12 +1478,12 @@ def log(msg, header=False):
 ##########################
 
 def focus():
-    try:
-        if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
-            app.data_display.dataframe.table.focus_set()
-            return None
-    except:
-        pass
+    # try:
+    #     if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
+    #         app.data_display.dataframe.table.focus_set()
+    #         return None
+    # except:
+    #     pass
     app.trace_display.canvas.get_tk_widget().focus_set()
 
 ################################
