@@ -27,6 +27,16 @@ def load(parent):
     fig = Figure()
     fig.set_tight_layout(True)
 
+    global focus_in_edge_color
+    focus_in_edge_color = '#90EE90'
+
+    global focus_out_edge_color
+    focus_out_edge_color = '#FFB6C1'
+
+    fig.set_edgecolor(focus_in_edge_color)
+    fig.set_linewidth(1)
+
+
     global ax
     ax = fig.add_subplot(111)
     fig.subplots_adjust(right=1, top=1)
@@ -34,6 +44,14 @@ def load(parent):
     global canvas
     canvas = FigureCanvasTkAgg(fig, master=frame)
     canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
+    def focus_in(event=None):
+        fig.set_edgecolor(focus_in_edge_color)
+        draw_ani()
+    def focus_out(event=None):
+        fig.set_edgecolor(focus_out_edge_color)
+        draw_ani()
+    frame.bind('<FocusIn>', focus_in)
+    frame.bind('<FocusOut>', focus_out)
     ax.plot()
 
     ax.set_xlabel('Time (n/a)')
