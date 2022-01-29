@@ -50,12 +50,9 @@ class BaseControlModule(Frame):
         self.make_panel = self.optionframe.make_panel
 
     def update_module_display(self, event=None):
-        print('update module display called')
         if self.status_var.get():
-            print('show tab')
             self.show_tab()
         else:
-            print('hide tab')
             self.hide_tab()
         try:
             self.module_table.update_module_display()
