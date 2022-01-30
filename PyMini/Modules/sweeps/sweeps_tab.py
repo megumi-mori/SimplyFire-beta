@@ -225,6 +225,13 @@ class ModuleControl(BaseControlModule):
         if draw:
             app.trace_display.draw_ani()
 
+    #### retrive info
+    def get_visible_sweeps(self, event=None):
+        return [i for i, v in enumerate(self.sweep_vars) if v.get()]
+
+    def get_highlighted_sweeps(self, event=None):
+        return [i for i, v in enumerate(self.sweep_namevars) if
+                app.trace_display.sweeps[v.get()].get_color() == self.highlight_color]
 
     def _load_layout(self):
         self.insert_title(
