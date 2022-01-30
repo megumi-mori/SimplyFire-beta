@@ -1,0 +1,10 @@
+process_target: 'All sweeps'
+process_channel: '1'
+baseline_mode: 'Mean of all targets'
+baseline_range_left: 0
+baseline_range_right: 1
+baseline_fixed: 0
+
+filter_choice: 'Lowpass'
+filter_Lowpass_choice: 'Boxcar'
+filter_Highpass_choice: 'Not yet supported'
