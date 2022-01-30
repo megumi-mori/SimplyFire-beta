@@ -275,21 +275,23 @@ def _change_channel(num: int,
     app.pb['value'] = 0
     app.pb.update()
 
-def plot():
+def plot(**kwargs):
     if len(recordings) == 0:
         return
     if app.menubar.widgets['trace_mode'].get() == 'continuous':
-        plot_continuous(recordings[0])
+        plot_continuous(recordings[0], **kwargs)
     elif app.menubar.widgets['trace_mode'].get() == 'compare':
         for i,r in enumerate(recordings):
             plot_overlay(r, append=(i!=0))
     elif app.menubar.widgets['trace_mode'].get() == 'overlay':
-        plot_overlay(recordings[0])
+        plot_overlay(recordings[0], **kwargs)
     app.root.event_generate("<<Plot>>")
 
 def plot_continuous(recording, fix_axis=False, draw=False, fix_x=False, fix_y=False):
     global idx_offset
     idx_offset = 0
+    xlim=None
+    ylim=None
     if fix_axis:
         xlim = trace_display.get_axis_limits('x')
         ylim = trace_display.get_axis_limits('y')
@@ -307,14 +309,11 @@ def plot_continuous(recording, fix_axis=False, draw=False, fix_x=False, fix_y=Fa
     trace_display.ax.set_ylabel(recording.y_label)#, fontsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.tick_params(axis='x', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
+    if xlim:
+        trace_display.set_axis_limit('x', xlim)
+    if ylim:
+        trace_display.set_axis_limit('y', ylim)
 
-    if fix_axis:
-        trace_display.set_axis_limit('x', xlim)
-        trace_display.set_axis_limit('y', ylim)
-    if fix_x:
-        trace_display.set_axis_limit('x', xlim)
-    if fix_y:
-        trace_display.set_axis_limit('y', ylim)
     # if len(al.mini_df.index)>0:
     #     xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
     #     xs = xs.dropna()
@@ -1477,7 +1476,7 @@ def log(msg, header=False):
 # Controls
 ##########################
 
-def focus():
+def focus(event=None):
     # try:
     #     if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
     #         app.data_display.dataframe.table.focus_set()
