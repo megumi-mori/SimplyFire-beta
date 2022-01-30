@@ -175,7 +175,7 @@ class Recording():
         self.channel = channel
 
 
-    def replace_y_data(self, mode='continuous', channels=None, sweeps=None, new_data=None):
+    def replace_y_data(self, mode='continuous', channels=None, sweeps=None, new_data=None, inplace=True):
         """
         replaces y-values in specified sweeps and channels with data provided
 
@@ -204,8 +204,16 @@ class Recording():
         else:
             print(f'incorrect mode: {mode}')
             return None
-        for i, c in enumerate(channels):
-            self.y_data[c, sweeps, :] = new_data[i]
+        if inplace:
+            for i, c in enumerate(channels):
+                self.y_data[c, sweeps, :] = new_data[i]
+            return self.y_data
+        else:
+            result = self.y_data.copy()
+            for i, c in enumerate(channels):
+                result[c, sweeps, :] = new_data[i]
+            return result
+
 
     def get_y_matrix(self, mode='continuous', sweeps=None, channels=None, xlim=None):
         """
@@ -218,8 +226,12 @@ class Recording():
         """
         if channels == None:
             channels = range(self.channel_count)
+        elif type(channels) == int:
+            channels = [channels]
         if sweeps == None:
             sweeps = [i for i in range(self.sweep_count)]
+        elif type(sweeps) == int:
+            sweeps = [sweeps]
         if mode == 'continuous':
             if xlim:
                 return np.reshape(self.y_data[channels][:, sweeps, :],
