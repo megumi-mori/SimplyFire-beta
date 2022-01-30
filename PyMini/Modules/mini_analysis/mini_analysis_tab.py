@@ -122,7 +122,7 @@ class ModuleControl(BaseControlModule):
         # self.update_event_markers()
         pass
 
-    def default_core_params(self, e=None):
+    def _default_core_params(self, e=None):
         self.set_to_default('detector_core')
         self.populate_decay_algorithms()
         self.populate_compound_params()
@@ -904,7 +904,7 @@ class ModuleControl(BaseControlModule):
 
         self.insert_button(
             text='Default',
-            command=self.default_core_params
+            command=self._default_core_params
         )
 
         ############## filtering parameters ###############
@@ -1029,7 +1029,7 @@ class ModuleControl(BaseControlModule):
         app.root.bind('<<LoadCompleted>>', self._apply_column_options, add='+')
         app.root.bind('<<OpenRecording>>', lambda save=False, draw=False: self.delete_clear(save, draw), add="+")
         app.root.bind('<<CanvasDrawRect>>', lambda e, func=self.select_from_rect: self.call_if_focus(func), add="+")
-        app.root.bind('<<ChangeChannel>>', self.change_channel, add="")
+        app.root.bind('<<ChangeChannel>>', self.change_channel, add="+")
         app.root.bind('<<Plot>>', self.update_event_markers, add='+')
 
         app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release:self.call_if_focus(func), add='+')
