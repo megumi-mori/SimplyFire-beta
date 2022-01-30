@@ -24,3 +24,21 @@ def subtract_baseline(recording:analyzer2.Recording,
                                             inplace=inplace)
     return final_result, baseline
 
+def filter_Boxcar(recording:analyzer2.Recording,
+                  params:dict=None,
+                  channels:list=None,
+                  sweeps:list=None,
+                  ):
+    assert type(recording) == analyzer2.Recording, f'data passed must be of type {analyzer2.Recording}'
+    width = int(params['width'])
+    kernel = np.ones(width)/width
+    for c in channels:
+        ys = recording.get_y_matrix(mode='continuous', channels=[c], sweeps=sweeps)
+        filtered = np.convolve(ys.flatten(), kernel, mode='same')
+        filtered = np.reshape(filtered, (1,1,len(filtered)))
+        filtered[:, :, :int(width/2)] = ys[:,:,:int(width/2)] # prevent 0-ing of the edges
+        filtered[:, :, -int(width/2):] = ys[:,:,-int(width/2):] # prevent 0-ing of the edges
+        recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
+
+    return recording
+

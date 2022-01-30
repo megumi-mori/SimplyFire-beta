@@ -37,18 +37,20 @@ class ModuleControl(BaseControlModule):
 
         target_sweeps = []
         if self.widgets['process_target'].get() == 'All sweeps':
-            if app.widgets['trace_mode'].get() == 'continuous':
-                target_sweeps = [0] # only 1 sweep
-            else:
-                target_sweeps = range(app.interface.recordings[0].sweep_count)
+            target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['process_target'].get() == 'Visible sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
-            # account for more recordings being open (consider only the main file open)
-            target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
+            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+                target_sweeps = range(app.interface.recordings[0].sweep_count)
+            elif app.widgets['trace_mode'].get () == 'overlay':
+                # account for more recordings being open (consider only the main file open)
+                target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['proces_target'].get() == 'Highlighted sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
+        if len(target_sweeps) == 0:
+            return
 
         recording_processor.subtract_baseline(app.interface.recordings[0],
                                               plot_mode=app.widgets['trace_mode'].get(),
@@ -64,8 +66,38 @@ class ModuleControl(BaseControlModule):
         pass
 
     def filter_data(self, event=None):
+        if len(app.interface.recordings)==0:
+            return None # nothing to process
+        if self.widgets['process_channel'].get():
+            target_channels = [app.interface.channel]
+        else:
+            target_channels = range(app.interface.recordings[0].channel_count)
 
-        pass
+        target_sweeps = []
+        if self.widgets['process_target'].get() == 'All sweeps':
+            target_sweeps = range(app.interface.recordings[0].sweep_count)
+        elif self.widgets['process_target'].get() == 'Visible sweeps':
+            target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
+            # account for more recordings being open (consider only the main file open)
+            target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
+        elif self.widgets['proces_target'].get() == 'Highlighted sweeps':
+            target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
+            # account for more recordings being open (consider only the main file open)
+            target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
+
+        filter_choice = self.widgets['filter_algorithm'].get()
+        filter_algorithm = self.widgets[f'filter_{filter_choice}_algorithm'].get()
+        params = {}
+        for key in self.default[f'{filter_algorithm}_params']:
+            params[key] = self.widgets[key].get()
+
+        # deal with undo later
+
+        getattr(recording_processor, f'filter_{filter_algorithm}')(app.interface.recordings[0],
+                                                                   params,
+                                                                   target_channels,
+                                                                   target_sweeps)
+        app.interface.plot(fix_x=True, fix_y=True)
 
 
     def _load_layout(self):
@@ -139,7 +171,7 @@ class ModuleControl(BaseControlModule):
 
         self.filter_choices = ['Highpass', 'Lowpass']
         self.insert_label_optionmenu(
-            name='filter_choice',
+            name='filter_algorithm',
             label="Select low or high pass:",
             options=self.filter_choices,
             separator=False,
@@ -148,7 +180,7 @@ class ModuleControl(BaseControlModule):
 
         self.lowpass_algorithms = ['Boxcar', 'Test']
         self.insert_label_optionmenu(
-            name='filter_Lowpass_choice',
+            name='filter_Lowpass_algorithm',
             label='Algorithm:',
             options=self.lowpass_algorithms,
             separator=False,
@@ -156,23 +188,17 @@ class ModuleControl(BaseControlModule):
         )
 
         # algorithm specific parameters
-        self.insert_label_entry(
-            name='filter_Lowpass_Boxcar_width',
+        self.filter_params = {}
+        self.filter_params['width'] = self.insert_label_entry(
+            name='width',
             label='Width',
             validate_type='int'
         )
-        self.widgets['filter_Lowpass_Boxcar_width'].bind('<Return>', app.interface.focus)
-
-        self.insert_label_entry(
-            name='filter_Lowpass_Test_width',
-            label='Test option here',
-            validate_type='int'
-        )
-        self.widgets['filter_Lowpass_Test_width'].bind('<Return>', app.interface.focus)
+        self.widgets['width'].bind('<Return>', app.interface.focus)
 
         self.highpass_algorithms = ['Not yet supported']
         self.insert_label_optionmenu(
-            name='filter_Highpass_choice',
+            name='filter_Highpass_algorithm',
             label='Algorithm:',
             options=self.highpass_algorithms,
             separator=False,
@@ -199,7 +225,7 @@ class ModuleControl(BaseControlModule):
                 self.baseline_option_panels[key].grid()
         app.interface.focus()
     def _select_filter_mode(self, event=None):
-        choice = self.widgets['filter_choice'].get()
+        choice = self.widgets['filter_algorithm'].get()
         non_choices = [i for i in self.filter_choices if i!= choice]
         # show all or hide all relevant widgets to the filter mode
         for w in self.widgets.keys():
@@ -209,19 +235,16 @@ class ModuleControl(BaseControlModule):
                 for other in non_choices:
                     if other in w:
                         self.hide_widget(w)
-        # only show relevant widget to the algorithm
+        # hide all parameter related frames
+        for w in self.filter_params:
+            self.hide_widget(w)
+
         getattr(self, f'_select_{choice.lower()}_algorithm')()
         app.interface.focus()
     def _select_lowpass_algorithm(self, event=None):
-        choice = self.widgets['filter_Lowpass_choice'].get()
-        for algo in self.lowpass_algorithms:
-            for w in self.widgets:
-                if algo in w:
-                    if choice != algo:
-                        self.hide_widget(w)
-                    else:
-                        self.show_widget(w)
-
+        choice = self.widgets['filter_Lowpass_algorithm'].get()
+        for key in self.default[f'{choice}_params']:
+            self.show_widget(key)
         pass
 
     def _select_highpass_algorithm(self, event=None):
