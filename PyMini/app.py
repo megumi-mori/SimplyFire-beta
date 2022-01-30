@@ -358,6 +358,7 @@ def load_module(module_name):
         if details['location'] == 'load':
             module_loader = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
             module_loader.load()
+            modules_dict[module_name][component] = tab
         if details['location'] == 'control_panel':
             module_tab = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
             tab = module_tab.ModuleControl()
@@ -365,11 +366,13 @@ def load_module(module_name):
             # cp_notebook.tab(tab.frame, state='hidden')
             control_panel_dict[tab.name] = tab
             modules_dict[module_name]['control_panel'] = tab
+            modules_dict[module_name][component] = tab
         if details['location'] == 'data_notebook':
             module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
             table = module_table.ModuleTable()
             data_notebook.add(table, text=table.tab_label)
             modules_dict[module_name]['data_notebook'] = table
+            modules_dict[module_name][component] = tab
             # data_notebook.tab(table.frame, state='hidden')
             data_notebook_dict[table.name] = table
             table.connect_to_control(tab)
