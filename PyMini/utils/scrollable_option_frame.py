@@ -49,6 +49,7 @@ class OptionFrame(Tk.Frame):
             label.grid(column=0, row=0, sticky='news')
             frame.grid(column=0,row=0, sticky='news')
             w = func(self, parent=frame, name = name, value=value, default=default, interface=interface,**kwargs)
+            w.origin = 'OptionFrame'
             return w
         return call
     #

@@ -48,6 +48,7 @@ class BaseControlModule(Frame):
         self.frame.grid(row=0, column=0, sticky='news')
         self.insert_panel = self.optionframe.insert_panel
         self.make_panel = self.optionframe.make_panel
+        self.insert_separator = self.optionframe.insert_separator
 
     def update_module_display(self, event=None):
         if self.status_var.get():
@@ -101,6 +102,9 @@ class BaseControlModule(Frame):
         except:
             pass
 
+    def insert_StringVar(self, name):
+        self.widgets[name] = Tk.StringVar(self, value=self.load_config_value(name))
+
     def has_focus(self):
         # use this method to check if the tab is in focus
         # use dict to allow for other locations for modules in the future
@@ -138,14 +142,35 @@ class BaseControlModule(Frame):
     def show_label_widget(self, widget):
         widget.master.master.grid()
 
+    def hide_widget(self, widgetname):
+        target = self.widgets.get(widgetname, None)
+        if target is None:
+            return
+        if getattr(target, 'origin', None) == 'OptionFrame':
+            target.master.master.grid_remove()
+        else:
+            target.master.grid_remove()
+
+    def show_widget(self, widgetname):
+        target = self.widgets.get(widgetname, None)
+        if target is None:
+            return
+        if getattr(target, 'origin', None) == 'OptionFrame':
+            target.master.master.grid()
+        else:
+            target.master.grid()
+
     def set_to_default(self, filter=""):
         for k, v in self.widgets.items():
             if filter:
                 if filter in k:
-                    self.widgets[k].set_to_default()
+                    # try:
+                    #     self.widgets[k].set_to_default()
+                    # except:
+                    self.widgets[k].set(self.default[k])
             else:
-                self.widgets[k].set_to_default()
-
+                # self.widgets[k].set_to_default()
+                self.widgets[k].sert(self.default[k])
     def insert_file_menu(self):
         self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)
         app.menubar.file_menu.add_cascade(label=self.name, menu=self.file_menu)
@@ -156,3 +181,6 @@ class BaseControlModule(Frame):
     def call_if_focus(self, function):
         if self.has_focus():
             function()
+
+    def load_config_value(self, name):
+        return self.values.get(name, self.default.get(name, None))
