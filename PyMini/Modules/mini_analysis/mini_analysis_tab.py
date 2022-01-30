@@ -1030,7 +1030,7 @@ class ModuleControl(BaseControlModule):
         app.root.bind('<<OpenRecording>>', lambda save=False, draw=False: self.delete_clear(save, draw), add="+")
         app.root.bind('<<CanvasDrawRect>>', lambda e, func=self.select_from_rect: self.call_if_focus(func), add="+")
         app.root.bind('<<ChangeChannel>>', self.change_channel, add="+")
-        app.root.bind('<<Plot>>', self.update_event_markers, add='+')
+        # app.root.bind('<<Plot>>', self.update_event_markers, add='+')
 
         app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release:self.call_if_focus(func), add='+')
         # app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
