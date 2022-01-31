@@ -541,7 +541,6 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None, nam
     if sweeps.get(name, None):
         sweeps.get(name).set_xdata(xs)
         sweeps.get(name).set_ydata(ys)
-        print(f'{name} exists')
     else:
         sweeps[name], = ax.plot(xs, ys,
                                               linewidth=width,
