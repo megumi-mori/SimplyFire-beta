@@ -32,7 +32,7 @@ class ModuleControl(BaseControlModule):
         self._load_layout()
         self._load_binding()
 
-        pass
+
     def canvas_draw_rect(self, event=None):
 
         selection = []
@@ -79,14 +79,15 @@ class ModuleControl(BaseControlModule):
                 self.remove_highlight([namevar.get() for namevar in self.sweep_namevars], draw=False)
                 self.set_highlight([self.sweep_namevars[pick].get()], draw=False)
         app.trace_display.draw_ani()
-    def populate_sweeps(self, event=None):
-        frame = self.list_frame.get_frame() #get the internal frame in list_frame
 
-        names = app.trace_display.sweeps.keys()
-        for i, sweepname in enumerate(names):
+    def reset_sweep_list(self, event=None, sweep_name_suffix='Sweep'):
+        # only call when new traces are being opened
+        sweep_num = app.interface.recordings[0].sweep_count
+        frame = self.list_frame.get_frame() #get the internal frame in list_frame
+        for i in range(sweep_num):
+            sweepname = f'{sweep_name_suffix}_{i}'
             if i < len(self.sweep_vars):
                 self.sweep_namevars[i].set(sweepname)
-                # self.sweep_labels[i].config(text=sweepname)
                 self.sweep_vars[i].set(True)
             else:
                 f = Tk.Frame(frame)
@@ -108,7 +109,7 @@ class ModuleControl(BaseControlModule):
                 self.sweep_vars.append(var)
                 self.panels.append(f)
         j = len(self.sweep_vars)
-        while len(self.sweep_vars) > len(names):
+        while len(self.sweep_vars) > sweep_num:
             temp = self.panels.pop()
             temp.forget()
             temp.destroy()
@@ -124,29 +125,71 @@ class ModuleControl(BaseControlModule):
             temp.destroy()
             del temp
 
+            temp = self.sweep_namevars.pop()
+            del temp
+
             temp = self.sweep_vars.pop()
+            del temp
+    def synch_sweep_list(self, event=None):
+        # only call when new traces are being opened
+        frame = self.list_frame.get_frame()  # get the internal frame in list_frame
+        for i, sweepname in enumerate(app.trace_display.sweeps.keys()):
+            if i < len(self.sweep_vars):
+                self.sweep_namevars[i].set(sweepname)
+                self.sweep_vars[i].set(app.trace_display.sweeps[sweepname].get_linestyle() == '-')
+            else:
+                f = Tk.Frame(frame)
+                f.grid_columnconfigure(0, weight=1)
+                f.grid_rowconfigure(0, weight=1)
+                f.grid(column=0, row=i, sticky='news')
+                namevar = Tk.StringVar(f, value=sweepname)
+                label = Tk.Label(f, textvariable=namevar, justify=Tk.LEFT)
+                label.grid(column=0, row=i, sticky='news')
+                self.sweep_namevars.append(namevar)
+                self.sweep_labels.append(label)
+                visible =app.trace_display.sweeps[sweepname].get_linestyle() == '-'
+                var = Tk.BooleanVar(f, visible)
+                button = ttk.Checkbutton(master=f,
+                                         variable=var,
+                                         command=lambda x=sweepname, v=var.get:
+                                         self.toggle_sweep(x, v()))
+                self.sweep_buttons.append(button)
+                button.grid(column=1, row=i, sticky='es')
+                self.sweep_vars.append(var)
+                self.panels.append(f)
+        while len(self.sweep_vars) > len(app.trace_display.sweeps):
+            temp = self.panels.pop()
             temp.forget()
             temp.destroy()
             del temp
-            j -= 1
-        # if replace:
-        #     while len(sweep_vars) > num:
-        #         temp = panels.pop()
-        #         temp.forget()
-        #         temp.destroy()
-        #         del temp
-        #         # frames are getting removed from the parent frame - memory leak is not caused by this
-        #         temp = checkbuttons.pop()
-        #         temp.forget()
-        #         temp.destroy()
-        #         del temp
-        #         temp = sweep_labels.pop()
-        #         temp.forget()
-        #         temp.destroy()
-        #         del temp
-        #         temp = sweep_vars.pop()
-        #         del temp
-        pass
+
+            temp = self.sweep_buttons.pop()
+            temp.forget()
+            temp.destroy()
+            del temp
+
+            temp = self.sweep_labels.pop()
+            temp.forget()
+            temp.destroy()
+            del temp
+
+            temp = self.sweep_namevars.pop()
+            del temp
+
+            temp = self.sweep_vars.pop()
+            del temp
+
+    def update_module_display(self, event=None):
+        super().update_module_display()
+
+        if self.status_var.get():
+            if app.widgets['trace_mode'].get() != 'overlay':
+                self.disable_tab()
+                return
+
+    def apply_sweep_list(self, event=None, draw=True):
+        selection = [i for i, v in enumerate(self.sweep_vars) if not v.get()]
+        self.hide_list(selection=selection, draw=draw)
 
     def toggle_sweep(self, name=None, value=None):
         if value:
@@ -193,7 +236,19 @@ class ModuleControl(BaseControlModule):
         if draw:
             app.trace_display.draw_ani()
 
-
+    def hide_list(self, event=None, selection=None, draw=True):
+        if selection is None:
+            return None
+        print(f'hide_list list: {selection}')
+        print(app.trace_display.sweeps.keys())
+        for s in selection:
+            self.sweep_vars[s].set(False)
+            sweep = app.trace_display.sweeps[self.sweep_namevars[s].get()]
+            sweep.set_linestyle('None')
+            sweep.set_color(app.trace_display.trace_color)
+            sweep.set_linewidth(app.trace_display.trace_width)
+        if draw:
+            app.trace_display.draw_ani()
 
 
     ##### control sweep highlight #####
@@ -253,9 +308,13 @@ class ModuleControl(BaseControlModule):
         self.insert_panel(self.list_frame, separator=False)
 
     def _load_binding(self):
-        app.root.bind('<<OpenedRecording>>', self.populate_sweeps)
-        app.root.bind('<<ChangeTraceMode>>', self.populate_sweeps)
-        # app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
+        app.root.bind('<<OpenedRecording>>',
+                      lambda e: self.reset_sweep_list(), add='+')
+        app.root.bind('<<LoadCompleted>>', self.update_module_display, add='+')
+        app.root.bind('<<OverlayView>>', lambda e, func=self.enable_tab: self.call_if_visible(func), add='+')
+        app.root.bind('<<Plotted>>', lambda e, func=self.apply_sweep_list:self.call_if_enabled(func), add='+')
+        app.root.bind('<<ContinuousView>>', lambda e, func=self.disable_tab: self.call_if_visible(func), add='+')
+
         app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release: self.call_if_focus(func), add="+")
         app.root.bind("<<CanvasDrawRect>>", lambda e, func=self.canvas_draw_rect: self.call_if_focus(func), add='+')
         for key in app.config.key_deselect:
