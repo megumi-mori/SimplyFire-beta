@@ -82,7 +82,7 @@ class ModuleControl(BaseControlModule):
         # deal with undo later
         params = self.get_params()
         self.mini_df = mini_analysis.filter_mini(mini_df=self.mini_df, xlim=None, **params)
-        self.update_event_markers()
+        self.update_event_markers(draw=True)
         self.update_module_table()
         app.clear_progress_bar()
         pass
@@ -93,7 +93,7 @@ class ModuleControl(BaseControlModule):
         params=self.get_params()
         xlim = app.trace_display.ax.get_xlim()
         self.mini_df = mini_analysis.filter_mini(mini_df=self.mini_df, xlim=xlim, **params)
-        self.update_event_markers()
+        self.update_event_markers(draw=True)
         self.update_module_table()
         app.clear_progress_bar()
         pass
@@ -117,11 +117,12 @@ class ModuleControl(BaseControlModule):
                 pass
             pass
 
-    def change_channel(self, event=None):
+    # def change_channel(self, event=None):
+    #     self.module_table.set(self.extract_channel_subset())
+    #     # self.update_event_markers()
+    #     pass
+    def synch_table(self, event=None):
         self.module_table.set(self.extract_channel_subset())
-        # self.update_event_markers()
-        pass
-
     def _default_core_params(self, e=None):
         self.set_to_default('detector_core')
         self.populate_decay_algorithms()
@@ -133,7 +134,7 @@ class ModuleControl(BaseControlModule):
         self.mini_df = self.mini_df.iloc[0:0]
         self.update_module_table()
         if draw:
-            self.update_event_markers()
+            self.update_event_markers(draw=True)
 
     def delete_all(self, undo=True, draw=True):
         # deal with undo later
@@ -144,7 +145,7 @@ class ModuleControl(BaseControlModule):
             # no data yet
             pass
         if draw:
-            self.update_event_markers()
+            self.update_event_markers(draw=True)
         self.update_module_table()
     def delete_in_window(self, undo=True):
         # deal with undo later
@@ -164,7 +165,7 @@ class ModuleControl(BaseControlModule):
             return None
         self.mini_df = self.mini_df[(~self.mini_df['t'].isin(selection))|(self.mini_df['channel']!=app.interface.channel)]
         self.module_table.delete(selection)
-        self.update_event_markers()
+        self.update_event_markers(draw=True)
 
     def extract_column(self, colname: str, t: list=None) -> list:
         # extract data for a specific column from the mini dataframe
@@ -199,8 +200,8 @@ class ModuleControl(BaseControlModule):
         """
         # convert % x-axis to points search using sampling rate?
 
-        xs = app.trace_display.ax.lines[0].get_xdata()
-        ys = app.trace_display.ax.lines[0].get_ydata()
+        xs = app.trace_display.sweeps['Sweep_0'].get_xdata()
+        ys = app.trace_display.sweeps['Sweep_0'].get_ydata()
         params = self.get_params()
 
         mini = app.interface.al.find_mini_manual(xlim=(x1, x2), xs=xs, ys=ys,
@@ -215,15 +216,22 @@ class ModuleControl(BaseControlModule):
                                                sort=False)
             self.mini_df = self.mini_df.sort_values(by='t')
             self.module_table.add({key: value for key, value in mini.items() if key in self.mini_header2config})
-            self.update_event_markers()
+            self.update_event_markers(draw=True)
             self.saved = False  # track change
     def find_mini_all(self, event=None):
         self.module_table.unselect()
+        if app.widgets['trace_mode'].get() != 'continuous':
+            return None
         try:
-            xs = app.trace_display.ax.lines[0].get_xdata()
-            ys = app.trace_display.ax.lines[0].get_ydata()
+            xs = app.trace_display.sweeps['Sweep_0'].get_xdata()
+            ys = app.trace_display.sweeps['Sweep_0'].get_ydata()
         except: # no traces yet
+            print('cannot get x and y data')
             return
+        if len(app.interface.recordings)==0:
+            return None
+        if app.widgets['trace_mode'].get() != 'continuous':
+            return None # disable module
         params = self.get_params()
         df = app.interface.al.find_mini_auto(xlim=None, xs=xs, ys=ys, x_sigdig=app.interface.recordings[0].x_sigdig,
                                sampling_rate=app.interface.recordings[0].sampling_rate, channel=app.interface.recordings[0].channel,
@@ -237,7 +245,7 @@ class ModuleControl(BaseControlModule):
             #         lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
             #         lambda msg='Undo mini search': detector_tab.log(msg)
             #     ])
-            self.update_event_markers()
+            self.update_event_markers(draw=True)
             self.module_table.append(df)
             self.saved = False # track change
 
@@ -250,9 +258,11 @@ class ModuleControl(BaseControlModule):
 
     def find_mini_range(self, event=None):
         self.module_table.unselect()
+        if app.widgets['trace_mode'].get() != 'continuous':
+            return None # disable module
         try:
-            xs = app.trace_display.ax.lines[0].get_xdata()
-            ys = app.trace_display.ax.lines[0].get_ydata()
+            xs = app.trace_display.sweeps['Sweep_0'].get_xdata()
+            ys = app.trace_display.sweeps['Sweep_0'].get_ydata()
         except:  # no traces yet
             return
         params = self.get_params()
@@ -269,7 +279,7 @@ class ModuleControl(BaseControlModule):
             #         lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
             #         lambda msg='Undo mini search': detector_tab.log(msg)
             #     ])
-            self.update_event_markers()
+            self.update_event_markers(draw=True)
             self.module_table.append(df)
         app.clear_progress_bar()
 
@@ -348,6 +358,9 @@ class ModuleControl(BaseControlModule):
                                                           markersize=self.decay_size, linestyle='None',
                                                           animated=False)
         except:
+            self.markers['decay'], = app.trace_display.ax.plot([], [], marker='x', color=self.decay_color,
+                                                          markersize=self.decay_size, linestyle='None',
+                                                          animated=False)
             pass
 
     def plot_highlight(self, xs, ys):
@@ -373,7 +386,9 @@ class ModuleControl(BaseControlModule):
                                                           markersize=self.start_size, linestyle='None',
                                                           animated=False)
         except:
-            pass
+            self.markers['start'], = app.trace_display.ax.plot([], [], marker='x', color=self.decay_color,
+                                                               markersize=self.decay_size, linestyle='None',
+                                                               animated=False)
 
     def record_param_change(self, pname, pvalue):
         self.changed = True
@@ -512,7 +527,7 @@ class ModuleControl(BaseControlModule):
         self.mini_df = df
 
         self.update_module_table()
-        self.update_event_markers()
+        self.update_event_markers(draw=True)
 
         self.saved = True
         app.clear_progress_bar()
@@ -700,21 +715,23 @@ class ModuleControl(BaseControlModule):
         if not self.has_focus():
             return None
         self.module_table.unselect()
-    def update_event_markers(self, event=None):
-        self.update_counter = (self.update_counter + 1) %4
-        if not self.is_visible():
-            return None
-        self.plot_peak(self.extract_column('peak_coord_x'), self.extract_column('peak_coord_y'))
-        self.plot_decay(self.extract_column('decay_coord_x'), self.extract_column('decay_coord_y'))
-        self.plot_start(self.extract_column('start_coord_x'), self.extract_column('start_coord_y'))
-        try:
-            hxs = self.markers['highlight'].get_xdata()
-            hys = self.markers['highlight'].get_ydata()
-            self.plot_highlight(hxs, hys)
-        except:
-            pass
-
-        app.trace_display.draw_ani()
+    def update_event_markers(self, event=None, draw=False):
+        if app.widgets['trace_mode'].get() == 'overlay':
+            self.plot_peak(None,None)
+            self.plot_decay(None,None)
+            self.plot_start(None,None)
+        elif app.widgets['trace_mode'].get() == 'continuous':
+            self.plot_peak(self.extract_column('peak_coord_x'), self.extract_column('peak_coord_y'))
+            self.plot_decay(self.extract_column('decay_coord_x'), self.extract_column('decay_coord_y'))
+            self.plot_start(self.extract_column('start_coord_x'), self.extract_column('start_coord_y'))
+            try:
+                hxs = self.markers['highlight'].get_xdata()
+                hys = self.markers['highlight'].get_ydata()
+                self.plot_highlight(hxs, hys)
+            except:
+                pass
+        if draw:
+            app.trace_display.draw_ani()
         # app.trace_display.canvas.draw()
 
     def update_module_table(self):
@@ -722,8 +739,12 @@ class ModuleControl(BaseControlModule):
 
     def update_module_display(self, table=False):
         super().update_module_display()
+
         if self.status_var.get():
-            self.update_event_markers()
+            if app.widgets['trace_mode'].get() != 'continuous':
+                self.disable_tab()
+                return
+            self.update_event_markers(draw=True)
         else:
             for m in self.markers:
                 try:
@@ -731,7 +752,8 @@ class ModuleControl(BaseControlModule):
                 except:
                     pass
             app.trace_display.draw_ani()
-
+        app.pb['value'] = 0
+        app.pb.update()
     def _load_layout(self):
         self.insert_title(
             text="Mini Analysis"
@@ -761,7 +783,7 @@ class ModuleControl(BaseControlModule):
         )
         self.insert_label_optionmenu(
             name='detector_core_direction',
-            label='Direction',
+            text='Direction',
             options=['positive', 'negative']
         )
 
@@ -782,7 +804,7 @@ class ModuleControl(BaseControlModule):
         for k, d in self.core_params.items():
             self.insert_label_entry(
                 name=d['id'],
-                label=d['label'],
+                text=d['label'],
                 validate_type=d['validation']
             )
             self.widgets[d['id']].bind('<Return>', self._apply_parameters, add='+')
@@ -791,7 +813,7 @@ class ModuleControl(BaseControlModule):
             self.changes[d['id']] = self.widgets[d['id']].get()
         self.insert_label_checkbox(
             name='detector_core_extrapolate_hw',
-            label='Use decay to extrapolate halfwidth',
+            text='Use decay to extrapolate halfwidth',
             onvalue='1',
             offvalue=""
         )
@@ -800,7 +822,7 @@ class ModuleControl(BaseControlModule):
         )
         self.insert_label_optionmenu(
             name='detector_core_decay_algorithm',
-            label='Decay calculation method:',
+            text='Decay calculation method:',
             options=['Curve fit', '% amplitude'],
             command=self.populate_decay_algorithms
         )
@@ -851,7 +873,7 @@ class ModuleControl(BaseControlModule):
         for k, d in self.decay_params.items():
             entry = self.insert_label_entry(
                 name=d['id'],
-                label=d['label'],
+                text=d['label'],
                 validate_type=d['validation']
             )
             entry.master.master.grid_remove()
@@ -866,7 +888,7 @@ class ModuleControl(BaseControlModule):
         )
         self.insert_label_checkbox(
             name='detector_core_compound',
-            label='Analyze compound minis',
+            text='Analyze compound minis',
             onvalue='1',
             offvalue='',
             command=self.populate_compound_params
@@ -888,7 +910,7 @@ class ModuleControl(BaseControlModule):
         for k, d in self.compound_params.items():
             entry = self.insert_label_entry(
                 name=d['id'],
-                label=d['label'],
+                text=d['label'],
                 validate_type=d['validation']
             )
             entry.bind('<Return>', self._apply_parameters, add='+')
@@ -944,7 +966,7 @@ class ModuleControl(BaseControlModule):
         for k, d in self.filter_params.items():
             entry = self.insert_label_entry(
                 name=d['id'],
-                label=d['label'],
+                text=d['label'],
                 validate_type=d['validation']
             )
             entry.bind('<Return>', self._apply_parameters, add='+')
@@ -989,7 +1011,7 @@ class ModuleControl(BaseControlModule):
         for option in self.data_display_options:
             self.insert_label_checkbox(
                 name=option[0],
-                label=option[1],
+                text=option[1],
                 command=self._apply_column_options,
                 onvalue='1',
                 offvalue=""
@@ -1027,10 +1049,16 @@ class ModuleControl(BaseControlModule):
     def _load_binding(self):
         # event bindings:
         app.root.bind('<<LoadCompleted>>', self._apply_column_options, add='+')
+        app.root.bind('<<LoadCompleted>>', self.update_module_display, add='+')
         app.root.bind('<<OpenRecording>>', lambda save=False, draw=False: self.delete_clear(save, draw), add="+")
         app.root.bind('<<CanvasDrawRect>>', lambda e, func=self.select_from_rect: self.call_if_focus(func), add="+")
-        app.root.bind('<<ChangeChannel>>', self.change_channel, add="+")
-        # app.root.bind('<<Plot>>', self.update_event_markers, add='+')
+        # app.root.bind('<<ChangeChannel>>', self.change_channel, add="+")
+
+        app.root.bind('<<Plot>>', lambda e, func=self.update_event_markers:self.call_if_visible(func), add='+')
+        app.root.bind('<<Plotted>>', lambda e, func=self.synch_table: self.call_if_enabled(func), add='+')
+
+        app.root.bind('<<OverlayView>>', self.disable_tab, add='+')
+        app.root.bind('<<ContinuousView>>', self.enable_tab, add='+')
 
         app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release:self.call_if_focus(func), add='+')
         # app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
@@ -1099,7 +1127,6 @@ class ModuleControl(BaseControlModule):
                        width=style_tab.color_width, validate_type='color')
 
         def _apply_styles(event=None, draw=True):
-            print('apply styles called')
             app.interface.focus()
             self.peak_size = float(self.widgets['style_mini_size'].get())
             self.peak_color = self.widgets['style_mini_color'].get()
@@ -1124,8 +1151,8 @@ class ModuleControl(BaseControlModule):
             #     pass
             #
             # app.trace_display.draw_ani()
-            if draw:
-                self.update_event_markers()
+            if draw and self.is_visible():
+                self.update_event_markers(draw=True)
 
         def _apply_default(event=None):
             app.interface.focus()
