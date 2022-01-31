@@ -12,6 +12,10 @@ def subtract_baseline(recording:analyzer2.Recording,
 
     """
     assert type(recording) == analyzer2.Recording, f'data passed must be of type {analyzer2.Recording}'
+    if not channels:
+        channels = range(recording.channel_count)
+    if not sweeps:
+        sweeps = range(recording.sweep_count)
     if shift is not None:
         baseline = shift
     else:
@@ -32,6 +36,10 @@ def filter_Boxcar(recording:analyzer2.Recording,
     assert type(recording) == analyzer2.Recording, f'data passed must be of type {analyzer2.Recording}'
     width = int(params['width'])
     kernel = np.ones(width)/width
+    if not channels:
+        channels = range(recording.channel_count)
+    if not sweeps:
+        sweeps = range(recording.sweep_count)
     for c in channels:
         ys = recording.get_y_matrix(mode='continuous', channels=[c], sweeps=sweeps)
         filtered = np.convolve(ys.flatten(), kernel, mode='same')
@@ -42,3 +50,23 @@ def filter_Boxcar(recording:analyzer2.Recording,
 
     return recording
 
+
+# implement Boxel 8pole 1000Hz!
+
+def average_sweeps(recording:analyzer2.Recording,
+                   channels:list=None,
+                   sweeps:list=None):
+    assert type(recording) == analyzer2.Recording, f'data passed must be of type {analyzer2.Recording}'
+    if not channels:
+        channels = range(recording.channel_count)
+    if not sweeps:
+        sweeps = range(recording.sweep_count)
+    print(recording.y_data.dtype)
+    # create an empty matrix
+    result = np.full((recording.channel_count, 1, recording.sweep_points),
+                     fill_value=0,
+                     dtype=np.float32)
+    result[channels] = np.mean(recording.get_y_matrix(mode='overlay', sweeps=sweeps, channels=channels),
+                               axis=1, #average sweeps per channel
+                               keepdims=True)
+    return result
