@@ -308,7 +308,7 @@ class ModuleControl(BaseControlModule):
 
     def _load_binding(self):
         app.root.bind('<<OpenedRecording>>',
-                      lambda e: self.reset_sweep_list(), add='+')
+                      self.reset_sweep_list, add='+')
         app.root.bind('<<LoadCompleted>>', self.update_module_display, add='+')
         app.root.bind('<<OverlayView>>', lambda e, func=self.enable_tab: self.call_if_visible(func), add='+')
         app.root.bind('<<Plotted>>', lambda e, func=self.apply_sweep_list:self.call_if_enabled(func), add='+')
