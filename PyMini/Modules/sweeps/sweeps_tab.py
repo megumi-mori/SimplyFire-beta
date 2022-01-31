@@ -240,8 +240,6 @@ class ModuleControl(BaseControlModule):
     def hide_list(self, event=None, selection=None, draw=True):
         if selection is None:
             return None
-        print(f'hide_list list: {selection}')
-        print(app.trace_display.sweeps.keys())
         for s in selection:
             self.sweep_vars[s].set(False)
             sweep = app.trace_display.sweeps[self.sweep_namevars[s].get()]
