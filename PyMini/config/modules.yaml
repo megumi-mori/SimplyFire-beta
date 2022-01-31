@@ -6,5 +6,6 @@ modules:
   - 'mini_analysis'
   - 'style'
   - 'sweeps'
-  - 'post_processing'
+  - 'process_recording'
   - 'evoked_basic'
+  - 'comparative_overlay'
