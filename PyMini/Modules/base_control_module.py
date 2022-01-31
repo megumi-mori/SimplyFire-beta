@@ -152,23 +152,31 @@ class BaseControlModule(Frame):
     def show_label_widget(self, widget):
         widget.master.master.grid()
 
-    def hide_widget(self, widgetname):
-        target = self.widgets.get(widgetname, None)
+    def hide_widget(self, widgetname=None, target=None):
+        if widgetname:
+            target = self.widgets.get(widgetname, None)
         if target is None:
             return
-        if getattr(target, 'origin', None) == 'OptionFrame':
-            target.master.master.grid_remove()
-        else:
-            target.master.grid_remove()
+        try:
+            target.base_frame.grid_remove()
+        except:
+            target.grid_remove()
+        # if getattr(target, 'origin', None) == 'OptionFrame':
+        #     target.master.master.grid_remove()
+        # else:
+        #     target.master.grid_remove()
 
-    def show_widget(self, widgetname):
-        target = self.widgets.get(widgetname, None)
+    def show_widget(self, widgetname=None, target=None):
+        if widgetname:
+            target = self.widgets.get(widgetname, None)
         if target is None:
             return
-        if getattr(target, 'origin', None) == 'OptionFrame':
-            target.master.master.grid()
-        else:
-            target.master.grid()
+        if target is None:
+            return
+        try:
+            target.base_frame.grid()
+        except:
+            target.grid()
 
     def set_to_default(self, filter=""):
         for k, v in self.widgets.items():
