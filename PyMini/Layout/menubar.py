@@ -230,51 +230,54 @@ def set_view_compare(save_undo=True):
 def set_view_continuous(save_undo=True):
     global trace_mode
     global widgets
-    if save_undo and trace_mode == 'overlay':
-        interface.add_undo([
-            lambda s=False: set_view_overlay(s),
-        ])
-    elif save_undo and trace_mode == 'compare':
-        interface.add_undo([
-            lambda s=False: set_view_compare(s)
-        ])
+    app.root.event_generate('<<ContinuousView>>')
+    # if save_undo and trace_mode == 'overlay':
+    #     interface.add_undo([
+    #         lambda s=False: set_view_overlay(s),
+    #     ])
+    # elif save_undo and trace_mode == 'compare':
+    #     interface.add_undo([
+    #         lambda s=False: set_view_compare(s)
+    #     ])
     widgets['trace_mode'].set('continuous')
 
     # switch to continuous mode tab
-    interface.config_cp_tab('continuous', state='normal')
+    # interface.config_cp_tab('continuous', state='normal')
 
     try:
-        interface.plot_continuous(interface.recordings[0], fix_axis=True)
+        # interface.plot_continuous(interface.recordings[0], fix_axis=True)
+        interface.plot()
     except:
         pass
-    if widgets['analysis_mode'].get() == 'mini':
-        interface.config_cp_tab('mini', state='normal')
-        interface.config_data_tab('mini', state='normal')
-    interface.config_cp_tab('adjust', state='normal')
+    # if widgets['analysis_mode'].get() == 'mini':
+    #     interface.config_cp_tab('mini', state='normal')
+    #     interface.config_data_tab('mini', state='normal')
+    # interface.config_cp_tab('adjust', state='normal')
     trace_mode = 'continuous'
     pass
 
 def set_view_overlay(save_undo=True):
     global trace_mode
     global widgets
-    if save_undo and trace_mode == 'continuous':
-        interface.add_undo([
-            lambda d=False: set_view_continuous(d)
-        ])
-    elif save_undo and trace_mode == 'compare':
-        interface.add_undo([
-            lambda d=False: set_view_compare(d)
-        ])
+    app.root.event_generate('<<OverlayView>>')
+    # if save_undo and trace_mode == 'continuous':
+    #     interface.add_undo([
+    #         lambda d=False: set_view_continuous(d)
+    #     ])
+    # elif save_undo and trace_mode == 'compare':
+    #     interface.add_undo([
+    #         lambda d=False: set_view_compare(d)
+    #     ])
     widgets['trace_mode'].set('overlay')
-    interface.config_cp_tab('overlay', state='normal')
+    # interface.config_cp_tab('overlay', state='normal')
     try:
-        interface.plot_overlay(0, fix_axis=True)
+        interface.plot()
     except:
         pass
-    if widgets['analysis_mode'].get() == 'mini':
-        interface.config_cp_tab('mini', state='disabled')
-        interface.config_data_tab('mini', state='disabled')
-    interface.config_cp_tab('adjust',state='normal')
+    # if widgets['analysis_mode'].get() == 'mini':
+    #     interface.config_cp_tab('mini', state='disabled')
+    #     interface.config_data_tab('mini', state='disabled')
+    # interface.config_cp_tab('adjust',state='normal')
     trace_mode = 'overlay'
     pass
 
