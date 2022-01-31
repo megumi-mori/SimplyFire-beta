@@ -7,8 +7,8 @@ from tkinter import messagebox
 class ModuleTable(BaseTableModule):
     def __init__(self):
         super().__init__(
-            name='evoked',
-            menu_label='Evoked Analysis',
+            name='evoked_basic',
+            menu_label='Evoked Basic',
             tab_label='Evoked',
             parent=app.root
         )

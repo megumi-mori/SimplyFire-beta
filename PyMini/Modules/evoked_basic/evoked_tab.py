@@ -9,7 +9,7 @@ class ModuleControl(BaseControlModule):
     def __init__(self):
         super().__init__(
             name = 'evoked_basic',
-            menu_label='Evoked Analysis',
+            menu_label='Evoked Basic',
             tab_label='Evoked',
             parent=app.root,
             scrollbar=True,
