@@ -94,7 +94,7 @@ def ask_open_recording():
     gc.collect()
     if ask_save_events() is None:
         return None
-    fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('csv files', '*.csv'), ('All files', '*.*')])
+    fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files', '*.*')])
     app.root.update()
     if not fname:
         return None
