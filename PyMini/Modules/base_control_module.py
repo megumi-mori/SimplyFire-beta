@@ -121,21 +121,31 @@ class BaseControlModule(Frame):
     def is_enabled(self):
         return app.cp_notebook.tab(self, option='state') == 'normal'
 
-    def show_tab(self):
+    def show_tab(self, event=None):
         app.cp_notebook.tab(self, state='normal')
         app.cp_notebook.select(self)
+        if self.module_table:
+            self.module_table.show_tab()
 
-    def hide_tab(self):
+    def hide_tab(self, event=None):
         app.cp_notebook.tab(self, state='hidden')
+        if self.module_table:
+            self.module_table.hide_tab()
 
-    def enable_tab(self):
+    def enable_tab(self, event=None):
         if self.is_visible():
             app.cp_notebook.tab(self, state='normal')
             app.cp_notebook.select(self)
+            if self.module_table:
+                self.module_table.enable_tab()
 
-    def disable_tab(self):
+    def disable_tab(self, event=None):
         if self.is_visible():
             app.cp_notebook.tab(self, state='disabled')
+            if self.module_table:
+                self.module_table.disable_tab()
+
+
     def hide_label_widget(self, widget):
         widget.master.master.grid_remove()
 
@@ -180,6 +190,14 @@ class BaseControlModule(Frame):
 
     def call_if_focus(self, function):
         if self.has_focus():
+            function()
+
+    def call_if_visible(self, function):
+        if self.is_visible():
+            function()
+
+    def call_if_enabled(self, function):
+        if self.is_enabled():
             function()
 
     def load_config_value(self, name):
