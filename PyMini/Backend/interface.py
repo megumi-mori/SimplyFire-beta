@@ -27,6 +27,9 @@ mini_df = pd.DataFrame()
 global al
 al = analyzer2.Analyzer()
 
+global channel
+channel = 0
+
 ##########################
 # Undo controls
 ##########################
@@ -270,7 +273,7 @@ def change_channel(num: int,
     # populate_data_display()
     # update_event_marker()
 
-    param_guide.update()
+    # param_guide.update()
     app.root.event_generate('<<ChangedChannel>>')
     trace_display.draw_ani()
     app.pb['value'] = 0
@@ -286,7 +289,7 @@ def plot(fix_x=False, fix_y=False, **kwargs):
         xlim = trace_display.get_axis_limits('x')
     if fix_y:
         ylim=trace_display.get_axis_limits('y')
-    trace_display.clear()
+    # trace_display.clear()
     if app.menubar.widgets['trace_mode'].get() == 'continuous':
         plot_continuous(recordings[0], draw=False, **kwargs)
     elif app.menubar.widgets['trace_mode'].get() == 'overlay':
@@ -304,8 +307,9 @@ def plot(fix_x=False, fix_y=False, **kwargs):
 
 
 def plot_continuous(recording, draw=False, sweep_name_suffix='Sweep'):
-    trace_display.plot_trace(recording.get_xs(mode='continuous'),
-                             recording.get_ys(mode='continuous'),
+    global channel
+    trace_display.plot_trace(recording.get_xs(mode='continuous', channel=channel),
+                             recording.get_ys(mode='continuous', channel=channel),
                              draw=False,
                              relim=True,
                              name=f'{sweep_name_suffix}_0')
@@ -314,22 +318,17 @@ def plot_continuous(recording, draw=False, sweep_name_suffix='Sweep'):
 
 
 def plot_overlay(recording, draw=False, sweep_name_suffix='Sweep'):
-    min_xlim = 0
-    max_xlim = 0
     for i in range(recording.sweep_count):
         app.pb['value'] = (i+1)/recording.sweep_count*100
         app.pb.update()
-        xs = recording.get_xs(mode='overlay', sweep=i)
-        ys = recording.get_ys(mode='overlay', sweep=i)
+        xs = recording.get_xs(mode='overlay', sweep=i, channel=channel)
+        ys = recording.get_ys(mode='overlay', sweep=i, channel=channel)
         trace_display.plot_trace(xs, ys,
                                  draw=False,
                                  relim=i == recording.sweep_count-1, #relim for the final sweep
                                  name = f"{sweep_name_suffix}_{i}")
-        if min_xlim > xs[0]:
-            min_xlim = xs[0]
-        if max_xlim < xs[-1]:
-            max_xlim = xs[-1]
     if draw:
+        trace_display.draw_ani()
         trace_display.draw_ani()
     app.pb['value'] = 0
     app.pb.update()
