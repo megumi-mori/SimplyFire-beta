@@ -33,7 +33,7 @@ class OptionFrame(Tk.Frame):
         def call(
                 self,
                 name="",
-                label="",
+                text="",
                 value=None,
                 default=None,
                 separator=config.default_separator,
@@ -43,12 +43,12 @@ class OptionFrame(Tk.Frame):
             frame = ttk.Frame(panel)
             frame.grid_columnconfigure(0, weight=1)
             frame.grid_rowconfigure(0, weight=1)
-            wrapped_label = textwrap.wrap(label, width=config.default_label_length)
-            text='\n'.join(wrapped_label)
-            label = ttk.Label(frame, text=text)
+            wrapped_label = textwrap.wrap(text, width=config.default_label_length)
+            formatted_text='\n'.join(wrapped_label)
+            label = ttk.Label(frame, text=formatted_text)
             label.grid(column=0, row=0, sticky='news')
             frame.grid(column=0,row=0, sticky='news')
-            w = func(self, parent=frame, name = name, value=value, default=default, interface=interface,**kwargs)
+            w = func(self, parent=frame, name = name, value=value, default=default,**kwargs)
             w.origin = 'OptionFrame'
             return w
         return call
@@ -70,7 +70,7 @@ class OptionFrame(Tk.Frame):
             value=value,
             default=default,
             validate_type=validate_type,
-            interface=interface
+            **kwargs
         )
         w.grid(column=1, row=0, sticky='ews')
 
@@ -85,7 +85,6 @@ class OptionFrame(Tk.Frame):
             default=None,
             options=None,
             command=None,
-            interface=None,
             **kwargs
     ):
         w = widget.VarOptionmenu(
@@ -95,7 +94,6 @@ class OptionFrame(Tk.Frame):
             default=default,
             options=options,
             command=command,
-            interface=interface,
             **kwargs
 
         )
@@ -110,7 +108,6 @@ class OptionFrame(Tk.Frame):
             value=None,
             default=None,
             command=None,
-            interface=None,
             **kwargs
     ):
         w = widget.VarCheckbutton(
@@ -119,7 +116,6 @@ class OptionFrame(Tk.Frame):
             value=value,
             default=default,
             command=command,
-            interface=interface,
             **kwargs
         )
         w.grid(column=1, row=0, sticky='news')

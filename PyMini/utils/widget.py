@@ -19,10 +19,17 @@ class VarWidget():
             name="",
             value=None,
             default=None,
-            interface=None
+            type=None,
     ):
         self.name = name
-        self.var = Tk.StringVar()
+        if type is None or type == str:
+            self.var = Tk.StringVar()
+        elif type == int:
+            self.var = Tk.IntVar()
+        elif type == bool:
+            self.var = Tk.BooleanVar()
+        elif type == float:
+            self.var = Tk.DoubleVar()
         if default is not None:
             self.default=default
         else:
@@ -43,7 +50,6 @@ class VarWidget():
             else:
                 self.var.set(self.default)
         self.undo_value = self.get()
-        self.interface = interface
 
     def get(self):
         return self.var.get()
@@ -68,8 +74,8 @@ class VarEntry(VarWidget, Tk.Entry):
             value=None,
             default=None,
             validate_type=None,
-            interface=None,
             width=None,
+            type=None,
             **kwargs
     ):
         self.validate_type=validate_type
@@ -79,7 +85,7 @@ class VarEntry(VarWidget, Tk.Entry):
             name=name,
             value=value,
             default=default,
-            interface=interface
+            type=type
         )
         if width is None:
             width = config.entry_width
@@ -191,7 +197,7 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
             default="",
             options=None,
             command=None,
-            interface=None,
+            type=None,
             **kwargs
     ):
         VarWidget.__init__(
@@ -200,7 +206,7 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
             name=name,
             value=value,
             default=default,
-            interface=interface
+            type=type
         )
         if options is None:
             options = []
@@ -263,7 +269,7 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
             value=None,
             default=None,
             command=None,
-            interface=None,
+            type=None,
             **kwargs
     ):
         VarWidget.__init__(
@@ -272,7 +278,7 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
             parent=parent,
             value=value,
             default=default,
-            interface=interface
+            type=type
         )
         ttk.Checkbutton.__init__(
             self,
@@ -297,7 +303,7 @@ class VarText(VarWidget, Tk.Text):
             value="",
             default="",
             lock=False,
-            interface=None,
+            type=None,
             **kwargs
     ):
         VarWidget.__init__(
@@ -306,7 +312,7 @@ class VarText(VarWidget, Tk.Text):
             name=name,
             value=value,
             default=default,
-            interface=interface
+            type=type,
         )
         Tk.Text.__init__(
             self,
@@ -359,19 +365,21 @@ class VarScale(VarWidget, ttk.Scale):
     def __init__(
             self,
             parent,
-            value="",
-            default="",
+            value=0,
+            default=0,
             from_=100,
             to=100,
             orient=Tk.VERTICAL,
             command=None,
+            type=float,
             **kwargs
     ):
         VarWidget.__init__(
             self,
             parent=parent,
             value=value,
-            default=default
+            default=default,
+            type=type
         )
         ttk.Scale.__init__(
             self,
@@ -678,6 +686,8 @@ class DataTable(Tk.Frame):
         except Exception as e:
             print(f'widget dataframe append error {e}')
             pass
+        app.pb['value']=0
+        app.pb.update()
     def set(self, dataframe):
         self.table.selection_remove(*self.table.selection())
         self.table.delete(*self.table.get_children())

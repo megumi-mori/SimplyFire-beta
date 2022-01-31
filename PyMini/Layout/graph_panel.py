@@ -177,7 +177,7 @@ def load(parent):
 
     widgets['channel_option'] = channel_frame.insert_label_optionmenu(
         name='channel_option',
-        label='channel',
+        text='channel',
         value='',
         default='',
         options=[''],
@@ -185,7 +185,7 @@ def load(parent):
 
     widgets['force_channel'] = channel_frame.insert_label_checkbox(
         name='force_channel',
-        label='Always open the same channel:',
+        text='Always open the same channel:',
         onvalue=1,
         offvalue=-1,
         command=force_channel
