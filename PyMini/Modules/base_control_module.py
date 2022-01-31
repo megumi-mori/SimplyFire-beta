@@ -49,6 +49,7 @@ class BaseControlModule(Frame):
         self.insert_panel = self.optionframe.insert_panel
         self.make_panel = self.optionframe.make_panel
         self.insert_separator = self.optionframe.insert_separator
+        self.insert_widget = self.optionframe.insert_widget
 
     def update_module_display(self, event=None):
         if self.status_var.get():
