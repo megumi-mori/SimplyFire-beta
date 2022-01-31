@@ -18,33 +18,79 @@ class ModuleControl(BaseControlModule):
             filename=__file__,
             has_table=False
         )
-
-        self.recordings = []
         self.panel_list = []
+        self.recording_list = []
 
         self._load_layout()
         self._load_binding()
+        
     def reset_recording_list(self, event=None):
-        for p in self.panel_list:
-            for w in p:
+        print(self.panel_list)
+        while len(self.panel_list) > 0:
+            panel = self.panel_list.pop()
+            for _, w in panel.items():
                 try:
                     w.forget()
                     w.destroy()
                     del w
-                except:
+                except Exception as e:
+                    print(f'exception deleting {w}: {e}')
                     del w
+            del panel
+
+        while len(self.recording_list) > 0:
+            r = self.recording_list.pop()
+            del r
+
         recording = app.interface.recordings[0]
         self.add_recording(recording)
+        self.recording_list.append(None)
 
     def ask_add_recording(self, event=None):
         if len(app.interface.recordings) == 0:
             app.menubar.ask_open_recording()
-            record = app.interface.recordings[0]
+            return # take care of file opening via event-generation
         else:
             record = self.ask_open_recording()
         if record is None:
             return None
         self.add_recording(record)
+        self.recording_list.append(record)
+        self.plot(len(self.recording_list)-1)
+        app.trace_display.draw_ani()
+        # plot the new file
+
+    def plot(self, index, draw=False):
+        if app.widgets['trace_mode'].get() == 'continuous':
+            self.plot_continuous(index)
+        else:
+            self.plot_overlay(index)
+
+    def update_plot(self):
+        print(f'update plot to channel: {app.interface.channel}')
+        for i in range(1,len(self.recording_list)):
+            self.plot(i)
+
+
+    def plot_continuous(self, index): # index of the panel_list
+        recording = self.recording_list[index]
+        app.trace_display.plot_trace(recording.get_xs(mode='continuous', channel=app.interface.channel),
+                                     recording.get_ys(mode='continuous', channel=app.interface.channel),
+                                     draw=False,
+                                     relim=False,
+                                     name=f'Compare_File{index}_Sweep_0')
+        pass
+
+    def plot_overlay(self, index, draw=False):
+        recording = self.recording_list[index]
+        for i in range(recording.sweep_count):
+            xs = recording.get_xs(mode='overlay', sweep=i, channel=app.interface.channel)
+            ys = recording.get_ys(mode='overlay', sweep=i, channel=app.interface.channel)
+            app.trace_display.plot_trace(xs, ys,
+                                         draw=False,
+                                         relim=False,
+                                         name=f'Compare_File{index}_Sweep_{i}')
+        pass
 
     def add_recording(self, recording):
         panel_dict = self.create_control_set(recording)
@@ -62,8 +108,8 @@ class ModuleControl(BaseControlModule):
             index = len(self.panel_list)
         panel_dict = {}
         panel = Tk.Frame(self.list_panel)
-        remove_button = ttk.Button(panel, text='Remove', command=lambda e, i=index:self.remove_recording(i))
-        apply_button = ttk.Button(panel, text='Apply', command=lambda e, i=index:self.apply_params(i))
+        remove_button = ttk.Button(panel, text='Remove', command=lambda i=index:self.remove_recording(i))
+        apply_button = ttk.Button(panel, text='Apply', command=lambda i=index:self.apply_params(i))
         fname_label = ttk.Label(panel, text=recording.filename)
         idx_label = ttk.Label(panel, text='Sweeps:')
         default_sweeps = analyzer.format_list_indices(range(recording.sweep_count))
@@ -133,4 +179,5 @@ class ModuleControl(BaseControlModule):
 
 
     def _load_binding(self):
-        app.root.bind('<<OpenedRecording>>', self.reset_recording_list)
+        app.root.bind('<<OpenedRecording>>', self.reset_recording_list, add='+')
+        app.root.bind('<<ChangedChannel>>', lambda e, func=self.update_plot: self.call_if_enabled(func), add="+")
