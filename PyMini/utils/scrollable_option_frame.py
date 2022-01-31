@@ -50,6 +50,7 @@ class OptionFrame(Tk.Frame):
             frame.grid(column=0,row=0, sticky='news')
             w = func(self, parent=frame, name = name, value=value, default=default,**kwargs)
             w.origin = 'OptionFrame'
+            w.base_frame = panel
             return w
         return call
     #
@@ -132,6 +133,7 @@ class OptionFrame(Tk.Frame):
         panel = self.make_panel(separator=separator)
         label = Tk.Label(panel, text=text, justify=justify)
         label.grid(column=0, row=0, sticky='news')
+        label.base_frame = panel
         return label
 
     def make_panel(
@@ -142,6 +144,7 @@ class OptionFrame(Tk.Frame):
         self.num_frames += 1
         panel.grid_columnconfigure(0, weight=1)
         self.insert_panel(panel, separator)
+        panel.base_frame = panel
         return panel
 
     def insert_panel(self, frame, separator=True):
@@ -160,6 +163,7 @@ class OptionFrame(Tk.Frame):
         #     separator.grid(column=0, row=self.num_row, sticky='news')
         #     self.num_row += 1
         self.col_button = 0
+        widget.base_frame = widget
 
     def insert_separator(self):
 
