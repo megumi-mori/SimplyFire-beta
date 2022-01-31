@@ -1,0 +1,6 @@
+dependencies:
+  - 'sweeps'
+
+GUI_components:
+  compare_tab:
+    location: 'control_panel'
