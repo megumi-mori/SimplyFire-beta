@@ -139,7 +139,7 @@ def open_recording(fname: str,
     global mini_df
     global channel
     if not append: # open a new file for analysis
-        mini_df = mini_df.iloc[0:0]
+        # mini_df = mini_df.iloc[0:0]
         # data_display.clear()
         # evoked_data_display.clear()
         # update save file directory
@@ -180,6 +180,7 @@ def open_recording(fname: str,
     #         record.set_channel(recordings[0].channel)
     #     except:
     #         _change_channel(0, save_undo=False) # cannot open channel
+    app.trace_display.clear()
     plot()
     app.trace_display.draw_ani()
     # param_guide.update()
@@ -210,6 +211,7 @@ def open_recording(fname: str,
         app.graph_panel.widgets['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
     # print(f'interface finished opening: {time.time() - app.t0}')
     # app.t0 = time.time()
+    print('opened reocrding@!')
     app.root.event_generate('<<OpenedRecording>>')
     # print(f'end of all bindings: {time.time() - app.t0}')
     # app.t0 = time.time()
@@ -236,6 +238,7 @@ def _change_channel(num: int,
     """
     global recordings
     # store process in undo
+    app.root.event_generate('<<ChangeChannel>>')
     if save_undo and num != recordings[0].channel:
         add_undo(lambda n= recordings[0].channel, s=False:_change_channel(n, s))
     global channel
@@ -271,56 +274,67 @@ def _change_channel(num: int,
     # update_event_marker()
 
     param_guide.update()
-    app.root.event_generate('<<ChangeChannel>>')
+    app.root.event_generate('<<ChangeChannelEnd>>')
     app.pb['value'] = 0
     app.pb.update()
 
-def plot(**kwargs):
+def plot(fix_x=False, fix_y=False, **kwargs):
     if len(recordings) == 0:
         return
-    if app.menubar.widgets['trace_mode'].get() == 'continuous':
-        plot_continuous(recordings[0], **kwargs)
-    elif app.menubar.widgets['trace_mode'].get() == 'compare':
-        for i,r in enumerate(recordings):
-            plot_overlay(r, append=(i!=0))
-    elif app.menubar.widgets['trace_mode'].get() == 'overlay':
-        plot_overlay(recordings[0], **kwargs)
     app.root.event_generate("<<Plot>>")
-
-def plot_continuous(recording, fix_axis=False, draw=False, fix_x=False, fix_y=False):
-    global idx_offset
-    idx_offset = 0
     xlim=None
     ylim=None
-    if fix_axis:
-        xlim = trace_display.get_axis_limits('x')
-        ylim = trace_display.get_axis_limits('y')
     if fix_x:
         xlim = trace_display.get_axis_limits('x')
     if fix_y:
         ylim=trace_display.get_axis_limits('y')
     trace_display.clear()
-    trace_display.plot_trace(recording.get_xs(mode='continuous'),
-                             recording.get_ys(mode='continuous'),
-                             draw=draw,
-                             relim=True,
-                             name='Sweep_0')
-    trace_display.ax.set_xlabel(recording.x_label)#, fontsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.set_ylabel(recording.y_label)#, fontsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.tick_params(axis='x', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
+    if app.menubar.widgets['trace_mode'].get() == 'continuous':
+        plot_continuous(recordings[0], draw=False, **kwargs)
+    elif app.menubar.widgets['trace_mode'].get() == 'overlay':
+        plot_overlay(recordings[0], draw=False, **kwargs)
     if xlim:
         trace_display.set_axis_limit('x', xlim)
     if ylim:
         trace_display.set_axis_limit('y', ylim)
+    trace_display.ax.set_xlabel(recordings[0].x_label)#, fontsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.set_ylabel(recordings[0].y_label)#, fontsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
+    trace_display.ax.tick_params(axis='x', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
+    app.root.event_generate('<<Plotted>>')
+    app.trace_display.draw_ani()
 
-    # if len(al.mini_df.index)>0:
-    #     xs = al.mini_df.index.where(al.mini_df['channel'] == al.recording.channel)
-    #     xs = xs.dropna()
-    #
-    #     data_display.append(al.mini_df.loc[xs])
 
-    # update_event_marker()
+def plot_continuous(recording, draw=False, sweep_name_suffix='Sweep'):
+    trace_display.plot_trace(recording.get_xs(mode='continuous'),
+                             recording.get_ys(mode='continuous'),
+                             draw=False,
+                             relim=True,
+                             name=f'{sweep_name_suffix}_0')
+    if draw:
+        trace_display.draw_ani()
+
+
+def plot_overlay(recording, draw=False, sweep_name_suffix='Sweep'):
+    min_xlim = 0
+    max_xlim = 0
+    for i in range(recording.sweep_count):
+        app.pb['value'] = (i+1)/recording.sweep_count*100
+        app.pb.update()
+        xs = recording.get_xs(mode='overlay', sweep=i)
+        ys = recording.get_ys(mode='overlay', sweep=i)
+        trace_display.plot_trace(xs, ys,
+                                 draw=False,
+                                 relim=i == recording.sweep_count-1, #relim for the final sweep
+                                 name = f"{sweep_name_suffix}_{i}")
+        if min_xlim > xs[0]:
+            min_xlim = xs[0]
+        if max_xlim < xs[-1]:
+            max_xlim = xs[-1]
+    if draw:
+        trace_display.draw_ani()
+    app.pb['value'] = 0
+    app.pb.update()
 
 def delete_last_sweep():
     recordings[0].delete_last_sweep()
@@ -1075,56 +1089,6 @@ def highlight_events_in_range(xlim=None, ylim=None):
 #######################################
 # Sweeps
 #######################################
-
-def plot_overlay(recording, fix_axis=False, fix_x=False, draw=False, append=False, sweeps=None):
-    global idx_offset
-    if fix_axis:
-        xlim = trace_display.get_axis_limits('x')
-        ylim = trace_display.get_axis_limits('y')
-    if fix_x:
-        xlim = trace_display.get_axis_limits('x')
-    if not append:
-        trace_display.clear()
-        # data_display.clear()
-        trace_display.ax.set_xlabel(recording.x_label, fontsize=int(float(app.widgets['font_size'].get())))
-        trace_display.ax.set_ylabel(recording.y_label, fontsize=int(float(app.widgets['font_size'].get())))
-        trace_display.ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
-        trace_display.ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
-        idx_offset = 0
-    if app.widgets['trace_mode'].get() == 'compare':
-        color = app.compare_tab.get_color(idx)
-    else:
-        color = app.widgets['style_trace_line_color'].get()
-    for i in range(recording.sweep_count):
-        app.pb['value'] = (i+1)/recording.sweep_count*100
-        app.pb.update()
-        trace_display.plot_trace(recording.get_xs(mode='overlay', sweep=i),
-                                 recording.get_ys(mode='overlay', sweep=i),
-                                 draw=False,
-                                 relim=False,
-                                 name = f"Sweep_{i + idx_offset}",
-                                 color=color)
-    trace_display.show_all_plot(update_default=True)
-    if app.widgets['trace_mode'].get() == 'overlay':
-        sweeps = [i for i,v in enumerate(app.sweep_tab.sweep_vars) if v.get()]
-    elif app.widgets['trace_mode'].get() == 'compare':
-        sweeps = app.compare_tab.get_sweep_list(idx)
-    if sweeps:
-        for i in range(recording.sweep_count):
-            trace_display.hide_sweep(i+idx_offset)
-        for i in sweeps:
-            trace_display.show_sweep(i+idx_offset)
-    idx_offset += recording.sweep_count
-    if fix_axis:
-        trace_display.set_axis_limit('x', xlim)
-        trace_display.set_axis_limit('y', ylim)
-    if fix_x:
-        trace_display.set_axis_limit('x', xlim)
-    if draw:
-        # trace_display.canvas.draw()
-        trace_display.draw_ani()
-    app.pb['value'] = 0
-    app.pb.update()
 
 def toggle_sweep(idx, v, draw=True):
     if v == 1:
