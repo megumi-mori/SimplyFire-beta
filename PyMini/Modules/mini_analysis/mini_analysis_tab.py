@@ -219,6 +219,9 @@ class ModuleControl(BaseControlModule):
             self.update_event_markers(draw=True)
             self.saved = False  # track change
     def find_mini_all(self, event=None):
+        if len(app.interface.recordings) == 0:
+            messagebox.showerror('Error', 'Please open a recording file first')
+            return None
         self.module_table.unselect()
         if app.widgets['trace_mode'].get() != 'continuous':
             return None
@@ -228,8 +231,6 @@ class ModuleControl(BaseControlModule):
         except: # no traces yet
             print('cannot get x and y data')
             return
-        if len(app.interface.recordings)==0:
-            return None
         if app.widgets['trace_mode'].get() != 'continuous':
             return None # disable module
         params = self.get_params()
@@ -257,6 +258,9 @@ class ModuleControl(BaseControlModule):
         app.clear_progress_bar()
 
     def find_mini_range(self, event=None):
+        if len(app.interface.recordings) == 0:
+            messagebox.showerror('Error', 'Please open a recording file first')
+            return None
         self.module_table.unselect()
         if app.widgets['trace_mode'].get() != 'continuous':
             return None # disable module
@@ -394,7 +398,7 @@ class ModuleControl(BaseControlModule):
         self.changed = True
         self.changes[pname] = pvalue
 
-    def report_results(self):
+    def report_results(self, event=None):
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
             return None
@@ -775,7 +779,8 @@ class ModuleControl(BaseControlModule):
             command=lambda undo=True: self.delete_in_window(undo)
         )
         self.insert_button(
-            text='Report stats'
+            text='Report stats',
+            command = self.report_results
         )
 
         self.insert_title(
