@@ -16,6 +16,42 @@ class ModuleControl(BaseControlModule):
                  has_table=False
                  )
         self._load_layout()
+    def average_sweeps(self, event=None):
+        print(app.interface.recordings[0].y_data.dtype)
+        if app.widgets['trace_mode'].get() == 'continuous':
+            return
+        if self.widgets['process_channel'].get():
+            target_channels = [app.interface.channel]
+        else:
+            target_channels = range(app.interface.recordings[0].channel_count)
+        target_sweeps = []
+        if self.widgets['process_target'].get() == 'All sweeps':
+            target_sweeps = range(app.interface.recordings[0].sweep_count)
+        elif self.widgets['process_target'].get() == 'Visible sweeps':
+            target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
+            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+                target_sweeps = range(app.interface.recordings[0].sweep_count)
+            elif app.widgets['trace_mode'].get () == 'overlay':
+                # account for more recordings being open (consider only the main file open)
+                target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
+        elif self.widgets['process_target'].get() == 'Highlighted sweeps':
+            target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
+            # account for more recordings being open (consider only the main file open)
+            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+                target_sweeps = range(app.interface.recordings[0].sweep_count)
+            elif app.widgets['trace_mode'].get () == 'overlay':
+                # account for more recordings being open (consider only the main file open)
+                target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
+        avg_sweep = recording_processor.average_sweeps(app.interface.recordings[0],
+                                                       channels=target_channels,
+                                                       sweeps=target_sweeps)
+        app.interface.recordings[0].append_sweep(avg_sweep)
+        app.interface.plot()
+        app.modules_dict['sweeps']['sweeps_tab'].synch_sweep_list()
+        if self.widgets['average_show_result'].get():
+            app.modules_dict['sweeps']['sweeps_tab'].hide_all()
+            app.modules_dict['sweeps']['sweeps_tab'].sweep_buttons[app.interface.recordings[0].sweep_count-1].invoke()
+        pass
     def subtract_baseline(self, event=None):
         if len(app.interface.recordings)==0:
             return None # nothing to process
@@ -45,10 +81,14 @@ class ModuleControl(BaseControlModule):
             elif app.widgets['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
-        elif self.widgets['proces_target'].get() == 'Highlighted sweeps':
+        elif self.widgets['process_target'].get() == 'Highlighted sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
-            target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
+            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+                target_sweeps = range(app.interface.recordings[0].sweep_count)
+            elif app.widgets['trace_mode'].get () == 'overlay':
+                # account for more recordings being open (consider only the main file open)
+                target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         if len(target_sweeps) == 0:
             return
 
@@ -78,12 +118,19 @@ class ModuleControl(BaseControlModule):
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['process_target'].get() == 'Visible sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
-            # account for more recordings being open (consider only the main file open)
-            target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
-        elif self.widgets['proces_target'].get() == 'Highlighted sweeps':
+            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+                target_sweeps = range(app.interface.recordings[0].sweep_count)
+            elif app.widgets['trace_mode'].get() == 'overlay':
+                # account for more recordings being open (consider only the main file open)
+                target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
+        elif self.widgets['process_target'].get() == 'Highlighted sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
-            target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
+            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+                target_sweeps = range(app.interface.recordings[0].sweep_count)
+            elif app.widgets['trace_mode'].get() == 'overlay':
+                # account for more recordings being open (consider only the main file open)
+                target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
 
         filter_choice = self.widgets['filter_algorithm'].get()
         filter_algorithm = self.widgets[f'filter_{filter_choice}_algorithm'].get()
@@ -108,13 +155,13 @@ class ModuleControl(BaseControlModule):
 
         self.insert_label_optionmenu(
             name='process_target',
-            label='',
+            text='',
             options=['All sweeps', 'Visible sweeps', 'Highlighted sweeps'],
             separator=False
         )
         self.insert_label_checkbox(
             name='process_channel',
-            label='Limit process to current channel',
+            text='Limit process to current channel',
             onvalue='1',
             offvalue='',
             separator=True
@@ -124,7 +171,7 @@ class ModuleControl(BaseControlModule):
 
         self.insert_label_optionmenu(
             name='baseline_mode',
-            label = '',
+            text='',
             options=['Mean of all targets', 'Mean of x-axis range', 'Fixed value'],
             command=self._select_baseline_mode,
             separator=False
@@ -169,10 +216,34 @@ class ModuleControl(BaseControlModule):
 
         self.insert_separator()
 
+        self.insert_title(
+            text='Average sweeps',
+            separator=False,
+        )
+        self.insert_label_checkbox(
+            name='average_show_result',
+            text='Hide original sweeps',
+            onvalue='1',
+            offvalue='',
+            separator=False
+        )
+        self.insert_button(
+            text='Apply',
+            command=self.average_sweeps
+        )
+        self.insert_button(
+            text='Default',
+            command=self._default_averaging_params
+        )
+        self.insert_separator()
+        self.insert_title(
+            text='Filtering',
+            separator=False
+        )
         self.filter_choices = ['Highpass', 'Lowpass']
         self.insert_label_optionmenu(
             name='filter_algorithm',
-            label="Select low or high pass:",
+            text="Select low or high pass:",
             options=self.filter_choices,
             separator=False,
             command=self._select_filter_mode
@@ -181,7 +252,7 @@ class ModuleControl(BaseControlModule):
         self.lowpass_algorithms = ['Boxcar', 'Test']
         self.insert_label_optionmenu(
             name='filter_Lowpass_algorithm',
-            label='Algorithm:',
+            text='Algorithm:',
             options=self.lowpass_algorithms,
             separator=False,
             command=self._select_lowpass_algorithm
@@ -191,7 +262,7 @@ class ModuleControl(BaseControlModule):
         self.filter_params = {}
         self.filter_params['width'] = self.insert_label_entry(
             name='width',
-            label='Width',
+            text='Width',
             validate_type='int'
         )
         self.widgets['width'].bind('<Return>', app.interface.focus)
@@ -199,7 +270,7 @@ class ModuleControl(BaseControlModule):
         self.highpass_algorithms = ['Not yet supported']
         self.insert_label_optionmenu(
             name='filter_Highpass_algorithm',
-            label='Algorithm:',
+            text='Algorithm:',
             options=self.highpass_algorithms,
             separator=False,
             command=self._select_highpass_algorithm
@@ -208,6 +279,9 @@ class ModuleControl(BaseControlModule):
         self.insert_button(text='Apply', command=self.filter_data)
         self.insert_button(text='Default', command=self._default_filter_params)
         #
+    def _default_averaging_params(self, event=None):
+        self.set_to_default(filter='average')
+        app.interface.focus()
     def _default_baseline_params(self, event=None):
         self.set_to_default(filter='baseline')
         self._select_baseline_mode()
