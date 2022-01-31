@@ -41,10 +41,11 @@ class ModuleControl(BaseControlModule):
         xlim = (min(xlim), max(xlim))
         ylim = (min(ylim), max(ylim))
         for i, name in enumerate(app.trace_display.sweeps.keys()): # get keys
-            xs = app.trace_display.sweeps[name].get_xdata()
-            ys = app.trace_display.sweeps[name].get_ydata()
-            if analyzer2.contains_line(xlim, ylim, xs, ys, app.interface.recordings[0].sampling_rate):
-                selection.append(name)
+            if self.sweep_vars[i].get():
+                xs = app.trace_display.sweeps[name].get_xdata()
+                ys = app.trace_display.sweeps[name].get_ydata()
+                if analyzer2.contains_line(xlim, ylim, xs, ys, app.interface.recordings[0].sampling_rate):
+                    selection.append(name)
         self.set_highlight(selection, draw=True)
 
     def canvas_mouse_release(self, event=None):
