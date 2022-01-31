@@ -20,21 +20,21 @@ class ModuleControl(BaseControlModule):
         print(app.interface.recordings[0].y_data.dtype)
         if app.widgets['trace_mode'].get() == 'continuous':
             return
-        if self.widgets['process_channel'].get():
+        if self.widgets['channel_target'].get():
             target_channels = [app.interface.channel]
         else:
             target_channels = range(app.interface.recordings[0].channel_count)
         target_sweeps = []
-        if self.widgets['process_target'].get() == 'All sweeps':
+        if self.widgets['sweep_target'].get() == 'All sweeps':
             target_sweeps = range(app.interface.recordings[0].sweep_count)
-        elif self.widgets['process_target'].get() == 'Visible sweeps':
+        elif self.widgets['sweep_target'].get() == 'Visible sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
-        elif self.widgets['process_target'].get() == 'Highlighted sweeps':
+        elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
@@ -55,7 +55,7 @@ class ModuleControl(BaseControlModule):
     def subtract_baseline(self, event=None):
         if len(app.interface.recordings)==0:
             return None # nothing to process
-        if self.widgets['process_channel'].get():
+        if self.widgets['channel_target'].get():
             target_channels = [app.interface.channel]
         else:
             target_channels = range(app.interface.recordings[0].channel_count)
@@ -72,16 +72,16 @@ class ModuleControl(BaseControlModule):
             shift = float(self.widgets['baseline_fixed'].get())
 
         target_sweeps = []
-        if self.widgets['process_target'].get() == 'All sweeps':
+        if self.widgets['sweep_target'].get() == 'All sweeps':
             target_sweeps = range(app.interface.recordings[0].sweep_count)
-        elif self.widgets['process_target'].get() == 'Visible sweeps':
+        elif self.widgets['sweep_target'].get() == 'Visible sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
-        elif self.widgets['process_target'].get() == 'Highlighted sweeps':
+        elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
@@ -108,22 +108,22 @@ class ModuleControl(BaseControlModule):
     def filter_data(self, event=None):
         if len(app.interface.recordings)==0:
             return None # nothing to process
-        if self.widgets['process_channel'].get():
+        if self.widgets['channel_target'].get():
             target_channels = [app.interface.channel]
         else:
             target_channels = range(app.interface.recordings[0].channel_count)
 
         target_sweeps = []
-        if self.widgets['process_target'].get() == 'All sweeps':
+        if self.widgets['sweep_target'].get() == 'All sweeps':
             target_sweeps = range(app.interface.recordings[0].sweep_count)
-        elif self.widgets['process_target'].get() == 'Visible sweeps':
+        elif self.widgets['sweep_target'].get() == 'Visible sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get() == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
-        elif self.widgets['process_target'].get() == 'Highlighted sweeps':
+        elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
             target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
@@ -154,14 +154,14 @@ class ModuleControl(BaseControlModule):
         self.insert_title(text='Apply processing to the following sweeps', separator=False)
 
         self.insert_label_optionmenu(
-            name='process_target',
+            name='sweep_target',
             text='',
             options=['All sweeps', 'Visible sweeps', 'Highlighted sweeps'],
             separator=False
         )
         self.insert_label_checkbox(
-            name='process_channel',
-            text='Limit process to current channel',
+            name='channel_target',
+            text='Limit process to the current channel',
             onvalue='1',
             offvalue='',
             separator=True

@@ -12,6 +12,7 @@ def subtract_baseline(recording:analyzer2.Recording,
 
     """
     assert type(recording) == analyzer2.Recording, f'data passed must be of type {analyzer2.Recording}'
+    assert plot_mode in ['continuous', 'overlay'], 'plot_mode argument must be in ["continuous", "overlay"]'
     if not channels:
         channels = range(recording.channel_count)
     if not sweeps:
