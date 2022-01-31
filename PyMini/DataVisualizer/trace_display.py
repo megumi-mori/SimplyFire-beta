@@ -529,13 +529,6 @@ def clear_markers(key=None):
 
 def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None, name=""):
     global sweeps
-    if sweeps.get(name, None):
-        try:
-            l = sweeps[name]
-            l.remove()
-            del l
-        except:
-            pass
     global trace_color
     if not color:
         # color = app.widgets['style_trace_line_color'].get()
@@ -545,13 +538,18 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None, nam
         width=trace_width
     if name == "":
         name = f'Sweep_{len(sweeps)}'
-    sweeps[name], = ax.plot(xs, ys,
+    if sweeps.get(name, None):
+        sweeps.get(name).set_xdata(xs)
+        sweeps.get(name).set_ydata(ys)
+        print(f'{name} exists')
+    else:
+        sweeps[name], = ax.plot(xs, ys,
                                               linewidth=width,
                                               c=color,
                                               animated=False)  # pickradius=int(app.widgets['style_event_pick_offset'].get())
     if relim:
         ax.autoscale(enable=True, axis='both', tight=True)
-        ax.relim()
+        ax.relim(visible_only=True)
         # canvas.draw()
         draw_ani()
         global default_xlim
@@ -790,7 +788,7 @@ def apply_styles(keys, draw=True):
 
 def show_all_plot(update_default=False):
     ax.autoscale(enable=True, axis='both', tight=True)
-    ax.relim()
+    ax.relim(visible_only=True)
     # canvas.draw()
     draw_ani()
     if update_default:
@@ -798,6 +796,18 @@ def show_all_plot(update_default=False):
         default_xlim = ax.get_xlim()
         global default_ylim
         default_ylim = ax.get_ylim()
+
+def update_default_lim(x=True, y=True):
+    ax.autoscale(enable=True, axis='both', tight=True)
+    ax.relim(visible_only=True)
+    draw_ani()
+    if x:
+        global default_xlim
+        default_xlim = ax.get_xlim()
+    if y:
+        global default_ylim
+        default_ylim = ax.get_ylim()
+
 
 
 
