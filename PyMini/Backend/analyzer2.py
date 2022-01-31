@@ -2111,6 +2111,8 @@ def translate_indices(s):
 
 def is_indices(s):
     # check formatting
+    if not s:
+        return True
     temp = s.replace('..', ',').split(',')
     # check every number is int
     for t in temp:
