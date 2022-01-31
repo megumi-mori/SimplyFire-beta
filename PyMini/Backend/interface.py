@@ -204,14 +204,13 @@ def open_recording(fname: str,
         for i in range(record.channel_count):
             app.graph_panel.widgets['channel_option'].add_command(
                 label='{}: {}'.format(i, record.channel_labels[i]),
-                command=lambda c=i:_change_channel(c)
+                command=lambda c=i:change_channel(c)
             )
 
     # starting channel was set earlier in the code
         app.graph_panel.widgets['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
     # print(f'interface finished opening: {time.time() - app.t0}')
     # app.t0 = time.time()
-    print('opened reocrding@!')
     app.root.event_generate('<<OpenedRecording>>')
     # print(f'end of all bindings: {time.time() - app.t0}')
     # app.t0 = time.time()
@@ -228,8 +227,8 @@ def save_recording(filename):
     app.pb['value']=0
     app.pb.update()
 
-def _change_channel(num: int,
-                    save_undo: bool=True) -> None:
+def change_channel(num: int,
+                   save_undo: bool=True) -> None:
     """
     Changes the channel data displayed on the GUI
 
@@ -240,7 +239,7 @@ def _change_channel(num: int,
     # store process in undo
     app.root.event_generate('<<ChangeChannel>>')
     if save_undo and num != recordings[0].channel:
-        add_undo(lambda n= recordings[0].channel, s=False:_change_channel(n, s))
+        add_undo(lambda n= recordings[0].channel, s=False:change_channel(n, s))
     global channel
     try:
         channel = num
@@ -266,15 +265,14 @@ def _change_channel(num: int,
     #     plot_overlay(recordings[0], fix_x=True, draw=False)
     # add other modes here
     trace_display.set_axis_limit('x', xlim)
-
-    trace_display.draw_ani()
     # data_display.clear()
 
     # populate_data_display()
     # update_event_marker()
 
     param_guide.update()
-    app.root.event_generate('<<ChangeChannelEnd>>')
+    app.root.event_generate('<<ChangedChannel>>')
+    trace_display.draw_ani()
     app.pb['value'] = 0
     app.pb.update()
 

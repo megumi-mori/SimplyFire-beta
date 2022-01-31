@@ -7,7 +7,7 @@ from PyMini.utils import widget
 class ModuleControl(BaseControlModule):
     def __init__(self):
         super(ModuleControl, self).__init__(
-                 name='post_processing',
+                 name='process_recording',
                  menu_label = 'Process Recording',
                  tab_label = 'Process',
                  parent=app.root,
