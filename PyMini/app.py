@@ -320,7 +320,10 @@ def load(splash):
     for key, cptab in control_panel_dict.items():
         cp_notebook.tab(cptab, state='hidden')
     for modulename in config.start_module:
-        menubar.window_menu.invoke(control_panel_dict[modulename].menu_label)
+        try:
+            menubar.window_menu.invoke(control_panel_dict[modulename].menu_label)
+        except: # module removed from module-list
+            pass
     try:
         data_notebook.select(data_notebook_dict[config.start_module[0]])
     except:
