@@ -470,19 +470,19 @@ def toolbar_toggle_zoom():
 
 # data_display and app.trace_display data item interaction
 def unselect_key(event):
-    if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
-        app.data_display.unselect()
-        return None
-    if app.widgets['trace_mode'].get() == 'overlay':
-        interface.unhighlight_all_sweeps()
+    # if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
+    #     app.data_display.unselect()
+    #     return None
+    # if app.widgets['trace_mode'].get() == 'overlay':
+    #     interface.unhighlight_all_sweeps()
     pass
 
 def delete_key(event):
     # if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
     #     app.data_display.delete_selected()
     #     return
-    if app.widgets['trace_mode'].get() == 'overlay':
-        interface.hide_highlighted_sweep()
+    # if app.widgets['trace_mode'].get() == 'overlay':
+    #     interface.hide_highlighted_sweep()
 
     # if app.widgets['trace_mode'].get() == 'overlay':
     #     interface.hide_highlighted_sweep()
