@@ -1,0 +1,7 @@
+dependencies:
+  - 'sweeps'
+GUI_components:
+  evoked_tab:
+    location: 'control_panel'
+  evoked_table:
+    location: 'data_notebook'
