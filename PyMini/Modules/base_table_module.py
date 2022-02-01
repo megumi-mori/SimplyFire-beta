@@ -54,16 +54,6 @@ class BaseTableModule(DataTable):
         super().set(dataframe)
         self.enable_tab()
 
-    def update_module_display(self):
-        if self.status_var.get():
-            self.show_tab()
-            if self.enabled:
-                app.data_notebook.select(self)
-
-            self.fit_columns()
-        else:
-            self.hide_tab()
-
     def show_tab(self):
         if self.enabled:
             app.data_notebook.tab(self, state='normal')

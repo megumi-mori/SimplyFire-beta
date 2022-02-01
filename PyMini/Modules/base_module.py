@@ -60,13 +60,11 @@ class BaseModule():
             current_tab = app.cp_notebook.index(app.cp_notebook.select())
         except:
             current_tab = None
-        print(f'showing tab for {self.name}: {self.disable_stack}')
         if not self.disable_stack:
             if self.control_tab:
                 app.config_cp_tab(self.control_tab, state='normal')
             if self.data_tab:
                 app.config_data_tab(self.data_tab, state='normal')
-                print(self.name)
                 self.data_tab.fit_columns()
         else:
             if self.control_tab:
@@ -82,7 +80,6 @@ class BaseModule():
         source = self.name
         if source not in self.disable_stack:
             self.disable_stack.append(source)
-        print(f'_disable was called for {self.name}: {self.disable_stack}')
         self.update_module_display()
 
     def force_enable(self):
@@ -95,7 +92,6 @@ class BaseModule():
             self.disable_stack.remove(source)
         except ValueError:
             self._error_log(f'{source} is not part of the disable stack')
-        print(f'_enable was called for {self.name}: {self.disable_stack}')
         self.update_module_display()
 
     def disable_module(self, modulename):
