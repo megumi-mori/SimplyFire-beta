@@ -384,6 +384,16 @@ def get_tab_focus():
     focus['control_panel'] = cp_notebook.select()
     focus['data_panel'] = data_notebook.select()
     return focus
+
+def get_module(module_name, component=None):
+    module = modules_dict.get(module_name, None)
+    if not module:
+        return None
+    if component:
+        return module.get(component, None)
+    else:
+        return module
+
 def get_cp_frame(name):
     return control_panel_dict[name]
 
