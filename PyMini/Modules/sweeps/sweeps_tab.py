@@ -249,6 +249,18 @@ class ModuleControl(BaseControlModule):
         if draw:
             app.trace_display.draw_ani()
 
+    def show_list(self, event=None, selection=None, draw=True):
+        if selection is None:
+            return None
+        for s in selection:
+            self.sweep_vars[s].set(True)
+            sweep = app.trace_display.sweeps[self.sweep_namevars[s].get()]
+            sweep.set_linestyle('-')
+            sweep.set_color(app.trace_display.trace_color)
+            sweep.set_linewidth(app.trace_display.trace_width)
+        if draw:
+            app.trace_display.draw_ani()
+
 
     ##### control sweep highlight #####
     def set_highlight(self, selection:list, draw=True):
