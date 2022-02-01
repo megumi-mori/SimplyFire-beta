@@ -46,6 +46,8 @@ class ModuleControl(BaseControlModule):
         self.insert_button(text='Apply', command=self.apply_styles)
         self.insert_button(text='Default', command=self.apply_default)
 
+        self._load_binding()
+
     def place_VarEntry(self, name, column, row, frame, width=None, validate_type=""):
         self.widgets[name] = VarEntry(frame, name=name, width=width, validate_type=validate_type,
                                       value=self.values.get(name,None), default=self.default.get(name, None))
@@ -60,3 +62,6 @@ class ModuleControl(BaseControlModule):
     def apply_default(self, event=None):
         self.set_to_default()
         pass
+
+    def _load_binding(self):
+        app.root.bind('<<LoadCompleted>>', lambda e, func=self.apply_styles:self.call_if_visible(func))
