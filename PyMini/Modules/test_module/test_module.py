@@ -1,4 +1,4 @@
-from PyMini.Modules.base_control_module import BaseControlModule
+from PyMini.Modules.base_module_control import BaseModuleControl
 
 class TabModule(BaseTabModule):
     def __init__(self):

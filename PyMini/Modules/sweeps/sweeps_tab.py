@@ -1,5 +1,5 @@
 from PyMini import app
-from PyMini.Modules.base_control_module import BaseControlModule
+from PyMini.Modules.base_module_control import BaseModuleControl
 from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
 import tkinter as Tk
 from tkinter import ttk
@@ -8,7 +8,7 @@ from PyMini.Backend import analyzer2
 
 # debugging
 import time
-class ModuleControl(BaseControlModule):
+class ModuleControl(BaseModuleControl):
     def __init__(self, module):
         super(ModuleControl, self).__init__(
             scrollbar=False,

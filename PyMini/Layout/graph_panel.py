@@ -1,7 +1,7 @@
 import tkinter as Tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-from PyMini.utils import widget
+from PyMini.utils import custom_widgets
 from PyMini.utils import scrollable_option_frame
 from PyMini.DataVisualizer import trace_display
 from PyMini.Backend import interface
@@ -15,30 +15,44 @@ import pkg_resources
 def load(parent):
     global widgets
     widgets = {}
+
+    widgets['navigation_fps'] = Tk.IntVar(value=int(app.config.default_vars.get('default_navigation_fps')))
+    widgets['navigation_mirror_x_scroll'] = Tk.IntVar(
+        value=int(app.config.default_vars.get('default_navigation_mirror_x_scroll')))
+    widgets['navigation_scroll_x_percent'] = Tk.DoubleVar(
+        value=float(app.config.default_vars.get('default_navigation_scroll_x_percent')))
+    widgets['navigation_zoom_x_percent'] = Tk.DoubleVar(
+        value=float(app.config.default_vars.get('default_navigation_zoom_x_percent')))
+
+    widgets['navigation_scroll_y_percent'] = Tk.DoubleVar(
+        value=float(app.config.default_vars.get('default_navigation_scroll_y_percent')))
+    widgets['navigation_mirror_y_scroll'] = Tk.IntVar(
+        value=int(app.config.default_vars.get('default_navigation_mirror_y_scroll')))
+    widgets['navigation_zoom_y_percent'] = Tk.DoubleVar(
+        value=float(app.config.default_vars.get('default_navigation_zoom_y_percent')))
+
     ##################################################
     #                    Methods                     #
     ##################################################
     def force_channel(event=None):
         if widgets['force_channel'].get() == '1':
            widgets['force_channel_id'].config(state='normal')
-           print('normal!')
         else:
-            print('not normal!')
             widgets['force_channel_id'].config(state='disabled')
 
     def scroll_x(dir):
         # trace_display.start_animation()
         scroll_x_repeat(
-            dir * int(app.widgets['navigation_mirror_x_scroll'].get()),
-            int(app.widgets['navigation_fps'].get()),
-            float(app.widgets['navigation_scroll_percent'].get())
+            dir * int(widgets['navigation_mirror_x_scroll'].get()),
+            int(widgets['navigation_fps'].get()),
+            float(widgets['navigation_scroll_x_percent'].get())
         )
     def scroll_y(dir):
         # trace_display.start_animation()
         scroll_y_repeat(
-            dir * int(app.widgets['navigation_mirror_y_scroll'].get()),
-            int(app.widgets['navigation_fps'].get()),
-            float(app.widgets['navigation_scroll_percent'].get())
+            dir * int(widgets['navigation_mirror_y_scroll'].get()),
+            int(widgets['navigation_fps'].get()),
+            float(widgets['navigation_scroll_y_percent'].get())
         )
 
     def scroll_x_repeat(dir, fps, percent):
@@ -54,11 +68,11 @@ def load(parent):
         pass
 
     def zoom_x(dir):
-        zoom_x_repeat(dir, int(app.widgets['navigation_fps'].get()),
-                      float(app.widgets['navigation_zoom_percent'].get()))
+        zoom_x_repeat(dir, int(widgets['navigation_fps'].get()),
+                      float(widgets['navigation_zoom_x_percent'].get()))
     def zoom_y(dir):
-        zoom_y_repeat(dir, int(app.get_value('navigation_fps')),
-                      float(app.widgets['navigation_zoom_percent'].get()))
+        zoom_y_repeat(dir, int(widgets['navigation_fps'].get()),
+                      float(widgets['navigation_zoom_y_percent'].get()))
 
     def zoom_x_repeat(dir, fps, percent):
         global jobid
@@ -141,12 +155,12 @@ def load(parent):
     pan_down.bind('<ButtonRelease-1>', stop)
 
     global y_scrollbar
-    y_scrollbar = widget.VarScale(parent=yscrollbar_frame,
-                                                      name='y_scrollbar',
-                                                      from_=0,
-                                                      to=100,
-                                                      orient=Tk.VERTICAL,
-                                                      command= scroll_y_to)
+    y_scrollbar = custom_widgets.VarScale(parent=yscrollbar_frame,
+                                   name='y_scrollbar',
+                                   from_=0,
+                                   to=100,
+                                   orient=Tk.VERTICAL,
+                                   command= scroll_y_to)
     y_scrollbar.grid(column=0, row=1, sticky='news')
     y_scrollbar.config(state='disabled')  # disabled until a trace is loaded
     y_scrollbar.set(50)
@@ -163,10 +177,10 @@ def load(parent):
     toolbar_frame = Tk.Frame(upper_frame)
     toolbar_frame.grid_columnconfigure(0, weight=1)
     toolbar_frame.grid(column=0, row=0, sticky='news')
-    navigation_toolbar = widget.NavigationToolbar(trace_display.canvas, toolbar_frame)
+    navigation_toolbar = custom_widgets.NavigationToolbar(trace_display.canvas, toolbar_frame)
     navigation_toolbar.grid(column=0, row=0, sticky='news')
 
-    widgets['trace_info'] = widget.VarLabel(toolbar_frame, text='no file open')
+    widgets['trace_info'] = custom_widgets.VarLabel(toolbar_frame, text='no file open')
     widgets['trace_info'].grid(column=0, row=1, sticky='news')
 
     channel_frame = scrollable_option_frame.OptionFrame(upper_frame)#, scrollbar = False)
@@ -191,10 +205,12 @@ def load(parent):
         command=force_channel
     )
 
-    widgets['force_channel_id'] = widget.VarEntry(
+    widgets['force_channel_id'] = custom_widgets.VarEntry(
         parent=widgets['force_channel'].master,
         name='force_channel_id',
-        validate_type='int'
+        validate_type='int',
+        value=app.config.user_vars['force_channel_id'],
+        default=app.config.default_vars['default_force_channel_id']
     )
     force_channel()
     widgets['force_channel_id'].grid(column=2, row=0, sticky='ews')
@@ -232,13 +248,13 @@ def load(parent):
     pan_right.bind('<ButtonRelease-1>', stop)
 
     global x_scrollbar
-    x_scrollbar = widget.VarScale(parent=x_zoom_frame,
-                                  name='y_scrollbar',
-                                  from_=0,
-                                  to=100,
-                                  orient=Tk.HORIZONTAL,
-                                  command= scroll_x_to
-                                  )
+    x_scrollbar = custom_widgets.VarScale(parent=x_zoom_frame,
+                                   name='y_scrollbar',
+                                   from_=0,
+                                   to=100,
+                                   orient=Tk.HORIZONTAL,
+                                   command= scroll_x_to
+                                   )
     x_scrollbar.grid(column=3, row=0, sticky='news')
     x_scrollbar.config(state='disabled')  # disabled until a trace is loaded
     x_scrollbar.set(50)

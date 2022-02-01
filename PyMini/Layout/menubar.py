@@ -2,7 +2,7 @@ import tkinter as Tk
 from tkinter import ttk, filedialog, messagebox
 import os
 from PyMini.config import config
-from PyMini.utils.widget import VarWidget
+from PyMini.utils.custom_widgets import VarWidget
 from PyMini.Backend import interface
 from PyMini.DataVisualizer import param_guide, data_display, trace_display, evoked_data_display, results_display
 import gc

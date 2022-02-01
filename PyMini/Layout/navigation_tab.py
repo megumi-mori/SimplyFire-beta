@@ -16,15 +16,15 @@ def load(parent):
         trace_display.set_axis_limit(
             axis='x',
             lim=(
-                app.widgets['min_x'].get(),
-                app.widgets['max_x'].get()
+                app.custom_widgets['min_x'].get(),
+                app.custom_widgets['max_x'].get()
             )
         )
         trace_display.set_axis_limit(
             axis='y',
             lim=(
-                app.widgets['min_y'].get(),
-                app.widgets['max_y'].get()
+                app.custom_widgets['min_y'].get(),
+                app.custom_widgets['max_y'].get()
             )
         )
         trace_display.canvas.draw()
@@ -32,10 +32,10 @@ def load(parent):
 
     def default_axis_parameters():
         interface.focus()
-        app.widgets['min_x'].set('auto')
-        app.widgets['max_x'].set('auto')
-        app.widgets['min_y'].set('auto')
-        app.widgets['max_y'].set('auto')
+        app.custom_widgets['min_x'].set('auto')
+        app.custom_widgets['max_x'].set('auto')
+        app.custom_widgets['min_y'].set('auto')
+        app.custom_widgets['max_y'].set('auto')
         pass
 
     def default_nav_parameters():
@@ -46,11 +46,11 @@ def load(parent):
     def get_current_axes():
         interface.focus()
         xlim = trace_display.get_axis_limits('x')
-        app.widgets['min_x'].set(xlim[0])
-        app.widgets['max_x'].set(xlim[1])
+        app.custom_widgets['min_x'].set(xlim[0])
+        app.custom_widgets['max_x'].set(xlim[1])
         ylim = trace_display.get_axis_limits('y')
-        app.widgets['min_y'].set(ylim[0])
-        app.widgets['max_y'].set(ylim[1])
+        app.custom_widgets['min_y'].set(ylim[0])
+        app.custom_widgets['max_y'].set(ylim[1])
         pass
 
     def show_all(e=None):

@@ -62,7 +62,6 @@ def average_sweeps(recording:analyzer2.Recording,
         channels = range(recording.channel_count)
     if not sweeps:
         sweeps = range(recording.sweep_count)
-    print(recording.y_data.dtype)
     # create an empty matrix
     result = np.full((recording.channel_count, 1, recording.sweep_points),
                      fill_value=0,

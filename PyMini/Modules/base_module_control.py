@@ -3,11 +3,13 @@ import tkinter
 from PyMini import app
 from tkinter import BooleanVar, Frame
 from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame, OptionFrame
+from PyMini.utils import custom_widgets
 import yaml
 import os
+from tkinter import ttk
 import tkinter as Tk
 from .base_module import BaseModule
-class BaseControlModule(Frame):
+class BaseModuleControl(Frame):
     def __init__(self,
                  module:BaseModule,
                  scrollbar:bool=True,
@@ -57,8 +59,11 @@ class BaseControlModule(Frame):
         return title
 
     def insert_label_entry(self, **kwargs):
-        entry = self.optionframe.insert_label_entry(value=self.values.get(kwargs['name'], None),
-                                                    default=self.default.get(kwargs['name'], None), **kwargs)
+        if 'value' not in kwargs.keys():
+            kwargs['value'] = self.values.get(kwargs['name'], None)
+        if 'default' not in kwargs.keys():
+            kwargs['default'] = self.default.get(kwargs['name'], None)
+        entry = self.optionframe.insert_label_entry(**kwargs)
         try:
             self.widgets[kwargs['name']] = entry
         except:
@@ -74,8 +79,11 @@ class BaseControlModule(Frame):
         return button
 
     def insert_label_checkbox(self, **kwargs):
-        checkbox = self.optionframe.insert_label_checkbox(value=self.values.get(kwargs['name'], None),
-                                                          default=self.default.get(kwargs['name'],None), **kwargs)
+        if 'value' not in kwargs.keys():
+            kwargs['value'] = self.values.get(kwargs['name'], None)
+        if 'default' not in kwargs.keys():
+            kwargs['default'] = self.default.get(kwargs['name'], None)
+        checkbox = self.optionframe.insert_label_checkbox(**kwargs)
         try:
             self.widgets[kwargs['name']] = checkbox
         except:
@@ -83,8 +91,11 @@ class BaseControlModule(Frame):
         return checkbox
 
     def insert_label_optionmenu(self, **kwargs):
-        optionmenu = self.optionframe.insert_label_optionmenu(value=self.values.get(kwargs['name'],None),
-                                                              default=self.default[kwargs['name']], **kwargs)
+        if 'value' not in kwargs.keys():
+            kwargs['value'] = self.values.get(kwargs['name'], None)
+        if 'default' not in kwargs.keys():
+            kwargs['default'] = self.default.get(kwargs['name'], None)
+        optionmenu = self.optionframe.insert_label_optionmenu(**kwargs)
         try:
             self.widgets[kwargs['name']] = optionmenu
         except:
@@ -92,6 +103,21 @@ class BaseControlModule(Frame):
 
     def insert_StringVar(self, name):
         self.widgets[name] = Tk.StringVar(self, value=self.load_config_value(name))
+
+    def make_entry(self, parent, **kwargs):
+        if 'value' not in kwargs.keys():
+            kwargs['value'] = self.values.get(kwargs['name'], None)
+        if 'default' not in kwargs.keys():
+            kwargs['default'] = self.default.get(kwargs['name'], None)
+        self.widgets[kwargs['name']] = custom_widgets.VarEntry(parent=parent,
+                                                               **kwargs)
+        return self.widgets[kwargs['name']]
+
+    def make_label(self, parent, **kwargs):
+        return ttk.Label(parent, **kwargs)
+
+    def make_button(self, parent, **kwargs):
+        return ttk.Button(parent, **kwargs)
 
     def has_focus(self):
         # use this method to check if the tab is in focus
@@ -150,6 +176,7 @@ class BaseControlModule(Frame):
             else:
                 # self.widgets[k].set_to_default()
                 self.widgets[k].set(self.default[k])
+        app.interface.focus()
     def insert_file_menu(self):
         self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)
         app.menubar.file_menu.add_cascade(label=self.module.name, menu=self.file_menu)

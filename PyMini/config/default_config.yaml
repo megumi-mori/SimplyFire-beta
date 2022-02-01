@@ -55,11 +55,13 @@ default_start_module:
 #default_max_y : 'auto'
 #default_force_axis_limit : 0
 #
-#default_navigation_scroll_percent : 3
-#default_navigation_fps : 12
-#default_navigation_zoom_percent : 10
-#default_navigation_mirror_y_scroll : 1
-#default_navigation_mirror_x_scroll : 1
+default_navigation_scroll_x_percent : 3
+default_navigation_scroll_y_percent : 3
+default_navigation_fps : 12
+default_navigation_zoom_x_percent : 10
+default_navigation_zoom_y_percent : 10
+default_navigation_mirror_y_scroll : 1
+default_navigation_mirror_x_scroll : 1
 #
 ## adjust
 #default_adjust_target: 'All sweeps'
@@ -189,9 +191,9 @@ default_config_undo_stack : 2
 #
 #
 ## channel
-#default_channel_option : ""
-#default_force_channel : 0
-#default_force_channel_id: 0
+default_channel_option : ""
+default_force_channel : 0
+default_force_channel_id: 0
 #
 ## sweep
 #default_export_sweep : 1

@@ -4,13 +4,15 @@ import yaml
 import pkg_resources
 from PIL import Image
 import os
-from PyMini.utils import widget
+from PyMini.utils import custom_widgets
 from PyMini.Backend import interpreter, interface
 from PyMini.config import config
-from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
-    sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar,\
-    compare_tab
-from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display, param_guide
+# from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
+#     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar,\
+#     compare_tab
+from PyMini.Layout import menubar, graph_panel
+# from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display, param_guide
+from PyMini.DataVisualizer import log_display, results_display, trace_display
 import importlib
 
 # debugging
@@ -230,13 +232,13 @@ def load(splash):
     # setting_tab.set_fontsize(widgets['font_size'].get())
     # # set focus rules
     for key in widgets:
-        if type(widgets[key]) == widget.VarEntry:
+        if type(widgets[key]) == custom_widgets.VarEntry:
             widgets[key].bind('<Return>', lambda e: interface.focus(), add='+')
-        if type(widgets[key]) == widget.VarCheckbutton:
+        if type(widgets[key]) == custom_widgets.VarCheckbutton:
             widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
-        if type(widgets[key]) == widget.VarOptionmenu:
+        if type(widgets[key]) == custom_widgets.VarOptionmenu:
             widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
-        if type(widgets[key]) == widget.VarCheckbutton:
+        if type(widgets[key]) == custom_widgets.VarCheckbutton:
             widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
 
     # set up font adjustment bar
@@ -320,9 +322,7 @@ def load(splash):
         except: # module removed from module-list
             pass
     for module_name, module in modules_dict.items():
-        module.toggle_module_display()
-        if getattr(module, 'data_tab', None):
-            module.data_tab.fit_columns()
+        module.update_module_display()
 
     ## root2 = root
     loaded = True

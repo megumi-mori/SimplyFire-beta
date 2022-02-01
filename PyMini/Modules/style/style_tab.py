@@ -1,9 +1,9 @@
-from PyMini.Modules.base_control_module import BaseControlModule
+from PyMini.Modules.base_module_control import BaseModuleControl
 from PyMini import app
-from PyMini.utils.widget import VarEntry
+from PyMini.utils.custom_widgets import VarEntry
 from tkinter import ttk
 import tkinter as Tk
-class ModuleControl(BaseControlModule):
+class ModuleControl(BaseModuleControl):
     def __init__(self, module):
         super(ModuleControl, self).__init__(
             scrollbar=True,
@@ -59,4 +59,4 @@ class ModuleControl(BaseControlModule):
         pass
 
     def _load_binding(self):
-        app.root.bind('<<LoadCompleted>>', lambda e, func=self.apply_styles:self.call_if_visible(func))
+        app.root.bind('<<LoadCompleted>>', self.apply_styles, add='+')

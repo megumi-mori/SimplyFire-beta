@@ -338,8 +338,8 @@ def scroll_x_key(event, direction):
     #                           float(app.widgets['navigation_scroll_percent'].get()))
     if not scrolling_x:
         scroll_x_repeat(direction * int(app.widgets['navigation_mirror_x_scroll'].get()),
-                     int(app.widgets['navigation_fps'].get()),
-                     float(app.widgets['navigation_scroll_percent'].get()) * navigation_speed)
+                        int(app.widgets['navigation_fps'].get()),
+                        float(app.widgets['navigation_scroll_x_percent'].get()) * navigation_speed)
     scrolling_x = True
 
 def scroll_y_key(event, direction):
@@ -348,8 +348,8 @@ def scroll_y_key(event, direction):
         # app.trace_display.scroll_y_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
         #                       float(app.widgets['navigation_scroll_percent'].get()))
         scroll_y_repeat(direction * int(app.widgets['navigation_mirror_y_scroll'].get()),
-                     int(app.widgets['navigation_fps'].get()),
-                     float(app.widgets['navigation_scroll_percent'].get()))
+                        int(app.widgets['navigation_fps'].get()),
+                        float(app.widgets['navigation_scroll_y_percent'].get()))
     scrolling_y = True
 
 def scroll_x_repeat(direction, fps, percent):
@@ -419,7 +419,7 @@ def zoom_x_key(event, direction):
     if not zooming_x:
         zoom_x_repeat(direction,
                       int(app.widgets['navigation_fps'].get()),
-                      float(app.widgets['navigation_zoom_percent'].get()))
+                      float(app.widgets['navigation_zoom_x_percent'].get()))
     zooming_x = True
 
 def zoom_x_repeat(direction, fps, percent):
@@ -443,7 +443,7 @@ def zoom_y_key(event, direction):
         zoom_y_repeat(
             direction,
             int(app.widgets['navigation_fps'].get()),
-            float(app.widgets['navigation_zoom_percent'].get())
+            float(app.widgets['navigation_zoom_y_percent'].get())
         )
     zooming_y = True
 

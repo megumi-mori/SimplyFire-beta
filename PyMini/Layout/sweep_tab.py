@@ -38,7 +38,7 @@ def load(parent):
     list_frame.grid(sticky='news')
     frame.insert_panel(list_frame, separator=False)
 
-    app.widgets['sweep_picker_offset'] = frame.insert_label_entry(
+    app.custom_widgets['sweep_picker_offset'] = frame.insert_label_entry(
         name='sweep_picker_offset',
         label='Sweep picker search radius (% of x-axis)', #might change to us
         validate_type=('float')

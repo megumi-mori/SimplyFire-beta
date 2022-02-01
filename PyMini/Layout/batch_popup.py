@@ -5,7 +5,7 @@ from PyMini import app
 from PyMini.Backend import interface
 from PyMini.Layout import menubar, adjust_tab, detector_tab, evoked_tab
 from PyMini.DataVisualizer import data_display, evoked_data_display, results_display
-from PyMini.utils.widget import DataTable, VarText, VarLabel
+from PyMini.utils.custom_widgets import DataTable, VarText, VarLabel
 import os
 from PIL import Image, ImageTk
 import yaml

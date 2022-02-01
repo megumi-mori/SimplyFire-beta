@@ -1,11 +1,11 @@
 from PyMini import app
-from PyMini.Modules.base_table_module import BaseTableModule
+from PyMini.Modules.base_module_table import BaseModuleDataTable
 from collections import OrderedDict
-from PyMini.utils.widget import DataTable
+from PyMini.utils.custom_widgets import DataTable
 
-class ModuleTable(BaseTableModule):
+class ModuleDataTable(BaseModuleDataTable):
     def __init__(self, module):
-        super(ModuleTable, self).__init__(
+        super(ModuleDataTable, self).__init__(
             module=module
         )
         self.mini_header2config = OrderedDict([

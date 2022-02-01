@@ -668,9 +668,9 @@ def plot_highlight(xs, ys):
         pass
     try:
         markers['highlight'], = ax.plot(xs, ys, marker='o', c=app.widgets['style_event_highlight_color'].get(),
-                                          markersize=app.widgets['style_event_highlight_size'].get(),
-                                       linestyle='None',
-                                          alpha=0.5, animated=False)
+                                        markersize=app.widgets['style_event_highlight_size'].get(),
+                                        linestyle='None',
+                                        alpha=0.5, animated=False)
         # canvas.draw()
     except:
         pass
@@ -684,7 +684,7 @@ def plot_peak(xs, ys):
         pass
     try:
         markers['peak'] = ax.scatter(xs, ys, marker='o', c=app.widgets['style_event_peak_color'].get(), picker=True,
-                                     s=float(app.widgets['style_event_peak_size'].get())**2,
+                                     s=float(app.widgets['style_event_peak_size'].get()) ** 2,
                                      pickradius=float(app.widgets['style_event_pick_offset'].get()), animated=False)
         # canvas.draw()
     except:
@@ -699,9 +699,9 @@ def plot_start(xs, ys):
         pass
     try:
         markers['start'], = ax.plot(xs, ys, marker='x', c=app.widgets['style_event_start_color'].get(),
-                                      markersize=app.widgets['style_event_start_size'].get(),
-                                      linestyle='None',
-                                      animated=False)
+                                    markersize=app.widgets['style_event_start_size'].get(),
+                                    linestyle='None',
+                                    animated=False)
         # canvas.draw()
     except:
         pass
@@ -715,9 +715,9 @@ def plot_decay(xs, ys):
         pass
     try:
         markers['decay'], = ax.plot(xs, ys, marker='x', c=app.widgets['style_event_decay_color'].get(),
-                                      markersize=app.widgets['style_event_decay_size'].get(),
-                                      linestyle='None',
-                                      animated=False)
+                                    markersize=app.widgets['style_event_decay_size'].get(),
+                                    linestyle='None',
+                                    animated=False)
         # canvas.draw()
     except:
         pass
@@ -731,7 +731,7 @@ def plot_end(xs, ys):
         pass
     try:
         markers['end'], = ax.plot(xs, ys, marker='x', c=app.widgets['style_event_color_end'].get(),
-                                    animated=False)
+                                  animated=False)
         # canvas.draw()
     except:
         pass
@@ -757,7 +757,7 @@ def apply_styles(keys, draw=True):
             if k == 'style_event_peak_color':
                 markers['peak'].set_color(app.widgets[k].get())
             if k == 'style_event_peak_size':
-                markers['peak'].set_sizes([float(app.widgets[k].get())**2])
+                markers['peak'].set_sizes([float(app.widgets[k].get()) ** 2])
             if k == 'style_event_start_color':
                 markers['start'].set_color(app.widgets[k].get())
             if k == 'style_event_start_size':

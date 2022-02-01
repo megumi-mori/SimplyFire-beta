@@ -2,7 +2,7 @@ from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame, OptionFr
 from tkinter import ttk, StringVar
 import tkinter as Tk
 from PyMini.config import config
-from PyMini.utils import widget
+from PyMini.utils import custom_widgets
 from PyMini.Backend import interface
 from PyMini.Layout.base_module import BaseModule
 from PyMini import app
@@ -65,10 +65,10 @@ class AdjustTab(BaseModule):
         panel = Tk.Frame(self.baseline_panel)
         panel.grid_columnconfigure(0, weight=1)
         panel.grid_columnconfigure(1, weight=1)
-        self.widgets['adjust_range_left'] = widget.VarEntry(parent=panel, name='adjust_range_left', validate_type='float')
+        self.widgets['adjust_range_left'] = widgets.VarEntry(parent=panel, name='adjust_range_left', validate_type='float')
         self.widgets['adjust_range_left'].grid(column=0, row=0, sticky='news')
 
-        self.widgets['adjust_range_right'] = widget.VarEntry(parent=panel, name='adjust_range_right', validate_type='float')
+        self.widgets['adjust_range_right'] = widgets.VarEntry(parent=panel, name='adjust_range_right', validate_type='float')
         self.widgets['adjust_range_right'].grid(column=1, row=0, sticky='news')
         self.baseline_panel.insert_widget(panel)
 
@@ -81,7 +81,7 @@ class AdjustTab(BaseModule):
         )
         self.baseline_panel.insert_widget(self.baseline_option_buttons['fixed'])
 
-        self.widgets['adjust_fixed'] = widget.VarEntry(parent=self.baseline_panel, name='adjust_fixed', validate_type='float')
+        self.widgets['adjust_fixed'] = widgets.VarEntry(parent=self.baseline_panel, name='adjust_fixed', validate_type='float')
         self.baseline_panel.insert_widget(self.widgets['adjust_fixed'])
 
         self.frame.insert_button(
@@ -322,10 +322,10 @@ def load(parent):
     panel = Tk.Frame(baseline_panel)
     panel.grid_columnconfigure(0, weight=1)
     panel.grid_columnconfigure(1, weight=1)
-    widgets['adjust_range_left'] = widget.VarEntry(parent=panel, name='adjust_range_left', validate_type='float')
+    widgets['adjust_range_left'] = widgets.VarEntry(parent=panel, name='adjust_range_left', validate_type='float')
     widgets['adjust_range_left'].grid(column=0, row=0, sticky='news')
 
-    widgets['adjust_range_right'] = widget.VarEntry(parent=panel, name='adjust_range_right', validate_type='float')
+    widgets['adjust_range_right'] = widgets.VarEntry(parent=panel, name='adjust_range_right', validate_type='float')
     widgets['adjust_range_right'].grid(column=1, row=0, sticky='news')
     baseline_panel.insert_widget(panel)
 
@@ -338,7 +338,7 @@ def load(parent):
     )
     baseline_panel.insert_widget(baseline_option_buttons['fixed'])
 
-    widgets['adjust_fixed'] = widget.VarEntry(parent=baseline_panel, name='adjust_fixed', validate_type='float')
+    widgets['adjust_fixed'] = widgets.VarEntry(parent=baseline_panel, name='adjust_fixed', validate_type='float')
     baseline_panel.insert_widget(widgets['adjust_fixed'])
 
     frame.insert_button(
@@ -500,7 +500,7 @@ def _select_baseline_mode(e=None, undo=True):
 
 def adjust_baseline(e=None):
     interface.focus()
-    if app.widgets['trace_mode'].get() == 'compare':
+    if app.custom_widgets['trace_mode'].get() == 'compare':
         return None
     all_channels = True
     if widgets['adjust_channel'].get():
@@ -526,7 +526,7 @@ def adjust_baseline(e=None):
 #### Trace Averaging #####
 def average_trace(e=None):
     interface.focus()
-    if app.widgets['trace_mode'].get() != 'overlay':
+    if app.custom_widgets['trace_mode'].get() != 'overlay':
         return None
     if widgets['adjust_channel'].get():
         all_channels = False
@@ -543,7 +543,7 @@ def average_trace(e=None):
 #### Filtering #####
 def filter(e=None):
     interface.focus()
-    if app.widgets['trace_mode'].get() == 'compare':
+    if app.custom_widgets['trace_mode'].get() == 'compare':
         return None
     if widgets['adjust_channel'].get():
         all_channels = False

@@ -16,7 +16,7 @@ def find_all(popup=True):
         return None
 
     # don't do anything if the app is in the wrong setting
-    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+    if app.custom_widgets['analysis_mode'].get() != 'mini' or app.custom_widgets['trace_mode'].get() != 'continuous':
         return None
     # global stop_button
     # stop_button.config(state = 'normal')
@@ -48,7 +48,7 @@ def start_find_all_process(popup=True):
 def find_in_window(popup=True):
     if len(interface.recordings) == 0:
         return None
-    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+    if app.custom_widgets['analysis_mode'].get() != 'mini' or app.custom_widgets['trace_mode'].get() != 'continuous':
         return None
     # global stop_button
     # stop_button.config(state='normal')
@@ -77,28 +77,28 @@ def filter_all(e=None):
     interface.focus()
     if len(interface.recordings) == 0:
         return None
-    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+    if app.custom_widgets['analysis_mode'].get() != 'mini' or app.custom_widgets['trace_mode'].get() != 'continuous':
         return None
     interface.filter_mini()
 def filter_in_window(e=None):
     interface.focus()
     if len(interface.recordings) == 0:
         return None
-    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+    if app.custom_widgets['analysis_mode'].get() != 'mini' or app.custom_widgets['trace_mode'].get() != 'continuous':
         return None
     interface.filter_mini(trace_display.ax.get_xlim())
 def delete_all(e=None):
     interface.focus()
     if len(interface.recordings) == 0:
         return None
-    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+    if app.custom_widgets['analysis_mode'].get() != 'mini' or app.custom_widgets['trace_mode'].get() != 'continuous':
         return None
     interface.delete_all_events()
 def delete_in_window(e=None):
     interface.focus()
     if len(interface.recordings) == 0:
         return None
-    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+    if app.custom_widgets['analysis_mode'].get() != 'mini' or app.custom_widgets['trace_mode'].get() != 'continuous':
         return None
     interface.delete_events_in_range(trace_display.ax.get_xlim())
 def populate_decay_algorithms(e=None):
@@ -117,7 +117,7 @@ def populate_decay_algorithms(e=None):
     pass
 def report(e=None):
     interface.focus()
-    if app.widgets['analysis_mode'].get() != 'mini' or app.widgets['trace_mode'].get() != 'continuous':
+    if app.custom_widgets['analysis_mode'].get() != 'mini' or app.custom_widgets['trace_mode'].get() != 'continuous':
         return None
     data_display.report()
 def load(parent):
@@ -144,8 +144,8 @@ def load(parent):
         interface.focus()
         global changed
         for i in parameters:
-            if parameters[i] != app.widgets[i].get():
-                changes[i] = app.widgets[i].get()
+            if parameters[i] != app.custom_widgets[i].get():
+                changes[i] = app.custom_widgets[i].get()
                 changed = True
 
     # frame = ScrollableOptionFrame(parent)

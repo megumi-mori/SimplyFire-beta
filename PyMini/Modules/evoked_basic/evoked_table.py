@@ -1,10 +1,10 @@
-from PyMini.Modules.base_table_module import BaseTableModule
+from PyMini.Modules.base_module_table import BaseModuleDataTable
 from PyMini import app
 from PyMini.Backend import analyzer2
 import pandas as pd
 import numpy as np
 from tkinter import messagebox
-class ModuleTable(BaseTableModule):
+class ModuleDataTable(BaseModuleDataTable):
     def __init__(self, module):
         super().__init__(
             module=module

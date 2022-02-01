@@ -1,7 +1,7 @@
 # from utils.scrollable_frame import ScrollableFrame
 import tkinter as Tk
 from tkinter import ttk
-from PyMini.utils import widget
+from PyMini.utils import custom_widgets
 from PyMini.config import config
 import yaml
 import textwrap
@@ -65,7 +65,7 @@ class OptionFrame(Tk.Frame):
             **kwargs
 
     ):
-        w = widget.VarEntry(
+        w = custom_widgets.VarEntry(
             parent=parent,
             name=name,
             value=value,
@@ -88,7 +88,7 @@ class OptionFrame(Tk.Frame):
             command=None,
             **kwargs
     ):
-        w = widget.VarOptionmenu(
+        w = custom_widgets.VarOptionmenu(
             parent=parent,
             name=name,
             value=value,
@@ -111,7 +111,7 @@ class OptionFrame(Tk.Frame):
             command=None,
             **kwargs
     ):
-        w = widget.VarCheckbutton(
+        w = custom_widgets.VarCheckbutton(
             parent=parent,
             name=name,
             value=value,

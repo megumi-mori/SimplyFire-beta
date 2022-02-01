@@ -5,7 +5,7 @@ from collections import OrderedDict  # Python 3.7+ can use dict
 from PyMini import app
 from PyMini.Backend import interface, interpreter
 from PyMini.Layout import detector_tab
-from PyMini.utils.widget import DataTable
+from PyMini.utils.custom_widgets import DataTable
 from PyMini.DataVisualizer import results_display, param_guide
 from PyMini.config import config
 
@@ -159,7 +159,7 @@ def clear():
     saved = False
 
 def delete_selected(e=None):
-    if app.widgets['analysis_mode'].get() == 'mini':
+    if app.custom_widgets['analysis_mode'].get() == 'mini':
         sel = dataframe.table.selection()
         interface.delete_event([i for i in sel])
     global saved
@@ -173,7 +173,7 @@ def select(e=None):
     selected = table.selection()
     if len(selected)>0:
         table.see(selected[0])
-    if app.widgets['analysis_mode'].get() == 'mini':
+    if app.custom_widgets['analysis_mode'].get() == 'mini':
         if len(selected) == 1:
             interface.select_single_mini(float(selected[0]))
         interface.highlight_selected_mini([float(i) for i in selected])

@@ -1,7 +1,7 @@
 import matplotlib.backend_bases
-from PyMini.Modules.base_control_module import BaseControlModule
+from PyMini.Modules.base_module_control import BaseModuleControl
 from PyMini import app
-from PyMini.utils import writer, widget
+from PyMini.utils import writer, custom_widgets
 from . import analysis
 import pandas as pd
 import os
@@ -13,7 +13,7 @@ from PyMini.Backend import analyzer2
 # debugging
 import time
 import inspect
-class ModuleControl(BaseControlModule):
+class ModuleControl(BaseModuleControl):
     def __init__(self, module):
         super(ModuleControl, self).__init__(
             module=module,
@@ -258,7 +258,7 @@ class ModuleControl(BaseControlModule):
             messagebox.showerror('Error', 'Please open a recording file first')
             return None
         self.module.data_tab.unselect()
-        if app.widgets['trace_mode'].get() != 'continuous':
+        if app.widgetsapp.widgets['trace_mode'].get() != 'continuous':
             return None # disable module
         try:
             xs = app.trace_display.sweeps['Sweep_0'].get_xdata()
@@ -570,7 +570,7 @@ class ModuleControl(BaseControlModule):
                         'decay_coord_x': float(info[header_idx['tau_x']]),
                         'decay_coord_y': float(info[header_idx['tau_y']]),
                         'decay_max_points': int(
-                            float(app.widgets['detector_core_decay_max_interval'].get()) / 1000 * app.interface.recordings[
+                            float(self.widgets['detector_core_decay_max_interval'].get()) / 1000 * app.interface.recordings[
                                 0].sampling_rate),
                         'failure': None,
                         'lag': int(info[header_idx['lag']]),
@@ -626,7 +626,7 @@ class ModuleControl(BaseControlModule):
                                                                                     baseline=mini['baseline'],
                                                                                     direction=mini['direction'])
                     if hw_start_idx is not None and hw_end_idx is None:
-                        if app.widgets['detector_core_extrapolate_hw'].get():
+                        if self.widgets['detector_core_extrapolate_hw'].get():
                             t = np.log(0.5) * (-1) * mini['decay_const'] / 1000
                             hw_end_idx = analyzer2.search_index(xs[mini['peak_idx']] + t, xs[mini['baseline_idx']:],
                                                                 app.interface.recordings[0].sampling_rate)
@@ -1079,8 +1079,8 @@ class ModuleControl(BaseControlModule):
         ttk.Label(panel, text='color', justify=Tk.CENTER).grid(column=style_tab.color_column, row=row,
                                                                                sticky='news')
         def place_VarEntry(name, column, row, frame, width=None, validate_type=""):
-            self.widgets[name] = widget.VarEntry(frame, name=name, width=width, validate_type=validate_type,
-                                          value=self.values.get(name, None), default=self.default.get(name, None))
+            self.widgets[name] = custom_widgets.VarEntry(frame, name=name, width=width, validate_type=validate_type,
+                                                         value=self.values.get(name, None), default=self.default.get(name, None))
             self.widgets[name].grid(column=column, row=row, sticky='news')
 
         row += 1

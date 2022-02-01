@@ -1,10 +1,10 @@
 from PyMini import app
-from PyMini.Modules.base_control_module import BaseControlModule
+from PyMini.Modules.base_module_control import BaseModuleControl
 from . import process
 import tkinter as Tk
 from tkinter import ttk
-from PyMini.utils import widget
-class ModuleControl(BaseControlModule):
+from PyMini.utils import custom_widgets
+class ModuleControl(BaseModuleControl):
     def __init__(self, module):
         super(ModuleControl, self).__init__(
             module=module,
@@ -12,7 +12,6 @@ class ModuleControl(BaseControlModule):
                  )
         self._load_layout()
     def average_sweeps(self, event=None):
-        print(app.interface.recordings[0].y_data.dtype)
         if app.widgets['trace_mode'].get() == 'continuous':
             return
         if self.widgets['channel_target'].get():
@@ -180,15 +179,15 @@ class ModuleControl(BaseControlModule):
         panel.grid_columnconfigure(0, weight=1)
         panel.grid_columnconfigure(1, weight=1)
 
-        self.widgets['baseline_range_left'] = widget.VarEntry(parent=panel, name='baseline_range_left',
-                                                            validate_type='float',
-                                                              value=self.values.get('baseline_range_left',
+        self.widgets['baseline_range_left'] = custom_widgets.VarEntry(parent=panel, name='baseline_range_left',
+                                                                      validate_type='float',
+                                                                      value=self.values.get('baseline_range_left',
                                                                                     self.default.get(
                                                                                         'baseline_range_left', None)))
         self.widgets['baseline_range_left'].grid(column=0, row=0, sticky='news')
-        self.widgets['baseline_range_right'] = widget.VarEntry(parent=panel, name='baseline_range_rigjt',
-                                                            validate_type='float',
-                                                            value=self.values.get('baseline_range_right',
+        self.widgets['baseline_range_right'] = custom_widgets.VarEntry(parent=panel, name='baseline_range_rigjt',
+                                                                       validate_type='float',
+                                                                       value=self.values.get('baseline_range_right',
                                                                                   self.default.get('baseline_range_right',
                                                                                                    None)))
         self.widgets['baseline_range_right'].grid(column=1, row=0, sticky='news')
@@ -197,9 +196,9 @@ class ModuleControl(BaseControlModule):
         panel.grid_columnconfigure(0, weight=1)
         panel.grid(row=0, column=0, sticky='news')
 
-        self.widgets['baseline_fixed'] = widget.VarEntry(parent=panel, name='baseline_fixed',
-                                                            validate_type='float',
-                                                            value=self.values.get('baseline_fixed',
+        self.widgets['baseline_fixed'] = custom_widgets.VarEntry(parent=panel, name='baseline_fixed',
+                                                                 validate_type='float',
+                                                                 value=self.values.get('baseline_fixed',
                                                                                   self.default.get('baseline_fixed',
                                                                                                    None)))
         self.widgets['baseline_fixed'].grid(row=0, column=0, sticky='news')

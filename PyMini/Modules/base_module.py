@@ -139,7 +139,7 @@ class BaseModule():
             elif details['location'] == 'data_notebook':
                 module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
                 try:
-                    self.data_tab = getattr(module_py, 'ModuleTable', None)(self)
+                    self.data_tab = getattr(module_py, 'ModuleDataTable', None)(self)
                 except TypeError:
                     self._error_log(f'component {component} does not have attribute ModuleTable')
                     pass

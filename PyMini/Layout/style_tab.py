@@ -2,7 +2,7 @@ import tkinter as Tk
 from tkinter import ttk
 
 from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
-from PyMini.utils.widget import VarEntry
+from PyMini.utils.custom_widgets import VarEntry
 # import PyMini.app as app
 from PyMini import app
 from PyMini.Backend import interface

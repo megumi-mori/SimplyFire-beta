@@ -1,10 +1,10 @@
 from tkinter import BooleanVar
-from PyMini.utils.widget import DataTable
+from PyMini.utils.custom_widgets import DataTable
 from PyMini import app
 import tkinter as Tk
 from tkinter import Frame
 from PyMini.Modules.base_module import BaseModule
-class BaseTableModule(DataTable):
+class BaseModuleDataTable(DataTable):
     def __init__(self,
                  module:BaseModule
                  ):

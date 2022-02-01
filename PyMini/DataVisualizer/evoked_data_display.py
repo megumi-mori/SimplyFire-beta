@@ -1,6 +1,6 @@
 import pandas
 import numpy as np
-from PyMini.utils.widget import DataTable
+from PyMini.utils.custom_widgets import DataTable
 import tkinter as Tk
 from PyMini.Backend import interface, analyzer2
 from PyMini.DataVisualizer import results_display

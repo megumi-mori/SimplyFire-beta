@@ -3,8 +3,8 @@ from tkinter import ttk
 from math import isnan
 from PyMini import app
 from PyMini.Backend import analyzer2, interface
-from PyMini.utils import widget
-from PyMini.utils.widget import NavigationToolbar
+from PyMini.utils import custom_widgets
+from PyMini.utils.custom_widgets import NavigationToolbar
 from PyMini.config import config
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -13,7 +13,7 @@ from functools import partial
 import gc
 
 def _on_close():
-    app.widgets['window_param_guide'].set(0)
+    app.custom_widgets['window_param_guide'].set(0)
     window.withdraw()
 
 def load():
@@ -118,9 +118,9 @@ def create_window():
 
 
     global msg_label
-    msg_label = widget.VarText(parent=msg_frame, name='param_guide_msg', value="", default="", state='disabled')
+    msg_label = custom_widgets.VarText(parent=msg_frame, name='param_guide_msg', value="", default="", state='disabled')
     msg_label.grid(column=0, row=0, sticky='news')
-    Tk.Text.configure(msg_label, font=Tk.font.Font(size=int(float(app.widgets['font_size'].get()))))
+    Tk.Text.configure(msg_label, font=Tk.font.Font(size=int(float(app.custom_widgets['font_size'].get()))))
 
     vsb = ttk.Scrollbar(msg_frame, orient=Tk.VERTICAL, command=msg_label.yview)
     vsb.grid(column=1, row=0, sticky='ns')
@@ -142,10 +142,10 @@ def accept(e=None):
 
 def update():
     try:
-        ax.set_xlabel(trace_display.ax.get_xlabel(), fontsize=int(float(app.widgets['font_size'].get())))
-        ax.set_ylabel(trace_display.ax.get_ylabel(), fontsize=int(float(app.widgets['font_size'].get())))
-        ax.tick_params(axis='y', which='major', labelsize=int(float(app.widgets['font_size'].get())))
-        ax.tick_params(axis='x', which='major', labelsize=int(float(app.widgets['font_size'].get())))
+        ax.set_xlabel(trace_display.ax.get_xlabel(), fontsize=int(float(app.custom_widgets['font_size'].get())))
+        ax.set_ylabel(trace_display.ax.get_ylabel(), fontsize=int(float(app.custom_widgets['font_size'].get())))
+        ax.tick_params(axis='y', which='major', labelsize=int(float(app.custom_widgets['font_size'].get())))
+        ax.tick_params(axis='x', which='major', labelsize=int(float(app.custom_widgets['font_size'].get())))
         canvas.draw()
     except:
         pass
@@ -182,16 +182,16 @@ def plot_trace(xs, ys, label=None):
     if label is None:
         label = 'Recording'
     try:
-        ax.plot(xs, ys, linewidth=app.widgets['style_trace_line_width'].get(),
-                c=app.widgets['style_trace_line_color'].get(), label=label)
+        ax.plot(xs, ys, linewidth=app.custom_widgets['style_trace_line_width'].get(),
+                c=app.custom_widgets['style_trace_line_color'].get(), label=label)
         ax.autoscale(enable=True, axis='both', tight=True)
         ax.relim()
     except Exception as e:
         print('plot_trace error {}'.format(e))
         pass
 def plot_recording(xs, ys, xlim=None):
-    ax.plot(xs, ys, linewidth=app.widgets['style_trace_line_width'].get(),
-            c=app.widgets['style_trace_line_color'].get(),
+    ax.plot(xs, ys, linewidth=app.custom_widgets['style_trace_line_width'].get(),
+            c=app.custom_widgets['style_trace_line_color'].get(),
             label='Recording')
     ax.autoscale(enable=True,axis='both',tight=True)
     ax.relim()
@@ -214,15 +214,15 @@ def plot_search(xs, ys):
 
 def plot_baseline_calculation(xs, ys):
     try:
-        ax.plot(xs, ys, linewidth=app.widgets['style_trace_line_width'].get(),
-                c=app.widgets['style_event_start_color'].get(), label='baseline')
+        ax.plot(xs, ys, linewidth=app.custom_widgets['style_trace_line_width'].get(),
+                c=app.custom_widgets['style_event_start_color'].get(), label='baseline')
         # canvas.draw()
     except:
         pass
 
 def plot_start(x, y):
     try:
-        ax.scatter(x, y, marker='x', c=app.widgets['style_event_start_color'].get(),
+        ax.scatter(x, y, marker='x', c=app.custom_widgets['style_event_start_color'].get(),
                    label='Event start')
         # canvas.draw()
     except Exception as e:
@@ -238,8 +238,8 @@ def plot_base_range(xs, ys):
 def plot_peak(x, y):
     try:
         global peak
-        peak = ax.scatter(x, y, marker='o', c=app.widgets['style_event_peak_color'].get(),
-                          s=float(app.widgets['style_event_peak_size'].get())**2,
+        peak = ax.scatter(x, y, marker='o', c=app.custom_widgets['style_event_peak_color'].get(),
+                          s=float(app.custom_widgets['style_event_peak_size'].get()) ** 2,
                           label='Peak')
         # canvas.draw()
     except Exception as e:
@@ -248,14 +248,14 @@ def plot_peak(x, y):
 
 def plot_amplitude(peak_coord, baseline):
     ax.plot([peak_coord[0], peak_coord[0]], [peak_coord[1], baseline],
-            linewidth = app.widgets['style_trace_line_width'].get(),
+            linewidth = app.custom_widgets['style_trace_line_width'].get(),
             c='black',
             # label='Amplitude'
             )
 
 def plot_base_simple(start_x, end_x, baseline):
     ax.plot([start_x, end_x], [baseline, baseline],
-            linewidth = app.widgets['style_trace_line_width'].get(),
+            linewidth = app.custom_widgets['style_trace_line_width'].get(),
             c='black',
             # label='Baseline'
             )
@@ -270,7 +270,7 @@ def plot_base_extrapolate(xs, A, decay, baseline, direction):
     pass
 def plot_ruler(coord1, coord2):
     try:
-        ax.plot([coord1[0], coord2[0]], [coord1[1], coord2[1]], linewidth = float(app.widgets['style_trace_line_width'].get()), c='black')
+        ax.plot([coord1[0], coord2[0]], [coord1[1], coord2[1]], linewidth = float(app.custom_widgets['style_trace_line_width'].get()), c='black')
         # canvas.draw()
     except Exception as e:
         print(e)
@@ -278,26 +278,26 @@ def plot_ruler(coord1, coord2):
 
 def plot_decay_fit(xs, A, decay, decay_base=0, baseline=0, direction=1):
     # try:
-    ax.plot(xs, analyzer2.single_exponent_constant(xs-xs[0], A, decay, decay_base)*direction + baseline,
-            linewidth=app.widgets['style_trace_line_width'].get(),
-            c=app.widgets['style_event_decay_color'].get(),
+    ax.plot(xs, analyzer2.single_exponent_constant(xs-xs[0], A, decay, decay_base) * direction + baseline,
+            linewidth=app.custom_widgets['style_trace_line_width'].get(),
+            c=app.custom_widgets['style_event_decay_color'].get(),
             label='Decay fit')
 def plot_decay_extrapolate(xs,A,decay,decay_base,baseline,prev_A,prev_decay,prev_base,prev_t,direction):
     y = analyzer2.single_exponent_constant(xs-xs[0],A,decay,decay_base)*direction
     prev_y = analyzer2.single_exponent_constant(xs-prev_t,prev_A, prev_decay, prev_base) * direction
     ys = y + prev_y + baseline
-    ax.plot(xs, ys,linewidth = app.widgets['style_trace_line_width'].get(),
-            c=app.widgets['style_event_decay_color'].get(),
+    ax.plot(xs, ys, linewidth = app.custom_widgets['style_trace_line_width'].get(),
+            c=app.custom_widgets['style_event_decay_color'].get(),
             label='Decay fit')
     pass
 
 def plot_decay_point(x, y):
-    ax.scatter(x, y, marker='x', c=app.widgets['style_event_decay_color'].get(),
+    ax.scatter(x, y, marker='x', c=app.custom_widgets['style_event_decay_color'].get(),
                label='t=decay constant')
 
 def plot_halfwidth(coord1, coord2):
     ax.plot([coord1[0], coord2[0]], [coord1[1],coord2[1]],
-            linewidth=app.widgets['style_trace_line_width'].get(),
+            linewidth=app.custom_widgets['style_trace_line_width'].get(),
             c='black')
 
 def reanalyze(e=None):

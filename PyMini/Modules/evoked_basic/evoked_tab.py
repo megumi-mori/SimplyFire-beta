@@ -1,11 +1,11 @@
-from PyMini.Modules.base_control_module import BaseControlModule
+from PyMini.Modules.base_module_control import BaseModuleControl
 from PyMini import app
-from PyMini.utils import widget
+from PyMini.utils import custom_widgets
 import tkinter as Tk
 from tkinter import messagebox
 
 from . import evoked_analysis
-class ModuleControl(BaseControlModule):
+class ModuleControl(BaseModuleControl):
     def __init__(self, module):
         super().__init__(
             module=module,
@@ -13,6 +13,7 @@ class ModuleControl(BaseControlModule):
         )
 
         self._load_layout()
+        self._load_binding()
     def calculate_min_max(self, event=None):
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
@@ -124,15 +125,15 @@ class ModuleControl(BaseControlModule):
         panel.grid_columnconfigure(0, weight=1)
         panel.grid_columnconfigure(1, weight=1)
 
-        self.widgets['range_left'] = widget.VarEntry(parent=panel, name='range_left',
-                                                     validate_type='float',
-                                                     value=self.values.get('range_left',
+        self.widgets['range_left'] = custom_widgets.VarEntry(parent=panel, name='range_left',
+                                                             validate_type='float',
+                                                             value=self.values.get('range_left',
                                                                            self.default.get(
                                                                                'range_left', None)))
         self.widgets['range_left'].grid(column=0, row=0, sticky='news')
-        self.widgets['range_right'] = widget.VarEntry(parent=panel, name='range_rigjt',
-                                                               validate_type='float',
-                                                               value=self.values.get('range_right',
+        self.widgets['range_right'] = custom_widgets.VarEntry(parent=panel, name='range_rigjt',
+                                                              validate_type='float',
+                                                              value=self.values.get('range_right',
                                                                                      self.default.get(
                                                                                          'range_right',
                                                                                          None)))
@@ -147,3 +148,6 @@ class ModuleControl(BaseControlModule):
             text='Calculate Min/Max',
             command=self.calculate_min_max
         )
+
+    def _load_binding(self):
+        app.root.bind('<<LoadCompleted>>', self.module.update_module_display, add='+')

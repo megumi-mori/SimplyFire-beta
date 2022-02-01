@@ -1,6 +1,6 @@
 import tkinter as Tk
 from tkinter import ttk, filedialog, messagebox
-from PyMini.utils import widget
+from PyMini.utils import custom_widgets
 from PyMini import app
 import datetime
 import os
@@ -20,7 +20,7 @@ def load(parent):
     log_frame.grid_rowconfigure(0, weight=1)
     log_frame.grid(column=0, row=0, sticky='news')
 
-    log_text = widget.VarText(
+    log_text = custom_widgets.VarText(
         parent=log_frame,
         name='application_log',
         value='',
@@ -41,7 +41,7 @@ def load(parent):
 
     Tk.Label(insert_frame, text='Insert log:').grid(column=0, row=0, sticky='news')
     global log_entry
-    log_entry = widget.VarEntry(parent=insert_frame, name='custom_log', value='', default='')
+    log_entry = custom_widgets.VarEntry(parent=insert_frame, name='custom_log', value='', default='')
     log_entry.grid(column=1, row=0, sticky='news')
     log_entry.configure(justify=Tk.LEFT)
     log_entry.bind('<Return>', user_update)

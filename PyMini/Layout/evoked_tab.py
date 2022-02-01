@@ -3,7 +3,7 @@ from PyMini import app
 from PyMini.config import config
 from tkinter import ttk, StringVar
 import tkinter as Tk
-from PyMini.utils import widget
+from PyMini.utils import custom_widgets
 from PyMini.Backend import interface
 from PyMini.DataVisualizer import trace_display, evoked_data_display
 from PyMini.Layout import sweep_tab
@@ -76,14 +76,14 @@ def load(parent):
     panel.grid_columnconfigure(0, weight=1)
     panel.grid_columnconfigure(1, weight=1)
 
-    widgets['evoked_range_left'] = widget.VarEntry(
+    widgets['evoked_range_left'] = widgets.VarEntry(
         parent=panel,
         name='evoked_range_left',
         validate_type='float'
     )
     widgets['evoked_range_left'].grid(column=0, row=0, sticky='news')
 
-    widgets['evoked_range_right'] = widget.VarEntry(
+    widgets['evoked_range_right'] = widgets.VarEntry(
         parent=panel,
         name='evoked_range_right',
         validate_type='float'
@@ -129,27 +129,27 @@ def load(parent):
     return frame
 
 def _select_evoked_window_mode(e=None):
-    if app.widgets['evoked_window_mode'].get() == 'all':
-        app.widgets['evoked_range_left'].config(state='disabled')
-        app.widgets['evoked_range_right'].config(state='disabled')
+    if app.custom_widgets['evoked_window_mode'].get() == 'all':
+        app.custom_widgets['evoked_range_left'].config(state='disabled')
+        app.custom_widgets['evoked_range_right'].config(state='disabled')
         return
-    if app.widgets['evoked_window_mode'].get() == 'visible':
-        app.widgets['evoked_range_left'].config(state='disabled')
-        app.widgets['evoked_range_right'].config(state='disabled')
+    if app.custom_widgets['evoked_window_mode'].get() == 'visible':
+        app.custom_widgets['evoked_range_left'].config(state='disabled')
+        app.custom_widgets['evoked_range_right'].config(state='disabled')
         return
-    if app.widgets['evoked_window_mode'].get() == 'manual':
-        app.widgets['evoked_range_left'].config(state='normal')
-        app.widgets['evoked_range_right'].config(state='normal')
+    if app.custom_widgets['evoked_window_mode'].get() == 'manual':
+        app.custom_widgets['evoked_range_left'].config(state='normal')
+        app.custom_widgets['evoked_range_right'].config(state='normal')
     pass
 
 def calculate_min_max(e=None):
     interface.focus()
-    if app.widgets['analysis_mode'].get() != 'evoked' or app.widgets['trace_mode'].get() == 'compare':
+    if app.custom_widgets['analysis_mode'].get() != 'evoked' or app.custom_widgets['trace_mode'].get() == 'compare':
         return None
     if len(interface.recordings) == 0:
         return None
     target = widgets['evoked_target'].get()
-    if app.widgets['trace_mode'].get() == 'continuous':
+    if app.custom_widgets['trace_mode'].get() == 'continuous':
         target_sweeps = range(interface.recordings[0].sweep_count)
     else:
         if target == 'All sweeps':
@@ -172,10 +172,10 @@ def calculate_min_max(e=None):
     elif window == 'manual':
         xlim = (float(widgets['evoked_range_left'].get()), float(widgets['evoked_range_right'].get()))
 
-    mins, mins_std = interface.al.calculate_min_sweeps(interface.recordings[0], plot_mode=app.widgets['trace_mode'].get(), channels=channels, sweeps=target_sweeps, xlim=xlim)
-    maxs, maxs_std = interface.al.calculate_max_sweeps(interface.recordings[0], plot_mode=app.widgets['trace_mode'].get(), channels=channels, sweeps=target_sweeps,
+    mins, mins_std = interface.al.calculate_min_sweeps(interface.recordings[0], plot_mode=app.custom_widgets['trace_mode'].get(), channels=channels, sweeps=target_sweeps, xlim=xlim)
+    maxs, maxs_std = interface.al.calculate_max_sweeps(interface.recordings[0], plot_mode=app.custom_widgets['trace_mode'].get(), channels=channels, sweeps=target_sweeps,
                                                        xlim=xlim)
-    if app.widgets['trace_mode'].get() == 'continuous':
+    if app.custom_widgets['trace_mode'].get() == 'continuous':
         target_sweeps=[0]
     for i, c in enumerate(channels):
         for j, s in enumerate(target_sweeps):
@@ -192,6 +192,6 @@ def calculate_min_max(e=None):
 
 def report(e=None):
     interface.focus()
-    if app.widgets['analysis_mode'].get() != 'evoked' or app.widgets['trace_mode'].get() == 'compare':
+    if app.custom_widgets['analysis_mode'].get() != 'evoked' or app.custom_widgets['trace_mode'].get() == 'compare':
         return None
     evoked_data_display.report()

@@ -3,7 +3,7 @@ import tkinter as Tk
 from tkinter import filedialog
 from tkinter import ttk, font
 
-from PyMini.utils import widget
+from PyMini.utils import custom_widgets
 from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
 from PyMini.Layout import batch_popup
 from PyMini.config import config
@@ -85,7 +85,7 @@ def load(parent):
     ttk.Label(master=dir_frame,
              text='Configuration file path:').grid(column=0, row=0, sticky='news')
     global dir_entry
-    dir_entry = widget.VarText(
+    dir_entry = widgets.VarText(
         parent=dir_frame,
         name='config_user_path',
         value=config.config_user_path,
@@ -204,7 +204,7 @@ def save_config_as():
 
 def save(event=None):
     interface.focus()
-    print(app.widgets)
+    print(app.custom_widgets)
     app.dump_user_setting(widgets['config_user_path'].get())
 
 

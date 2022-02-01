@@ -1,13 +1,13 @@
-from PyMini.Modules.base_control_module import BaseControlModule
+from PyMini.Modules.base_module_control import BaseModuleControl
 from PyMini import app
 from PyMini.Backend import analyzer2 as analyzer
-from PyMini.utils import widget, formatting
+from PyMini.utils import custom_widgets, formatting
 import tkinter as Tk
 from tkinter import filedialog, messagebox, ttk
 import gc
 
 
-class ModuleControl(BaseControlModule):
+class ModuleControl(BaseModuleControl):
     def __init__(self):
         super().__init__(
             name='comparitive_overlay',
@@ -66,7 +66,7 @@ class ModuleControl(BaseControlModule):
         self.add_recording(record)
         self.recording_list.append(record)
         self.plot(len(self.recording_list)-1, get_color=True)
-        if app.widgets['trace_mode'].get() == 'overlay':
+        if app.custom_widgets['trace_mode'].get() == 'overlay':
             sweeps_module = app.get_module('sweeps', 'sweeps_tab')
             if sweeps_module:
                 sweeps_module.synch_sweep_list() # give all the sweep names
@@ -118,7 +118,7 @@ class ModuleControl(BaseControlModule):
         color = None
         if get_color:
             color = self.panel_list[file_index]['color_entry'].get()
-        if app.widgets['trace_mode'].get() == 'continuous':
+        if app.custom_widgets['trace_mode'].get() == 'continuous':
             app.trace_display.plot_trace(recording.get_xs(mode='continuous', channel=app.interface.channel),
                                          recording.get_ys(mode='continuous', channel=app.interface.channel),
                                          draw=False,
@@ -161,7 +161,7 @@ class ModuleControl(BaseControlModule):
         idx_list = formatting.translate_indices(indices)
 
 
-        if app.widgets['trace_mode'].get() == 'continuous':
+        if app.custom_widgets['trace_mode'].get() == 'continuous':
             self.apply_continuous(file_index=file_index, color=color, indices=idx_list)
         else:
             self.apply_overlay(file_index=file_index, color=color, indices=idx_list)
@@ -171,7 +171,7 @@ class ModuleControl(BaseControlModule):
             style_module = app.get_module('style', 'style_tab')
             if style_module:
                 style_module.widgets['style_trace_line_color'].set(color)
-        if app.widgets['trace_mode'].get() == 'overlay':
+        if app.custom_widgets['trace_mode'].get() == 'overlay':
             sweeps_module = app.get_module('sweeps', 'sweeps_tab')
             if sweeps_module:
                 sweeps_module.synch_sweep_list()
@@ -219,16 +219,16 @@ class ModuleControl(BaseControlModule):
         apply_button = ttk.Button(panel, text='Apply', command=lambda i=index:self.apply_params(i))
         fname_label = ttk.Label(panel, text=recording.filename)
         idx_label = ttk.Label(panel, text='Sweeps:')
-        if app.widgets['trace_mode'].get() == 'continuous':
+        if app.custom_widgets['trace_mode'].get() == 'continuous':
             default_sweeps = analyzer.format_list_indices([0])
         else:
             default_sweeps = analyzer.format_list_indices(range(recording.sweep_count))
-        idx_entry = widget.VarEntry(panel, validate_type='indices', value=default_sweeps, default=0)
+        idx_entry = custom_widgets.VarEntry(panel, validate_type='indices', value=default_sweeps, default=0)
         color_label = ttk.Label(panel, text='Color:')
         color = app.get_module('style', 'style_tab').widgets['style_trace_line_color'].get()
-        color_entry = widget.VarEntry(panel, validate_type='color',
-                                      value=color,
-                                      default=self.default['color'])
+        color_entry = custom_widgets.VarEntry(panel, validate_type='color',
+                                              value=color,
+                                              default=self.default['color'])
 
         # add in order of removal
         panel_dict['apply_button'] = apply_button
