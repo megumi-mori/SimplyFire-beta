@@ -9,15 +9,11 @@ from PyMini.Backend import analyzer2
 # debugging
 import time
 class ModuleControl(BaseControlModule):
-    def __init__(self):
+    def __init__(self, module):
         super(ModuleControl, self).__init__(
-            name='sweeps',
-        menu_label='Sweep Selector',
-        tab_label='Sweep',
-        parent=app.root,
-        scrollbar=False,
-        filename=__file__,
-        has_table=False)
+            scrollbar=False,
+            module=module
+        )
 
         self.sweep_vars = [] # list of Tk.BooleanVars
         self.sweep_labels = [] # list of Tk.Labels
@@ -31,7 +27,6 @@ class ModuleControl(BaseControlModule):
 
         self._load_layout()
         self._load_binding()
-
 
     def canvas_draw_rect(self, event=None):
 
@@ -180,14 +175,6 @@ class ModuleControl(BaseControlModule):
             temp = self.sweep_vars.pop()
             del temp
 
-    def update_module_display(self, event=None):
-        super().update_module_display()
-
-        if self.status_var.get():
-            if app.widgets['trace_mode'].get() != 'overlay':
-                self.disable_tab()
-                return
-
     def apply_sweep_list(self, event=None, draw=True):
         selection = [i for i, v in enumerate(self.sweep_vars) if not v.get()]
         self.hide_list(selection=selection, draw=draw)
@@ -321,10 +308,10 @@ class ModuleControl(BaseControlModule):
     def _load_binding(self):
         app.root.bind('<<OpenedRecording>>',
                       self.reset_sweep_list, add='+')
-        app.root.bind('<<LoadCompleted>>', self.update_module_display, add='+')
-        app.root.bind('<<OverlayView>>', lambda e, func=self.enable_tab: self.call_if_visible(func), add='+')
+        app.root.bind('<<LoadCompleted>>', self.module.update_module_display, add='+')
+        app.root.bind('<<OverlayView>>', self.module._enable, add='+')
         app.root.bind('<<Plotted>>', lambda e, func=self.apply_sweep_list:self.call_if_enabled(func), add='+')
-        app.root.bind('<<ContinuousView>>', lambda e, func=self.disable_tab: self.call_if_visible(func), add='+')
+        app.root.bind('<<ContinuousView>>', self.module._disable, add='+')
 
         app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release: self.call_if_focus(func), add="+")
         app.root.bind("<<CanvasDrawRect>>", lambda e, func=self.canvas_draw_rect: self.call_if_focus(func), add='+')

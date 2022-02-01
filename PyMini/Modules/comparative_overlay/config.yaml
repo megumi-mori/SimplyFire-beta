@@ -1,6 +1,12 @@
 dependencies:
   - 'sweeps'
 
+conflict_override:
+  - 'sweeps'
+
+conflict_warn: None
+
 GUI_components:
   compare_tab:
     location: 'control_panel'
+

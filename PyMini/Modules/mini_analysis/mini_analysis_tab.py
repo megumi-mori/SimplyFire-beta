@@ -2,7 +2,7 @@ import matplotlib.backend_bases
 from PyMini.Modules.base_control_module import BaseControlModule
 from PyMini import app
 from PyMini.utils import writer, widget
-from . import mini_analysis
+from . import analysis
 import pandas as pd
 import os
 from tkinter import filedialog, messagebox, ttk
@@ -14,16 +14,12 @@ from PyMini.Backend import analyzer2
 import time
 import inspect
 class ModuleControl(BaseControlModule):
-    def __init__(self):
+    def __init__(self, module):
         super(ModuleControl, self).__init__(
-            name= 'mini_analysis',
-            menu_label='Mini Analysis',
-            tab_label='Mini',
-            parent=app.root,
+            module=module,
             scrollbar=True,
-            filename=__file__,
-            has_table=True
         )
+
         self.update_counter = 0
         # variable attributes
         self.changes = {}
@@ -57,7 +53,7 @@ class ModuleControl(BaseControlModule):
 
 
     def _apply_column_options(self, e=None):
-        app.get_data_table(self.name).show_columns(
+        self.module.data_tab.show_columns(
             [k for k,v in self.mini_header2config.items() if self.widgets[v].get()]
         )
     def _apply_parameters(self, e=None):
@@ -81,7 +77,7 @@ class ModuleControl(BaseControlModule):
             return None
         # deal with undo later
         params = self.get_params()
-        self.mini_df = mini_analysis.filter_mini(mini_df=self.mini_df, xlim=None, **params)
+        self.mini_df = analysis.filter_mini(mini_df=self.mini_df, xlim=None, **params)
         self.update_event_markers(draw=True)
         self.update_module_table()
         app.clear_progress_bar()
@@ -92,7 +88,7 @@ class ModuleControl(BaseControlModule):
             return None
         params=self.get_params()
         xlim = app.trace_display.ax.get_xlim()
-        self.mini_df = mini_analysis.filter_mini(mini_df=self.mini_df, xlim=xlim, **params)
+        self.mini_df = analysis.filter_mini(mini_df=self.mini_df, xlim=xlim, **params)
         self.update_event_markers(draw=True)
         self.update_module_table()
         app.clear_progress_bar()
@@ -110,7 +106,7 @@ class ModuleControl(BaseControlModule):
             if app.menubar.widgets['trace_mode'].get() != 'continuous':
                 messagebox.showerror(title='Error', message='Please switch to continuous mode to analyze minis.')
                 return None
-            self.module_table.unselect()
+            self.module.data_tab.unselect()
             try:
                 self.find_mini_manual(app.interpreter.mouse_event.xdata)
             except:
@@ -122,7 +118,7 @@ class ModuleControl(BaseControlModule):
     #     # self.update_event_markers()
     #     pass
     def synch_table(self, event=None):
-        self.module_table.set(self.extract_channel_subset())
+        self.module.data_tab.set(self.extract_channel_subset())
     def _default_core_params(self, e=None):
         self.set_to_default('detector_core')
         self.populate_decay_algorithms()
@@ -156,7 +152,7 @@ class ModuleControl(BaseControlModule):
         self.delete_selection(selection)
 
     def delete_from_canvas(self, undo=True):
-        self.module_table.delete_selected() # make this direct within  class?
+        self.module.data_tab.delete_selected() # make this direct within  class?
 
 
     def delete_selection(self, selection):
@@ -164,7 +160,7 @@ class ModuleControl(BaseControlModule):
         if len(selection) == 0:
             return None
         self.mini_df = self.mini_df[(~self.mini_df['t'].isin(selection))|(self.mini_df['channel']!=app.interface.channel)]
-        self.module_table.delete(selection)
+        self.module.data_tab.delete(selection)
         self.update_event_markers(draw=True)
 
     def extract_column(self, colname: str, t: list=None) -> list:
@@ -188,7 +184,7 @@ class ModuleControl(BaseControlModule):
     def find_mini_manual(self, x):
         if x is None:
             return None
-        self.module_table.unselect()
+        self.module.data_tab.unselect()
         xlim = app.trace_display.ax.get_xlim()
         r = (xlim[1] - xlim[0]) * float(self.widgets['detector_core_search_radius'].get()) / 100
 
@@ -215,14 +211,14 @@ class ModuleControl(BaseControlModule):
                                                ignore_index=True,
                                                sort=False)
             self.mini_df = self.mini_df.sort_values(by='t')
-            self.module_table.add({key: value for key, value in mini.items() if key in self.mini_header2config})
+            self.module.data_tab.add({key: value for key, value in mini.items() if key in self.mini_header2config})
             self.update_event_markers(draw=True)
             self.saved = False  # track change
     def find_mini_all(self, event=None):
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
             return None
-        self.module_table.unselect()
+        self.module.data_tab.unselect()
         if app.widgets['trace_mode'].get() != 'continuous':
             return None
         try:
@@ -247,7 +243,7 @@ class ModuleControl(BaseControlModule):
             #         lambda msg='Undo mini search': detector_tab.log(msg)
             #     ])
             self.update_event_markers(draw=True)
-            self.module_table.append(df)
+            self.module.data_tab.append(df)
             self.saved = False # track change
 
         # if detector_tab.changed:
@@ -261,7 +257,7 @@ class ModuleControl(BaseControlModule):
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
             return None
-        self.module_table.unselect()
+        self.module.data_tab.unselect()
         if app.widgets['trace_mode'].get() != 'continuous':
             return None # disable module
         try:
@@ -284,7 +280,7 @@ class ModuleControl(BaseControlModule):
             #         lambda msg='Undo mini search': detector_tab.log(msg)
             #     ])
             self.update_event_markers(draw=True)
-            self.module_table.append(df)
+            self.module.data_tab.append(df)
         app.clear_progress_bar()
 
     def get_params(self):
@@ -424,29 +420,29 @@ class ModuleControl(BaseControlModule):
             'analysis': 'mini',
             'num_minis': mini_df.shape[0]
         }
-        if 'amp' in self.module_table.columns:
+        if 'amp' in self.module.data_tab.columns:
             data['amp'] = mini_df['amp'].mean()
             data['amp_unit'] = mini_df['amp_unit'].iloc[0]
             data['amp_std'] = mini_df['amp'].std()
-        if 'decay_const' in self.module_table.columns:
+        if 'decay_const' in self.module.data_tab.columns:
             data['decay_const'] = mini_df['decay_const'].mean()
             data['decay_unit'] = mini_df['decay_unit'].iloc[0]
             data['decay_std'] = mini_df['decay_const'].std()
-        if 'rise_const' in self.module_table.columns:
+        if 'rise_const' in self.module.data_tab.columns:
             data['rise_const'] = mini_df['rise_const'].mean()
             data['rise_unit'] = mini_df['rise_unit'].iloc[0]
             data['decay_std'] = mini_df['rise_const'].std()
-        if 'halfwidth' in self.module_table.columns:
+        if 'halfwidth' in self.module.data_tab.columns:
             data['halfwidth'] = mini_df['halfwidth'].mean()
             data['halfwidth_unit'] = mini_df['halfwidth_unit'].iloc[0]
             data['halfwidth_std'] = mini_df['halfwidth'].std()
-        if 'baseline' in self.module_table.columns:
+        if 'baseline' in self.module.data_tab.columns:
             data['baseline'] = mini_df['baseline'].mean()
             data['baseline_unit'] = mini_df['baseline_unit'].iloc[0]
             data['baseline_std'] = mini_df['baseline'].std()
-        if 'channel' in self.module_table.columns:
+        if 'channel' in self.module.data_tab.columns:
             data['channel'] = app.interface.recordings[0].channel
-        if 'compound' in self.module_table.columns:
+        if 'compound' in self.module.data_tab.columns:
             data['num_compound'] = mini_df['compound'].sum()
         # calculate frequency
         data['Hz'] = mini_df.shape[0]/(mini_df['t'].max() - mini_df['t'].min())
@@ -504,7 +500,7 @@ class ModuleControl(BaseControlModule):
         if not filename:
             return None
         try:
-            self.module_table.export(filename, mode='w')
+            self.module.data_tab.export(filename, mode='w')
             app.clear_progress_bar()
             return filename
         except Exception as e:
@@ -530,7 +526,7 @@ class ModuleControl(BaseControlModule):
 
         self.mini_df = df
 
-        self.update_module_table()
+        self.module.data_tab()
         self.update_event_markers(draw=True)
 
         self.saved = True
@@ -670,16 +666,16 @@ class ModuleControl(BaseControlModule):
         app.clear_progress_bar()
 
     def select_all(self, event=None):
-        self.module_table.select_all()
+        self.module.data_tab.select_all()
     def select_from_event_pick(self, event=None):
         if not self.has_focus():
             return None
         self.event_pick = True # use this to avoid invoking other mouse-related events
         xdata, ydata = event.artist.get_offsets()[event.ind][0]
         if app.interpreter.multi_select:
-            self.module_table.selection_toggle([round(xdata, app.interface.recordings[0].x_sigdig)])
+            self.module.data_tab.selection_toggle([round(xdata, app.interface.recordings[0].x_sigdig)])
         else:
-            self.module_table.selection_set([round(xdata, app.interface.recordings[0].x_sigdig)])
+            self.module.data_tab.selection_set([round(xdata, app.interface.recordings[0].x_sigdig)])
 
     def select_from_table(self, selection):
         if not self.is_enabled():
@@ -714,11 +710,11 @@ class ModuleControl(BaseControlModule):
         df = df[(df['t'] > xlim[0]) & (df['t'] < xlim[1])
                 & (df['peak_coord_y'] > ylim[0]) & (df['peak_coord_y'] < ylim[1])]
 
-        self.module_table.selection_set(list(df['t']))
+        self.module.data_tab.selection_set(list(df['t']))
     def select_clear(self, event=None):
         if not self.has_focus():
             return None
-        self.module_table.unselect()
+        self.module.data_tab.unselect()
     def update_event_markers(self, event=None, draw=False):
         if app.widgets['trace_mode'].get() == 'overlay':
             self.plot_peak(None,None)
@@ -739,25 +735,8 @@ class ModuleControl(BaseControlModule):
         # app.trace_display.canvas.draw()
 
     def update_module_table(self):
-        self.module_table.set(self.extract_channel_subset())
+        self.module.data_tab.set(self.extract_channel_subset())
 
-    def update_module_display(self, table=False):
-        super().update_module_display()
-
-        if self.status_var.get():
-            if app.widgets['trace_mode'].get() != 'continuous':
-                self.disable_tab()
-                return
-            self.update_event_markers(draw=True)
-        else:
-            for m in self.markers:
-                try:
-                    self.markers[m].remove()
-                except:
-                    pass
-            app.trace_display.draw_ani()
-        app.pb['value'] = 0
-        app.pb.update()
     def _load_layout(self):
         self.insert_title(
             text="Mini Analysis"
@@ -1054,7 +1033,7 @@ class ModuleControl(BaseControlModule):
     def _load_binding(self):
         # event bindings:
         app.root.bind('<<LoadCompleted>>', self._apply_column_options, add='+')
-        app.root.bind('<<LoadCompleted>>', self.update_module_display, add='+')
+        app.root.bind('<<LoadCompleted>>', self.module.update_module_display, add='+')
         app.root.bind('<<OpenRecording>>', lambda save=False, draw=False: self.delete_clear(save, draw), add="+")
         app.root.bind('<<CanvasDrawRect>>', lambda e, func=self.select_from_rect: self.call_if_focus(func), add="+")
         # app.root.bind('<<ChangeChannel>>', self.change_channel, add="+")
@@ -1062,8 +1041,8 @@ class ModuleControl(BaseControlModule):
         app.root.bind('<<Plot>>', lambda e, func=self.update_event_markers:self.call_if_visible(func), add='+')
         app.root.bind('<<Plotted>>', lambda e, func=self.synch_table: self.call_if_enabled(func), add='+')
 
-        app.root.bind('<<OverlayView>>', self.disable_tab, add='+')
-        app.root.bind('<<ContinuousView>>', self.enable_tab, add='+')
+        app.root.bind('<<OverlayView>>', self.module._disable, add='+')
+        app.root.bind('<<ContinuousView>>', self.module._enable, add='+')
 
         app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release:self.call_if_focus(func), add='+')
         # app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
@@ -1078,13 +1057,13 @@ class ModuleControl(BaseControlModule):
 
     def _modify_GUI(self):
         # menubar
-        file_menu = app.menubar.make_file_menu_cascade(self.menu_label)
+        file_menu = app.menubar.make_file_menu_cascade(self.module.menu_label)
         file_menu.add_command(label='Open mini file', command=self.open_minis_dialogue)
         file_menu.add_command(label='Save minis as...', command=self.save_minis_dialogue)
         file_menu.add_command(label='Export table', command=self.export_minis_dialogue)
 
         # style tab
-        style_tab = app.modules_dict['style']['control_panel']
+        style_tab = app.modules_dict['style'].control_tab
         style_tab.optionframe.insert_separator()
         style_tab.insert_title(
             text='Mini Analysis plot style'

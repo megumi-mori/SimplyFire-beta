@@ -28,7 +28,6 @@ class ModuleControl(BaseControlModule):
         self.sweep_prefix = "Sweep"
         
     def reset_recording_list(self, event=None):
-        print(self.panel_list)
         while len(self.panel_list) > 0:
             panel = self.panel_list.pop()
             for _, w in panel.items():
@@ -44,14 +43,14 @@ class ModuleControl(BaseControlModule):
         while len(self.recording_list) > 0:
             r = self.recording_list.pop()
             del r
-        print(f'finished removing items: {self.recording_list}')
 
+    def opened_recording(self, event=None):
         recording = app.interface.recordings[0]
         self.add_recording(recording)
         self.recording_list.append(None)
 
     def add_recording(self, recording):
-        panel_dict = self.create_control_set(recording)
+        panel_dict = self.create_file_panel(recording)
         if len(self.panel_list) == 0:
             panel_dict['remove_button'].config(state='disabled')
         self.panel_list.append(panel_dict)
@@ -211,7 +210,7 @@ class ModuleControl(BaseControlModule):
         pass
 
 
-    def create_control_set(self, recording:analyzer.Recording, index=None):
+    def create_file_panel(self, recording:analyzer.Recording, index=None):
         if not index:
             index = len(self.panel_list)
         panel_dict = {}
@@ -258,12 +257,6 @@ class ModuleControl(BaseControlModule):
 
         return panel_dict
 
-
-
-
-
-
-
     def _load_layout(self):
         self.insert_title(
             text='Comparative Overlay'
@@ -278,6 +271,7 @@ class ModuleControl(BaseControlModule):
 
 
     def _load_binding(self):
-        app.root.bind('<<OpenedRecording>>', self.reset_recording_list, add='+')
+        app.root.bind('<<OpenRecording>>', self.reset_recording_list, add='+')
+        app.root.bind('<<OpenedRecording>>', self.opened_recording, add='+')
         # app.root.bind('<<ChangedChannel>>', lambda e, func=self.change_channel: self.call_if_enabled(func), add="+")
         app.root.bind('<<Plotted>>', lambda e, func=self.update_plot: self.call_if_enabled(func), add='+')

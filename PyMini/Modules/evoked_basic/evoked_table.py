@@ -5,16 +5,13 @@ import pandas as pd
 import numpy as np
 from tkinter import messagebox
 class ModuleTable(BaseTableModule):
-    def __init__(self):
+    def __init__(self, module):
         super().__init__(
-            name='evoked_basic',
-            menu_label='Evoked Basic',
-            tab_label='Evoked',
-            parent=app.root
+            module=module
         )
-        self.table.bind('<<OpenRecordings>>', self.clear)
+        # self.table.bind('<<OpenRecordings>>', self.clear)
         self.define_columns(('sweep','channel'))
-        self.set_iid('index')
+        # self.set_iid('index')
 
     def report(self, event=None):
         if len(app.interface.recordings) == 0:

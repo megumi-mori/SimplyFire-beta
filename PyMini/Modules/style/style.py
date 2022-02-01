@@ -1,5 +1,5 @@
-from PyMini.Modules.base_parent_module import BaseParentModule
-class ParentModule(BaseParentModule):
+from PyMini.Modules.base_module import BaseModule
+class Module(BaseModule):
     def __init__(self):
         super().__init__(name='style',
                          menu_label='Style',

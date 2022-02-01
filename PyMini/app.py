@@ -191,6 +191,7 @@ def load(splash):
     global cp_notebook
     cp_notebook = ttk.Notebook(cp)
     cp_notebook.grid(column=0, row=0, sticky='news')
+    cp_notebook.bind('<<NotebookTabChanged>>', synch_tab_focus, add='+')
 
     #############################################################
     # Insert custom tabs here to include in the control panel
@@ -312,26 +313,16 @@ def load(splash):
     # # finalize the data viewer - table
     root.geometry(config.geometry)
     root.update()
-    # data_display.fit_columns()
-    # evoked_data_display.fit_columns()
-    for key, datatab in data_notebook_dict.items():
-        datatab.fit_columns()
-        data_notebook.tab(datatab, state='hidden')
-    for key, cptab in control_panel_dict.items():
-        cp_notebook.tab(cptab, state='hidden')
+
     for modulename in config.start_module:
         try:
-            menubar.window_menu.invoke(control_panel_dict[modulename].menu_label)
+            modules_dict[modulename].menu_var.set(True)
         except: # module removed from module-list
             pass
-    try:
-        data_notebook.select(data_notebook_dict[config.start_module[0]])
-    except:
-        pass
-    try:
-        cp_notebook.select(control_panel_dict[config.start_module[0]])
-    except:
-        pass
+    for module_name, module in modules_dict.items():
+        module.toggle_module_display()
+        if getattr(module, 'data_tab', None):
+            module.data_tab.fit_columns()
 
     ## root2 = root
     loaded = True
@@ -346,39 +337,55 @@ def load_module(module_name):
     global modules_dict
     if modules_dict.get(module_name, None):
         return
-    modules_dict[module_name] = {}
     # load modules
     module_path = os.path.join(pkg_resources.resource_filename('PyMini', 'Modules'), module_name)
-    # try:
+    try:
+        module = importlib.import_module(f'PyMini.Modules.{module_name}.{module_name}')
+    except ModuleNotFoundError:
+        log_display.log(f'Load error. Module {module_name} does not have file {module_name}.py', '@Load')
+        return
+
     with open(os.path.join(module_path, 'config.yaml'), 'r') as config_file:
         module_config = yaml.safe_load(config_file)
     if module_config.get('dependencies', None):
         # has dependencies
         for req_module_name in module_config['dependencies']:
             load_module(req_module_name)
-    tab = None
-    for component, details in module_config['GUI_components'].items():
-        if details['location'] == 'load':
-            module_loader = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
-            module_loader.load()
-            modules_dict[module_name][component] = tab
-        if details['location'] == 'control_panel':
-            module_tab = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
-            tab = module_tab.ModuleControl()
-            cp_notebook.add(tab, text=tab.tab_label)
-            # cp_notebook.tab(tab.frame, state='hidden')
-            control_panel_dict[tab.name] = tab
-            modules_dict[module_name]['control_panel'] = tab
-            modules_dict[module_name][component] = tab
-        if details['location'] == 'data_notebook':
-            module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
-            table = module_table.ModuleTable()
-            data_notebook.add(table, text=table.tab_label)
-            modules_dict[module_name]['data_notebook'] = table
-            modules_dict[module_name][component] = tab
-            # data_notebook.tab(table.frame, state='hidden')
-            data_notebook_dict[table.name] = table
-            table.connect_to_control(tab)
+    # try:
+    parent_module = getattr(module, 'Module', None)()
+    # except TypeError as e:
+    #     log_display.log(f'Load error. Module {module_name}: {e}', '@Load')
+    #     return
+    modules_dict[module_name] = parent_module
+    if getattr(parent_module, 'control_tab', None):
+        cp_notebook.add(parent_module.control_tab, text=parent_module.tab_label)
+    if getattr(parent_module, 'data_tab', None):
+        data_notebook.add(parent_module.data_tab, text=parent_module.tab_label)
+
+
+#     tab = None
+#     for component, details in module_config['GUI_components'].items():
+#         if details['location'] == 'load':
+#             module_loader = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
+#             module_loader.load()
+#             modules_dict[module_name][component] = tab
+#         if details['location'] == 'control_panel':
+#             module_tab = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
+#             tab = module_tab.ModuleControl()
+#             cp_notebook.add(tab, text=tab.tab_label)
+#             # cp_notebook.tab(tab.frame, state='hidden')
+#             control_panel_dict[tab.name] = tab
+#             modules_dict[module_name]['control_panel'] = tab
+#             modules_dict[module_name][component] = tab
+#         if details['location'] == 'data_notebook':
+#             module_table = importlib.import_module(f'PyMini.Modules.{module_name}.{component}')
+#             table = module_table.ModuleTable()
+#             data_notebook.add(table, text=table.tab_label)
+#             modules_dict[module_name]['data_notebook'] = table
+#             modules_dict[module_name][component] = tab
+#             # data_notebook.tab(table.frame, state='hidden')
+#             data_notebook_dict[table.name] = table
+#             table.connect_to_control(tab)
 def get_tab_focus():
     focus = {}
     focus['control_panel'] = cp_notebook.select()
@@ -409,6 +416,17 @@ def get_data_frame(name):
 def get_data_table(name):
     return data_notebook_dict[name]
 
+def config_cp_tab(tab, **kwargs):
+    cp_notebook.tab(tab, **kwargs)
+
+def config_data_tab(tab, **kwargs):
+    data_notebook.tab(tab, **kwargs)
+
+def synch_tab_focus(event=None):
+    try:
+        data_notebook.select(root.children.get(cp_notebook.select().split('.')[-1]).module.data_tab)
+    except: # no data tab associated with the module with focus
+        pass
 def advance_progress_bar(value, mode='determinate'):
     if mode == 'determinate':
         pb['value'] += value
@@ -459,11 +477,7 @@ def dump_user_setting(filename=None):
 
         # d['compare_color_list'] = config.compare_color_list
         # d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
-        d['start_module'] = []
-        for modulename in control_panel_dict:
-            d[modulename] = control_panel_dict[modulename].get_widget_dict()
-            if control_panel_dict[modulename].status_var.get():
-                d['start_module'].append(modulename)
+        d['start_module'] = [name for name, module in modules_dict.items() if module.menu_var.get()]
         print('save output:')
         f.write(yaml.safe_dump(d))
         # pymini.pb.clear()

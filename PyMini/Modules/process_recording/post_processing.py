@@ -1,19 +1,14 @@
 from PyMini import app
 from PyMini.Modules.base_control_module import BaseControlModule
-from . import recording_processor
+from . import process
 import tkinter as Tk
 from tkinter import ttk
 from PyMini.utils import widget
 class ModuleControl(BaseControlModule):
-    def __init__(self):
+    def __init__(self, module):
         super(ModuleControl, self).__init__(
-                 name='process_recording',
-                 menu_label = 'Process Recording',
-                 tab_label = 'Process',
-                 parent=app.root,
-                 scrollbar=True,
-                 filename=__file__,
-                 has_table=False
+            module=module,
+                 scrollbar=True
                  )
         self._load_layout()
     def average_sweeps(self, event=None):
@@ -28,29 +23,29 @@ class ModuleControl(BaseControlModule):
         if self.widgets['sweep_target'].get() == 'All sweeps':
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
-            target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
+            target_sweeps = app.modules_dict['sweeps'].control_tab.get_visible_sweeps()
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
-            target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
+            target_sweeps = app.modules_dict['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
-        avg_sweep = recording_processor.average_sweeps(app.interface.recordings[0],
-                                                       channels=target_channels,
-                                                       sweeps=target_sweeps)
+        avg_sweep = process.average_sweeps(app.interface.recordings[0],
+                                           channels=target_channels,
+                                           sweeps=target_sweeps)
         app.interface.recordings[0].append_sweep(avg_sweep)
-        app.interface.plot()
-        app.modules_dict['sweeps']['sweeps_tab'].synch_sweep_list()
+        app.interface.plot(fix_x=True, fix_y=True)
+        app.modules_dict['sweeps'].control_tab.synch_sweep_list()
         if self.widgets['average_show_result'].get():
-            app.modules_dict['sweeps']['sweeps_tab'].hide_all()
-            app.modules_dict['sweeps']['sweeps_tab'].sweep_buttons[app.interface.recordings[0].sweep_count-1].invoke()
+            app.modules_dict['sweeps'].control_tab.hide_all()
+            app.modules_dict['sweeps'].control_tab.sweep_buttons[app.interface.recordings[0].sweep_count-1].invoke()
         pass
     def subtract_baseline(self, event=None):
         if len(app.interface.recordings)==0:
@@ -75,14 +70,14 @@ class ModuleControl(BaseControlModule):
         if self.widgets['sweep_target'].get() == 'All sweeps':
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
-            target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
+            target_sweeps = app.modules_dict['sweeps'].control_tab.get_visible_sweeps()
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
-            target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
+            target_sweeps = app.modules_dict['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -92,12 +87,12 @@ class ModuleControl(BaseControlModule):
         if len(target_sweeps) == 0:
             return
 
-        recording_processor.subtract_baseline(app.interface.recordings[0],
-                                              plot_mode=app.widgets['trace_mode'].get(),
-                                              channels=target_channels,
-                                              sweeps=target_sweeps,
-                                              xlim=xlim,
-                                              shift=shift)
+        process.subtract_baseline(app.interface.recordings[0],
+                                  plot_mode=app.widgets['trace_mode'].get(),
+                                  channels=target_channels,
+                                  sweeps=target_sweeps,
+                                  xlim=xlim,
+                                  shift=shift)
 
         #['All sweeps', 'Visible sweeps', 'Highlighted sweeps']
         # deal with undo later
@@ -117,14 +112,14 @@ class ModuleControl(BaseControlModule):
         if self.widgets['sweep_target'].get() == 'All sweeps':
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
-            target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
+            target_sweeps = app.modules_dict['sweeps'].control_tab.get_visible_sweeps()
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get() == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
-            target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
+            target_sweeps = app.modules_dict['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -140,10 +135,10 @@ class ModuleControl(BaseControlModule):
 
         # deal with undo later
 
-        getattr(recording_processor, f'filter_{filter_algorithm}')(app.interface.recordings[0],
-                                                                   params,
-                                                                   target_channels,
-                                                                   target_sweeps)
+        getattr(process, f'filter_{filter_algorithm}')(app.interface.recordings[0],
+                                                       params,
+                                                       target_channels,
+                                                       target_sweeps)
         app.interface.plot(fix_x=True, fix_y=True)
 
 

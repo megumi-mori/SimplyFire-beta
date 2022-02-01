@@ -6,15 +6,10 @@ from tkinter import messagebox
 
 from . import evoked_analysis
 class ModuleControl(BaseControlModule):
-    def __init__(self):
+    def __init__(self, module):
         super().__init__(
-            name = 'evoked_basic',
-            menu_label='Evoked Basic',
-            tab_label='Evoked',
-            parent=app.root,
+            module=module,
             scrollbar=True,
-            filename=__file__,
-            has_table=True
         )
 
         self._load_layout()
@@ -22,17 +17,18 @@ class ModuleControl(BaseControlModule):
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
             return None
+        target_sweeps = []
         if self.widgets['sweep_target'].get() == 'All sweeps':
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
-            target_sweeps = app.modules_dict['sweeps']['sweeps_tab'].get_visible_sweeps()
+            target_sweeps = app.modules_dict['sweeps'].control_tab.get_visible_sweeps()
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get() == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
-            target_sweeps = app.modules_dict['sweeps']['sweep_tab'].get_highlighted_sweeps()
+            target_sweeps = app.modules_dict['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -65,10 +61,10 @@ class ModuleControl(BaseControlModule):
         # report
         if app.widgets['trace_mode'].get() == 'continuous':
             target_sweeps = [0] # continuous mode only has 1 sweep
-        self.module_table.disable_tab()
+        self.module.data_tab.disable_tab()
         for i,c in enumerate(target_channels):
             for j,s in enumerate(target_sweeps):
-                self.module_table.add({
+                self.module.data_tab.add({
                     'filename': recording.filename,
                     'channel':c,
                     'sweep':s,
@@ -77,7 +73,7 @@ class ModuleControl(BaseControlModule):
                     'max': maxs[i,j,0],
                     'max_unit': recording.y_unit
                 })
-        self.module_table.enable_tab()
+        self.module.data_tab.enable_tab()
 
     def _select_xlim_mode(self, event=None):
         selection = self.widgets['range_target'].get()

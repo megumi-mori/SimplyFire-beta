@@ -4,12 +4,9 @@ from collections import OrderedDict
 from PyMini.utils.widget import DataTable
 
 class ModuleTable(BaseTableModule):
-    def __init__(self):
+    def __init__(self, module):
         super(ModuleTable, self).__init__(
-            name='mini_analysis',
-            menu_label='Mini Analysis',
-            tab_label='Mini',
-            parent=app.root
+            module=module
         )
         self.mini_header2config = OrderedDict([
             ('t', 'data_display_time'),
@@ -31,22 +28,22 @@ class ModuleTable(BaseTableModule):
             ('direction', 'data_display_direction'),
             ('compound', 'data_display_compound')
         ])
-        for key in app.config.key_delete:
-            self.table.bind(key, self.delete_selected, add="")
+        # for key in app.config.key_delete:
+        #     self.table.bind(key, self.delete_selected, add="")
         self.define_columns(tuple([key for key in self.mini_header2config]),iid_header='t')
-        self.bind("<<OpenRecording>>", self.clear)
-
-        self.table.bind('<<TreeviewSelect>>', self.report_selected)
+        # self.bind("<<OpenRecording>>", self.clear)
+        #
+        # self.table.bind('<<TreeviewSelect>>', self.report_selected)
 
     def report_selected(self, event=None):
-        self.module_control.select_from_table(self.table.selection())
+        self.module.control_tab.select_from_table(self.table.selection())
 
     def clear(self, event=None):
-        self.module_control.delete_all(True)
+        self.module.control_tab.delete_all(True)
 
     def delete_selected(self, event=None):
-        self.module_control.delete_selection([float(s) for s in self.table.selection()])
+        self.module.control_tab.delete_selection([float(s) for s in self.table.selection()])
 
     def report(self, event=None):
-        self.module_control.report_results()
+        self.module.control_tab.report_results()
 

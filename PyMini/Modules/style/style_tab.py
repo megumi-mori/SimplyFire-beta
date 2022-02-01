@@ -4,14 +4,10 @@ from PyMini.utils.widget import VarEntry
 from tkinter import ttk
 import tkinter as Tk
 class ModuleControl(BaseControlModule):
-    def __init__(self, parent_module):
+    def __init__(self, module):
         super(ModuleControl, self).__init__(
-            name='style',
-            menu_label='Style',
             scrollbar=True,
-            parent_module=parent_module,
-            filename=__file__,
-            has_table=False
+            module=module,
         )
 
         self.insert_title(
