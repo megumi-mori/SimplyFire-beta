@@ -267,7 +267,6 @@ def change_channel(num: int,
     # elif app.menubar.widgets['trace_mode'].get() == 'overlay':
     #     plot_overlay(recordings[0], fix_x=True, draw=False)
     # add other modes here
-    trace_display.set_axis_limit('x', xlim)
     # data_display.clear()
 
     # populate_data_display()
@@ -275,6 +274,7 @@ def change_channel(num: int,
 
     # param_guide.update()
     app.root.event_generate('<<ChangedChannel>>')
+    trace_display.set_axis_limit('x', xlim)
     trace_display.draw_ani()
     app.pb['value'] = 0
     app.pb.update()
@@ -289,7 +289,7 @@ def plot(fix_x=False, fix_y=False, **kwargs):
         xlim = trace_display.get_axis_limits('x')
     if fix_y:
         ylim=trace_display.get_axis_limits('y')
-    # trace_display.clear()
+    trace_display.clear()
     if app.menubar.widgets['trace_mode'].get() == 'continuous':
         plot_continuous(recordings[0], draw=False, **kwargs)
     elif app.menubar.widgets['trace_mode'].get() == 'overlay':
@@ -298,6 +298,9 @@ def plot(fix_x=False, fix_y=False, **kwargs):
         trace_display.set_axis_limit('x', xlim)
     if ylim:
         trace_display.set_axis_limit('y', ylim)
+
+    print(f'plot interface called: {trace_display.sweeps.keys()}')
+    print(f'{trace_display.ax.lines}')
     trace_display.ax.set_xlabel(recordings[0].x_label)#, fontsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.set_ylabel(recordings[0].y_label)#, fontsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
