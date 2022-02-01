@@ -189,7 +189,7 @@ class BaseControlModule(Frame):
                     self.widgets[k].set(self.default[k])
             else:
                 # self.widgets[k].set_to_default()
-                self.widgets[k].sert(self.default[k])
+                self.widgets[k].set(self.default[k])
     def insert_file_menu(self):
         self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)
         app.menubar.file_menu.add_cascade(label=self.name, menu=self.file_menu)
