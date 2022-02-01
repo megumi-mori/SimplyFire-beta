@@ -530,9 +530,6 @@ def clear_markers(key=None):
 def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None, name=""):
     global sweeps
     global trace_color
-    if not color:
-        # color = app.widgets['style_trace_line_color'].get()
-        color = trace_color
     global trace_width
     if not width:
         width=trace_width
@@ -542,6 +539,9 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None, nam
         sweeps.get(name).set_xdata(xs)
         sweeps.get(name).set_ydata(ys)
     else:
+        if not color:
+            # color = app.widgets['style_trace_line_color'].get()
+            color = trace_color
         sweeps[name], = ax.plot(xs, ys,
                                               linewidth=width,
                                               c=color,
