@@ -82,10 +82,10 @@ def load(menubar):
     if widgets['window_param_guide'].get() == '1':
         window_menu.invoke(window_menu.index('Parameter-guide'))
 
-    widgets['analysis_mode'].set(config.analysis_mode)
+    # widgets['analysis_mode'].set(config.analysis_mode)
     widgets['trace_mode'].set(config.trace_mode)
     view_menu.invoke({'continuous': 0, 'overlay': 1, 'compare':2}[config.trace_mode])
-    analysis_menu.invoke({'mini': 0, 'evoked': 1}[config.analysis_mode])
+    # analysis_menu.invoke({'mini': 0, 'evoked': 1}[config.analysis_mode])
 
     undo_disable()
     return menubar
