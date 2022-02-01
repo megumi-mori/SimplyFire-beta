@@ -4,13 +4,12 @@ from PyMini.utils.widget import VarEntry
 from tkinter import ttk
 import tkinter as Tk
 class ModuleControl(BaseControlModule):
-    def __init__(self):
+    def __init__(self, parent_module):
         super(ModuleControl, self).__init__(
             name='style',
             menu_label='Style',
-            tab_label='Style',
-            parent=app.root,
             scrollbar=True,
+            parent_module=parent_module,
             filename=__file__,
             has_table=False
         )

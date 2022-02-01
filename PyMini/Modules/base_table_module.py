@@ -17,6 +17,7 @@ class BaseTableModule(DataTable):
         self.menu_label=menu_label
         self.tab_label = tab_label
         self.status_var = BooleanVar()
+        self.enabled = True
         # self.datatable=DataTable(self)
         # self.datatable.grid(column=0, row=0, sticky='news')
         # self.table=self.datatable.table
@@ -25,13 +26,13 @@ class BaseTableModule(DataTable):
         #
         # self.table.bind("<Button-3>", self.popup, add="+")
 
-        try:
-            app.menubar.window_menu.index(self.menu_label)
-        except:
-            app.menubar.window_menu.add_checkbutton(label=self.menu_label,
-                                                command=self.update_module_display,
-                                                variable=self.status_var,
-                                                onvalue=True, offvalue=False)
+        # try:
+        #     app.menubar.window_menu.index(self.menu_label)
+        # except:
+        #     app.menubar.window_menu.add_checkbutton(label=self.menu_label,
+        #                                         command=self.update_module_display,
+        #                                         variable=self.status_var,
+        #                                         onvalue=True, offvalue=False)
         self.module_control = None
         self.add_menu_command(label='Copy selection', command=self.copy)
         self.add_menu_command(label='Select all', command=self.select_all)
@@ -68,23 +69,30 @@ class BaseTableModule(DataTable):
     def update_module_display(self):
         if self.status_var.get():
             self.show_tab()
+            if self.enabled:
+                app.data_notebook.select(self)
+
             self.fit_columns()
         else:
             self.hide_tab()
 
     def show_tab(self):
-        app.data_notebook.tab(self, state='normal')
-        app.data_notebook.select(self)
+        if self.enabled:
+            app.data_notebook.tab(self, state='normal')
+        else:
+            app.data_notebook.tab(self, state='dosabled')
 
     def hide_tab(self):
         app.data_notebook.tab(self, state='hidden')
 
     def enable_tab(self):
+        self.enabled = True
         if self.is_visible():
             app.data_notebook.tab(self, state='normal')
             app.data_notebook.select(self)
 
     def disable_tab(self):
+        self.disabled = True
         if self.is_visible():
             app.data_notebook.tab(self, state='disabled')
 

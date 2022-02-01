@@ -6,38 +6,34 @@ from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame, OptionFr
 import yaml
 import os
 import tkinter as Tk
-
+from .base_parent_module import BaseParentModule
 class BaseControlModule(Frame):
     def __init__(self,
                  name:str,
                  menu_label:str,
-                 tab_label:str,
-                 parent:object,
+                 parent_module:BaseParentModule,
                  scrollbar:bool=True,
                  filename=__file__,
                  has_table=False
                  ) -> None:
-        try:
-            with open(os.path.join(os.path.dirname(filename), 'default_values.yaml'), 'r') as f:
-                self.default = yaml.safe_load(f)
-        except:
-            self.default = {}
-        try:
-            self.values = app.config.user_vars[name]
-        except:
-            self.values = {}
-        super().__init__(parent)
+        self.parent_module = parent_module
+        self.default = self.parent_module.default
+        self.values = self.parent_module.values
+
+        super().__init__(app.root)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         self.name = name
         self.menu_label = menu_label
-        self.tab_label = tab_label
         self.status_var = BooleanVar()
+        self.enabled = True
+        self.disable_stack = []
+
         self.widgets = {}
         self.module_table = None
-        app.menubar.window_menu.add_checkbutton(label=self.menu_label, command=self.update_module_display, variable=self.status_var,
-                                       onvalue=True, offvalue=False)
+        # app.menubar.window_menu.add_checkbutton(label=self.menu_label, command=self.update_module_display, variable=self.status_var,
+        #                                onvalue=True, offvalue=False)
         if scrollbar:
             self.frame = ScrollableOptionFrame(self)
             self.optionframe = self.frame.frame
@@ -51,15 +47,17 @@ class BaseControlModule(Frame):
         self.insert_separator = self.optionframe.insert_separator
         self.insert_widget = self.optionframe.insert_widget
 
-    def update_module_display(self, event=None):
-        if self.status_var.get():
-            self.show_tab()
-        else:
-            self.hide_tab()
-        try:
-            self.module_table.update_module_display()
-        except:
-            pass
+    # def update_module_display(self, event=None):
+    #     if self.status_var.get():
+    #         self.show_tab()
+    #         if self.enabled:
+    #             app.cp_notebook.select(self)
+    #     else:
+    #         self.hide_tab()
+    #     try:
+    #         self.module_table.update_module_display()
+    #     except:
+    #         pass
 
     def insert_title(self, **kwargs):
         title = self.optionframe.insert_title(**kwargs)
@@ -112,40 +110,10 @@ class BaseControlModule(Frame):
         return app.get_tab_focus()['control_panel'] == str(self)
 
     def is_visible(self):
-        try:
-            state = app.cp_notebook.tab(self, option='state')
-            return state == 'normal' or state == 'disabled'
-        except:
-            # not yet managed by the notebook widget
-            return None
+        return self.parent_module.is_visible()
 
     def is_enabled(self):
-        return app.cp_notebook.tab(self, option='state') == 'normal'
-
-    def show_tab(self, event=None):
-        app.cp_notebook.tab(self, state='normal')
-        app.cp_notebook.select(self)
-        if self.module_table:
-            self.module_table.show_tab()
-
-    def hide_tab(self, event=None):
-        app.cp_notebook.tab(self, state='hidden')
-        if self.module_table:
-            self.module_table.hide_tab()
-
-    def enable_tab(self, event=None):
-        if self.is_visible():
-            app.cp_notebook.tab(self, state='normal')
-            app.cp_notebook.select(self)
-            if self.module_table:
-                self.module_table.enable_tab()
-
-    def disable_tab(self, event=None):
-        if self.is_visible():
-            app.cp_notebook.tab(self, state='disabled')
-            if self.module_table:
-                self.module_table.disable_tab()
-
+        return self.parent_module.is_enabled()
 
     def hide_label_widget(self, widget):
         widget.master.master.grid_remove()
