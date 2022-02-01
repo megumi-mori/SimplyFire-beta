@@ -6,32 +6,21 @@ from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame, OptionFr
 import yaml
 import os
 import tkinter as Tk
-from .base_parent_module import BaseParentModule
+from .base_module import BaseModule
 class BaseControlModule(Frame):
     def __init__(self,
-                 name:str,
-                 menu_label:str,
-                 parent_module:BaseParentModule,
+                 module:BaseModule,
                  scrollbar:bool=True,
-                 filename=__file__,
-                 has_table=False
                  ) -> None:
-        self.parent_module = parent_module
-        self.default = self.parent_module.default
-        self.values = self.parent_module.values
+        self.module = module
+        self.default = self.module.default
+        self.values = self.module.values
 
         super().__init__(app.root)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        self.name = name
-        self.menu_label = menu_label
-        self.status_var = BooleanVar()
-        self.enabled = True
-        self.disable_stack = []
-
         self.widgets = {}
-        self.module_table = None
         # app.menubar.window_menu.add_checkbutton(label=self.menu_label, command=self.update_module_display, variable=self.status_var,
         #                                onvalue=True, offvalue=False)
         if scrollbar:
@@ -109,11 +98,14 @@ class BaseControlModule(Frame):
         # use dict to allow for other locations for modules in the future
         return app.get_tab_focus()['control_panel'] == str(self)
 
+    def set_focus(self):
+        app.cp_notebook.select(self)
+
     def is_visible(self):
-        return self.parent_module.is_visible()
+        return self.module.is_visible()
 
     def is_enabled(self):
-        return self.parent_module.is_enabled()
+        return self.module.is_enabled()
 
     def hide_label_widget(self, widget):
         widget.master.master.grid_remove()
@@ -160,7 +152,7 @@ class BaseControlModule(Frame):
                 self.widgets[k].set(self.default[k])
     def insert_file_menu(self):
         self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)
-        app.menubar.file_menu.add_cascade(label=self.name, menu=self.file_menu)
+        app.menubar.file_menu.add_cascade(label=self.module.name, menu=self.file_menu)
 
     def get_widget_dict(self):
         return {k:self.widgets[k].get() for k in self.widgets}

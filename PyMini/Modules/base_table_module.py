@@ -3,19 +3,15 @@ from PyMini.utils.widget import DataTable
 from PyMini import app
 import tkinter as Tk
 from tkinter import Frame
+from PyMini.Modules.base_module import BaseModule
 class BaseTableModule(DataTable):
     def __init__(self,
-                 name: str,
-                 menu_label:str,
-                 tab_label: str,
-                 parent: object,
+                 module:BaseModule
                  ):
-        super().__init__(parent)
+        super().__init__(app.root)
+        self.module=module
         # self.grid_columnconfigure(0, weight=1)
         # self.grid_rowconfigure(0, weight=1)
-        self.name = name
-        self.menu_label=menu_label
-        self.tab_label = tab_label
         self.status_var = BooleanVar()
         self.enabled = True
         # self.datatable=DataTable(self)
@@ -58,14 +54,6 @@ class BaseTableModule(DataTable):
         super().set(dataframe)
         self.enable_tab()
 
-    def connect_to_control(self, tab):
-        # connects the control panel to the table and vice versa
-        if tab is None:
-            return
-        tab.module_table = self
-        self.module_control = tab
-        self.status_var = self.module_control.status_var
-
     def update_module_display(self):
         if self.status_var.get():
             self.show_tab()
@@ -100,9 +88,7 @@ class BaseTableModule(DataTable):
         state = app.data_notebook.tab(self, option='state')
         return state == 'normal' or state == 'disabled'
 
-
-    def insert_file_menu(self):
-        self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)
-        app.menubar.file_menu.add_cascade(label=self.name, menu=self.file_menu)
+    def set_focus(self):
+        app.cp_notebook.select(self)
 
 
