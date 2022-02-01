@@ -299,8 +299,6 @@ def plot(fix_x=False, fix_y=False, **kwargs):
     if ylim:
         trace_display.set_axis_limit('y', ylim)
 
-    print(f'plot interface called: {trace_display.sweeps.keys()}')
-    print(f'{trace_display.ax.lines}')
     trace_display.ax.set_xlabel(recordings[0].x_label)#, fontsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.set_ylabel(recordings[0].y_label)#, fontsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
