@@ -43,12 +43,13 @@ class VarWidget():
             except:
                 pass
         else:
-            if config.user_vars.get(name, None):
+            if config.user_vars.get(name, None) is not None:
                 self.var.set(config.user_vars[name])
-            elif config.system_vars.get(name, None):
+            elif config.system_vars.get(name, None) is not None:
                 self.var.set(config.system_vars[name])
             else:
                 self.var.set(self.default)
+
         self.undo_value = self.get()
 
     def get(self):
@@ -280,6 +281,8 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
             default=default,
             type=type
         )
+        if name == 'config_autoload':
+            print(f'from checkbutton: {self.var.get()}')
         ttk.Checkbutton.__init__(
             self,
             master=parent,
@@ -426,7 +429,7 @@ class NavigationToolbar(NavigationToolbar2Tk):
             # (None,None,None,None),
             ('Save', '', 'filesave', 'save_figure')
         )
-        NavigationToolbar2Tk.__init__(self, canvas, parent)
+        NavigationToolbar2Tk.__init__(self, canvas, parent, pack_toolbar=False)
 
         # self.add_toolitem(name='test', position=-1, image='img/arrow.png')
 
