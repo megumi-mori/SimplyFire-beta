@@ -28,12 +28,12 @@ class ModuleDataTable(BaseModuleDataTable):
             ('direction', 'data_display_direction'),
             ('compound', 'data_display_compound')
         ])
-        # for key in app.config.key_delete:
-        #     self.table.bind(key, self.delete_selected, add="")
+        for key in app.config.key_delete:
+            self.table.bind(key, self.delete_selected, add="")
         self.define_columns(tuple([key for key in self.mini_header2config]),iid_header='t')
-        # self.bind("<<OpenRecording>>", self.clear)
+        self.bind("<<OpenRecording>>", self.clear)
         #
-        # self.table.bind('<<TreeviewSelect>>', self.report_selected)
+        self.table.bind('<<TreeviewSelect>>', self.report_selected)
 
     def report_selected(self, event=None):
         self.module.control_tab.select_from_table(self.table.selection())

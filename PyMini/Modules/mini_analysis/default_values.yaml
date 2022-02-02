@@ -69,3 +69,8 @@ style_decay_color: 'blue'
 style_decay_size: 5
 style_highlight_color: 'yellow'
 style_highlight_size: 5
+
+
+guide_geometry_width: 500
+guide_geometry_height: 600
+guide_panel_height: 400
