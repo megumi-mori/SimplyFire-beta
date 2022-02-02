@@ -21,10 +21,9 @@ with open(default_config_path) as f:
     for c, v in configs.items():
         globals()[c] = v
         default_vars[c] = v
-        if c[0:8] == 'default_':
+        if c[0:8] == 'default_' and 'config' not in c:
             globals()[c[8:]] = v
             user_vars[c[8:]] = v
-
 print('completed')
 
 def load():
