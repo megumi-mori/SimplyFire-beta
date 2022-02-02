@@ -22,7 +22,7 @@ class BaseModuleControl(Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        self.widgets = {}
+        self.widgets = self.module.widgets
         # app.menubar.window_menu.add_checkbutton(label=self.menu_label, command=self.update_module_display, variable=self.status_var,
         #                                onvalue=True, offvalue=False)
         if scrollbar:

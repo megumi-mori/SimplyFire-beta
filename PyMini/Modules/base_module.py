@@ -9,7 +9,9 @@ class BaseModule():
                  menu_label:str,
                  tab_label:str,
                  filename:__file__,
+                 menu_target=app.menubar.window_menu
                  ):
+        self.widgets = {}
         try:
             with open(os.path.join(os.path.dirname(filename), 'default_values.yaml'), 'r') as f:
                 self.default = yaml.safe_load(f)
@@ -35,7 +37,7 @@ class BaseModule():
 
         self._load_components()
 
-        app.menubar.window_menu.add_checkbutton(label=self.menu_label,
+        menu_target.add_checkbutton(label=self.menu_label,
                                                 command=self.toggle_module_display,
                                                 variable=self.menu_var,
                                                 onvalue=True,
@@ -54,6 +56,8 @@ class BaseModule():
             self.show_tab()
         else:
             self.hide()
+        if self.data_tab:
+            self.data_tab.fit_columns()
 
     def show_tab(self, event=None):
         try:
@@ -65,12 +69,21 @@ class BaseModule():
                 app.config_cp_tab(self.control_tab, state='normal')
             if self.data_tab:
                 app.config_data_tab(self.data_tab, state='normal')
-                self.data_tab.fit_columns()
+            if self.popup_list:
+                for p in self.popup_list:
+                    if p.show:
+                        p.show_window()
         else:
             if self.control_tab:
                 app.config_cp_tab(self.control_tab, state='disabled')
             if self.data_tab:
                 app.config_data_tab(self.data_tab, state='disabled')
+            if self.popup_list:
+                for p in self.popup_list:
+                    p.withdraw()
+        app.root.update()
+        if self.data_tab:
+            self.data_tab.fit_columns()
         try:
             app.cp_notebook.select(current_tab)
         except:
@@ -111,6 +124,9 @@ class BaseModule():
             app.config_cp_tab(self.control_tab, state='hidden')
         if self.data_tab:
             app.config_data_tab(self.data_tab, state='hidden')
+        if self.popup_list:
+            for p in self.popup_list:
+                p.withdraw()
 
     def select(self, event=None):
         if self.control_tab:
@@ -129,6 +145,7 @@ class BaseModule():
         # make empty components:
         self.control_tab = None
         self.data_tab = None
+        self.popup_list = []
         for component, details in component_dict.items(): # 'py file name': {dict of details}
             if details['location'] == 'control_panel':
                 module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
@@ -143,8 +160,24 @@ class BaseModule():
                 except TypeError:
                     self._error_log(f'component {component} does not have attribute ModuleTable')
                     pass
+            elif details['location'] == 'popup':
+                module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
+                try:
+                    self.popup_list.append(getattr(module_py, 'ModulePopup', None)(self))
+                    if self.popup_list[-1].name:
+                        setattr(self, self.popup_list[-1].name, self.popup_list[-1])
+                except TypeError:
+                    self._error_log(f'component {component} does not have attribute ModulePopup')
+                    pass
+
 
 
     def insert_file_menu(self):
         self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)
         app.menubar.file_menu.add_cascade(label=self.name, menu=self.file_menu)
+
+    def log(self, msg, header=True):
+        if header:
+            app.log_display.log(f'{self.name}: {msg}', True)
+        else:
+            app.log_display.log(msg, False)
