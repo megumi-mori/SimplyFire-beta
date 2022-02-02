@@ -42,16 +42,17 @@ def load(parent):
     fig.subplots_adjust(right=1, top=1)
 
     global canvas
-    canvas = FigureCanvasTkAgg(fig, master=frame)
-    canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
+    canvas = FigureCanvasTkAgg(fig, master=parent)
+    # canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
+    canvas.get_tk_widget().grid(column=1, row=1,sticky='news')
     def focus_in(event=None):
         fig.set_edgecolor(focus_in_edge_color)
         draw_ani()
     def focus_out(event=None):
         fig.set_edgecolor(focus_out_edge_color)
         draw_ani()
-    frame.bind('<FocusIn>', focus_in)
-    frame.bind('<FocusOut>', focus_out)
+    canvas.get_tk_widget().bind('<FocusIn>', focus_in)
+    canvas.get_tk_widget().bind('<FocusOut>', focus_out)
     ax.plot()
 
     ax.set_xlabel('Time (n/a)')
@@ -201,8 +202,8 @@ def scroll_y_to(num):
     ylim = ax.get_ylim()
     height = ylim[1] - ylim[0]
     xlim = ax.get_xlim()
-    ys = ax.lines[0].get_ydata()
-    y = ys[analyzer.search_index(xlim[0], ax.lines[0].get_xdata())]
+    ys = sweeps[list(sweeps.keys())[0]].get_ydata()
+    y = ys[analyzer.search_index(xlim[0], sweeps[list(sweeps.keys())[0]].get_xdata())]
     y1 = float(num) / 100 * (height) + y
     ax.set_ylim((y1 - height, y1))
     global fig
@@ -432,8 +433,8 @@ def update_y_scrollbar(ylim=None, xlim=None):
     if xlim is None:
         xlim = ax.get_xlim()
     try:
-        idx = analyzer.search_index(xlim[0], ax.lines[0].get_xdata())
-        y = ax.lines[0].get_ydata()[idx]
+        idx = analyzer.search_index(xlim[0],sweeps[list(sweeps.keys())[0]].get_xdata())
+        y = sweeps[list(sweeps.keys())[0]].get_ydata()[idx]
 
         percent = (ylim[1] - y) / (ylim[1] - ylim[0]) * 100
         graph_panel.y_scrollbar.set(percent)
