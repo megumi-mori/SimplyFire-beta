@@ -10,7 +10,7 @@ from PyMini.config import config
 # from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
 #     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar,\
 #     compare_tab
-from PyMini.Layout import menubar, graph_panel
+from PyMini.Layout import menubar, graph_panel, setting_tab
 # from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display, param_guide
 from PyMini.DataVisualizer import log_display, results_display, trace_display
 import importlib
@@ -198,9 +198,7 @@ def load(splash):
     #############################################################
     # Insert custom tabs here to include in the control panel
     #############################################################
-    global cp_tab_details
-
-    # cp_tab_details = {
+        # cp_tab_details = {
     #     'mini': {'module': detector_tab, 'text': 'Analysis', 'partner': ['evoked'], 'name':'detector_rab'},
     #     'evoked': {'module': evoked_tab, 'text': 'Analysis', 'partner': ['mini'], 'name':'evoked_tab'},
     #     'continuous': {'module': continuous_tab, 'text': 'View', 'partner': ['overlay', 'compare'], 'name':'continuous_tab'},
@@ -218,6 +216,7 @@ def load(splash):
     #     cp_tab_details[t]['index'] = i
     #     globals()[cp_tab_details[t]['name']] = cp_tab_details[t]['module']
 
+
     # root.bind('<Configure>', print)
 
     # test = StyleTab(left, __import__(__name__), interface)
@@ -225,6 +224,7 @@ def load(splash):
 
     for k, v in graph_panel.widgets.items():
         widgets[k] = v
+
     # get reference to widgets
     # for module in [detector_tab, evoked_tab, adjust_tab, navigation_tab, style_tab, setting_tab, graph_panel]:
     #     for k, v in module.widgets.items():
@@ -277,6 +277,11 @@ def load(splash):
 
     for k, v in menubar.widgets.items():
         widgets[k] = v
+
+    setting_tab.load(root)
+    for k, v in setting_tab.widgets.items():
+        widgets[k] = v
+
     global control_panel_dict
     control_panel_dict = {}
 
@@ -314,7 +319,7 @@ def load(splash):
     root.deiconify()
     # # finalize the data viewer - table
     root.geometry(config.geometry)
-    root.update()
+
 
     for modulename in config.start_module:
         try:
@@ -324,6 +329,8 @@ def load(splash):
     for module_name, module in modules_dict.items():
         module.update_module_display()
 
+    cp_notebook.add(setting_tab.frame, text='Setting', state='hidden')
+    root.update()
     ## root2 = root
     loaded = True
     root.event_generate('<<LoadCompleted>>')
@@ -351,11 +358,11 @@ def load_module(module_name):
         # has dependencies
         for req_module_name in module_config['dependencies']:
             load_module(req_module_name)
-    # try:
-    parent_module = getattr(module, 'Module', None)()
-    # except TypeError as e:
-    #     log_display.log(f'Load error. Module {module_name}: {e}', '@Load')
-    #     return
+    try:
+        parent_module = getattr(module, 'Module', None)()
+    except TypeError as e:
+        log_display.log(f'Load error. Module {module_name}: {e}', '@Load')
+        return
     modules_dict[module_name] = parent_module
     if getattr(parent_module, 'control_tab', None):
         cp_notebook.add(parent_module.control_tab, text=parent_module.tab_label)
@@ -448,8 +455,8 @@ def dump_user_setting(filename=None):
     ignore = ['config_', '_log', 'temp_']
     print('Writing out configuration variables....')
     if filename is None:
-        # filename = widgets['config_user_path'].var.get().strip()
-        filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
+        filename = widgets['config_user_path'].var.get().strip()
+        # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
         print('writing dump user config {}'.format(filename))
         f.write("#################################################################\n")
@@ -478,7 +485,8 @@ def dump_user_setting(filename=None):
         # d['compare_color_list'] = config.compare_color_list
         # d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
         d['start_module'] = [name for name, module in modules_dict.items() if module.menu_var.get()]
-        print('save output:')
+        for modulename, module in modules_dict.items():
+            d[modulename] = dict([(key, var.get()) for key, var in module.widgets.items()])
         f.write(yaml.safe_dump(d))
         # pymini.pb.clear()
 
@@ -495,7 +503,9 @@ def dump_system_setting():
         f.write("\n")
 
         # f.write(yaml.safe_dump(dict([(key, widgets[key].get()) for key in widgets if 'config' in key])))
-        f.write(yaml.safe_dump(dict([(n, getattr(config, n)) for n in config.user_vars if 'config' in n])))
+        # f.write(yaml.safe_dump(dict([(n, getattr(config, n)) for n in config.user_vars if 'config' in n])))
+        f.write(yaml.safe_dump(dict([(key, value.get()) for key, value in widgets.items() if 'config' in key])))
+
     print('Completed')
 
 def dump_config_var(key, filename, title=None):
