@@ -13,8 +13,8 @@ import time
 def load(menubar):
     global widgets
     widgets = {}
-    global trace_mode
-    trace_mode = 'continuous'
+    global prev_trace_mode
+    prev_trace_mode = 'continuous'
 
     parent=menubar.master
 
@@ -128,17 +128,16 @@ def export_results():
         results_display.dataframe.export(filename)
 
 def set_view_continuous(save_undo=True):
-    global trace_mode
     global widgets
+    global prev_trace_mode
+    if prev_trace_mode == 'continuous':
+        print('stays in continuous')
+        return
     app.root.event_generate('<<ContinuousView>>')
-    # if save_undo and trace_mode == 'overlay':
-    #     interface.add_undo([
-    #         lambda s=False: set_view_overlay(s),
-    #     ])
-    # elif save_undo and trace_mode == 'compare':
-    #     interface.add_undo([
-    #         lambda s=False: set_view_compare(s)
-    #     ])
+    if save_undo and prev_trace_mode == 'overlay':
+        interface.add_undo([
+            lambda s=False: set_view_overlay(s),
+        ])
     widgets['trace_mode'].set('continuous')
 
     # switch to continuous mode tab
@@ -153,17 +152,20 @@ def set_view_continuous(save_undo=True):
     #     interface.config_cp_tab('mini', state='normal')
     #     interface.config_data_tab('mini', state='normal')
     # interface.config_cp_tab('adjust', state='normal')
-    trace_mode = 'continuous'
+    prev_trace_mode = 'continuous'
     pass
 
 def set_view_overlay(save_undo=True):
-    global trace_mode
+    global prev_trace_mode
     global widgets
+    if prev_trace_mode == 'overlay':
+        print('stays in overlay')
+        return
     app.root.event_generate('<<OverlayView>>')
-    # if save_undo and trace_mode == 'continuous':
-    #     interface.add_undo([
-    #         lambda d=False: set_view_continuous(d)
-    #     ])
+    if save_undo and prev_trace_mode == 'continuous':
+        interface.add_undo([
+            lambda d=False: set_view_continuous(d)
+        ])
     # elif save_undo and trace_mode == 'compare':
     #     interface.add_undo([
     #         lambda d=False: set_view_compare(d)
@@ -178,7 +180,7 @@ def set_view_overlay(save_undo=True):
     #     interface.config_cp_tab('mini', state='disabled')
     #     interface.config_data_tab('mini', state='disabled')
     # interface.config_cp_tab('adjust',state='normal')
-    trace_mode = 'overlay'
+    prev_trace_mode = 'overlay'
     pass
 
 def undo_disable():
