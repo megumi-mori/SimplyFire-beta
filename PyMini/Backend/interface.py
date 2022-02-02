@@ -42,6 +42,9 @@ def get_temp_num():
         temp_num = 0
         return 0
 
+def get_temp_filename():
+    return os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
+                                       'temp_{}.temp'.format(get_temp_num()))
 def get_prev_temp_num():
     global temp_num
     try:
@@ -77,7 +80,11 @@ def add_undo(task):
         pass
     return
 
+def is_accepting_undo():
+    return int(app.widgets['config_undo_stack'].get()) > 0
+
 def undo(e=None):
+    print('undo called')
     app.pb['value'] = 0
     app.pb.update()
     if len(undo_stack) > 0:
