@@ -12,7 +12,9 @@ from .base_module import BaseModule
 class BaseModuleControl(Frame):
     def __init__(self,
                  module:BaseModule,
+                 name:str='control_tab',
                  scrollbar:bool=True,
+                 notebook:ttk.Notebook=app.cp_notebook
                  ) -> None:
         self.module = module
         self.default = self.module.default
@@ -37,6 +39,10 @@ class BaseModuleControl(Frame):
         self.make_panel = self.optionframe.make_panel
         self.insert_separator = self.optionframe.insert_separator
         self.insert_widget = self.optionframe.insert_widget
+
+        self.notebook = notebook
+        self.notebook.add(self, text=self.module.tab_label)
+        self.name = name
 
     # def update_module_display(self, event=None):
     #     if self.status_var.get():
@@ -198,3 +204,14 @@ class BaseModuleControl(Frame):
 
     def load_config_value(self, name):
         return self.values.get(name, self.default.get(name, None))
+
+
+
+    def enable(self):
+        self.notebook.tab(self, state='normal')
+
+    def disable(self):
+        self.notebook.tab(self, state='disabled')
+
+    def hide(self):
+        self.notebook.tab(self, state='hidden')

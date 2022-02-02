@@ -1,3 +1,2 @@
 GUI_components:
-  style_tab:
-    location: 'control_panel'
+  style_tab: 'ModuleControl'

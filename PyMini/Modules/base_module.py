@@ -60,34 +60,24 @@ class BaseModule():
             self.data_tab.fit_columns()
 
     def show_tab(self, event=None):
+        set_to_self = False
         try:
-            current_tab = app.cp_notebook.index(app.cp_notebook.select())
+            app.cp_notebook.index(app.cp_notebook.select())
         except:
-            current_tab = None
+            set_to_self = True
         if not self.disable_stack:
-            if self.control_tab:
-                app.config_cp_tab(self.control_tab, state='normal')
-            if self.data_tab:
-                app.config_data_tab(self.data_tab, state='normal')
-            if self.popup_list:
-                for p in self.popup_list:
-                    if p.show:
-                        p.show_window()
+            for c in self.children:
+                c.enable()
+                if set_to_self:
+                    try:
+                        c.notebook.select(c)
+                    except:
+                        pass
         else:
-            if self.control_tab:
-                app.config_cp_tab(self.control_tab, state='disabled')
-            if self.data_tab:
-                app.config_data_tab(self.data_tab, state='disabled')
-            if self.popup_list:
-                for p in self.popup_list:
-                    p.withdraw()
-        app.root.update()
+            for c in self.children:
+                c.disable()
         if self.data_tab:
             self.data_tab.fit_columns()
-        try:
-            app.cp_notebook.select(current_tab)
-        except:
-            pass
 
     def _disable(self, event=None, source:str=None):
         source = self.name
@@ -116,23 +106,19 @@ class BaseModule():
         return self.menu_var.get()
 
     def is_enabled(self):
-        return self.is_visible() and not self.disable_stack
+        return not self.disable_stack
 
 
     def hide(self, event=None):
-        if self.control_tab:
-            app.config_cp_tab(self.control_tab, state='hidden')
-        if self.data_tab:
-            app.config_data_tab(self.data_tab, state='hidden')
-        if self.popup_list:
-            for p in self.popup_list:
-                p.withdraw()
+        for c in self.children:
+            c.hide()
 
     def select(self, event=None):
-        if self.control_tab:
-            app.cp_notebook.select(self.control_tab)
-        if self.data_tab:
-            app.data_notebook.select(self.data_tab)
+        for c in self.children:
+            try:
+                c.notebook.select(c)
+            except:
+                pass
 
     def _error_log(self, msg):
         # connect to log later
@@ -146,29 +132,45 @@ class BaseModule():
         self.control_tab = None
         self.data_tab = None
         self.popup_list = []
-        for component, details in component_dict.items(): # 'py file name': {dict of details}
-            if details['location'] == 'control_panel':
-                module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
-                # try:
-                self.control_tab = getattr(module_py, 'ModuleControl', None)(self)
-                # except TypeError:
-                #     self._error_log(f'component {component} does not have attribute ModuleControl')
-            elif details['location'] == 'data_notebook':
-                module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
-                try:
-                    self.data_tab = getattr(module_py, 'ModuleDataTable', None)(self)
-                except TypeError:
-                    self._error_log(f'component {component} does not have attribute ModuleTable')
-                    pass
-            elif details['location'] == 'popup':
-                module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
-                try:
-                    self.popup_list.append(getattr(module_py, 'ModulePopup', None)(self))
-                    if self.popup_list[-1].name:
-                        setattr(self, self.popup_list[-1].name, self.popup_list[-1])
-                except TypeError:
-                    self._error_log(f'component {component} does not have attribute ModulePopup')
-                    pass
+        self.children = []
+        for component, object in component_dict.items(): # 'py file name': {dict of details}
+            module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
+            try:
+                tab = getattr(module_py, object, None)(self)
+                if tab.name:
+                    setattr(self, tab.name, tab)
+                self.children.append(tab)
+            except:
+                pass
+                # if details['location'] == 'control_panel':
+                #     module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
+                #     # try:
+                #     tab = getattr(module_py, 'ModuleControl', None)(self)
+                #     if tab.name:
+                #         setattr(self, tab.name, tab)
+                #     self.children.append(tab)
+                #     # except TypeError:
+                #     #     self._error_log(f'component {component} does not have attribute ModuleControl')
+                # elif details['location'] == 'data_notebook':
+                #     module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
+                #     try:
+                #         tab = getattr(module_py, 'ModuleDataTable', None)(self)
+                #         if tab.name:
+                #             setattr(self, tab.name, tab)
+                #         self.children.append(self.data_tab)
+                #     except TypeError:
+                #         self._error_log(f'component {component} does not have attribute ModuleTable')
+                #         pass
+                # elif details['location'] == 'popup':
+                #     module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
+                #     try:
+                #         self.popup_list.append(getattr(module_py, 'ModulePopup', None)(self))
+                #         self.children.append(self.popup_list[-1])
+                #         if self.popup_list[-1].name:
+                #             setattr(self, self.popup_list[-1].name, self.popup_list[-1])
+                #     except TypeError:
+                #         self._error_log(f'component {component} does not have attribute ModulePopup')
+                #         pass
 
 
 

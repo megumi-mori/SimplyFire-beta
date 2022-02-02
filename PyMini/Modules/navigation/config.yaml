@@ -1,3 +1,2 @@
 GUI_components:
-  navigation:
-    location: 'control_panel'
+  navigation: 'ModuleControl'

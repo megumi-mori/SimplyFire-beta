@@ -1,4 +1,4 @@
-from tkinter import BooleanVar
+from tkinter import BooleanVar, ttk
 from PyMini.utils.custom_widgets import DataTable
 from PyMini import app
 import tkinter as Tk
@@ -6,7 +6,9 @@ from tkinter import Frame
 from PyMini.Modules.base_module import BaseModule
 class BaseModuleDataTable(DataTable):
     def __init__(self,
-                 module:BaseModule
+                 module:BaseModule,
+                 name:str='data_tab',
+                 notebook: ttk.Notebook = app.data_notebook
                  ):
         super().__init__(app.root)
         self.module=module
@@ -39,46 +41,37 @@ class BaseModuleDataTable(DataTable):
         self.add_menu_command(label='Clear data', command=self.clear)
         self.add_menu_command(label='Report stats', command=self.report)
 
+        self.notebook = notebook
+        self.notebook.add(self, text=self.module.tab_label)
+        self.name = name
     def add(self, datadict, parent="", index='end'):
-        self.disable_tab()
+        self.disable()
         super().add(datadict, parent, index)
-        self.enable_tab()
+        self.enable()
 
     def append(self, dataframe):
-        self.disable_tab()
+        self.disable()
         super().append(dataframe)
-        self.enable_tab()
+        self.enable()
 
     def set(self, dataframe):
-        self.disable_tab()
+        self.disable()
         super().set(dataframe)
-        self.enable_tab()
-
-    def show_tab(self):
-        if self.enabled:
-            app.data_notebook.tab(self, state='normal')
-        else:
-            app.data_notebook.tab(self, state='dosabled')
-
-    def hide_tab(self):
-        app.data_notebook.tab(self, state='hidden')
-
-    def enable_tab(self):
-        self.enabled = True
-        if self.is_visible():
-            app.data_notebook.tab(self, state='normal')
-            app.data_notebook.select(self)
-
-    def disable_tab(self):
-        self.disabled = True
-        if self.is_visible():
-            app.data_notebook.tab(self, state='disabled')
+        self.enable()
 
     def is_visible(self):
-        state = app.data_notebook.tab(self, option='state')
+        state = self.notebook.tab(self, option='state')
         return state == 'normal' or state == 'disabled'
 
-    def set_focus(self):
-        app.cp_notebook.select(self)
+    def enable(self):
+        self.notebook.tab(self, state='normal')
+
+    def disable(self):
+        self.notebook.tab(self, state='disable')
+
+    def hide(self):
+        self.notebook.tab(self, state='hidden')
+
+
 
 

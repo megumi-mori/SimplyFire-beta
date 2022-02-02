@@ -1,9 +1,6 @@
 dependencies:
   - 'style'
 GUI_components:
-  mini_analysis_tab:
-    location: 'control_panel'
-  mini_analysis_table:
-    location: 'data_notebook'
-  param_guide:
-    location: 'popup'
+  mini_analysis_tab: 'ModuleControl'
+  mini_analysis_table: 'ModuleDataTable'
+  param_guide: 'ModulePopup'

@@ -1,3 +1,2 @@
 GUI_components:
-  sweeps_tab:
-    location: 'control_panel'
+  sweeps_tab: 'ModuleControl'

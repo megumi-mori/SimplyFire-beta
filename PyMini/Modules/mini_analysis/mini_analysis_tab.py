@@ -421,7 +421,7 @@ class ModuleControl(BaseModuleControl):
         self.module.log(f'Find mini.\n{str(self.get_params())}', header=True)
         self.looged = True
     def open_zoom(self, event=None):
-        self.module.popup_list[0].show_window()
+        self.module.guide_window.show_window()
         pass
     def populate_decay_algorithms(self, e=None):
         algorithm = self.widgets['detector_core_decay_algorithm'].get()
