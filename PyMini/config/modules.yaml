@@ -8,4 +8,5 @@ modules:
   - 'sweeps'
   - 'process_recording'
   - 'evoked_basic'
-  - 'comparative_overlay'
+#  - 'comparative_overlay'
+  - 'navigation'
