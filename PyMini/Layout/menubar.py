@@ -95,8 +95,6 @@ def ask_save_recording(e=None, save_events=True):
         messagebox.showerror(title='Error', message='No recording to export. Please open a recording first.')
         return None
     save = False
-    if save_events:
-        save = ask_save_events()
     if save is not None:
         initialfname = os.path.splitext(interface.recordings[0].filename)[0] + '_Modified'
         try:
