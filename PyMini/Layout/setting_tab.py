@@ -35,7 +35,7 @@ def load(parent):
     ##################################################
     #                    Populate                    #
     ##################################################
-
+    global frame
     frame = ScrollableOptionFrame(parent)
     global optionframe
     optionframe = frame.frame
@@ -51,7 +51,7 @@ def load(parent):
     )
     widgets['font_size'] = optionframe.insert_label_optionmenu(
         name='font_size',
-        label="Font size",
+        text="Font size",
         options=range(9,20,1),
         command=set_fontsize
     )
@@ -65,13 +65,14 @@ def load(parent):
     )
     widgets['config_autoload'] = optionframe.insert_label_checkbox(
         name='config_autoload',
-        label='Automatically load configurations at the beginning of the next session',
+        text='Automatically load configurations at the beginning of the next session',
         onvalue='1',
-        offvalue=""
+        offvalue="",
+        # value=config.config_autoload
     )
     widgets['config_autosave'] = optionframe.insert_label_checkbox(
         name='config_autosave',
-        label='Automatically save configurations at the end of this session',
+        text='Automatically save configurations at the end of this session',
         onvalue='1',
         offvalue=""
     )
@@ -85,7 +86,7 @@ def load(parent):
     ttk.Label(master=dir_frame,
              text='Configuration file path:').grid(column=0, row=0, sticky='news')
     global dir_entry
-    dir_entry = widgets.VarText(
+    dir_entry = custom_widgets.VarText(
         parent=dir_frame,
         name='config_user_path',
         value=config.config_user_path,
@@ -105,12 +106,12 @@ def load(parent):
     # optionframe.insert_button("Save",
     #                           command= lambda e=widgets['config_user_path'].get():
     #                         app.dump_user_setting(e))
-    optionframe.insert_button('Save',
+    optionframe.insert_button(text='Save',
                               command=save)
 
-    optionframe.insert_button("Save As...", command=save_config_as)
+    optionframe.insert_button(text="Save As...", command=save_config_as)
 
-    optionframe.insert_button("Load", command=load_config)
+    optionframe.insert_button(text="Load", command=load_config)
 
     optionframe.insert_button(
         text='Default',
@@ -121,16 +122,16 @@ def load(parent):
         name='misc',
         text='Misc'
     )
-    widgets['config_file_autodir'] = optionframe.insert_label_checkbox(
-        name='config_file_autodir',
-        label='Use trace file directory as default export directory (figures, data)',
-        onvalue="1",
-        offvalue=""
-    )
+    # widgets['config_file_autodir'] = optionframe.insert_label_checkbox(
+    #     name='config_file_autodir',
+    #     text='Use trace file directory as default export directory (figures, data)',
+    #     onvalue="1",
+    #     offvalue=""
+    # )
 
     widgets['config_undo_stack'] = optionframe.insert_label_entry(
         name='config_undo_stack',
-        label='Number of steps to store in memory for undo (Experimental)',
+        text='Number of steps to store in memory for undo (Experimental)',
     )
 
     optionframe.insert_title(
@@ -138,26 +139,26 @@ def load(parent):
     )
     widgets['window_width'] = optionframe.insert_label_entry(
         name='window_width',
-        label='Window width (px)',
+        text='Window width (px)',
         value=config.geometry.split('x')[0],
         default=config.default_geometry.split('x')[0]
     )
     widgets['window_width'].bind('<Return>', apply_geometry)
     widgets['window_height'] = optionframe.insert_label_entry(
         name='window_height',
-        label='Window height (px)',
+        text='Window height (px)',
         value=config.geometry.split('x')[1],
         default=config.default_geometry.split('x')[1]
     )
     widgets['window_height'].bind('<Return>', apply_geometry)
     widgets['cp_width'] = optionframe.insert_label_entry(
         name='cp_width',
-        label='Control panel width (px)',
+        text='Control panel width (px)',
     )
     widgets['cp_width'].bind('<Return>', apply_geometry)
     widgets['gp_height'] = optionframe.insert_label_entry(
         name='gp_height',
-        label='Graph panel height (px)'
+        text='Graph panel height (px)'
     )
     widgets['gp_height'].bind('<Return>', apply_geometry)
     app.root.bind('<Configure>', change_geometry_entries)
@@ -170,7 +171,24 @@ def load(parent):
         text='Apply',
         command=apply_geometry
     )
+    set_fontsize(widgets['font_size'].get())
+    global menu_var
+    menu_var = Tk.BooleanVar()
+    app.menubar.settings_menu.add_checkbutton(label='Open settings tab',
+                                             command=toggle_tab_display,
+                                             variable=menu_var,
+                                             onvalue=True,
+                                             offvalue=False)
+
     return frame
+
+def toggle_tab_display(event=None):
+    global menu_var
+    if menu_var.get():
+        app.config_cp_tab(frame, state='normal')
+    else:
+        app.config_cp_tab(frame, state='hidden')
+
 def load_config(e=None):
     interface.focus()
     app.load_config()
