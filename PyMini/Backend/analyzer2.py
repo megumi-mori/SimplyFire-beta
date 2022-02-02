@@ -1423,7 +1423,7 @@ class Analyzer():
         mini = {'direction': direction, 'lag': lag, 'delta_x': delta_x, 'channel': channel, 'min_amp': min_amp,
                 'max_amp': max_amp,
                 'min_rise': min_rise, 'max_rise': max_rise, 'min_hw': min_hw, 'max_hw': max_hw, 'min_decay': min_decay,
-                'min_s2n': min_s2n, 'max_s2n': max_s2n,
+                'min_s2n': min_s2n, 'max_s2n': max_s2n, 'min_drr': min_drr, 'max_drr':max_drr,
                 'max_decay': max_decay, 'decay_max_points': decay_max_points, 'decay_max_interval': decay_max_interval,
                 'datetime': datetime.now().strftime('%m-%d-%y %H:%M:%S'), 'failure': None, 'success': True,
                 't': xs[peak_idx], 'peak_idx': peak_idx + offset, 'compound': False,
