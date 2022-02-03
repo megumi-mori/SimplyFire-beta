@@ -50,19 +50,22 @@ class BaseModuleDataTable(DataTable):
         self.disable()
         super().add(datadict, parent, index)
         self.enable()
-        self.select()
+        if self.module.control_tab.has_focus():
+            self.select()
 
     def append(self, dataframe):
         self.disable()
         super().append(dataframe)
         self.enable()
-        self.select()
+        if self.module.control_tab.has_focus():
+            self.select()
 
     def set(self, dataframe):
         self.disable()
         super().set(dataframe)
         self.enable()
-        self.select()
+        if self.module.control_tab.has_focus():
+            self.select()
 
     def is_visible(self):
         state = self.notebook.tab(self, option='state')
@@ -72,8 +75,8 @@ class BaseModuleDataTable(DataTable):
         self.notebook.tab(self, state='normal')
         try:
             self.notebook.index(self.notebook.select())
-        except:
-            self.notebook.select(self)
+        except Exception as e:
+            self.select()
         if not self._loaded:
             if self.winfo_width() > 1:
                 self.fit_columns()

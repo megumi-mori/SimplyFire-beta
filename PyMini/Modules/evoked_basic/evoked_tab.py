@@ -63,7 +63,6 @@ class ModuleControl(BaseModuleControl):
         # report
         if app.widgets['trace_mode'].get() == 'continuous':
             target_sweeps = [0] # continuous mode only has 1 sweep
-        self.module.data_tab.disable()
         for i,c in enumerate(target_channels):
             for j,s in enumerate(target_sweeps):
                 self.module.data_tab.add({
@@ -75,7 +74,7 @@ class ModuleControl(BaseModuleControl):
                     'max': maxs[i, j, 0],
                     'max_unit': recording.y_unit
                 }, )
-        self.module.data_tab.enable()
+        # self.module.data_tab.select()
 
     def _select_xlim_mode(self, event=None):
         selection = self.widgets['range_target'].get()
