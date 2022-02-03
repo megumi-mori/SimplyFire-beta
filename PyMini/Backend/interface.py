@@ -84,7 +84,7 @@ def is_accepting_undo():
     return int(app.widgets['config_undo_stack'].get()) > 0
 
 def undo(e=None):
-    print('undo called')
+    print(f'undo called: {undo_stack}')
     app.pb['value'] = 0
     app.pb.update()
     if len(undo_stack) > 0:
@@ -93,7 +93,10 @@ def undo(e=None):
         for i, task in enumerate(task_stack):
             app.pb['value'] = i / len_task * 100
             app.pb.update()
-            task()
+            try:
+                task()
+            except:
+                pass
             del task
 
         del task_stack

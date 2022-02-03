@@ -195,38 +195,66 @@ class ModuleControl(BaseModuleControl):
         app.interface.focus()
 
     ##### control sweep visibility #####
-    def show_all(self, event=None, draw=True):
-        for v in self.sweep_vars:
-            v.set(True)
-        for v in self.sweep_namevars:
-            app.trace_display.sweeps[v.get()].set_linestyle('-')
-        if draw:
-            app.trace_display.draw_ani()
+    def show_all(self, event=None, draw=True, undo=True):
+        print('show all called')
+        if undo and app.interface.is_accepting_undo():
+            hide_list = [i for i, v in enumerate(self.sweep_vars) if not v.get()]
+            app.interface.add_undo(
+                [
+                    lambda l=hide_list: self.hide_list(selection=l, draw=True, undo=False)
+                ]
+            )
+        self.show_list(selection=range(len(self.sweep_vars)), undo=False)
+        # for v in self.sweep_vars:
+        #     v.set(True)
+        # for v in self.sweep_namevars:
+        #     app.trace_display.sweeps[v.get()].set_linestyle('-')
+        # if draw:
+        #     app.trace_display.draw_ani()
         app.interface.focus()
 
-    def hide_all(self, event=None, draw=True):
-        for v in self.sweep_vars:
-            v.set(False)
-        for v in self.sweep_namevars:
-            app.trace_display.sweeps[v.get()].set_linestyle('None')
-        if draw:
-            app.trace_display.draw_ani()
-        app.interface.focus()
+    def hide_all(self, event=None, draw=True, undo=True):
+        print('hide all called')
+        if undo and app.interface.is_accepting_undo():
+            show_list = [i for i, v in enumerate(self.sweep_vars) if v.get()]
+            app.interface.add_undo(
+                [
+                    lambda l=show_list: self.show_list(selection=l, draw=True, undo=False)
+                ]
+            )
+        self.hide_list(selection=range(len(self.sweep_vars)), undo=False)
+        # for v in self.sweep_vars:
+        #     v.set(False)
+        # for v in self.sweep_namevars:
+        #     app.trace_display.sweeps[v.get()].set_linestyle('None')
+        # if draw:
+        #     app.trace_display.draw_ani()
+        # app.interface.focus()
 
     def hide_selected(self, event=None, draw=True):
-        for i, v in enumerate(self.sweep_vars):
-            sweep = app.trace_display.sweeps[self.sweep_namevars[i].get()]
-            if sweep.get_color() == self.highlight_color:
-                v.set(False)
-                sweep.set_linestyle('None')
-                sweep.set_color(app.trace_display.trace_color)
-                sweep.set_linewidth(app.trace_display.trace_width)
-        if draw:
-            app.trace_display.draw_ani()
+        hide_list = [i for i, v in enumerate(self.sweep_vars) if
+                app.trace_display.sweeps[self.sweep_namevars[i].get()].get_color() == self.highlight_color]
+        self.hide_list(hide_list, draw=draw)
 
-    def hide_list(self, event=None, selection=None, draw=True):
+        # for i, v in enumerate(self.sweep_vars):
+        #     sweep = app.trace_display.sweeps[self.sweep_namevars[i].get()]
+        #     if sweep.get_color() == self.highlight_color:
+        #         v.set(False)
+        #         sweep.set_linestyle('None')
+        #         sweep.set_color(app.trace_display.trace_color)
+        #         sweep.set_linewidth(app.trace_display.trace_width)
+        # if draw:
+        #     app.trace_display.draw_ani()
+
+    def hide_list(self, event=None, selection=None, draw=True, undo=True):
         if selection is None:
             return None
+        if undo and app.interface.is_accepting_undo():
+            app.interface.add_undo(
+                [
+                    lambda l=selection: self.show_list(selection=l, draw=True, undo=False)
+                ]
+            )
         for s in selection:
             self.sweep_vars[s].set(False)
             sweep = app.trace_display.sweeps[self.sweep_namevars[s].get()]
@@ -236,9 +264,15 @@ class ModuleControl(BaseModuleControl):
         if draw:
             app.trace_display.draw_ani()
 
-    def show_list(self, event=None, selection=None, draw=True):
+    def show_list(self, event=None, selection=None, draw=True, undo=True):
         if selection is None:
             return None
+        if undo and app.interface.is_accepting_undo():
+            app.interface.add_undo(
+                [
+                    lambda l=selection: self.hide_list(selection=l, draw=True, undo=False)
+                ]
+            )
         for s in selection:
             self.sweep_vars[s].set(True)
             sweep = app.trace_display.sweeps[self.sweep_namevars[s].get()]
