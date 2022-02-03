@@ -252,15 +252,19 @@ class ModuleControl(BaseModuleControl):
                 ]
             )
         for s in selection:
-            self.sweep_vars[s].set(False)
-            sweep = app.trace_display.sweeps[self.sweep_namevars[s].get()]
-            sweep.set_linestyle('None')
-            sweep.set_color(app.trace_display.trace_color)
-            sweep.set_linewidth(app.trace_display.trace_width)
+            try:
+                self.sweep_vars[s].set(False)
+                sweep = app.trace_display.sweeps[self.sweep_namevars[s].get()]
+                sweep.set_linestyle('None')
+                sweep.set_color(app.trace_display.trace_color)
+                sweep.set_linewidth(app.trace_display.trace_width)
+            except:
+                pass
         if draw:
             app.trace_display.draw_ani()
 
     def show_list(self, event=None, selection=None, draw=True, undo=True):
+        print(f'show list: {selection}')
         if selection is None:
             return None
         if undo and app.interface.is_accepting_undo():

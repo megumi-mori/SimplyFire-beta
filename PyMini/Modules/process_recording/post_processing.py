@@ -39,13 +39,25 @@ class ModuleControl(BaseModuleControl):
         avg_sweep = process.average_sweeps(app.interface.recordings[0],
                                            channels=target_channels,
                                            sweeps=target_sweeps)
+        if app.interface.is_accepting_undo():
+            sweep_list = tuple(app.modules_dict['sweeps'].control_tab.get_visible_sweeps())
+            print(sweep_list)
+            self.module.add_undo(
+                [
+                    app.interface.recordings[0].delete_last_sweep,
+                    app.interface.plot,
+                    app.modules_dict['sweeps'].control_tab.synch_sweep_list,
+                    'test tentry string!',
+                    lambda l=sweep_list, u=False: app.modules_dict['sweeps'].control_tab.show_list(selection=l, undo=u)
+                ]
+            )
         app.interface.recordings[0].append_sweep(avg_sweep)
         app.interface.plot(fix_x=True, fix_y=True)
         app.modules_dict['sweeps'].control_tab.synch_sweep_list()
         if self.widgets['average_show_result'].get():
-            app.modules_dict['sweeps'].control_tab.hide_all()
-            app.modules_dict['sweeps'].control_tab.sweep_buttons[app.interface.recordings[0].sweep_count-1].invoke()
-        pass
+            app.modules_dict['sweeps'].control_tab.hide_all(undo=False)
+            app.modules_dict['sweeps'].control_tab.show_list(selection=[app.interface.recordings[0].sweep_count-1], undo=False)
+
     def subtract_baseline(self, event=None):
         if len(app.interface.recordings)==0:
             return None # nothing to process
