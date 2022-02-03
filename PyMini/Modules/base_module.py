@@ -81,23 +81,30 @@ class BaseModule():
             self.disable_stack.append(source)
         self.update_module_display()
 
-    def force_enable(self):
+    def force_enable(self, event=None):
         self.disable_stack = []
         self.update_module_display()
 
     def _remove_disable(self, event=None, source:str=None):
-        source = self.name
+        if not source:
+            source = self.name
         try:
             self.disable_stack.remove(source)
         except ValueError:
             self._error_log(f'{source} is not part of the disable stack')
         self.update_module_display()
 
-    def disable_module(self, modulename):
-        app.modules_dict[modulename]._add_disable(source=self.name)
+    def disable_module(self, event=None, modulename=None):
+        if not modulename:
+            self._add_disable()
+        else:
+            app.modules_dict[modulename]._add_disable(source=self.name)
 
-    def enable_module(self, modulename):
-        app.modules_dict[modulename]._remove_disable(source=self.name)
+    def enable_module(self, event=None, modulename=None):
+        if not modulename:
+            self._remove_disable()
+        else:
+            app.modules_dict[modulename]._remove_disable(source=self.name)
 
     def is_visible(self):
         return self.menu_var.get()

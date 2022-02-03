@@ -339,9 +339,9 @@ class ModuleControl(BaseModuleControl):
         app.root.bind('<<OpenedRecording>>',
                       self.reset_sweep_list, add='+')
         app.root.bind('<<LoadCompleted>>', self.module.update_module_display, add='+')
-        app.root.bind('<<OverlayView>>', self.module._remove_disable, add='+')
+        app.root.bind('<<OverlayView>>', self.module.enable_module, add='+')
         app.root.bind('<<Plotted>>', lambda e, func=self.apply_sweep_list:self.call_if_enabled(func), add='+')
-        app.root.bind('<<ContinuousView>>', self.module._add_disable, add='+')
+        app.root.bind('<<ContinuousView>>', self.module.disable_module, add='+')
 
         app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release: self.call_if_focus(func), add="+")
         app.root.bind("<<CanvasDrawRect>>", lambda e, func=self.canvas_draw_rect: self.call_if_focus(func), add='+')

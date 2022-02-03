@@ -100,6 +100,9 @@ def undo(e=None):
             del task
 
         del task_stack
+    else:
+        # app.root.bell()
+        pass
     app.pb['value'] = 0
     app.pb.update()
 
