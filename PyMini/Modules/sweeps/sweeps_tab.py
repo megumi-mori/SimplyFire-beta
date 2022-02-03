@@ -98,8 +98,8 @@ class ModuleControl(BaseModuleControl):
                 var = Tk.BooleanVar(f, True)
                 button = ttk.Checkbutton(master=f,
                                          variable=var,
-                                         command=lambda x=sweepname, v=var.get:
-                                         self.toggle_sweep(x, v()))
+                                         command=lambda x=sweepname, idx=i, v=var.get:
+                                         self.toggle_sweep(name=x, index=idx, value=v()))
                 self.sweep_buttons.append(button)
                 button.grid(column=1, row=i, sticky='es')
                 self.sweep_vars.append(var)
@@ -147,8 +147,8 @@ class ModuleControl(BaseModuleControl):
                 var = Tk.BooleanVar(f, visible)
                 button = ttk.Checkbutton(master=f,
                                          variable=var,
-                                         command=lambda x=sweepname, v=var.get:
-                                         self.toggle_sweep(x, v()))
+                                         command=lambda x=sweepname, idx=i, v=var.get:
+                                         self.toggle_sweep(name=x, index=idx, value=v()))
                 self.sweep_buttons.append(button)
                 button.grid(column=1, row=i, sticky='es')
                 self.sweep_vars.append(var)
@@ -179,7 +179,12 @@ class ModuleControl(BaseModuleControl):
         selection = [i for i, v in enumerate(self.sweep_vars) if not v.get()]
         self.hide_list(selection=selection, draw=draw)
 
-    def toggle_sweep(self, name=None, value=None):
+    def toggle_sweep(self, name=None, index=0, value=None, undo=True):
+        if undo and app.interface.is_accepting_undo():
+            app.interface.add_undo(
+                [lambda n=name, i=index, v=not value, u=False:self.toggle_sweep(n, i, v, u),
+                 lambda v=not value: self.sweep_vars[index].set(v)]
+            )
         if value:
             try:
                 app.trace_display.sweeps[name].set_linestyle('-')
@@ -198,7 +203,7 @@ class ModuleControl(BaseModuleControl):
     def show_all(self, event=None, draw=True, undo=True):
         print('show all called')
         if undo and app.interface.is_accepting_undo():
-            hide_list = [i for i, v in enumerate(self.sweep_vars) if not v.get()]
+            hide_list = tuple([i for i, v in enumerate(self.sweep_vars) if not v.get()])
             app.interface.add_undo(
                 [
                     lambda l=hide_list: self.hide_list(selection=l, draw=True, undo=False)
@@ -216,7 +221,7 @@ class ModuleControl(BaseModuleControl):
     def hide_all(self, event=None, draw=True, undo=True):
         print('hide all called')
         if undo and app.interface.is_accepting_undo():
-            show_list = [i for i, v in enumerate(self.sweep_vars) if v.get()]
+            show_list = tuple([i for i, v in enumerate(self.sweep_vars) if v.get()])
             app.interface.add_undo(
                 [
                     lambda l=show_list: self.show_list(selection=l, draw=True, undo=False)
@@ -236,15 +241,6 @@ class ModuleControl(BaseModuleControl):
                 app.trace_display.sweeps[self.sweep_namevars[i].get()].get_color() == self.highlight_color]
         self.hide_list(hide_list, draw=draw)
 
-        # for i, v in enumerate(self.sweep_vars):
-        #     sweep = app.trace_display.sweeps[self.sweep_namevars[i].get()]
-        #     if sweep.get_color() == self.highlight_color:
-        #         v.set(False)
-        #         sweep.set_linestyle('None')
-        #         sweep.set_color(app.trace_display.trace_color)
-        #         sweep.set_linewidth(app.trace_display.trace_width)
-        # if draw:
-        #     app.trace_display.draw_ani()
 
     def hide_list(self, event=None, selection=None, draw=True, undo=True):
         if selection is None:
