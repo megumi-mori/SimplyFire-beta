@@ -181,7 +181,7 @@ class ModuleControl(BaseModuleControl):
 
     def toggle_sweep(self, name=None, index=0, value=None, undo=True):
         if undo and app.interface.is_accepting_undo():
-            app.interface.add_undo(
+            self.module.add_undo(
                 [lambda n=name, i=index, v=not value, u=False:self.toggle_sweep(n, i, v, u),
                  lambda v=not value: self.sweep_vars[index].set(v)]
             )
@@ -204,7 +204,7 @@ class ModuleControl(BaseModuleControl):
         print('show all called')
         if undo and app.interface.is_accepting_undo():
             hide_list = tuple([i for i, v in enumerate(self.sweep_vars) if not v.get()])
-            app.interface.add_undo(
+            self.module.add_undo(
                 [
                     lambda l=hide_list: self.hide_list(selection=l, draw=True, undo=False)
                 ]
@@ -222,7 +222,7 @@ class ModuleControl(BaseModuleControl):
         print('hide all called')
         if undo and app.interface.is_accepting_undo():
             show_list = tuple([i for i, v in enumerate(self.sweep_vars) if v.get()])
-            app.interface.add_undo(
+            self.module.add_undo(
                 [
                     lambda l=show_list: self.show_list(selection=l, draw=True, undo=False)
                 ]
@@ -246,7 +246,7 @@ class ModuleControl(BaseModuleControl):
         if selection is None:
             return None
         if undo and app.interface.is_accepting_undo():
-            app.interface.add_undo(
+            self.module.add_undo(
                 [
                     lambda l=selection: self.show_list(selection=l, draw=True, undo=False)
                 ]
@@ -264,7 +264,7 @@ class ModuleControl(BaseModuleControl):
         if selection is None:
             return None
         if undo and app.interface.is_accepting_undo():
-            app.interface.add_undo(
+            self.module.add_undo(
                 [
                     lambda l=selection: self.hide_list(selection=l, draw=True, undo=False)
                 ]

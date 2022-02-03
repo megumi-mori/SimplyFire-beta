@@ -134,7 +134,7 @@ class ModuleControl(BaseModuleControl):
             if app.interface.is_accepting_undo():
                 filename = app.interface.get_temp_filename()
                 self.mini_df.to_csv(filename)
-                app.interface.add_undo([
+                self.module.add_undo([
                     lambda f=filename: self.open_minis(filename, log=False, undo=False, append=True),
                     lambda f=filename: os.remove(f),
                 ])
@@ -151,7 +151,7 @@ class ModuleControl(BaseModuleControl):
             if app.interface.is_accepting_undo():
                 filename = app.interface.get_temp_filename()
                 self.mini_df.to_csv(filename)
-                app.interface.add_undo([
+                self.module.add_undo([
                     lambda f=filename: self.open_minis(filename, log=False, undo=False, append=True),
                     lambda f=filename: os.remove(f),
                 ])
@@ -184,7 +184,7 @@ class ModuleControl(BaseModuleControl):
             if app.interface.is_accepting_undo():
                 filename = app.interface.get_temp_filename()
                 self.mini_df.to_csv(filename)
-                app.interface.add_undo([
+                self.module.add_undo([
                     lambda f=filename: self.open_minis(filename, log=False, undo=False, append=True),
                     lambda f=filename: os.remove(f)
                 ])
@@ -244,9 +244,8 @@ class ModuleControl(BaseModuleControl):
             self.module.data_tab.add({key: value for key, value in mini.items() if key in self.mini_header2config})
             self.update_event_markers(draw=True)
             self.saved = False  # track change
-            app.interface.add_undo(
-                [lambda s=(mini.get('t'),): self.delete_selection(s, undo=False),
-                 self.module.guide_window.clear]
+            self.module.add_undo(
+                [lambda s=(mini.get('t'),): self.delete_selection(s, undo=False)]
             )
         self.report_to_guide(mini=mini)
 
@@ -283,7 +282,7 @@ class ModuleControl(BaseModuleControl):
             self.module.data_tab.append(df)
             self.saved = False # track change
 
-            app.interface.add_undo(
+            self.module.add_undo(
                 [lambda s=df[df.channel==app.interface.channel]['t']:self.delete_selection(s, undo=False)]
             )
 
@@ -315,9 +314,8 @@ class ModuleControl(BaseModuleControl):
         if df.shape[0] > 0 and app.interface.is_accepting_undo():
             self.update_event_markers(draw=True)
             self.module.data_tab.append(df)
-            app.interface.add_undo(
-                [lambda s=df[df.channel==app.interface.channel]['t']:self.delete_selection(s, undo=False)],
-                self.module.guide_window.clear
+            self.module.add_undo(
+                [lambda s=df[df.channel==app.interface.channel]['t']:self.delete_selection(s, undo=False)]
             )
         app.clear_progress_bar()
         self.log()
@@ -333,7 +331,7 @@ class ModuleControl(BaseModuleControl):
         if app.interface.is_accepting_undo():
             filename = app.interface.get_temp_filename()
             self.mini_df.to_csv(filename)
-            app.interface.add_undo([
+            self.module.add_undo([
                 lambda f=filename: self.open_minis(filename, log=False, undo=False, append=True),
                 lambda f=filename: os.remove(f),
             ])
@@ -631,7 +629,7 @@ class ModuleControl(BaseModuleControl):
         if undo and app.interface.is_accepting_undo():
             temp_filename = app.interface.get_temp_filename()
             self.save_minis(temp_filename, overwrite=True, log=False, update_status=False)
-            app.interface.add_undo([
+            self.module.add_undo([
                 lambda: self.open_minis(temp_filename, log=False, undo=False, append=False),
                 lambda f=filename: os.remove(f)
                 ])
