@@ -14,7 +14,7 @@ def load(menubar):
     global widgets
     widgets = {}
     global prev_trace_mode
-    prev_trace_mode = 'continuous'
+    prev_trace_mode = config.trace_mode
 
     parent=menubar.master
 
@@ -70,7 +70,7 @@ def load(menubar):
 
     # widgets['analysis_mode'].set(config.analysis_mode)
     widgets['trace_mode'].set(config.trace_mode)
-    view_menu.invoke({'continuous': 0, 'overlay': 1, 'compare':2}[config.trace_mode])
+    # view_menu.invoke({'continuous': 0, 'overlay': 1, 'compare':2}[config.trace_mode])
     # analysis_menu.invoke({'mini': 0, 'evoked': 1}[config.analysis_mode])
 
     undo_disable()
