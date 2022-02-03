@@ -43,13 +43,19 @@ class BaseModule():
                                                 onvalue=True,
                                                 offvalue=False)
 
-    def toggle_module_display(self, event=None):
+    def toggle_module_display(self, event=None, undo=True):
         if self.menu_var.get():
             self.show_tab()
             if not self.disable_stack:
                 self.select()
         else:
             self.hide()
+
+        if undo and app.interface.is_accepting_undo():
+            app.interface.add_undo([
+                lambda v=not self.menu_var.get(): self.menu_var.set(v),
+                lambda u=False: self.toggle_module_display(undo=u)]
+            )
 
     def update_module_display(self, event=None):
         if self.menu_var.get(): # menu checkbutton is ON
