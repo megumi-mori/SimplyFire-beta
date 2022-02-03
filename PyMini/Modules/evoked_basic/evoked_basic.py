@@ -6,7 +6,5 @@ class Module(BaseModule):
             name='evoked_basic',
             menu_label='Evoked Analysis',
             tab_label='Evoked',
-            filename=__file__
         )
 
-        

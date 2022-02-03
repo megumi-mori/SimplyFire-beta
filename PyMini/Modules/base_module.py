@@ -3,14 +3,16 @@ import yaml
 import importlib
 from tkinter import BooleanVar
 from PyMini import app
+import inspect
 class BaseModule():
     def __init__(self,
                  name:str,
                  menu_label:str,
                  tab_label:str,
-                 filename:__file__,
+                 filename:str = None,
                  menu_target=app.menubar.window_menu
                  ):
+        filename = inspect.getfile(self.__class__)
         self.widgets = {}
         try:
             with open(os.path.join(os.path.dirname(filename), 'default_values.yaml'), 'r') as f:
