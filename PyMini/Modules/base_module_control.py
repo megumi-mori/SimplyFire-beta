@@ -219,3 +219,6 @@ class BaseModuleControl(Frame):
 
     def hide(self):
         self.notebook.tab(self, state='hidden')
+
+    def select(self):
+        self.notebook.select(self)

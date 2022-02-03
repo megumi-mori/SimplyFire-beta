@@ -401,10 +401,12 @@ def config_data_tab(tab, **kwargs):
     data_notebook.tab(tab, **kwargs)
 
 def synch_tab_focus(event=None):
-    try:
-        data_notebook.select(root.children.get(cp_notebook.select().split('.')[-1]).module.data_tab)
-    except: # no data tab associated with the module with focus
-        pass
+    module = root.children.get(cp_notebook.select().split('.')[-1]).module
+    module.select()
+    # try:
+    #     data_notebook.select(root.children.get(cp_notebook.select().split('.')[-1]).module.data_tab)
+    # except: # no data tab associated with the module with focus
+    #     pass
 def advance_progress_bar(value, mode='determinate'):
     if mode == 'determinate':
         pb['value'] += value

@@ -11,7 +11,7 @@ class Module(BaseModule):
 
         if app.widgets['trace_mode'].get() != 'continuous':
             try:
-                self._disable()
+                self._add_disable()
             except:
                 pass
 

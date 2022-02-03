@@ -38,6 +38,7 @@ class BaseModule():
         self.disable_stack = []
 
         self._load_components()
+        self._load_binding()
 
         menu_target.add_checkbutton(label=self.menu_label,
                                                 command=self.toggle_module_display,
@@ -66,7 +67,6 @@ class BaseModule():
             self.hide()
 
     def show_tab(self, event=None):
-        set_to_self = False
         if not self.disable_stack:
             for c in self.children:
                 c.enable()
@@ -74,8 +74,9 @@ class BaseModule():
             for c in self.children:
                 c.disable()
 
-    def _disable(self, event=None, source:str=None):
-        source = self.name
+    def _add_disable(self, event=None, source:str=None):
+        if not source:
+            source = self.name
         if source not in self.disable_stack:
             self.disable_stack.append(source)
         self.update_module_display()
@@ -84,7 +85,7 @@ class BaseModule():
         self.disable_stack = []
         self.update_module_display()
 
-    def _enable(self, event=None, source:str=None):
+    def _remove_disable(self, event=None, source:str=None):
         source = self.name
         try:
             self.disable_stack.remove(source)
@@ -93,10 +94,11 @@ class BaseModule():
         self.update_module_display()
 
     def disable_module(self, modulename):
-        app.modules_dict[modulename]._disable(source=self.name)
+        app.modules_dict[modulename]._add_disable(source=self.name)
 
     def enable_module(self, modulename):
-        app.modules_dict[modulename]._enable(source=self.name)
+        app.modules_dict[modulename]._remove_disable(source=self.name)
+
     def is_visible(self):
         return self.menu_var.get()
 
@@ -111,7 +113,7 @@ class BaseModule():
     def select(self, event=None):
         for c in self.children:
             try:
-                c.notebook.select(c)
+                c.select()
             except:
                 pass
 
@@ -183,3 +185,6 @@ class BaseModule():
         assert not isinstance(tasks, str)
         tasks.insert(0, self.select)
         app.interface.add_undo(tasks)
+
+    def _load_binding(self):
+        pass

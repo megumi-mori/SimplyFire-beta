@@ -532,9 +532,9 @@ class DataTable(Tk.Frame):
         self.table = ttk.Treeview(self)
         self.table.grid(column=0, row=0, sticky='news')
 
-        vsb = ttk.Scrollbar(self, orient=Tk.VERTICAL, command=self.table.yview)
-        vsb.grid(column=1, row=0, sticky='ns')
-        self.table.configure(yscrollcommand=vsb.set)
+        self.vsb = ttk.Scrollbar(self, orient=Tk.VERTICAL, command=self.table.yview)
+        self.vsb.grid(column=1, row=0, sticky='ns')
+        self.table.configure(yscrollcommand=self.vsb.set)
 
         hsb = ttk.Scrollbar(self, orient=Tk.HORIZONTAL, command=self.table.xview)
         hsb.grid(column=0, row=1, sticky='ew')
@@ -698,7 +698,7 @@ class DataTable(Tk.Frame):
 
     def fit_columns(self, event=None):
         if len(self.columns)>0:
-            w = int(self.table.winfo_width()/len(self.columns))
+            w = int((self.winfo_width()-self.vsb.winfo_width())/len(self.columns))
             for i in self.displaycolumns:
                 self.table.column(i, width=w)
 

@@ -44,6 +44,8 @@ class BaseModuleDataTable(DataTable):
         self.notebook = notebook
         self.notebook.add(self, text=self.module.tab_label)
         self.name = name
+
+        self._loaded = False
     def add(self, datadict, parent="", index='end'):
         self.disable()
         super().add(datadict, parent, index)
@@ -72,7 +74,10 @@ class BaseModuleDataTable(DataTable):
             self.notebook.index(self.notebook.select())
         except:
             self.notebook.select(self)
-        self.fit_columns()
+        if not self._loaded:
+            if self.winfo_width() > 1:
+                self.fit_columns()
+                self._loaded = True
 
     def disable(self):
         self.notebook.tab(self, state='disable')
@@ -82,7 +87,10 @@ class BaseModuleDataTable(DataTable):
 
     def select(self):
         self.notebook.select(self)
-
+        if not self._loaded:
+            if self.winfo_width() > 1:
+                self.fit_columns()
+                self._loaded = True
 
 
 

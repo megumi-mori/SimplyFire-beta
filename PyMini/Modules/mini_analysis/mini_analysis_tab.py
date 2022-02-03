@@ -1179,8 +1179,8 @@ class ModuleControl(BaseModuleControl):
         app.root.bind('<<Plot>>', lambda e, func=self.update_event_markers:self.call_if_visible(func), add='+')
         app.root.bind('<<Plotted>>', lambda e, func=self.synch_table: self.call_if_enabled(func), add='+')
 
-        app.root.bind('<<OverlayView>>', self.module._disable, add='+')
-        app.root.bind('<<ContinuousView>>', self.module._enable, add='+')
+        app.root.bind('<<OverlayView>>', self.module._add_disable, add='+')
+        app.root.bind('<<ContinuousView>>', self.module._remove_disable, add='+')
 
         app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release:self.call_if_focus(func), add='+')
         # app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
