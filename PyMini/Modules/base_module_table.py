@@ -65,6 +65,11 @@ class BaseModuleDataTable(DataTable):
 
     def enable(self):
         self.notebook.tab(self, state='normal')
+        try:
+            self.notebook.index(self.notebook.select())
+        except:
+            self.notebook.select(self)
+        self.fit_columns()
 
     def disable(self):
         self.notebook.tab(self, state='disable')

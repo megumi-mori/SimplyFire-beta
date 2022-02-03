@@ -209,6 +209,10 @@ class BaseModuleControl(Frame):
 
     def enable(self):
         self.notebook.tab(self, state='normal')
+        try:
+            self.notebook.index(self.notebook.select())
+        except:
+            self.notebook.select(self)
 
     def disable(self):
         self.notebook.tab(self, state='disabled')

@@ -56,28 +56,15 @@ class BaseModule():
             self.show_tab()
         else:
             self.hide()
-        if self.data_tab:
-            self.data_tab.fit_columns()
 
     def show_tab(self, event=None):
         set_to_self = False
-        try:
-            app.cp_notebook.index(app.cp_notebook.select())
-        except:
-            set_to_self = True
         if not self.disable_stack:
             for c in self.children:
                 c.enable()
-                if set_to_self:
-                    try:
-                        c.notebook.select(c)
-                    except:
-                        pass
         else:
             for c in self.children:
                 c.disable()
-        if self.data_tab:
-            self.data_tab.fit_columns()
 
     def _disable(self, event=None, source:str=None):
         source = self.name
@@ -183,3 +170,8 @@ class BaseModule():
             app.log_display.log(f'{self.name}: {msg}', True)
         else:
             app.log_display.log(msg, False)
+
+    def add_undo(self, tasks):
+        assert not isinstance(tasks, str)
+        tasks.insert(0, self.select)
+        app.interface.add_undo(tasks)
