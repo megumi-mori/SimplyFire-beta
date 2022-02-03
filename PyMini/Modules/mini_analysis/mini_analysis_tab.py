@@ -284,8 +284,7 @@ class ModuleControl(BaseModuleControl):
             self.saved = False # track change
 
             app.interface.add_undo(
-                [lambda s=df[df.channel==app.interface.channel]['t']:self.delete_selection(s, undo=False)],
-                self.module.guide_window.clear
+                [lambda s=df[df.channel==app.interface.channel]['t']:self.delete_selection(s, undo=False)]
             )
 
         # if detector_tab.changed:
