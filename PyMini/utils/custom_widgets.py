@@ -1,5 +1,8 @@
 import tkinter as Tk
 from tkinter import ttk, font
+
+import pandas as pd
+
 from PyMini.config import config
 from PyMini.utils import validation, writer
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
@@ -735,7 +738,7 @@ class DataTable(Tk.Frame):
             self.table.see(self.table.selection()[-1])
         except:
             pass
-    def delete(self, iid):
+    def delete(self, iid:list):
         try:
             self.table.selection_remove(*[str(i) for i in iid])
         except:

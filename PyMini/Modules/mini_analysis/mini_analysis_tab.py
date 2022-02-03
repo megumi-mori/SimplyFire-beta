@@ -241,7 +241,7 @@ class ModuleControl(BaseModuleControl):
                                                ignore_index=True,
                                                sort=False)
             self.mini_df = self.mini_df.sort_values(by='t')
-            self.module.data_tab.add({key: value for key, value in mini.items() if key in self.mini_header2config}, )
+            self.module.data_tab.add({key: value for key, value in mini.items() if key in self.mini_header2config}, undo=False)
             self.update_event_markers(draw=True)
             self.saved = False  # track change
             self.module.add_undo(
@@ -279,7 +279,7 @@ class ModuleControl(BaseModuleControl):
             #         lambda msg='Undo mini search': detector_tab.log(msg)
             #     ])
             self.update_event_markers(draw=True)
-            self.module.data_tab.append(df)
+            self.module.data_tab.append(df, undo=False)
             self.saved = False # track change
 
             self.module.add_undo(
@@ -313,7 +313,7 @@ class ModuleControl(BaseModuleControl):
         self.mini_df = pd.concat([self.mini_df, df])
         if df.shape[0] > 0 and app.interface.is_accepting_undo():
             self.update_event_markers(draw=True)
-            self.module.data_tab.append(df)
+            self.module.data_tab.append(df, undo=False)
             self.module.add_undo(
                 [lambda s=df[df.channel==app.interface.channel]['t']:self.delete_selection(s, undo=False)]
             )
@@ -373,7 +373,7 @@ class ModuleControl(BaseModuleControl):
                                                ignore_index=True,
                                                sort=False)
             self.mini_df = self.mini_df.sort_values(by='t')
-            self.module.data_tab.append(new_df)
+            self.module.data_tab.append(new_df, undo=False)
             self.saved = False  # track change
         if new_df.shape[0] <= 1:
             self.report_to_guide(mini=mini)

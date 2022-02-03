@@ -74,6 +74,7 @@ class ModuleControl(BaseModuleControl):
                     'max': maxs[i, j, 0],
                     'max_unit': recording.y_unit
                 }, )
+
         # self.module.data_tab.select()
 
     def _select_xlim_mode(self, event=None):

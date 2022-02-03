@@ -4,6 +4,7 @@ from PyMini import app
 import tkinter as Tk
 from tkinter import Frame
 from PyMini.Modules.base_module import BaseModule
+import pandas as pd
 class BaseModuleDataTable(DataTable):
     def __init__(self,
                  module:BaseModule,
@@ -46,19 +47,30 @@ class BaseModuleDataTable(DataTable):
         self.name = name
 
         self._loaded = False
-    def add(self, datadict, parent="", index='end'):
+    def add(self, datadict, parent="", index='end', undo=True):
         self.disable()
         super().add(datadict, parent, index)
         self.enable()
         if self.module.control_tab.has_focus():
             self.select()
+        if undo and app.interface.is_accepting_undo():
+            d = (datadict[self.iid_header],)
+            self.module.add_undo(
+                [lambda l=d: self.delete(l)]
+            )
 
-    def append(self, dataframe):
+    def append(self, dataframe, undo=True):
         self.disable()
         super().append(dataframe)
         self.enable()
         if self.module.control_tab.has_focus():
             self.select()
+        if undo and app.interface.is_accepting_undo():
+            if dataframe is not None:
+                sel = tuple([i for i in dataframe[self.iid_header]])
+                self.module.add_undo([
+                   lambda l=sel:self.delete(l)
+                ])
 
     def set(self, dataframe):
         self.disable()
@@ -66,6 +78,18 @@ class BaseModuleDataTable(DataTable):
         self.enable()
         if self.module.control_tab.has_focus():
             self.select()
+
+    def delete_selected(self, e=None, undo=True):
+        selection = self.table.selection()
+        if undo and app.interface.is_accepting_undo():
+            undo_df = {}
+            for i in selection:
+                undo_df[i] = self.table.set(i)
+            undo_df = pd.DataFrame.from_dict(undo_df, orient='index')
+            self.module.add_undo(
+                [lambda df = undo_df, u=False: self.append(df, u)]
+            )
+        super().delete_selected()
 
     def is_visible(self):
         state = self.notebook.tab(self, option='state')

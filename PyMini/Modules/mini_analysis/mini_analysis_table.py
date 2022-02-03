@@ -47,3 +47,6 @@ class ModuleDataTable(BaseModuleDataTable):
     def report(self, event=None):
         self.module.control_tab.report_results()
 
+    def append(self, dataframe, undo=False):
+        super().append(dataframe, undo=False)
+
