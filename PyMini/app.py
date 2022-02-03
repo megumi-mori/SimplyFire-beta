@@ -105,7 +105,6 @@ def load(splash):
     root.iconbitmap(os.path.join(IMG_DIR, 'logo_bw.ico'))
     if config.zoomed:
         root.state('zoomed')
-    root.bind('<Control-o>', lambda e:menubar.ask_open_recording())
     global menu
     menu = Tk.Menu(root)
     root.config(menu=menu)
@@ -316,9 +315,7 @@ def load(splash):
 
     # set up event bindings
     interpreter.initialize()
-    root.deiconify()
-    # # finalize the data viewer - table
-    root.geometry(config.geometry)
+
 
 
     for modulename in config.start_module:
@@ -338,6 +335,10 @@ def load(splash):
     root.focus_force()
     interface.focus()
     splash.withdraw()
+
+    root.deiconify()
+    # # finalize the data viewer - table
+    root.geometry(config.geometry)
     return None
 
 def load_module(module_name):

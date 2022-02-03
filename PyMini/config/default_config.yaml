@@ -275,7 +275,7 @@ default_key_reset_focus:
 default_key_toolbar_pan:
   - '<Key-c>'
 default_key_toolbar_zoom:
-  - '<Key-x>'
+  - '<Key-v>'
 default_key_select:
   - '<Key-g>'
 

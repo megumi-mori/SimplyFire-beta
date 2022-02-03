@@ -27,7 +27,7 @@ def load(menubar):
     file_menu = Tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label='File', menu=file_menu)
 
-    file_menu.add_command(label="Open recording \t Ctrl+o", command=ask_open_recording)
+    file_menu.add_command(label="Open recording \t Alt+o", command=ask_open_recording)
     file_menu.add_command(label='Save recording data as...', command=ask_save_recording)
     file_menu.add_separator()
 

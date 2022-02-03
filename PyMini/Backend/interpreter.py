@@ -175,6 +175,13 @@ def initialize():
     app.trace_display.canvas.mpl_connect('motion_notify_event', plot_mouse_move)
     app.trace_display.canvas.mpl_connect('button_release_event', plot_mouse_release)
 
+    # def on_key(event):
+    #     print('you pressed', event.key, event.xdata, event.ydata)
+    #
+    # app.trace_display.canvas.mpl_connect('key_press_event', on_key)
+    # app.trace_display.canvas.mpl_connect('key_release_event', on_key)
+    app.root.bind('<Alt-o>', lambda e: app.menubar.ask_open_recording())
+    # app.trace_display.canvas.get_tk_widget().bind('<Control-o>', None)
     #######################################
     # Global Keys
     #######################################
