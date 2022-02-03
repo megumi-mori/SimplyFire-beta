@@ -142,7 +142,7 @@ class ModulePopup(BaseModulePopup):
             pass
         xs = xs[int(data['prev_peak_idx']):end]
         A = data['prev_decay_A']
-        decay = data['prev_decay_const']
+        decay = data['prev_decay_const']/1000
         baseline = data['prev_baseline']
         direction = data['direction']
         self.ax.plot(xs, analyzer.single_exponent(xs-xs[0], A, decay) * direction + baseline,
