@@ -1369,8 +1369,8 @@ def average_y_data(all_channels=False, target='All sweeps', report_minmax=False,
                 'min_std': mins_std[i, 0, 0],
                 'max': np.mean(maxs[i], axis=0, keepdims=False)[0],
                 'max_unit': recordings[0].channel_units[c],
-                'max_std': maxs_std[i,0,0],
-            })
+                'max_std': maxs_std[i, 0, 0],
+            }, )
             log('Channel {}: min: {:.6f} {} stdev: {:.6f}'.format(c,
                                                          mins[i,0,0],
                                                          recordings[0].channel_units[c],

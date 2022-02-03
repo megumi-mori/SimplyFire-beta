@@ -24,6 +24,9 @@ class ModuleControl(BaseModuleControl):
         self.size_column=2
         self.color_column=3
 
+        self.trace_color = app.trace_display.trace_color
+        self.trace_width = app.trace_display.trace_width
+
         row=0
 
         ttk.Label(self.main_style_panel, text='size', justify=Tk.CENTER).grid(column=self.size_column, row=row, sticky='news')
@@ -48,15 +51,29 @@ class ModuleControl(BaseModuleControl):
                                       value=self.values.get(name,None), default=self.default.get(name, None))
         self.widgets[name].grid(column=column, row=row, sticky='news')
 
-    def apply_styles(self, event=None):
+    def apply_styles(self, event=None, undo=True):
+        if undo and app.interface.is_accepting_undo():
+            self.module.add_undo([
+                self._revert
+            ])
+        self.trace_color = app.trace_display.trace_color
+        self.trace_width = app.trace_display.trace_width
         app.trace_display.trace_color = self.widgets['style_trace_line_color'].get()
         app.trace_display.trace_width = float(self.widgets['style_trace_line_width'].get())
         app.interface.plot()
+        app.interface.focus()
         pass
 
     def apply_default(self, event=None):
         self.set_to_default()
+        self.apply_styles()
         pass
 
+    def _revert(self, event=None):
+        self.widgets['style_trace_line_color'].set(self.trace_color)
+        self.widgets['style_trace_line_width'].set(self.trace_width)
+        self.apply_styles(undo=False)
+
+
     def _load_binding(self):
-        app.root.bind('<<LoadCompleted>>', self.apply_styles, add='+')
+        app.root.bind('<<LoadCompleted>>', lambda e, u=False:self.apply_styles(undo=u), add='+')

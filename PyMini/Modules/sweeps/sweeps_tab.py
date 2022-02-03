@@ -177,7 +177,7 @@ class ModuleControl(BaseModuleControl):
 
     def apply_sweep_list(self, event=None, draw=True):
         selection = [i for i, v in enumerate(self.sweep_vars) if not v.get()]
-        self.hide_list(selection=selection, draw=draw)
+        self.hide_list(selection=selection, draw=draw, undo=False)
 
     def toggle_sweep(self, name=None, index=0, value=None, undo=True):
         if undo and app.interface.is_accepting_undo():

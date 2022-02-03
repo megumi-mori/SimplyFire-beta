@@ -103,10 +103,10 @@ def report(event=None):
         df[i] = data
     if len(df) == 0:
         results_display.dataframe.add({
-            'filename':interface.recordings[0].filename,
-            'analysis':'evoked',
-            'sweep':None
-        })
+            'filename': interface.recordings[0].filename,
+            'analysis': 'evoked',
+            'sweep': None
+        }, )
         return None
     df = pandas.DataFrame.from_dict(df, orient='index')
     output = {'filename': interface.recordings[0].filename,
@@ -125,7 +125,7 @@ def report(event=None):
                 output[f'{c}_std'] = std_column(df[c])
             except:
                 output[c] = summarize_column(df[c])
-    results_display.dataframe.add(output)
+    results_display.dataframe.add(output, )
 
 
 def summarize_column(data):

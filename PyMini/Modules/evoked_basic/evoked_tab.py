@@ -12,6 +12,7 @@ class ModuleControl(BaseModuleControl):
             scrollbar=True,
         )
 
+        self.index = 0
         self._load_layout()
         self._load_binding()
     def calculate_min_max(self, event=None):
@@ -67,13 +68,13 @@ class ModuleControl(BaseModuleControl):
             for j,s in enumerate(target_sweeps):
                 self.module.data_tab.add({
                     'filename': recording.filename,
-                    'channel':c,
-                    'sweep':s,
+                    'channel': c,
+                    'sweep': s,
                     'min': mins[i, j, 0],
                     'min_unit': recording.y_unit,
-                    'max': maxs[i,j,0],
+                    'max': maxs[i, j, 0],
                     'max_unit': recording.y_unit
-                })
+                }, )
         self.module.data_tab.enable()
 
     def _select_xlim_mode(self, event=None):

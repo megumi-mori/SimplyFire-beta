@@ -9,9 +9,14 @@ class ModuleDataTable(BaseModuleDataTable):
         super().__init__(
             module=module
         )
+        print(f'evoked table name: {self.name}')
         # self.table.bind('<<OpenRecordings>>', self.clear)
-        self.define_columns(('sweep','channel'))
+        self.define_columns(('#','sweep','channel'), iid_header='#')
         # self.set_iid('index')
+
+    def add(self, data, **kwargs):
+        data['#'] = len(self.table.get_children())
+        super().add(data, **kwargs)
 
     def report(self, event=None):
         if len(app.interface.recordings) == 0:
@@ -43,8 +48,8 @@ class ModuleDataTable(BaseModuleDataTable):
                 'filename': app.interface.recordings[0].filename,
                 'analysis': 'evoked',
                 'sweep': None,
-                'channel':app.interface.recordings[0].channel
-            })
+                'channel': app.interface.recordings[0].channel
+            }, )
             return None
         df = pd.DataFrame.from_dict(df, orient='index')
         output = {'filename': app.interface.recordings[0].filename,
@@ -56,14 +61,15 @@ class ModuleDataTable(BaseModuleDataTable):
                 output[c] = analyzer2.format_list_indices(df[c])
             elif 'channels' in c:
                 output[c] = analyzer2.format_list_indices(df[c])
-
+            if c == '#':
+                pass
             else:
                 try:
                     output[f'{c}_avg'] = self.average_column(df[c])
                     output[f'{c}_std'] = self.std_column(df[c])
                 except:
                     output[c] = self.summarize_column(df[c])
-        app.results_display.dataframe.add(output)
+        app.results_display.dataframe.add(output, )
 
     def summarize_column(self, data):
         output = []

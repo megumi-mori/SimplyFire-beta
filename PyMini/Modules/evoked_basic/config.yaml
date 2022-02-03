@@ -2,4 +2,4 @@ dependencies:
   - 'sweeps'
 GUI_components:
   evoked_tab: 'ModuleControl'
-  evoked_table: 'ModuleDatatable'
+  evoked_table: 'ModuleDataTable'

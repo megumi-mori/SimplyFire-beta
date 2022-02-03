@@ -48,16 +48,19 @@ class BaseModuleDataTable(DataTable):
         self.disable()
         super().add(datadict, parent, index)
         self.enable()
+        self.select()
 
     def append(self, dataframe):
         self.disable()
         super().append(dataframe)
         self.enable()
+        self.select()
 
     def set(self, dataframe):
         self.disable()
         super().set(dataframe)
         self.enable()
+        self.select()
 
     def is_visible(self):
         state = self.notebook.tab(self, option='state')
@@ -76,6 +79,9 @@ class BaseModuleDataTable(DataTable):
 
     def hide(self):
         self.notebook.tab(self, state='hidden')
+
+    def select(self):
+        self.notebook.select(self)
 
 
 

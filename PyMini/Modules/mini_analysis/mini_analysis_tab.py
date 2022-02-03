@@ -241,7 +241,7 @@ class ModuleControl(BaseModuleControl):
                                                ignore_index=True,
                                                sort=False)
             self.mini_df = self.mini_df.sort_values(by='t')
-            self.module.data_tab.add({key: value for key, value in mini.items() if key in self.mini_header2config})
+            self.module.data_tab.add({key: value for key, value in mini.items() if key in self.mini_header2config}, )
             self.update_event_markers(draw=True)
             self.saved = False  # track change
             self.module.add_undo(
