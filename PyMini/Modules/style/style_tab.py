@@ -54,12 +54,14 @@ class ModuleControl(BaseModuleControl):
     def apply_styles(self, event=None, undo=True):
         if undo and app.interface.is_accepting_undo():
             self.module.add_undo([
-                self._revert
+                lambda c = self.trace_color:self.widgets['style_trace_line_color'].set(c),
+                lambda w = self.trace_width:self.widgets['style_trace_line_width'].set(w),
+                lambda u=False:self.apply_styles(undo=u)
             ])
-        self.trace_color = app.trace_display.trace_color
-        self.trace_width = app.trace_display.trace_width
         app.trace_display.trace_color = self.widgets['style_trace_line_color'].get()
         app.trace_display.trace_width = float(self.widgets['style_trace_line_width'].get())
+        self.trace_color = app.trace_display.trace_color
+        self.trace_width = app.trace_display.trace_width
         app.interface.plot()
         app.interface.focus()
         pass
