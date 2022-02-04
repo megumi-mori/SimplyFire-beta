@@ -1,9 +1,12 @@
 import os
 import yaml
 import importlib
-from tkinter import BooleanVar
+from tkinter import BooleanVar, messagebox, ttk
+import tkinter as Tk
 from PyMini import app
 import inspect
+from threading import Thread
+
 class BaseModule():
     def __init__(self,
                  name:str,
@@ -193,5 +196,30 @@ class BaseModule():
         tasks.insert(0, self.select)
         app.interface.add_undo(tasks)
 
+    def start_thread(self, target_func, target_interrupt, popup=True):
+        print(target_func)
+        t = Thread(target=target_func)
+        t.start()
+        if popup:
+            return self.show_interrupt_popup(target_interrupt)
+
+
+    def show_interrupt_popup(self, target_interrupt):
+        self.popup_window = Tk.Toplevel(app.root)
+        app.root.attributes('-disabled', True)
+        def disable():
+            pass
+        self.popup_window.protocol('WM_DELETE_WINDOW', disable)
+        label = ttk.Label(master=self.popup_window, text='Running analysis. Press STOP to interrupt')
+        label.pack()
+        button = ttk.Button(master=self.popup_window, text='STOP', command=lambda t=target_interrupt:self.destroy_interrupt_popup(t))
+        button.pack()
+        return self.popup_window
+
+    def destroy_interrupt_popup(self, target_interrupt=None):
+        if target_interrupt:
+            target_interrupt.stop=True
+        app.root.attributes('-disabled', False)
+        self.popup_window.destroy()
     def _load_binding(self):
         pass

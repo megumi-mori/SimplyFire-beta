@@ -251,7 +251,7 @@ class ModuleControl(BaseModuleControl):
 
 
 
-    def find_mini_all(self, event=None):
+    def find_mini_all(self, event=None, interrupt=True):
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
             return None
@@ -266,34 +266,38 @@ class ModuleControl(BaseModuleControl):
         if app.widgets['trace_mode'].get() != 'continuous':
             return None # disable module
         params = self.get_params()
-        df = app.interface.al.find_mini_auto(xlim=None, xs=xs, ys=ys, x_sigdig=app.interface.recordings[0].x_sigdig,
-                               sampling_rate=app.interface.recordings[0].sampling_rate, channel=app.interface.recordings[0].channel,
-                      reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
-                               x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
 
-        self.mini_df = pd.concat([self.mini_df, df])
-        if df.shape[0] > 0:
-            # if int(app.widgets['config_undo_stack'].get()) > 0:
-            #     add_undo([
-            #         lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
-            #         lambda msg='Undo mini search': detector_tab.log(msg)
-            #     ])
-            self.update_event_markers(draw=True)
-            self.module.data_tab.append(df, undo=False)
-            self.saved = False # track change
+        def func():
+            df = app.interface.al.find_mini_auto(xlim=None, xs=xs, ys=ys, x_sigdig=app.interface.recordings[0].x_sigdig,
+                                   sampling_rate=app.interface.recordings[0].sampling_rate, channel=app.interface.recordings[0].channel,
+                          reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
+                                   x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
 
-            self.module.add_undo(
-                [lambda s=df[df.channel==app.interface.channel]['t']:self.delete_selection(s, undo=False)]
-            )
+            self.mini_df = pd.concat([self.mini_df, df])
+            if df.shape[0] > 0:
+                # if int(app.widgets['config_undo_stack'].get()) > 0:
+                #     add_undo([
+                #         lambda iid=df['t'].values, u=False: delete_event(iid, undo=u),
+                #         lambda msg='Undo mini search': detector_tab.log(msg)
+                #     ])
+                self.update_event_markers(draw=True)
+                self.module.data_tab.append(df, undo=False)
+                self.saved = False # track change
 
+                self.module.add_undo(
+                    [lambda s=df[df.channel==app.interface.channel]['t']:self.delete_selection(s, undo=False)]
+                )
+            if interrupt:
+                self.module.destroy_interrupt_popup()
+            app.clear_progress_bar()
+        self.module.start_thread(func, app.interface.al, interrupt)
         # if detector_tab.changed:
         #     log_display.search_update('Auto')
         #     log_display.param_update(detector_tab.changes)
         #     detector_tab.changes = {}
         #     detector_tab.changed = False
-        app.clear_progress_bar()
         self.log()
-    def find_mini_range(self, event=None):
+    def find_mini_range(self, event=None, interrupt=True):
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
             return None
@@ -304,20 +308,25 @@ class ModuleControl(BaseModuleControl):
         except:  # no traces yet
             return
         params = self.get_params()
-        df = app.interface.al.find_mini_auto(xlim=app.trace_display.ax.get_xlim(), xs=xs, ys=ys, x_sigdig=app.interface.recordings[0].x_sigdig,
-                                             sampling_rate=app.interface.recordings[0].sampling_rate,
-                                             channel=app.interface.recordings[0].channel,
-                                             reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
-                                             x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
 
-        self.mini_df = pd.concat([self.mini_df, df])
-        if df.shape[0] > 0 and app.interface.is_accepting_undo():
-            self.update_event_markers(draw=True)
-            self.module.data_tab.append(df, undo=False)
-            self.module.add_undo(
-                [lambda s=df[df.channel==app.interface.channel]['t']:self.delete_selection(s, undo=False)]
-            )
-        app.clear_progress_bar()
+        def func():
+            df = app.interface.al.find_mini_auto(xlim=app.trace_display.ax.get_xlim(), xs=xs, ys=ys, x_sigdig=app.interface.recordings[0].x_sigdig,
+                                                 sampling_rate=app.interface.recordings[0].sampling_rate,
+                                                 channel=app.interface.recordings[0].channel,
+                                                 reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
+                                                 x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
+
+            self.mini_df = pd.concat([self.mini_df, df])
+            if df.shape[0] > 0 and app.interface.is_accepting_undo():
+                self.update_event_markers(draw=True)
+                self.module.data_tab.append(df, undo=False)
+                self.module.add_undo(
+                    [lambda s=df[df.channel==app.interface.channel]['t']:self.delete_selection(s, undo=False)]
+                )
+            app.clear_progress_bar()
+            if interrupt:
+                self.module.destroy_interrupt_popup()
+        self.module.start_thread(func, app.interface.al, interrupt)
         self.log()
 
     def find_mini_reanalyze(self, selection, accept=False):
