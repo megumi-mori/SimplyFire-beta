@@ -87,7 +87,7 @@ def load():
     global paused
     paused = False
     global window
-    window = Tk.Toplevel()
+    window = Tk.Toplevel(app.root)
     window.withdraw()
     window.geometry('600x600')
     # app.root.attributes('-disabled', True)

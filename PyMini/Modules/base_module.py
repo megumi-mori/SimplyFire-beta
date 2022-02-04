@@ -197,7 +197,6 @@ class BaseModule():
         app.interface.add_undo(tasks)
 
     def start_thread(self, target_func, target_interrupt, popup=True):
-        print(target_func)
         t = Thread(target=target_func)
         t.start()
         if popup:

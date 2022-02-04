@@ -24,6 +24,9 @@ with open(default_config_path) as f:
         if c[0:8] == 'default_' and 'config' not in c:
             globals()[c[8:]] = v
             user_vars[c[8:]] = v
+        elif 'config' in c:
+            globals()[c[8:]] = v
+            system_vars[c[8:]] = v
 print('completed')
 
 def load():

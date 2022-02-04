@@ -1,4 +1,9 @@
 # PyMini
+- version b3.0.0
+  - Modular layout
+  - Config variables have changed names
+  
+  
 - version b2.1.0
   - New feature
     - allow saved figures to have transparent background

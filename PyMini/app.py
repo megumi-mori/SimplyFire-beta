@@ -14,7 +14,6 @@ from PyMini.Layout import menubar, graph_panel, setting_tab, batch_popup
 # from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display, param_guide
 from PyMini.DataVisualizer import log_display, results_display, trace_display
 import importlib
-
 # debugging
 import tracemalloc
 import time
@@ -317,7 +316,8 @@ def load(splash):
     # set up event bindings
     interpreter.initialize()
 
-
+    # putting this import statement here for PyInstaller
+    from PyMini.Modules import base_module, base_module_popup, base_module_control, base_module_table
 
     for modulename in config.start_module:
         try:
@@ -341,6 +341,8 @@ def load(splash):
     # # finalize the data viewer - table
     root.geometry(config.geometry)
     return None
+
+
 
 def load_module(module_name):
     global modules_dict
@@ -403,8 +405,11 @@ def config_data_tab(tab, **kwargs):
     data_notebook.tab(tab, **kwargs)
 
 def synch_tab_focus(event=None):
-    module = root.children.get(cp_notebook.select().split('.')[-1]).module
-    module.select()
+    try:
+        module = root.children.get(cp_notebook.select().split('.')[-1]).module
+        module.select()
+    except:
+        pass
     # try:
     #     data_notebook.select(root.children.get(cp_notebook.select().split('.')[-1]).module.data_tab)
     # except: # no data tab associated with the module with focus
