@@ -73,8 +73,12 @@ class ModuleControl(BaseModuleControl):
                     'min_unit': recording.y_unit,
                     'max': maxs[i, j, 0],
                     'max_unit': recording.y_unit
-                }, )
-
+                }, undo=False)
+        if app.interface.is_accepting_undo():
+            new_list = tuple(self.module.data_tab.table.get_children()[-len(target_sweeps)*len(target_channels):])
+            self.module.add_undo([
+                lambda l=new_list: self.module.data_tab.delete(l)
+            ])
         # self.module.data_tab.select()
 
     def _select_xlim_mode(self, event=None):

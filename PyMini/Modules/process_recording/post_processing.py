@@ -4,6 +4,7 @@ from . import process
 import tkinter as Tk
 from tkinter import ttk
 from PyMini.utils import custom_widgets
+import os
 class ModuleControl(BaseModuleControl):
     def __init__(self, module):
         super(ModuleControl, self).__init__(
@@ -97,9 +98,9 @@ class ModuleControl(BaseModuleControl):
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         if len(target_sweeps) == 0:
             return
-
-        process.subtract_baseline(app.interface.recordings[0],
-                                  plot_mode=app.widgets['trace_mode'].get(),
+        plot_mode = app.widgets['trace_mode'].get()
+        result, baseline = process.subtract_baseline(app.interface.recordings[0],
+                                  plot_mode=plot_mode,
                                   channels=target_channels,
                                   sweeps=target_sweeps,
                                   xlim=xlim,
@@ -107,6 +108,13 @@ class ModuleControl(BaseModuleControl):
 
         #['All sweeps', 'Visible sweeps', 'Highlighted sweeps']
         # deal with undo later
+        if app.interface.is_accepting_undo():
+            self.module.add_undo([
+                lambda r=app.interface.recordings[0], s=baseline, m=plot_mode, c=target_channels, t=target_sweeps: process.shift_y_data(r,s,m,c,t),
+                app.interface.plot
+            ])
+
+
 
         app.interface.plot(fix_x=True)
         pass
@@ -138,6 +146,16 @@ class ModuleControl(BaseModuleControl):
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
 
+        if app.interface.is_accepting_undo():
+            temp_filename = app.interface.get_temp_filename()
+            app.interface.recordings[0].save_y_data(filename=temp_filename,
+                                                    channels=target_channels,
+                                                    sweeps=target_sweeps)
+            self.module.add_undo([
+                lambda f=temp_filename, c=target_channels, s=target_sweeps: app.interface.recordings[0].load_y_data(f,c,s),
+                app.interface.plot,
+                lambda f=temp_filename:os.remove(f)
+            ])
         filter_choice = self.widgets['filter_algorithm'].get()
         filter_algorithm = self.widgets[f'filter_{filter_choice}_algorithm'].get()
         params = {}

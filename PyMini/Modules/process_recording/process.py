@@ -29,6 +29,11 @@ def subtract_baseline(recording:analyzer2.Recording,
                                             inplace=inplace)
     return final_result, baseline
 
+def shift_y_data(recording, shift, plot_mode='continuous', channels=None, sweeps=None):
+    result = recording.get_y_matrix(mode=plot_mode, channels=channels, sweeps=sweeps) + shift
+    recording.replace_y_data(mode=plot_mode, channels=channels, sweeps=sweeps, new_data=result)
+
+
 def filter_Boxcar(recording:analyzer2.Recording,
                   params:dict=None,
                   channels:list=None,
