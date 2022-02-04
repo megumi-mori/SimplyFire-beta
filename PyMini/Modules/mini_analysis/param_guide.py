@@ -241,7 +241,7 @@ class ModulePopup(BaseModulePopup):
                 color=app.trace_display.trace_color,
                 )
         self.ax.set_xlim((xs[start_lim_idx], xs[end_lim_idx]))
-        self.plot_start(xs[int(data['peak_idx'])], ys[int(data['peak_idx'])])
+        self.plot_start(xs[int(data['start_idx'])], ys[int(data['start_idx'])])
         return start_idx, end_idx
 
     def plot_start(self, x, y):

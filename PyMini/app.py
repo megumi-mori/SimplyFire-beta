@@ -316,9 +316,6 @@ def load(splash):
     # set up event bindings
     interpreter.initialize()
 
-    # putting this import statement here for PyInstaller
-    from PyMini.Modules import base_module, base_module_popup, base_module_control, base_module_table
-
     for modulename in config.start_module:
         try:
             modules_dict[modulename].menu_var.set(True)
