@@ -8,6 +8,7 @@ from PyMini.DataVisualizer import param_guide, data_display, trace_display, evok
 import gc
 from PyMini import app
 # from PyMini.Layout import keybind_popup
+from PyMini.utils import formatting
 
 import time
 def load(menubar):
@@ -96,18 +97,21 @@ def ask_save_recording(e=None, save_events=True):
         return None
     save = False
     if save is not None:
-        initialfname = os.path.splitext(interface.recordings[0].filename)[0] + '_Modified'
+        initialfname = formatting.format_save_filename(os.path.splitext(interface.recordings[0].filename)[0] + '_Modified', False)
+        filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('All files', '*.*')],
+                                                defaultextension='.abf',
+                                                initialfile=initialfname)
         try:
-            filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('All files', '*.*')],
-                                                    defaultextension='.abf',
-                                                    initialfile=initialfname)
             if filename:
-                interface.save_recording(filename)
-                interface.open_recording(filename, xlim=app.trace_display.ax.get_xlim(),
-                             ylim=app.trace_display.ax.get_ylim()) #move this to interface?
+                save_recording(filename)
         except (FileExistsError):
             messagebox.showerror(title='Error', message='ABF files cannot be overwritten. Please choose another filename.')
             ask_save_recording(save_events=False)
+
+def save_recording(filename):
+    interface.save_recording(filename)
+    interface.open_recording(filename, xlim=app.trace_display.ax.get_xlim(),
+                             ylim=app.trace_display.ax.get_ylim())  # move this to interface?
 
 def export_evoked():
     if len(interface.recordings) == 0:

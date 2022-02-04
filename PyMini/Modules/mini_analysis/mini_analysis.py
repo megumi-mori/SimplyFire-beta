@@ -1,5 +1,8 @@
 from PyMini.Modules.base_module import BaseModule
 from PyMini import app
+import os
+from PyMini.utils import formatting
+from PyMini.Layout import batch_popup
 class Module(BaseModule):
     def __init__(self):
         super().__init__(
@@ -14,6 +17,7 @@ class Module(BaseModule):
                 self._add_disable()
             except:
                 pass
+        self._load_batch()
 
     def update_module_display(self, table=False):
         super().update_module_display()
@@ -29,3 +33,22 @@ class Module(BaseModule):
             app.trace_display.draw_ani()
         app.pb['value'] = 0
         app.pb.update()
+
+    def _load_batch(self):
+        app.batch_popup.insert_command_category('Mini analysis')
+        app.batch_popup.insert_command('Find all', 'Mini analysis', lambda i=False:self.control_tab.find_mini_all_thread(i), interrupt=app.interface.al)
+        app.batch_popup.insert_command('Find in window', 'Mini analysis',
+                                       lambda i=False: self.control_tab.find_mini_range_thread(i),
+                                       interrupt=app.interface.al)
+        app.batch_popup.insert_command('Delete all', 'Mini analysis', self.control_tab.delete_all)
+        app.batch_popup.insert_command('Delete in window', 'Mini analysis', self.control_tab.delete_in_window)
+        app.batch_popup.insert_command('Report results', 'Mini analysis', self.control_tab.report_results)
+        def save_minis():
+            if self.control_tab.mini_df.shape[0]== 0:
+                batch_popup.batch_log.insert('Warning: Exporting an empty data table\n')
+            fname = formatting.format_save_filename(os.path.splitext(batch_popup.file_list[batch_popup.file_idx])[0]+'.mini', overwrite=False)
+            self.control_tab.save_minis(fname, overwrite=False)
+            batch_popup.batch_log.insert(f"Saved minis to: {fname}\n")
+        app.batch_popup.insert_command('Save minis', 'Mini analysis', save_minis)
+
+

@@ -72,6 +72,8 @@ def load(parent):
     trace_color = 'Black'
     global trace_width
     trace_width = 1
+    global transparent_background
+    transparent_background = True
     # connect user events:
     # canvas.mpl_connect('pick_event', _on_event_pick)
     canvas.mpl_connect('button_press_event', _on_mouse_press)

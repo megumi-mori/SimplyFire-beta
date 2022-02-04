@@ -3,9 +3,10 @@ import tkinter.filedialog
 from tkinter import ttk, filedialog
 from PyMini import app
 from PyMini.Backend import interface
-from PyMini.Layout import menubar, adjust_tab, detector_tab, evoked_tab
+from PyMini.Layout import menubar #adjust_tab, detector_tab, evoked_tab
 from PyMini.DataVisualizer import data_display, evoked_data_display, results_display
 from PyMini.utils.custom_widgets import DataTable, VarText, VarLabel
+from PyMini.utils import formatting
 import os
 from PIL import Image, ImageTk
 import yaml
@@ -17,47 +18,77 @@ def change_mode(mode):
     menubar.analysis_menu.invoke(mode)
     pass
 
+def show(event=None):
+    window.deiconify()
+# def load():
+#     global stop
+#     stop = False
+#     global current_command
+#     current_command = None
+#
+#     try:
+#         global window
+#         window.deiconify()
+#     except:
+#         global command_dict
+        # command_dict = {
+        #     'Mini analysis mode (continuous)': lambda m=0: change_mode(m),
+        #     'Evoked analysis mode (overlay)': lambda m=1: change_mode(m),
+        #     'Save minis': save_minis,
+            # 'Export mini analysis table': export_data_display,
+            # 'Export evoked analysis table': export_evoked_data_display,
+            # 'Export results table': export_results_display,
+            #
+            # # 'Find all': lambda p=False: detector_tab.find_find_all(p),
+            # 'Find all': detector_tab.find_all_button.invoke,
+            # # 'Find in window': lambda p=False: detector_tab.find_in_window(p),
+            # 'Find in window': detector_tab.find_in_window_button.invoke,
+            # 'Delete all': interface.delete_all_events,
+            # 'Delete in window': detector_tab.delete_in_window,
+            # 'Report stats (mini)': report_data_display,
+            #
+            # 'Apply baseline adjustment': adjust_tab.adjust_baseline,
+            # 'Apply trace averaging': adjust_tab.average_trace,
+            # 'Apply filter': adjust_tab.filter,
+            #
+            # 'Min/Max': evoked_tab.calculate_min_max,
+            # 'Report stats (evoked)': report_evoked_data_display,
+        # }
+        # command:
+        # {'command name':{'function':func, 'interrupt':algo with stop}}
+        # create_window()
+
+def insert_command_category(name, parent=None):
+    global command_table
+    if parent is None:
+        command_table.table.insert(parent='',index='end', iid=name, text=name)
+    else:
+        command_table.table.insert(parent=parent, index='end', iid=name, text=name)
+    command_table.table.item(name, open=True)
+
+def insert_command(name, category, func, interrupt=None):
+    global command_table
+    global command_dict
+    command_table.table.insert(parent=category, index='end', iid=name, text=name,
+                               tag='selectable')
+    command_dict[name] = {'function':func, 'interrupt':interrupt}
+    pass
+
 def load():
     global stop
     stop = False
+    global processing
+    processing = False
     global current_command
     current_command = None
+    global command_dict
+    command_dict = {}
 
-    try:
-        global window
-        window.deiconify()
-    except:
-        global command_dict
-        command_dict = {
-            'Mini analysis mode (continuous)': lambda m=0: change_mode(m),
-            'Evoked analysis mode (overlay)': lambda m=1: change_mode(m),
-            'Save minis': save_minis,
-            'Export mini analysis table': export_data_display,
-            'Export evoked analysis table': export_evoked_data_display,
-            'Export results table': export_results_display,
-
-            # 'Find all': lambda p=False: detector_tab.find_find_all(p),
-            'Find all': detector_tab.find_all_button.invoke,
-            # 'Find in window': lambda p=False: detector_tab.find_in_window(p),
-            'Find in window': detector_tab.find_in_window_button.invoke,
-            'Delete all': interface.delete_all_events,
-            'Delete in window': detector_tab.delete_in_window,
-            'Report stats (mini)': report_data_display,
-
-            'Apply baseline adjustment': adjust_tab.adjust_baseline,
-            'Apply trace averaging': adjust_tab.average_trace,
-            'Apply filter': adjust_tab.filter,
-
-            'Min/Max': evoked_tab.calculate_min_max,
-            'Report stats (evoked)': report_evoked_data_display,
-        }
-        create_window()
-
-def create_window():
     global paused
     paused = False
     global window
     window = Tk.Toplevel()
+    window.withdraw()
     window.geometry('600x600')
     # app.root.attributes('-disabled', True)
     window.lift()
@@ -105,71 +136,15 @@ def create_window():
     # populate protocol list #
     ##########################
 
-    command_table.define_columns(('Commands',), sort=False)
+    # command_table.define_columns(('Commands',), sort=False)
     command_table.table.configure(selectmode='none', show='tree headings')
     command_table.table.bind('<Button-1>', _on_click)
 
-    command_table.set_iid('Commands')
-
-    command_table.add({'Commands':'menubar'})
-    command_table.table.item('menubar', open=True)
-    command_table.add({'Commands': 'mini analysis tab'})
-    command_table.table.item('mini analysis tab', open=True)
-    command_table.add({'Commands': 'evoked analysis tab'})
-    command_table.table.item('evoked analysis tab', open=True)
-    command_table.add({'Commands': 'adjustment tab'})
-    command_table.table.item('adjustment tab', open=True)
-    command_table.add({'Commands': 'batch control'})
-    command_table.table.item('batch control', open=True)
-
-    # Menubar
-    # command_table.table.insert(parent='menubar', index='end', iid='open trace file', values=('\tOpen trace file',), tag='selectable')
-    # command_table.table.insert(parent='menubar', index='end', iid='open event file', values=('\tOpen event file',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='save channel', values=('\tSave channel',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='save events file', values=('\tSave minis',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='mini mode', values=('\tMini analysis mode (continuous)',),
-                                tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='evoked mode',
-                                values=('\tEvoked analysis mode (overlay)',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='export events', values=('\tExport mini analysis table',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='export evoked', values=('\tExport evoked analysis table',), tag='selectable')
-    command_table.table.insert(parent='menubar', index='end', iid='export results', values=('\tExport results table',), tag='selectable')
-
-    # Mini analysis tab
-    command_table.table.insert(parent='mini analysis tab', index='end', iid='find in window',
-                          values=('\tFind in window',), tag='selectable')
-    command_table.table.insert(parent='mini analysis tab', index='end', iid='find all',
-                          values=('\tFind all',), tag='selectable')
-    command_table.table.insert(parent='mini analysis tab', index='end', iid='delete in window',
-                               values=('\tDelete in window',), tag='selectable')
-    command_table.table.insert(parent='mini analysis tab', index='end', iid='delete all',
-                               values=('\tDelete all',), tag='selectable')
-    command_table.table.insert(parent='mini analysis tab', index='end', iid='report mini',
-                               values=('\tReport stats (mini)',), tag='selectable')
-
-
-    # Evoked analysis tab
-    command_table.table.insert(parent='evoked analysis tab', index='end', iid='min/max',
-                          values=('\tMin/Max',), tag='selectable')
-    command_table.table.insert(parent='evoked analysis tab', index='end', iid='report evoked',
-                               values=('\tReport stats (evoked)',), tag='selectable')
-
-    # Adjustment tab
-    command_table.table.insert(parent='adjustment tab', index='end', iid='baseline adjustment',
-                                values=('\tApply baseline adjustment',), tag='selectable')
-    command_table.table.insert(parent='adjustment tab', index='end', iid='trace averaging',
-                                values=('\tApply trace averaging',), tag='selectable')
-    command_table.table.insert(parent='adjustment tab', index='end', iid='apply filter',
-                                values=('\tApply filter',), tag='selectable')
-
-    # Special commands
-    command_table.table.insert(parent='batch control', index='end', iid='pause',
-                               values=('\tPause',),
-                               tag='selectable')
+    # command_table.set_iid('Commands')
 
     # formatting
-    command_table.table.column("#0", stretch=False, width=40)
-    command_table.table.column(0, stretch=True)
+    command_table.table.column("#0", stretch=True)
+    # command_table.table.column(0, stretch=True)
 
     # editor buttons
     middle_button_frame = Tk.Frame(protocol_editor_frame)
@@ -203,8 +178,7 @@ def create_window():
     protocol_table = DataTable(protocol_editor_frame)
     protocol_table.table.configure(selectmode='none', show='tree headings')
     protocol_table.grid(column=2, row=0, sticky='news')
-    protocol_table.define_columns(('Protocol',), sort=False)
-    protocol_table.table.column(0, stretch=True)
+    protocol_table.table.column('#0', stretch=True)
     protocol_table.table.bind('<Button-1>', _on_click, add='+')
 
     protocol_navigation_frame = ttk.Frame(protocol_frame)
@@ -303,6 +277,73 @@ def create_window():
     progress_message = VarLabel(batch_frame, value="Processing 0/0 files. At 0/0 steps", default="Processing 0/0 files. At 0/0 steps")
     progress_message.grid(column=0, row=2)
 
+    insert_command_category('File menu')
+    insert_command('Save recording', 'File menu', save_abf)
+    insert_command_category('Export plot', 'File menu')
+    insert_command('Export plot png', 'Export plot', lambda e='.png':export_plot(ext=e))
+    insert_command('Explort plot tiff', 'Export plot', lambda e='.tiff':export_plot(ext=e))
+    insert_command('Explort plot svg', 'Export plot', lambda e='.svg': export_plot(ext=e))
+    insert_command('Export results table', 'File menu', export_results_display)
+
+    insert_command_category('View menu')
+    insert_command('Continuous mode', 'View menu', app.menubar.set_view_continuous)
+    insert_command('Overlay mode', 'View menu', app.menubar.set_view_overlay)
+    # command_table.add({'Commands':'menubar'})
+    # command_table.table.item('menubar', open=True)
+    # command_table.add({'Commands': 'mini analysis tab'})
+    # command_table.table.item('mini analysis tab', open=True)
+    # command_table.add({'Commands': 'evoked analysis tab'})
+    # command_table.table.item('evoked analysis tab', open=True)
+    # command_table.add({'Commands': 'adjustment tab'})
+    # command_table.table.item('adjustment tab', open=True)
+    # command_table.add({'Commands': 'batch control'})
+    # command_table.table.item('batch control', open=True)
+    #
+    # # Menubar
+    # # command_table.table.insert(parent='menubar', index='end', iid='open trace file', values=('\tOpen trace file',), tag='selectable')
+    # # command_table.table.insert(parent='menubar', index='end', iid='open event file', values=('\tOpen event file',), tag='selectable')
+    # command_table.table.insert(parent='menubar', index='end', iid='save channel', values=('\tSave channel',), tag='selectable')
+    # command_table.table.insert(parent='menubar', index='end', iid='save events file', values=('\tSave minis',), tag='selectable')
+    # command_table.table.insert(parent='menubar', index='end', iid='mini mode', values=('\tMini analysis mode (continuous)',),
+    #                             tag='selectable')
+    # command_table.table.insert(parent='menubar', index='end', iid='evoked mode',
+    #                             values=('\tEvoked analysis mode (overlay)',), tag='selectable')
+    # command_table.table.insert(parent='menubar', index='end', iid='export events', values=('\tExport mini analysis table',), tag='selectable')
+    # command_table.table.insert(parent='menubar', index='end', iid='export evoked', values=('\tExport evoked analysis table',), tag='selectable')
+    # command_table.table.insert(parent='menubar', index='end', iid='export results', values=('\tExport results table',), tag='selectable')
+    #
+    # # Mini analysis tab
+    # command_table.table.insert(parent='mini analysis tab', index='end', iid='find in window',
+    #                       values=('\tFind in window',), tag='selectable')
+    # command_table.table.insert(parent='mini analysis tab', index='end', iid='find all',
+    #                       values=('\tFind all',), tag='selectable')
+    # command_table.table.insert(parent='mini analysis tab', index='end', iid='delete in window',
+    #                            values=('\tDelete in window',), tag='selectable')
+    # command_table.table.insert(parent='mini analysis tab', index='end', iid='delete all',
+    #                            values=('\tDelete all',), tag='selectable')
+    # command_table.table.insert(parent='mini analysis tab', index='end', iid='report mini',
+    #                            values=('\tReport stats (mini)',), tag='selectable')
+    #
+    #
+    # # Evoked analysis tab
+    # command_table.table.insert(parent='evoked analysis tab', index='end', iid='min/max',
+    #                       values=('\tMin/Max',), tag='selectable')
+    # command_table.table.insert(parent='evoked analysis tab', index='end', iid='report evoked',
+    #                            values=('\tReport stats (evoked)',), tag='selectable')
+    #
+    # # Adjustment tab
+    # command_table.table.insert(parent='adjustment tab', index='end', iid='baseline adjustment',
+    #                             values=('\tApply baseline adjustment',), tag='selectable')
+    # command_table.table.insert(parent='adjustment tab', index='end', iid='trace averaging',
+    #                             values=('\tApply trace averaging',), tag='selectable')
+    # command_table.table.insert(parent='adjustment tab', index='end', iid='apply filter',
+    #                             values=('\tApply filter',), tag='selectable')
+
+    # # Special commands
+    # command_table.table.insert(parent='batch control', index='end', iid='pause',
+    #                            values=('\tPause',),
+    #                            tag='selectable')
+
 def _on_close(event=None):
     process_interrupt()
     if paused:
@@ -335,7 +376,7 @@ def _add_command(event=None):
 
     sel = command_table.table.selection()
     try:
-        protocol_table.table.insert('', 'end', values=(command_table.table.item(*sel, 'values')[0][1:],), tag='selectable')
+        protocol_table.table.insert('', 'end', text=command_table.table.item(*sel, 'text'), tag='selectable')
         command_table.table.selection_remove(*command_table.table.selection())
     except:
         pass
@@ -447,36 +488,58 @@ def ask_save_batch(event=None):
     protocol_fname = fname
     save_batch()
 
-def export_data_display(event=None):
-    global batch_log
-    if len(app.data_display.table.get_children())==0:
-        batch_log.insert('Warning: Exporting an empty data table\n')
-    fname = os.path.splitext(file_list[file_idx])[0] + '_mini.csv'
-    data_display.dataframe.export(fname, mode='x')
-def export_evoked_data_display(event=None):
-    global batch_log
-    if len(app.evoked_data_display.table.get_children())==0:
-        batch_log.insert('Warning: Exporting an empty data table\n')
-    fname = os.path.splitext(file_list[file_idx])[0] + '_evoked.csv'
-    evoked_data_display.dataframe.export(fname, mode='x')
+# def export_data_display(event=None):
+#     global batch_log
+#     if len(app.data_display.table.get_children())==0:
+#         batch_log.insert('Warning: Exporting an empty data table\n')
+#     fname = os.path.splitext(file_list[file_idx])[0] + '_mini.csv'
+#     data_display.dataframe.export(fname, mode='x')
+# def export_evoked_data_display(event=None):
+#     global batch_log
+#     if len(app.evoked_data_display.table.get_children())==0:
+#         batch_log.insert('Warning: Exporting an empty data table\n')
+#     fname = os.path.splitext(file_list[file_idx])[0] + '_evoked.csv'
+#     evoked_data_display.dataframe.export(fname, mode='x')
+
 def export_results_display(event=None):
     global batch_log
     if len(app.results_display.table.get_children())==0:
         batch_log.insert('Warning: Exporting an empty data table\n')
-    fname = os.path.split(file_list[file_idx])[0]+'/results.csv'
+    fname = formatting.format_save_filename(os.path.split(file_list[file_idx])[0]+'/results.csv', overwrite=False)
     results_display.dataframe.export(fname, mode='x')
+
+def save_abf(event=None):
+    global batch_log
+    fname = formatting.format_save_filename(os.path.splitext(file_list[file_idx])[0]+'_Modified.abf', overwrite=False)
+    app.menubar.save_recording(fname)
+    batch_log.insert(f'Recording saved to: {fname}\n')
+
+def export_plot(event=None, ext='.png'):
+    global batch_log
+    fname = formatting.format_save_filename(os.path.splitext(file_list[file_idx])[0]+ext, overwrite=False)
+    app.trace_display.canvas.figure.savefig(fname, tranparent=app.trace_display.transparent_background)
+    batch_log.insert(f'Image saved toL {fname}\n')
+
 
 def process_interrupt(event=None):
     global stop
     stop = True
     global current_command
-    interface.interrupt(process=current_command)
+    # interface.interrupt(process=current_command)
+    try:
+        command_dict[current_command]['interrupt'].stop = True
+    except:
+        batch_log.insert(f'Could not interrupt {current_command}\n')
+    global processing
+    processing = False
 
 def process_pause(event=None):
     global paused
     paused = True
     global stop_button
     stop_button.grid_forget()
+    global processing
+    processing = False
 
     global resume_button
     resume_button.grid(column=3, row=0, sticky='ne')
@@ -504,6 +567,8 @@ def process_start(event=None):
     stop_button.grid(column=2, row=0, sticky='ne')
     global stop
     stop = False
+    global processing
+    processing = True
 
     global file_entry
     global file_list
@@ -512,7 +577,7 @@ def process_start(event=None):
 
     global protocol_table
     global command_list
-    command_list = [protocol_table.table.item(i, 'values')[0] for i in protocol_table.table.get_children()]
+    command_list = [protocol_table.table.item(i, 'text') for i in protocol_table.table.get_children()]
     command_list.insert(0, 'Open file')
 
     global file_idx
@@ -574,7 +639,7 @@ def process_batch():
                         process_pause()
                         return None
                     else:
-                        command_dict[c]()
+                        command_dict[c]['function']()
             except Exception as e:
                 batch_log.insert(f'Error performing command: {c}.\n Exception: {e}')
             command_idx += 1
@@ -600,7 +665,8 @@ def process_batch():
     file_list = []
     command_list = []
 
-    pass
+    global processing
+    processing = False
 
 def report_data_display(e=None):
     global batch_log

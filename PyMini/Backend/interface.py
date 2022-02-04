@@ -81,7 +81,10 @@ def add_undo(task):
     return
 
 def is_accepting_undo():
-    return int(app.widgets['config_undo_stack'].get()) > 0
+    if not app.batch_popup.processing:
+        return int(app.widgets['config_undo_stack'].get()) > 0
+    else:
+        return False
 
 def undo(e=None):
     print(f'undo called: {undo_stack}')
