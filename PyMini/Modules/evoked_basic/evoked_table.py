@@ -13,6 +13,7 @@ class ModuleDataTable(BaseModuleDataTable):
         # self.table.bind('<<OpenRecordings>>', self.clear)
         self.define_columns(('#','sweep','channel'), iid_header='#')
         # self.set_iid('index')
+        self._load_binding()
 
     def add(self, data, **kwargs):
         data['#'] = len(self.table.get_children())
@@ -86,3 +87,6 @@ class ModuleDataTable(BaseModuleDataTable):
     def std_column(self, data):
         return np.std(data)
         pass
+
+    def _load_binding(self):
+        app.root.bind('<<OpenRecording>>', lambda e:self.clear(), add="+")

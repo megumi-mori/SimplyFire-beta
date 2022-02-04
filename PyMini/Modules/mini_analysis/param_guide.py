@@ -60,7 +60,7 @@ class ModulePopup(BaseModulePopup):
         try:
             self.msg_label.insert(f'Baseline: {data["baseline"]:.3f} {data["baseline_unit"]}\n')
             if data['compound']:
-                self.msg_label.insert(f'Baseline extrapolated from preceding mini')
+                self.msg_label.insert(f'Baseline extrapolated from preceding mini\n')
             else:
                 left_idx = data.get('base_idx_L', None)
                 right_idx = data.get('base_idx_R', None)

@@ -56,6 +56,11 @@ def load(menubar):
                               value='continuous')
     view_menu.add_radiobutton(label='Overlay', command=set_view_overlay, variable=trace_var, value='overlay')
 
+    # Analysis menu
+    global analysis_menu
+    analysis_menu = Tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label='Analysis', menu=analysis_menu)
+
     # Window menu
     global window_menu
     window_menu = Tk.Menu(menubar, tearoff=0)

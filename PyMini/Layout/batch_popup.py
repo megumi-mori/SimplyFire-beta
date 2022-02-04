@@ -69,9 +69,9 @@ def insert_command_category(name, parent=None):
 def insert_command(name, category, func, interrupt=None):
     global command_table
     global command_dict
-    command_table.table.insert(parent=category, index='end', iid=name, text=name,
+    command_table.table.insert(parent=category, index='end', iid=category+'::'+name, text=name, value=(category+'::'+name,),
                                tag='selectable')
-    command_dict[name] = {'function':func, 'interrupt':interrupt}
+    command_dict[category+'::'+name] = {'function':func, 'interrupt':interrupt}
     pass
 
 def load():
@@ -288,6 +288,9 @@ def load():
     insert_command_category('View menu')
     insert_command('Continuous mode', 'View menu', app.menubar.set_view_continuous)
     insert_command('Overlay mode', 'View menu', app.menubar.set_view_overlay)
+
+    insert_command_category('Batch control')
+    insert_command('Pause', 'Batch control', None)
     # command_table.add({'Commands':'menubar'})
     # command_table.table.item('menubar', open=True)
     # command_table.add({'Commands': 'mini analysis tab'})
@@ -376,7 +379,7 @@ def _add_command(event=None):
 
     sel = command_table.table.selection()
     try:
-        protocol_table.table.insert('', 'end', text=command_table.table.item(*sel, 'text'), tag='selectable')
+        protocol_table.table.insert('', 'end', text=command_table.table.item(*sel, 'values')[0], tag='selectable')
         command_table.table.selection_remove(*command_table.table.selection())
     except:
         pass
@@ -631,10 +634,10 @@ def process_batch():
                         batch_log.insert(f'Filename invalid\n')
                 else:
                     batch_log.insert(f'Command: {c}\n')
-                    if c == 'Save channel':
-                        fname = file_list[file_idx].split('.')[0] + '_Modified.abf'
-                        interface.al.recording.save(fname, handle_error=True)
-                    elif c == 'Pause':
+                    # if c == 'Save channel':
+                    #     fname = file_list[file_idx].split('.')[0] + '_Modified.abf'
+                    #     interface.al.recording.save(fname, handle_error=True)
+                    if 'Pause' in c:
                         command_idx += 1
                         process_pause()
                         return None

@@ -119,5 +119,12 @@ class BaseModuleDataTable(DataTable):
                 self.fit_columns()
                 self._loaded = True
 
+    def export(self, filename, overwrite=False):
+        if overwrite:
+            mode = 'w'
+        else:
+            mode = 'x'
+        super().export(filename, mode)
+
 
 

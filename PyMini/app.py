@@ -280,7 +280,7 @@ def load(splash):
         widgets[k] = v
 
     batch_popup.load()
-    menubar.window_menu.add_command(label='Batch Processing', command=batch_popup.show)
+    menubar.analysis_menu.add_command(label='Batch Processing', command=batch_popup.show)
 
     global control_panel_dict
     control_panel_dict = {}

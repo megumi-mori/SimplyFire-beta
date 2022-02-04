@@ -162,7 +162,6 @@ class ModuleControl(BaseModuleControl):
             print(f'Mini analysis delete all exceptionL {e}')
             # no data yet
             pass
-        print(self.mini_df)
         if draw:
             self.update_event_markers(draw=True)
         self.update_module_table()
@@ -322,7 +321,6 @@ class ModuleControl(BaseModuleControl):
                                              channel=app.interface.recordings[0].channel,
                                              reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
                                              x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
-        print(f'find mini range thread: {df}')
         self.mini_df = pd.concat([self.mini_df, df])
         if df.shape[0] > 0:
             self.update_event_markers(draw=True)
