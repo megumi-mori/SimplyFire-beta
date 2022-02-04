@@ -10,7 +10,7 @@ from PyMini.config import config
 # from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
 #     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar,\
 #     compare_tab
-from PyMini.Layout import menubar, graph_panel, setting_tab
+from PyMini.Layout import menubar, graph_panel, setting_tab, batch_popup
 # from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display, param_guide
 from PyMini.DataVisualizer import log_display, results_display, trace_display
 import importlib
@@ -270,8 +270,6 @@ def load(splash):
     # set up menubar
     menubar.load(menu)
 
-    # menubar.analysis_menu.add_command(label='Batch Processing', command=batch_popup.load)
-
     globals()['menubar'] = menubar
 
     for k, v in menubar.widgets.items():
@@ -280,6 +278,9 @@ def load(splash):
     setting_tab.load(root)
     for k, v in setting_tab.widgets.items():
         widgets[k] = v
+
+    batch_popup.load()
+    menubar.window_menu.add_command(label='Batch Processing', command=batch_popup.show)
 
     global control_panel_dict
     control_panel_dict = {}
