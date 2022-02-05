@@ -282,8 +282,6 @@ def plot_event_pick(event):
         # data_display.toggle_one(str(xdata))
 
 def plot_mouse_release(event):
-    print(f'interpreter plot mouse release called: {time.time() - app.t0}')
-
     global t0
     t0 = time.time()
     global event_pick
