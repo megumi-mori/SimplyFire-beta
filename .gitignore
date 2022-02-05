@@ -2,20 +2,20 @@
 *.xml
 *.iml
 *.pyc
-PyMini/config/key_map.yaml
-PyMini/config/system_config.yaml
-PyMini/config/user_config.yaml
+SimplyFire/config/key_map.yaml
+SimplyFire/config/system_config.yaml
+SimplyFire/config/user_config.yaml
 *.temp
 PyMini.egg-info/dependency_links.txt
 PyMini.egg-info/PKG-INFO
 PyMini.egg-info/requires.txt
 PyMini.egg-info/SOURCES.txt
 PyMini.egg-info/top_level.txt
-PyMini/test_output.abf
+SimplyFire/test_output.abf
 test_recordings/24 female delta cntrl 0.74.minipy
 test_recordings/21d20024 boxcar11.abf
-PyMini/config/test_user_config.yaml
-PyMini/config/test_user_config.yaml
+SimplyFire/config/test_user_config.yaml
+SimplyFire/config/test_user_config.yaml
 *.csv
 *.mini
 *.abf

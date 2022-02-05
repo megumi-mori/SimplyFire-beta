@@ -1,4 +1,4 @@
-from PyMini.Backend.analyzer2 import Analyzer
+from SimplyFire.Backend.analyzer2 import Analyzer
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
