@@ -100,7 +100,7 @@ def load(splash):
     root = Tk.Toplevel()
     root.withdraw()
     root.title('SimplyFire v{}'.format(config.version))
-    IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
+    IMG_DIR = config.IMG_DIR
     root.iconbitmap(os.path.join(IMG_DIR, 'logo_bw.ico'))
     if config.zoomed:
         root.state('zoomed')
@@ -346,9 +346,9 @@ def load_module(module_name):
     if modules.get(module_name, None):
         return
     # load modules
-    module_path = os.path.join(pkg_resources.resource_filename('PyMini', 'Modules'), module_name)
+    module_path = os.path.join(config.MODULES_DIR, module_name)
     try:
-        module = importlib.import_module(f'PyMini.Modules.{module_name}.{module_name}')
+        module = importlib.import_module(f'SimplyFire.Modules.{module_name}.{module_name}')
     except ModuleNotFoundError:
         log_display.log(f'Load error. Module {module_name} does not have file {module_name}.py', '@Load')
         return

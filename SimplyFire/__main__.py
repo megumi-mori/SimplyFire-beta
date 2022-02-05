@@ -25,7 +25,7 @@ def load_splash():
     #     except:
     #         pass
 
-    IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
+    IMG_DIR = pkg_resources.resource_filename('SimplyFire', 'img/')
 
     # method 1:
     global splash

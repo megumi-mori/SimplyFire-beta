@@ -119,7 +119,7 @@ def load(parent):
     y_zoom_frame.grid_rowconfigure(0, weight=1)
     y_zoom_frame.grid_rowconfigure(1, weight=1)
 
-    IMG_DIR = pkg_resources.resource_filename('PyMini', 'img/')
+    IMG_DIR = app.config.IMG_DIR
 
     y_zoom_in = ttk.Button(y_zoom_frame)
     y_zoom_in.image = Tk.PhotoImage(file=os.path.join(IMG_DIR,'y_zoom_in.png'))

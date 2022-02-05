@@ -6,7 +6,10 @@ import pkg_resources
 
 # Constants
 global CONFIG_DIR # package config file path
-CONFIG_DIR = pkg_resources.resource_filename('PyMini', 'config/')
+CONFIG_DIR = pkg_resources.resource_filename('SimplyFire', 'config/')
+IMG_DIR = pkg_resources.resource_filename('SimplyFire', 'img/')
+TEMP_DIR = pkg_resources.resource_filename('SimplyFire', 'temp/')
+MODULES_DIR =pkg_resources.resource_filename('SimplyFire', 'Modules/')
 
 # Load defaults
 default_vars = {}

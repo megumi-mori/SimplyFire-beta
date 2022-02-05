@@ -43,7 +43,7 @@ def get_temp_num():
         return 0
 
 def get_temp_filename():
-    return os.path.join(pkg_resources.resource_filename('PyMini', 'temp/'),
+    return os.path.join(app.config.TEMP_DIR,
                                        'temp_{}.temp'.format(get_temp_num()))
 def get_prev_temp_num():
     global temp_num
