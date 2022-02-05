@@ -279,6 +279,10 @@ class ModulePopup(BaseModulePopup):
         except:
             pass
 
+    def show_window(self):
+        self.clear()
+        super().show_window()
+
     def _update_geometry_var(self, event=None):
         self.widgets['guide_geometry_height'].set(
             self.winfo_height()

@@ -9,36 +9,38 @@ import os
 from tkinter import ttk
 import tkinter as Tk
 from .base_module import BaseModule
-class BaseModuleControl(Frame):
+from .base_module_layout import BaseModuleLayout
+class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
     def __init__(self,
                  module:BaseModule,
                  name:str='control_tab',
                  scrollbar:bool=True,
                  notebook:ttk.Notebook=app.cp_notebook
                  ) -> None:
-        self.module = module
+        ScrollableOptionFrame.__init__(self, app.root, scrollbar)
+        BaseModuleLayout.__init__(self, module)
+
         self.default = self.module.default
         self.values = self.module.values
-
-        super().__init__(app.root)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         self.widgets = self.module.widgets
         # app.menubar.window_menu.add_checkbutton(label=self.menu_label, command=self.update_module_display, variable=self.status_var,
         #                                onvalue=True, offvalue=False)
-        if scrollbar:
-            self.frame = ScrollableOptionFrame(self)
-            self.optionframe = self.frame.frame
-        else:
-            self.frame = OptionFrame(self)
-            self.optionframe = self.frame
-        pass
-        self.frame.grid(row=0, column=0, sticky='news')
-        self.insert_panel = self.optionframe.insert_panel
-        self.make_panel = self.optionframe.make_panel
-        self.insert_separator = self.optionframe.insert_separator
-        self.insert_widget = self.optionframe.insert_widget
+        # if scrollbar:
+        #     self.frame = ScrollableOptionFrame(self)
+        #     self.optionframe = self.frame.frame
+        # else:
+        #     self.frame = OptionFrame(self)
+        #     self.optionframe = self.frame
+
+        # pass
+        # self.frame.grid(row=0, column=0, sticky='news')
+        self.insert_panel = self.frame.insert_panel
+        self.make_panel = self.frame.make_panel
+        self.insert_separator = self.frame.insert_separator
+        self.insert_widget = self.frame.insert_widget
 
         self.notebook = notebook
         self.notebook.add(self, text=self.module.tab_label)
@@ -57,7 +59,8 @@ class BaseModuleControl(Frame):
     #         pass
 
     def insert_title(self, **kwargs):
-        title = self.optionframe.insert_title(**kwargs)
+        # title = self.optionframe.insert_title(**kwargs)
+        title = self.frame.insert_title(**kwargs)
         try:
             self.widgets[kwargs['name']] = title
         except Exception as e:
@@ -69,7 +72,7 @@ class BaseModuleControl(Frame):
             kwargs['value'] = self.values.get(kwargs['name'], None)
         if 'default' not in kwargs.keys():
             kwargs['default'] = self.default.get(kwargs['name'], None)
-        entry = self.optionframe.insert_label_entry(**kwargs)
+        entry = self.frame.insert_label_entry(**kwargs)
         try:
             self.widgets[kwargs['name']] = entry
         except:
@@ -77,7 +80,7 @@ class BaseModuleControl(Frame):
         return entry
 
     def insert_button(self, **kwargs):
-        button = self.optionframe.insert_button(**kwargs)
+        button = self.frame.insert_button(self, **kwargs)
         try:
             self.widgets[kwargs['name']] = button
         except:
@@ -89,7 +92,7 @@ class BaseModuleControl(Frame):
             kwargs['value'] = self.values.get(kwargs['name'], None)
         if 'default' not in kwargs.keys():
             kwargs['default'] = self.default.get(kwargs['name'], None)
-        checkbox = self.optionframe.insert_label_checkbox(**kwargs)
+        checkbox = self.frame.insert_label_checkbox(**kwargs)
         try:
             self.widgets[kwargs['name']] = checkbox
         except:
@@ -101,7 +104,7 @@ class BaseModuleControl(Frame):
             kwargs['value'] = self.values.get(kwargs['name'], None)
         if 'default' not in kwargs.keys():
             kwargs['default'] = self.default.get(kwargs['name'], None)
-        optionmenu = self.optionframe.insert_label_optionmenu(**kwargs)
+        optionmenu = self.frame.insert_label_optionmenu(**kwargs)
         try:
             self.widgets[kwargs['name']] = optionmenu
         except:
@@ -127,8 +130,7 @@ class BaseModuleControl(Frame):
 
     def has_focus(self):
         # use this method to check if the tab is in focus
-        # use dict to allow for other locations for modules in the future
-        return app.get_tab_focus()['control_panel'] == str(self)
+        return self.notebook.select() == str(self)
 
     def set_focus(self):
         app.cp_notebook.select(self)
@@ -189,18 +191,6 @@ class BaseModuleControl(Frame):
 
     def get_widget_dict(self):
         return {k:self.widgets[k].get() for k in self.widgets}
-
-    def call_if_focus(self, function):
-        if self.has_focus():
-            function()
-
-    def call_if_visible(self, function):
-        if self.is_visible():
-            function()
-
-    def call_if_enabled(self, function):
-        if self.is_enabled():
-            function()
 
     def load_config_value(self, name):
         return self.values.get(name, self.default.get(name, None))

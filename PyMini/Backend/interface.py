@@ -5,11 +5,11 @@ from tkinter import filedialog, messagebox
 import tkinter as Tk
 
 import pandas as pd
-from PyMini.DataVisualizer import data_display, log_display, trace_display, param_guide, results_display, evoked_data_display
+from PyMini.DataVisualizer import log_display, trace_display, results_display
 import os
 import pkg_resources
 # from Layout import #, sweep_tab,
-from PyMini.Layout import sweep_tab, detector_tab, graph_panel,  adjust_tab, menubar
+from PyMini.Layout import graph_panel, menubar
 import matplotlib as mpl
 from PyMini.Backend import interpreter, analyzer2
 import gc

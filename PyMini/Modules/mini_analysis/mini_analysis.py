@@ -9,7 +9,8 @@ class Module(BaseModule):
             name='mini_analysis',
             menu_label='Mini Analysis',
             tab_label='Mini',
-            filename=__file__
+            filename=__file__,
+            file_menu=True
         )
 
         if app.widgets['trace_mode'].get() != 'continuous':
@@ -17,6 +18,7 @@ class Module(BaseModule):
                 self._add_disable()
             except:
                 pass
+        print('loading batch')
         self._load_batch()
 
     def update_module_display(self, table=False):

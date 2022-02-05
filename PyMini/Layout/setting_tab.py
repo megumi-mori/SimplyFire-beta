@@ -8,7 +8,7 @@ from PyMini.utils.scrollable_option_frame import ScrollableOptionFrame
 from PyMini.Layout import batch_popup
 from PyMini.config import config
 from PyMini import app
-from PyMini.DataVisualizer import trace_display, param_guide
+from PyMini.DataVisualizer import trace_display
 from PyMini.Backend import interface
 
 import os

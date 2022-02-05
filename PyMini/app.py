@@ -287,8 +287,8 @@ def load(splash):
     global data_notebook_dict
     data_notebook_dict = {}
 
-    global modules_dict
-    modules_dict = {}
+    global modules
+    modules = {}
 
     with open(os.path.join(config.CONFIG_DIR, 'modules.yaml')) as f:
         module_list = yaml.safe_load(f)['modules']
@@ -318,10 +318,10 @@ def load(splash):
 
     for modulename in config.start_module:
         try:
-            modules_dict[modulename].menu_var.set(True)
+            modules[modulename].menu_var.set(True)
         except: # module removed from module-list
             pass
-    for module_name, module in modules_dict.items():
+    for module_name, module in modules.items():
         module.update_module_display()
 
     cp_notebook.add(setting_tab.frame, text='Setting', state='hidden')
@@ -342,8 +342,8 @@ def load(splash):
 
 
 def load_module(module_name):
-    global modules_dict
-    if modules_dict.get(module_name, None):
+    global modules
+    if modules.get(module_name, None):
         return
     # load modules
     module_path = os.path.join(pkg_resources.resource_filename('PyMini', 'Modules'), module_name)
@@ -364,7 +364,7 @@ def load_module(module_name):
     except TypeError as e:
         log_display.log(f'Load error. Module {module_name}: {e}', '@Load')
         return
-    modules_dict[module_name] = parent_module
+    modules[module_name] = parent_module
 def get_tab_focus():
     focus = {}
     focus['control_panel'] = cp_notebook.select()
@@ -372,7 +372,7 @@ def get_tab_focus():
     return focus
 
 def get_module(module_name, component=None):
-    module = modules_dict.get(module_name, None)
+    module = modules.get(module_name, None)
     if not module:
         return None
     if component:
@@ -461,8 +461,8 @@ def dump_user_setting(filename=None):
 
         # d['compare_color_list'] = config.compare_color_list
         # d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
-        d['start_module'] = [name for name, module in modules_dict.items() if module.menu_var.get()]
-        for modulename, module in modules_dict.items():
+        d['start_module'] = [name for name, module in modules.items() if module.menu_var.get()]
+        for modulename, module in modules.items():
             d[modulename] = dict([(key, var.get()) for key, var in module.widgets.items()])
         f.write(yaml.safe_dump(d))
         # pymini.pb.clear()

@@ -4,7 +4,7 @@ import os
 from PyMini.config import config
 from PyMini.utils.custom_widgets import VarWidget
 from PyMini.Backend import interface
-from PyMini.DataVisualizer import param_guide, data_display, trace_display, evoked_data_display, results_display
+from PyMini.DataVisualizer import trace_display, results_display
 import gc
 from PyMini import app
 # from PyMini.Layout import keybind_popup

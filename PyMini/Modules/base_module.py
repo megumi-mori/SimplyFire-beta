@@ -13,7 +13,8 @@ class BaseModule():
                  menu_label:str,
                  tab_label:str,
                  filename:str = None,
-                 menu_target=app.menubar.window_menu
+                 menu_target=app.menubar.window_menu,
+                 file_menu:bool=False
                  ):
         filename = inspect.getfile(self.__class__)
         self.widgets = {}
@@ -40,14 +41,20 @@ class BaseModule():
         self.menu_var = BooleanVar(value=False)
         self.disable_stack = []
 
-        self._load_components()
-        self._load_binding()
-
         menu_target.add_checkbutton(label=self.menu_label,
                                                 command=self.toggle_module_display,
                                                 variable=self.menu_var,
                                                 onvalue=True,
                                                 offvalue=False)
+
+        self.file_menu = None
+        if file_menu:
+            self.file_menu = app.menubar.make_file_menu_cascade(self.menu_label) #expand this later
+
+
+        self._load_components()
+        self._load_binding()
+
 
     def toggle_module_display(self, event=None, undo=True):
         if self.menu_var.get():
@@ -127,6 +134,16 @@ class BaseModule():
             except:
                 pass
 
+    def insert_menubar_cascade(self, target):
+        cascade = Tk.Menu(target, tearoff=0)
+        target.add_cascade(label=self.menu_label, menu=cascade)
+        return cascade
+
+    def make_file_menu_cascade(self):
+        if self.file_menu is None:
+            self.file_menu = self.insert_menubar_cascade(app.menubar.file_menu)
+        return self.file_menu
+
     def _error_log(self, msg):
         # connect to log later
         print(f'module load error: {msg}')
@@ -142,13 +159,14 @@ class BaseModule():
         self.children = []
         for component, object in component_dict.items(): # 'py file name': {dict of details}
             module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
-            try:
-                tab = getattr(module_py, object, None)(self)
-                if tab.name:
-                    setattr(self, tab.name, tab)
-                self.children.append(tab)
-            except:
-                pass
+            # try:
+            tab = getattr(module_py, object, None)(self)
+            if tab.name:
+                setattr(self, tab.name, tab)
+            self.children.append(tab)
+            # except Exception as e:
+            #     print(f'{self.name}, {e}')
+            #     pass
                 # if details['location'] == 'control_panel':
                 #     module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
                 #     # try:

@@ -851,17 +851,18 @@ class ModuleControl(BaseModuleControl):
         self.module.data_tab.unselect()
 
     def report_to_guide(self, event=None, mini=None):
-        self.module.guide_window.clear()
-        if mini is None:
-            selection = [float(t) for t in self.module.data_tab.table.selection()]
-            if len(selection) == 1:
-                mini = self.mini_df[(self.mini_df['t'].isin(selection)) & (self.mini_df['channel'] == app.interface.channel)]
-                mini = mini.to_dict(orient='records')[0]
-            else:
-                return
-        self.module.guide_window.report(xs=app.trace_display.sweeps['Sweep_0'].get_xdata(),
-                                        ys=app.trace_display.sweeps['Sweep_0'].get_ydata(),
-                                        data=mini)
+        if self.module.guide_window.visible:
+            self.module.guide_window.clear()
+            if mini is None:
+                selection = [float(t) for t in self.module.data_tab.table.selection()]
+                if len(selection) == 1:
+                    mini = self.mini_df[(self.mini_df['t'].isin(selection)) & (self.mini_df['channel'] == app.interface.channel)]
+                    mini = mini.to_dict(orient='records')[0]
+                else:
+                    return
+            self.module.guide_window.report(xs=app.trace_display.sweeps['Sweep_0'].get_xdata(),
+                                            ys=app.trace_display.sweeps['Sweep_0'].get_ydata(),
+                                            data=mini)
     def update_event_markers(self, event=None, draw=False):
         if app.widgets['trace_mode'].get() == 'overlay':
             self.plot_peak(None,None)
@@ -1209,14 +1210,17 @@ class ModuleControl(BaseModuleControl):
 
     def _modify_GUI(self):
         # menubar
-        file_menu = app.menubar.make_file_menu_cascade(self.module.menu_label)
-        file_menu.add_command(label='Open mini file', command=self.open_minis_dialogue)
-        file_menu.add_command(label='Save minis as...', command=self.save_minis_dialogue)
-        file_menu.add_command(label='Export table', command=self.export_minis_dialogue)
+        # file_menu = app.menubar.make_file_menu_cascade(self.module.menu_label)
+        self.insert_file_menu_command(label='Open mini file', command=self.open_minis_dialogue)
+        self.insert_file_menu_command(label='Save minis as...', command=self.save_minis_dialogue)
+        self.insert_file_menu_command(label='Export table', command=self.export_minis_dialogue)
+        # file_menu.add_command(label='Open mini file', command=self.open_minis_dialogue)
+        # file_menu.add_command(label='Save minis as...', command=self.save_minis_dialogue)
+        # file_menu.add_command(label='Export table', command=self.export_minis_dialogue)
 
         # style tab
-        style_tab = app.modules_dict['style'].control_tab
-        style_tab.optionframe.insert_separator()
+        style_tab = app.modules['style'].control_tab
+        style_tab.insert_separator()
         style_tab.insert_title(
             text='Mini Analysis plot style'
         )
