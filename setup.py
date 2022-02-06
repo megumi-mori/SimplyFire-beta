@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 setup(
-    name='PyMini',
+    name='SimplyFire',
     version='b3.0.0',
     author='Megumi Mori GitHub@megumi-mori',
     packages=['PyMini'],
