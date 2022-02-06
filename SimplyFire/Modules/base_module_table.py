@@ -3,9 +3,10 @@ from SimplyFire.utils.custom_widgets import DataTable
 from SimplyFire import app
 import tkinter as Tk
 from SimplyFire.Modules.base_module import BaseModule
+from SimplyFire.Modules.base_module_layout import BaseModuleLayout
 import pandas as pd
 import os
-class BaseModuleDataTable(DataTable):
+class BaseModuleDataTable(DataTable, BaseModuleLayout):
     def __init__(self,
                  module:BaseModule,
                  name:str='data_tab',
@@ -13,6 +14,7 @@ class BaseModuleDataTable(DataTable):
                  data_overwrite=True
                  ):
         super().__init__(app.root)
+
         self.module=module
         # self.grid_columnconfigure(0, weight=1)
         # self.grid_rowconfigure(0, weight=1)
@@ -41,7 +43,8 @@ class BaseModuleDataTable(DataTable):
         self.add_menu_separator()
         self.add_menu_command(label='Fit columns', command=self.fit_columns)
         self.add_menu_command(label='Clear data', command=self.clear)
-        self.add_menu_command(label='Report stats', command=self.report)
+        self.add_menu_command(label='Report all', command=self.report)
+        self.add_menu_command(label='Report selected', command=self.report_selected)
 
         self.notebook = notebook
         self.notebook.add(self, text=self.module.tab_label)
@@ -78,10 +81,10 @@ class BaseModuleDataTable(DataTable):
                    lambda l=sel:self.delete(l)
                 ])
 
-    def set(self, dataframe):
+    def set_data(self, dataframe):
         if self.is_visible():
             self.disable()
-        super().set(dataframe)
+        super().set_data(dataframe)
         if self.is_visible():
             self.enable()
         if self.module.control_tab.has_focus():

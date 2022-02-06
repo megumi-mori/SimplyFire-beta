@@ -33,9 +33,9 @@ class ModuleDataTable(BaseModuleDataTable):
         self.define_columns(tuple([key for key in self.mini_header2config]),iid_header='t')
         self.bind("<<OpenRecording>>", self.clear)
         #
-        self.table.bind('<<TreeviewSelect>>', self.report_selected)
+        self.table.bind('<<TreeviewSelect>>', self.treeview_selected)
 
-    def report_selected(self, event=None):
+    def treeview_selected(self, event=None):
         self.module.control_tab.select_from_table(self.table.selection())
 
     def clear(self, event=None):
@@ -46,6 +46,9 @@ class ModuleDataTable(BaseModuleDataTable):
 
     def report(self, event=None):
         self.module.control_tab.report_results()
+
+    def report_selected(self, event=None):
+        self.module.control_tab.report_selected_results()
 
     def append(self, dataframe, undo=False):
         super().append(dataframe, undo=False)
