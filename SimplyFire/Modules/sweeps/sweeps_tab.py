@@ -219,7 +219,6 @@ class ModuleControl(BaseModuleControl):
         app.interface.focus()
 
     def hide_all(self, event=None, draw=True, undo=True):
-        print('hide all called')
         if undo and app.interface.is_accepting_undo():
             show_list = tuple([i for i, v in enumerate(self.sweep_vars) if v.get()])
             self.module.add_undo(
@@ -228,6 +227,7 @@ class ModuleControl(BaseModuleControl):
                 ]
             )
         self.hide_list(selection=range(len(self.sweep_vars)), undo=False)
+        app.interface.focus()
         # for v in self.sweep_vars:
         #     v.set(False)
         # for v in self.sweep_namevars:

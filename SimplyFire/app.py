@@ -164,6 +164,7 @@ def load(splash):
 
     global data_notebook
     data_notebook = ttk.Notebook(pw_2)
+    data_notebook.bind('<ButtonRelease>', interface.focus, add='+')
 
 
 
@@ -192,6 +193,7 @@ def load(splash):
     cp_notebook = ttk.Notebook(cp)
     cp_notebook.grid(column=0, row=0, sticky='news')
     cp_notebook.bind('<<NotebookTabChanged>>', synch_tab_focus, add='+')
+    cp_notebook.bind('<ButtonRelease>', interface.focus, add='+')
 
     #############################################################
     # Insert custom tabs here to include in the control panel
