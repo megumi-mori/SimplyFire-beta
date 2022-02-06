@@ -139,8 +139,6 @@ def initialize():
     for key in config.key_select:
         bind_key_dp(key, release_function=interface.select_left)
 
-
-
     ######################################
     # Toolbar Toggle
     ######################################
@@ -148,19 +146,6 @@ def initialize():
         bind_key_dp(key, press_function=lambda e:toolbar_toggle_pan())
     for key in config.key_toolbar_zoom:
         bind_key_dp(key, press_function=lambda e:toolbar_toggle_zoom())
-
-    #######################################
-    # Mini analysis
-    #######################################
-    # for key in config.key_find_all:
-    #     bind_key(key, press_function=lambda e:app.detector_tab.find_all_button.invoke(), target=app.trace_display.canvas.get_tk_widget())
-    #     bind_key(key, press_function=lambda e:app.detector_tab.find_all_button.invoke(), target=app.data_display.table)
-    # for key in config.key_find_in_window:
-    #     bind_key(key, press_function=lambda e:app.detector_tab.find_in_window_button.invoke(), target=app.trace_display.canvas.get_tk_widget())
-    #     bind_key(key, press_function=lambda e:app.detector_tab.find_in_window_button.invoke(), target=app.data_display.table)
-    #######################################
-    # Canvas Mouse Events
-    #######################################
 
     global event_pick
     event_pick = False
@@ -174,14 +159,21 @@ def initialize():
     app.trace_display.canvas.mpl_connect('button_press_event', plot_mouse_press)
     app.trace_display.canvas.mpl_connect('motion_notify_event', plot_mouse_move)
     app.trace_display.canvas.mpl_connect('button_release_event', plot_mouse_release)
+    app.trace_display.canvas.mpl_connect('scroll_event', plot_mouse_scroll)
+    global scroll_axis
+    scroll_axis = 'x'
+    def zoom_axis_press(event=None):
+        global scroll_axis
+        scroll_axis = 'y'
+    def zoom_axis_release(event=None):
+        global scroll_axis
+        scroll_axis = 'x'
+    for key in config.key_zoom_axis:
+        bind_key_dp(key, zoom_axis_press, zoom_axis_release)
 
-    # def on_key(event):
-    #     print('you pressed', event.key, event.xdata, event.ydata)
-    #
-    # app.trace_display.canvas.mpl_connect('key_press_event', on_key)
-    # app.trace_display.canvas.mpl_connect('key_release_event', on_key)
+
     app.root.bind('<Alt-o>', lambda e: app.menubar.ask_open_recording())
-    # app.trace_display.canvas.get_tk_widget().bind('<Control-o>', None)
+
     #######################################
     # Global Keys
     #######################################
@@ -336,6 +328,20 @@ def plot_mouse_release(event):
     #     interface.pick_event_manual(event.xdata)
 
 # app.trace_display navigation by key-press
+
+def plot_mouse_scroll(event):
+    app.interface.focus()
+    global scroll_axis
+    if scroll_axis == 'x':
+        app.trace_display.zoom_x_by(direction={'up':-1, 'down':1}[event.button],
+                                percent=float(app.widgets['navigation_zoom_x_percent'].get()),
+                                event=event)
+
+    else:
+        app.trace_display.zoom_y_by(direction={'up':1, 'down':-1}[event.button],
+                                    percent=float(app.widgets['navigation_zoom_x_percent'].get()),
+                                    event=event)
+
 def scroll_x_key(event, direction):
     global scrolling_x
     # if not scrolling_x:

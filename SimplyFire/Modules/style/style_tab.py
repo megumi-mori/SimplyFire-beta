@@ -48,7 +48,7 @@ class ModuleControl(BaseModuleControl):
 
     def place_VarEntry(self, name, column, row, frame, width=None, validate_type=""):
         self.widgets[name] = VarEntry(frame, name=name, width=width, validate_type=validate_type,
-                                      value=self.values.get(name,None), default=self.default.get(name, None))
+                                      value=self.values.get(name,None), default=self.defaults.get(name, None))
         self.widgets[name].grid(column=column, row=row, sticky='news')
 
     def apply_styles(self, event=None, undo=True):

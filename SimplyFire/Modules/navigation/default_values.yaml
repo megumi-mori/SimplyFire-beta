@@ -11,3 +11,6 @@ navigation_zoom_x_percent: 10
 navigation_zoom_y_percent: 10
 navigation_mirror_y_scroll: 1
 navigation_mirror_x_scroll: 1
+
+key_show_all:
+  - '<Key-Home>'

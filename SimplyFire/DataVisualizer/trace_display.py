@@ -304,13 +304,13 @@ def zoom_x_by(direction=1, percent=0, event=None):
     width = xlim[1] - xlim[0]
     new_width = width + width * direction * percent/100
 
-    center_pos = 0.5
+    center_ratio = 0.5
     try:
-        center_pos = (event.xdata - xlim[0])/width
+        center_ratio = (event.xdata - xlim[0])/width
     except:
         pass
-    center_pos = center_pos * width + xlim[0]
-    new_lim = (center_pos - new_width/2, center_pos + new_width/2)
+    center_x = center_ratio * width + xlim[0]
+    new_lim = (center_x - new_width*center_ratio, center_x + new_width*(1-center_ratio))
 
     if new_lim[0] < default_xlim[0]:
         width = new_lim[1] - new_lim[0]
@@ -337,15 +337,15 @@ def zoom_x_by(direction=1, percent=0, event=None):
 def anim_func(idx):
     return None
 
-def zoom_y_by(dir=1, percent=0, event=None):
+def zoom_y_by(direction=1, percent=0, event=None):
     win_lim = ax.get_ylim()
-    delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
+    delta = (win_lim[1] - win_lim[0]) * percent * direction / 100
     center_pos = 0.5
     try:
         center_pos = (event.ydata - win_lim[0]) / (win_lim[1] - win_lim[0])
     except:
         pass
-    new_lim = (win_lim[0] + (1 - center_pos) * delta, win_lim[1] - (center_pos) * delta)
+    new_lim = (win_lim[0] + center_pos * delta, win_lim[1] - (1- center_pos) * delta)
     ax.set_ylim(new_lim)
     global fig
     global ani

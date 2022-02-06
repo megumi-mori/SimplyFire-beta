@@ -133,13 +133,13 @@ class ModuleControl(BaseModuleControl):
         self.widgets['range_left'] = custom_widgets.VarEntry(parent=panel, name='range_left',
                                                              validate_type='float',
                                                              value=self.values.get('range_left',
-                                                                           self.default.get(
+                                                                           self.defaults.get(
                                                                                'range_left', None)))
         self.widgets['range_left'].grid(column=0, row=0, sticky='news')
         self.widgets['range_right'] = custom_widgets.VarEntry(parent=panel, name='range_rigjt',
                                                               validate_type='float',
                                                               value=self.values.get('range_right',
-                                                                                     self.default.get(
+                                                                                     self.defaults.get(
                                                                                          'range_right',
                                                                                          None)))
         self.widgets['range_right'].grid(column=1, row=0, sticky='news')

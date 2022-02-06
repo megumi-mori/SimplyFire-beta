@@ -42,7 +42,7 @@ class ModuleControl(BaseModuleControl):
         self.start_color = 'red'
         self.highlight_color = 'red'
 
-        self.peak_size = self.values.get('style_mini_size', self.default['style_mini_size'])
+        self.peak_size = self.values.get('style_mini_size', self.defaults['style_mini_size'])
         self.decay_size = 5
         self.start_size = 5
         self.highlight_size = 5
@@ -1281,7 +1281,7 @@ class ModuleControl(BaseModuleControl):
                                                                                sticky='news')
         def place_VarEntry(name, column, row, frame, width=None, validate_type=""):
             self.widgets[name] = custom_widgets.VarEntry(frame, name=name, width=width, validate_type=validate_type,
-                                                         value=self.values.get(name, None), default=self.default.get(name, None))
+                                                         value=self.values.get(name, None), default=self.defaults.get(name, None))
             self.widgets[name].grid(column=column, row=row, sticky='news')
 
         row += 1

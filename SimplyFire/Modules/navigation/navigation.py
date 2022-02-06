@@ -50,6 +50,7 @@ class ModuleControl(BaseModuleControl):
         app.interface.focus()
 
     def apply_navigation(self, event=None):
+        app.interpreter.navigation_fps = int(self.widgets['navigation_fps'].get())
         app.widgets['navigation_fps'].set(int(self.widgets['navigation_fps'].get()))
         app.widgets['navigation_scroll_x_percent'].set(float(self.widgets['navigation_scroll_x_percent'].get()))
         app.widgets['navigation_zoom_x_percent'].set(float(self.widgets['navigation_zoom_x_percent'].get()))
@@ -164,3 +165,8 @@ class ModuleControl(BaseModuleControl):
         self.insert_button(text='Default', command=lambda filter='navigation':self.set_to_default(filter=filter))
     def _load_binding(self):
         self.listen_to_event('<<OpenedRecording>>', self.on_open)
+
+        show_all_keys = getattr(app.config, 'key_show_all', self.defaults.get('key_show_all', []))
+        for key in show_all_keys:
+            print(key)
+            app.trace_display.canvas.get_tk_widget().bind(key, self.show_all, add='+')

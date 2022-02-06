@@ -196,10 +196,13 @@ def apply_geometry(e=None):
     app.pw.paneconfig(app.cp, width=int(widgets['cp_width'].get()))
     app.pw_2.paneconfig(app.gp, height=int(widgets['gp_height'].get()))
 def change_geometry_entries(e=None):
-    geometry = app.root.geometry().split('+')
-    geometry[0] = geometry[0].split('x')
-    widgets['window_width'].set(geometry[0][0])
-    widgets['window_height'].set(geometry[0][1])
+    try:
+        geometry = app.root.geometry().split('+')
+        geometry[0] = geometry[0].split('x')
+        widgets['window_width'].set(geometry[0][0])
+        widgets['window_height'].set(geometry[0][1])
+    except:
+        pass
 def change_gp_entries(e=None):
     widgets['gp_height'].set(app.gp.winfo_height())
 def change_pw_entries(e=None):

@@ -292,9 +292,9 @@ class ModulePopup(BaseModulePopup):
         )
     def _load_layout(self):
         self.widgets['guide_geometry_height'] = Tk.IntVar(
-            value=self.module.values.get('guide_geometry_height', self.module.default.get('guide_geometry_height', 600)))
+            value=self.module.values.get('guide_geometry_height', self.module.defaults.get('guide_geometry_height', 600)))
         self.widgets['guide_geometry_width'] = Tk.IntVar(
-            value=self.module.values.get('geometry_width', self.module.default.get('guide_geometry_width', 200)))
+            value=self.module.values.get('geometry_width', self.module.defaults.get('guide_geometry_width', 200)))
 
         # self.geometry(f'{self.widgets["guide_geometry_height"].get()}x{self.widgets["guide_geometry_width"].get()}')
         self.geometry(f'400x600')
@@ -325,7 +325,7 @@ class ModulePopup(BaseModulePopup):
         frame.grid_rowconfigure(1, weight=1)
         self.pw.add(frame)
         self.pw.paneconfig(frame, height=self.module.values.get('guide_panel_height',
-                                                                self.module.default.get('guide_panel_height', 400)))
+                                                                self.module.defaults.get('guide_panel_height', 400)))
         self.fig = Figure()
         self.fig.set_tight_layout(True)
         self.ax = self.fig.add_subplot(111)

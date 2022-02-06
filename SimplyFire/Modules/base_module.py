@@ -20,9 +20,9 @@ class BaseModule():
         self.widgets = {}
         try:
             with open(os.path.join(os.path.dirname(filename), 'default_values.yaml'), 'r') as f:
-                self.default = yaml.safe_load(f)
+                self.defaults = yaml.safe_load(f)
         except:
-            self.default = {}
+            self.defaults = {}
 
         try:
             with open(os.path.join(os.path.dirname(filename), 'config.yaml'), 'r') as f:

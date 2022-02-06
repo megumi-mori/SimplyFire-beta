@@ -212,13 +212,13 @@ class ModuleControl(BaseModuleControl):
         self.widgets['baseline_range_left'] = custom_widgets.VarEntry(parent=panel, name='baseline_range_left',
                                                                       validate_type='float',
                                                                       value=self.values.get('baseline_range_left',
-                                                                                    self.default.get(
+                                                                                    self.defaults.get(
                                                                                         'baseline_range_left', None)))
         self.widgets['baseline_range_left'].grid(column=0, row=0, sticky='news')
         self.widgets['baseline_range_right'] = custom_widgets.VarEntry(parent=panel, name='baseline_range_rigjt',
                                                                        validate_type='float',
                                                                        value=self.values.get('baseline_range_right',
-                                                                                  self.default.get('baseline_range_right',
+                                                                                  self.defaults.get('baseline_range_right',
                                                                                                    None)))
         self.widgets['baseline_range_right'].grid(column=1, row=0, sticky='news')
         self.baseline_option_panels['Fixed value'] = self.make_panel(separator=False)
@@ -229,7 +229,7 @@ class ModuleControl(BaseModuleControl):
         self.widgets['baseline_fixed'] = custom_widgets.VarEntry(parent=panel, name='baseline_fixed',
                                                                  validate_type='float',
                                                                  value=self.values.get('baseline_fixed',
-                                                                                  self.default.get('baseline_fixed',
+                                                                                  self.defaults.get('baseline_fixed',
                                                                                                    None)))
         self.widgets['baseline_fixed'].grid(row=0, column=0, sticky='news')
 
@@ -341,7 +341,7 @@ class ModuleControl(BaseModuleControl):
         app.interface.focus()
     def _select_lowpass_algorithm(self, event=None):
         choice = self.widgets['filter_Lowpass_algorithm'].get()
-        for key in self.default[f'{choice}_params']:
+        for key in self.defaults[f'{choice}_params']:
             self.show_widget(key)
         pass
 

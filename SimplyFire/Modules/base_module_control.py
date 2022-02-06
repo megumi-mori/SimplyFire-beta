@@ -20,7 +20,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
         ScrollableOptionFrame.__init__(self, app.root, scrollbar)
         BaseModuleLayout.__init__(self, module)
 
-        self.default = self.module.default
+        self.defaults = self.module.defaults
         self.values = self.module.values
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -72,7 +72,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
         if 'value' not in kwargs.keys():
             kwargs['value'] = self.values.get(kwargs['name'], None)
         if 'default' not in kwargs.keys():
-            kwargs['default'] = self.default.get(kwargs['name'], None)
+            kwargs['default'] = self.defaults.get(kwargs['name'], None)
         entry = self.frame.insert_label_entry(**kwargs)
         try:
             self.widgets[kwargs['name']] = entry
@@ -92,7 +92,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
         if 'value' not in kwargs.keys():
             kwargs['value'] = self.values.get(kwargs['name'], None)
         if 'default' not in kwargs.keys():
-            kwargs['default'] = self.default.get(kwargs['name'], None)
+            kwargs['default'] = self.defaults.get(kwargs['name'], None)
         checkbox = self.frame.insert_label_checkbox(**kwargs)
         try:
             self.widgets[kwargs['name']] = checkbox
@@ -104,7 +104,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
         if 'value' not in kwargs.keys():
             kwargs['value'] = self.values.get(kwargs['name'], None)
         if 'default' not in kwargs.keys():
-            kwargs['default'] = self.default.get(kwargs['name'], None)
+            kwargs['default'] = self.defaults.get(kwargs['name'], None)
         optionmenu = self.frame.insert_label_optionmenu(**kwargs)
         try:
             self.widgets[kwargs['name']] = optionmenu
@@ -118,7 +118,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
         if 'value' not in kwargs.keys():
             kwargs['value'] = self.values.get(kwargs['name'], None)
         if 'default' not in kwargs.keys():
-            kwargs['default'] = self.default.get(kwargs['name'], None)
+            kwargs['default'] = self.defaults.get(kwargs['name'], None)
         self.widgets[kwargs['name']] = custom_widgets.VarEntry(parent=parent,
                                                                **kwargs)
         return self.widgets[kwargs['name']]

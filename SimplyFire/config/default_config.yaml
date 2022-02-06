@@ -290,3 +290,10 @@ default_key_find_all:
 
 default_key_find_in_window:
   - '<F5>'
+
+default_key_zoom_axis:
+  - '<Control_L>'
+  - '<Control_R>'
+
+default_key_show_all:
+  - '<Key-Home>'

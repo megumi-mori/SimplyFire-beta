@@ -441,7 +441,10 @@ def dump_user_setting(filename=None):
         # d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
         d['start_module'] = [name for name, module in modules.items() if module.menu_var.get()]
         for modulename, module in modules.items():
-            d[modulename] = dict([(key, var.get()) for key, var in module.widgets.items()])
+            d[modulename] = dict([(key, var.get()) for key, var in module.widgets.items() if 'key_' not in key])
+            for key in [k for k in module.defaults.keys() if 'key_' in k]:
+                setattr(config, key, module.defaults[key])
+
         f.write(yaml.safe_dump(d))
         # pymini.pb.clear()
 
