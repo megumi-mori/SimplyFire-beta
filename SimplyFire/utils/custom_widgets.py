@@ -561,6 +561,8 @@ class DataTable(Tk.Frame):
         self.menu = Tk.Menu(self.table, tearoff=0)
 
         self.table.bind("<Button-3>", self.popup, add="+")
+
+
     def remove_binding(self, type=''):
         if type == 'delete':
             for key in config.key_delete:
@@ -694,7 +696,7 @@ class DataTable(Tk.Frame):
             pass
         app.pb['value']=0
         app.pb.update()
-    def set(self, dataframe):
+    def set_data(self, dataframe):
         self.table.selection_remove(*self.table.selection())
         self.table.delete(*self.table.get_children())
         self.append(dataframe)

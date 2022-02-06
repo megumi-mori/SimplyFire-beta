@@ -121,7 +121,7 @@ class ModuleControl(BaseModuleControl):
     #     # self.update_event_markers()
     #     pass
     def synch_table(self, event=None):
-        self.module.data_tab.set(self.extract_channel_subset())
+        self.module.data_tab.set_data(self.extract_channel_subset())
     def _default_core_params(self, e=None):
         self.set_to_default('detector_core')
         self.populate_decay_algorithms()
@@ -562,6 +562,57 @@ class ModuleControl(BaseModuleControl):
         data['Hz'] = mini_df.shape[0]/(mini_df['t'].max() - mini_df['t'].min())
 
         app.results_display.report(data)
+
+    def report_selected_results(self):
+        if len(app.interface.recordings) == 0:
+            messagebox.showerror('Error', 'Please open a recording file first')
+            return None
+        selection = [float(i) for i in self.module.data_tab.table.selection()]
+        if len(selection) == 0:
+            app.results_display.report({
+                'filename': app.interface.recordings[0].filename,
+                'analysis': 'mini',
+                'num_minis': 0,
+                'channel': app.interface.current_channel
+            })
+            return None
+        mini_df = self.mini_df[
+            (self.mini_df['channel'] == app.interface.current_channel) & (self.mini_df['t'].isin(selection))]
+        print(mini_df)
+        data = {
+            'filename': app.interface.recordings[0].filename,
+            'analysis': 'mini',
+            'num_minis': mini_df.shape[0]
+        }
+        if 'amp' in self.module.data_tab.columns:
+            data['amp'] = mini_df['amp'].mean()
+            data['amp_unit'] = mini_df['amp_unit'].iloc[0]
+            data['amp_std'] = mini_df['amp'].std()
+        if 'decay_const' in self.module.data_tab.columns:
+            data['decay_const'] = mini_df['decay_const'].mean()
+            data['decay_unit'] = mini_df['decay_unit'].iloc[0]
+            data['decay_std'] = mini_df['decay_const'].std()
+        if 'rise_const' in self.module.data_tab.columns:
+            data['rise_const'] = mini_df['rise_const'].mean()
+            data['rise_unit'] = mini_df['rise_unit'].iloc[0]
+            data['decay_std'] = mini_df['rise_const'].std()
+        if 'halfwidth' in self.module.data_tab.columns:
+            data['halfwidth'] = mini_df['halfwidth'].mean()
+            data['halfwidth_unit'] = mini_df['halfwidth_unit'].iloc[0]
+            data['halfwidth_std'] = mini_df['halfwidth'].std()
+        if 'baseline' in self.module.data_tab.columns:
+            data['baseline'] = mini_df['baseline'].mean()
+            data['baseline_unit'] = mini_df['baseline_unit'].iloc[0]
+            data['baseline_std'] = mini_df['baseline'].std()
+        if 'channel' in self.module.data_tab.columns:
+            data['channel'] = app.interface.current_channel
+        if 'compound' in self.module.data_tab.columns:
+            data['num_compound'] = mini_df['compound'].sum()
+        # calculate frequency
+        data['Hz'] = mini_df.shape[0]/(mini_df['t'].max() - mini_df['t'].min())
+
+        app.results_display.report(data)
+
     def save_minis(self, filename, overwrite=True, log=False, update_status = True):
         if overwrite:
             mode = 'w'
@@ -887,7 +938,7 @@ class ModuleControl(BaseModuleControl):
         # app.trace_display.canvas.draw()
 
     def update_module_table(self):
-        self.module.data_tab.set(self.extract_channel_subset())
+        self.module.data_tab.set_data(self.extract_channel_subset())
 
     def _load_layout(self):
         self.insert_title(
