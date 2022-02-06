@@ -1,4 +1,21 @@
+"""
+SimplyFire - Customizable analysis of electrophysiology data
+Copyright (C) 2022 Megumi Mori
+This program comes with ABSOLUTELY NO WARRANTY
 
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
 import tkinter as Tk
 from tkinter import filedialog
 from tkinter import ttk, font
@@ -250,15 +267,6 @@ def set_fontsize(fontsize=None):
         trace_display.ax.yaxis.get_label().set_fontsize(fontsize)
         trace_display.ax.tick_params(axis='y', which='major', labelsize=fontsize)
         trace_display.ax.tick_params(axis='x', which='major', labelsize=fontsize)
-    except:
-        pass
-
-    try:
-        param_guide.ax.xaxis.get_label().set_fontsize(fontsize)
-        param_guide.ax.yaxis.get_label().set_fontsize(fontsize)
-        param_guide.ax.tick_params(axis='y', which='major', labelsize=fontsize)
-        param_guide.ax.tick_params(axis='x', which='major', labelsize=fontsize)
-        Tk.Text.configure(param_guide.msg_label, font=Tk.font.Font(size=fontsize))
     except:
         pass
 
