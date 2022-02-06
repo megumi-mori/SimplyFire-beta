@@ -1,7 +1,8 @@
 from .base_module import BaseModule
 from tkinter import Toplevel
 from SimplyFire import app
-class BaseModulePopup(Toplevel):
+from .base_module_layout import BaseModuleLayout
+class BaseModulePopup(Toplevel, BaseModuleLayout):
     def __init__(self,
                  module:BaseModule,
                  name:str=None
