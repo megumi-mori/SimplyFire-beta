@@ -210,9 +210,3 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
 
     def select(self):
         self.notebook.select(self)
-
-    def add_batch_category(self):
-        app.batch_popup.insert_command_category(self.module.menu_label)
-
-    def add_batch_command(self, name, func, interrupt=None):
-        app.batch_popup.insert_command(name, self.module.menu_label, lambda f=func:self.call_if_enabled(f), interrupt=interrupt)

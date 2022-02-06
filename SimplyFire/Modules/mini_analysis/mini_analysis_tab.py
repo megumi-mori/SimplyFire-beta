@@ -318,7 +318,7 @@ class ModuleControl(BaseModuleControl):
         df = app.interface.al.find_mini_auto(xlim=app.trace_display.ax.get_xlim(), xs=xs, ys=ys,
                                              x_sigdig=app.interface.recordings[0].x_sigdig,
                                              sampling_rate=app.interface.recordings[0].sampling_rate,
-                                             channel=app.interface.channel,
+                                             channel=app.interface.current_channel,
                                              reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
                                              x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
         self.mini_df = pd.concat([self.mini_df, df])

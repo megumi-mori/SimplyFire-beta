@@ -39,3 +39,4 @@ class BaseModuleLayout():
             app.root.bind(event, lambda f=function:self.call_if_focus(f), add="+")
         elif condition == 'visible':
             app.root.bind(event, lambda f=function: self.call_if_visible(f), add='+')
+

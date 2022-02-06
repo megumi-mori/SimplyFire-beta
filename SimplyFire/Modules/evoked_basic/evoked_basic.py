@@ -27,6 +27,6 @@ class Module(BaseModule):
 
 
     def _modify_GUI(self):
-        self.insert_file_menu_command(label='Export data table', command=self.data_tab.ask_export_data)
+        self.add_file_menu_command(label='Export data table', command=self.data_tab.ask_export_data)
 
 

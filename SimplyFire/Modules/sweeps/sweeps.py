@@ -19,6 +19,6 @@ class Module(BaseModule):
 
 
     def _load_batch(self):
-        self.control_tab.add_batch_category()
-        self.control_tab.add_batch_command('Show All', lambda u=False:self.control_tab.show_all(undo=u))
-        self.control_tab.add_batch_command('Hide All', lambda u=False:self.control_tab.hide_all(undo=u))
+        self.create_batch_category()
+        self.add_batch_command('Show All', lambda u=False:self.control_tab.show_all(undo=u))
+        self.add_batch_command('Hide All', lambda u=False:self.control_tab.hide_all(undo=u))

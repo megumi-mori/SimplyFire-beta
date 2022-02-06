@@ -608,6 +608,7 @@ def process_batch():
     global progress_message
     global batch_log
     global current_command
+    global current_filename
     global file_idx
     global command_idx
     while file_idx < total_files:
@@ -620,6 +621,7 @@ def process_batch():
                 progress_message.config(text=f'Processing {file_idx+1}/{total_files} files. At {command_idx}/{total_steps-1} steps')
                 if c == 'Open file':
                     f = file_list[file_idx]
+                    current_filename = f
                     if f:
                         if not os.path.isdir(os.path.dirname(f)):
                             batch_log.insert(f'Opening file {f} from directory {basedir}\n')
@@ -643,6 +645,8 @@ def process_batch():
                         return None
                     else:
                         command_dict[c]['function']()
+
+
             except Exception as e:
                 batch_log.insert(f'Error performing command: {c}.\n Exception: {e}')
             command_idx += 1
@@ -652,6 +656,7 @@ def process_batch():
         command_idx = 0
     if stop:
         batch_log.insert('Batch stopped by user\n')
+    current_filename=None
     batch_log.insert('End of batch')
     stop = False
     app.root.attributes('-disabled', False)

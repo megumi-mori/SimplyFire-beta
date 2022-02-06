@@ -84,6 +84,13 @@ class BaseModule():
             for c in self.children:
                 c.disable()
 
+    def select(self, event=None):
+        for c in self.children:
+            try:
+                c.select()
+            except:
+                pass
+
     def _add_disable(self, event=None, source:str=None):
         if not source:
             source = self.name
@@ -194,7 +201,7 @@ class BaseModule():
         target.add_cascade(label=self.menu_label, menu=menu)
         return menu
 
-    def insert_file_menu_command(self, **kwargs):
+    def add_file_menu_command(self, **kwargs):
         if self.file_menu is None:
             self.create_file_menu_cascade()
         self.file_menu.add_command(**kwargs)
@@ -242,3 +249,20 @@ class BaseModule():
         self.popup_window.destroy()
     def _load_binding(self):
         pass
+
+    def create_batch_category(self):
+        app.batch_popup.insert_command_category(self.menu_label)
+
+    def add_batch_command(self, name, func, interrupt=None):
+        # def temp():
+        #     if not self.is_enabled():
+        #         app.batch_popup.batch_log.insert(f'{self.menu_label} is not enabled.\n')
+        #         return
+        #     func()
+        app.batch_popup.insert_command(name, self.menu_label, lambda f=func: self.batch_command_decorator(f), interrupt=interrupt)
+
+    def batch_command_decorator(self, func):
+        if not self.is_enabled():
+            app.batch_popup.batch_log.insert(f'WARNING: {self.menu_label} is not enabled. Command not executed.')
+            return
+        func()

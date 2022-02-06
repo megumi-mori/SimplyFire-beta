@@ -104,7 +104,8 @@ def ask_save_recording(e=None):
         messagebox.showerror(title='Error', message='No recording to export. Please open a recording first.')
         return None
     app.root.event_generate('<<AskSaveRecording>>')
-    initialfname = formatting.format_save_filename(os.path.splitext(interface.recordings[0].filename)[0] + '_Modified', False)
+    initialfname = formatting.format_save_filename(os.path.splitext(interface.recordings[0].filepath)[0] + '_Modified.abf', overwrite=False)
+    initialfname = os.path.split(initialfname)[-1]
     filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('All files', '*.*')],
                                             defaultextension='.abf',
                                             initialfile=initialfname)
