@@ -20,7 +20,6 @@ from SimplyFire import app
 from SimplyFire.Modules.base_module_control import BaseModuleControl
 from . import process
 import tkinter as Tk
-from tkinter import ttk
 from SimplyFire.utils import custom_widgets
 import os
 class ModuleControl(BaseModuleControl):
@@ -118,17 +117,17 @@ class ModuleControl(BaseModuleControl):
             return
         plot_mode = app.widgets['trace_mode'].get()
         result, baseline = process.subtract_baseline(app.interface.recordings[0],
-                                  plot_mode=plot_mode,
-                                  channels=target_channels,
-                                  sweeps=target_sweeps,
-                                  xlim=xlim,
-                                  shift=shift)
+                                                     plot_mode=plot_mode,
+                                                     channels=target_channels,
+                                                     sweeps=target_sweeps,
+                                                     xlim=xlim,
+                                                     shift=shift)
 
         #['All sweeps', 'Visible sweeps', 'Highlighted sweeps']
         # deal with undo later
         if app.interface.is_accepting_undo():
             self.module.add_undo([
-                lambda r=app.interface.recordings[0], s=baseline, m=plot_mode, c=target_channels, t=target_sweeps: process.shift_y_data(r,s,m,c,t),
+                lambda r=app.interface.recordings[0], s=baseline, m=plot_mode, c=target_channels, t=target_sweeps: process.shift_y_data(r, s, m, c, t),
                 app.interface.plot
             ])
 

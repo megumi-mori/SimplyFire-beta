@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import tkinter as Tk
 import pkg_resources
-from os.path import join
+from os.path import join, dirname
 from threading import Thread
 
 def load_splash():
@@ -42,7 +42,6 @@ def load_splash():
     #         splash.after(1000, update, ind)
     #     except:
     #         pass
-
     IMG_DIR = pkg_resources.resource_filename('SimplyFire', 'img/')
 
     # method 1:

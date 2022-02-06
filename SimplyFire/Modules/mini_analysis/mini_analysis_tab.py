@@ -29,8 +29,6 @@ import numpy as np
 from SimplyFire.Backend import analyzer2
 
 # debugging
-import time
-import inspect
 class ModuleControl(BaseModuleControl):
     def __init__(self, module):
         super(ModuleControl, self).__init__(
