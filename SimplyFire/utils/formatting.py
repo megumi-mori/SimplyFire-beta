@@ -1,4 +1,4 @@
-import os 
+import os
 
 def format_list_indices(idx):
     if len(idx) == 1:
@@ -7,12 +7,14 @@ def format_list_indices(idx):
     for i, n in enumerate(idx):
         if i == 0:
             s = str(n)
+        elif n == idx[i-1]: # same number as the one before
+            pass
         elif i == len(idx) - 1:
-            if n - 1 == idx[-2]:
+            if n - 1 == idx[-2]: #at the end, at least 2 idx subsequent order
                 s = '{}..{}'.format(s, n)
             else:
                 s = '{},{}'.format(s, n)
-        elif n - 1 == idx[i - 1] and n + 1 == idx[i + 1]:
+        elif n - 1 == idx[i - 1] and n + 1 == idx[i + 1]: # in the middle of a sequence
             # 0, [1, 2, 3], 4, 10, 11 --> '0'
             pass  # do nothing
         elif n - 1 == idx[i - 1] and n + 1 != idx[i + 1]:
