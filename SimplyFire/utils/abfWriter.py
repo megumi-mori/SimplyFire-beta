@@ -104,25 +104,25 @@ def writeABF1(recording, filename):
         f.write(data)
     return
 
-if __name__=='__main__':
-
-    # sampling_rate = 10000
-    # test_data=np.reshape(np.arange(0,10,1/sampling_rate), (1, 1, 10*sampling_rate))
-    # test_data2=np.reshape(np.arange(0,-10, -1/sampling_rate), (1,1,10*sampling_rate))
-    #
-    # test_data_combined = np.concatenate((test_data, test_data2), axis=0)
-    # print(test_data_combined.shape)
-    # print(test_data_combined[0].shape)
-
-    read_filename = "D:\megum\Documents\GitHub\PyMini-GHD\PyMini-GHD\\test_recordings\\20112011-EJC test.abf"
-    recording = analyzer2.Recording(read_filename)
-    write_filename = 'D:\megum\Documents\GitHub\PyMini-GHD\PyMini-GHD\\test_recordings\write_test_mEJC.abf'
-
-    sampling_rate = recording.sampling_rate
-    data = recording.y_data
-    print(f'shape of recording data: {data.shape}')
-    writeABF1(recording, recording.y_data, write_filename)
-    # filename = "19911002-2.abf"
-    reopen_data = pyabf.abf.ABF(write_filename)
-    print(f'shape of re-opened data: {reopen_data.data.shape}')
-    print(reopen_data.sweepCount)
+# if __name__=='__main__':
+#
+#     # sampling_rate = 10000
+#     # test_data=np.reshape(np.arange(0,10,1/sampling_rate), (1, 1, 10*sampling_rate))
+#     # test_data2=np.reshape(np.arange(0,-10, -1/sampling_rate), (1,1,10*sampling_rate))
+#     #
+#     # test_data_combined = np.concatenate((test_data, test_data2), axis=0)
+#     # print(test_data_combined.shape)
+#     # print(test_data_combined[0].shape)
+#
+#     read_filename = "D:\megum\Documents\GitHub\PyMini-GHD\PyMini-GHD\\test_recordings\\20112011-EJC test.abf"
+#     recording = analyzer2.Recording(read_filename)
+#     write_filename = 'D:\megum\Documents\GitHub\PyMini-GHD\PyMini-GHD\\test_recordings\write_test_mEJC.abf'
+#
+#     sampling_rate = recording.sampling_rate
+#     data = recording.y_data
+#     print(f'shape of recording data: {data.shape}')
+#     writeABF1(recording, recording.y_data, write_filename)
+#     # filename = "19911002-2.abf"
+#     reopen_data = pyabf.abf.ABF(write_filename)
+#     print(f'shape of re-opened data: {reopen_data.data.shape}')
+#     print(reopen_data.sweepCount)

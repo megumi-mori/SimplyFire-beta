@@ -20,6 +20,7 @@ class Module(BaseModule):
                 pass
         print('loading batch')
         self._load_batch()
+        self._modify_GUI()
 
     def update_module_display(self, table=False):
         super().update_module_display()
@@ -65,3 +66,7 @@ class Module(BaseModule):
         batch_popup.insert_command('Export minis', 'Mini analysis', lambda func=export_minis:self.control_tab.call_if_enabled(func))
 
 
+    def _modify_GUI(self):
+        self.insert_file_menu_command(label='Open mini file', command=self.control_tab.ask_open_minis)
+        self.insert_file_menu_command(label='Save minis as...', command=self.control_tab.ask_save_minis)
+        self.insert_file_menu_command(label='Export data table', command=self.data_tab.ask_export_data)

@@ -11,7 +11,7 @@ class Module(BaseModule):
         )
 
         self._load_batch()
-
+        self._modify_GUI()
 
     def _load_batch(self):
         batch_popup.insert_command_category('Evoked Analysis')
@@ -24,5 +24,9 @@ class Module(BaseModule):
             self.data_tab.export(fname, overwrite=False)
             batch_popup.batch_log.insert(f"Saved evoked analysis results to: {fname}\n")
         batch_popup.insert_command('Export results', 'Evoked Analysis', export_results)
+
+
+    def _modify_GUI(self):
+        self.insert_file_menu_command(label='Export data table', command=self.data_tab.ask_export_data)
 
 

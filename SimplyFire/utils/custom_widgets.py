@@ -4,7 +4,7 @@ from tkinter import ttk, font
 import pandas as pd
 
 from SimplyFire.config import config
-from SimplyFire.utils import validation, writer
+from SimplyFire.utils import validation
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import matplotlib as mpl
 import yaml

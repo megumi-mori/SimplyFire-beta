@@ -13,7 +13,7 @@ class BaseModule():
                  menu_label:str,
                  tab_label:str,
                  filename:str = None,
-                 menu_target=app.menubar.window_menu,
+                 menu_target=app.menubar.module_menu,
                  file_menu:bool=False
                  ):
         filename = inspect.getfile(self.__class__)
@@ -49,7 +49,7 @@ class BaseModule():
 
         self.file_menu = None
         if file_menu:
-            self.file_menu = app.menubar.make_file_menu_cascade(self.menu_label) #expand this later
+            self.file_menu = self.create_file_menu_cascade() #expand this later
 
 
         self._load_components()
@@ -134,16 +134,6 @@ class BaseModule():
             except:
                 pass
 
-    def insert_menubar_cascade(self, target):
-        cascade = Tk.Menu(target, tearoff=0)
-        target.add_cascade(label=self.menu_label, menu=cascade)
-        return cascade
-
-    def make_file_menu_cascade(self):
-        if self.file_menu is None:
-            self.file_menu = self.insert_menubar_cascade(app.menubar.file_menu)
-        return self.file_menu
-
     def _error_log(self, msg):
         # connect to log later
         print(f'module load error: {msg}')
@@ -199,9 +189,21 @@ class BaseModule():
 
 
 
-    def insert_file_menu(self):
-        self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)
-        app.menubar.file_menu.add_cascade(label=self.name, menu=self.file_menu)
+    def create_menubar_cascade(self, target):
+        menu = Tk.Menu(target, tearoff=0)
+        target.add_cascade(label=self.menu_label, menu=menu)
+        return menu
+
+    def insert_file_menu_command(self, **kwargs):
+        if self.file_menu is None:
+            self.create_file_menu_cascade()
+        self.file_menu.add_command(**kwargs)
+        pass
+
+    def create_file_menu_cascade(self):
+        if self.file_menu is None:
+            self.file_menu = self.create_menubar_cascade(app.menubar.file_menu)
+        return self.file_menu
 
     def log(self, msg, header=True):
         if header:

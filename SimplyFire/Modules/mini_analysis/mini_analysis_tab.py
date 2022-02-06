@@ -157,7 +157,7 @@ class ModuleControl(BaseModuleControl):
                 ])
 
         try:
-            self.mini_df = self.mini_df[self.mini_df['channel']!=app.interface.channel]
+            self.mini_df = self.mini_df[self.mini_df['channel'] != app.interface.current_channel]
         except Exception as e:
             print(f'Mini analysis delete all exceptionL {e}')
             # no data yet
@@ -169,8 +169,8 @@ class ModuleControl(BaseModuleControl):
         # deal with undo later
         xlim = app.trace_display.ax.get_xlim()
         selection = self.mini_df[(self.mini_df['t'] > xlim[0]) &
-                            (self.mini_df['t'] < xlim[1]) &
-                            (self.mini_df['channel'] == app.interface.channel)].t.values
+                                 (self.mini_df['t'] < xlim[1]) &
+                                 (self.mini_df['channel'] == app.interface.current_channel)].t.values
         self.delete_selection(selection)
 
     def delete_from_canvas(self, undo=True):
@@ -189,7 +189,7 @@ class ModuleControl(BaseModuleControl):
                     lambda f=filename: self.open_minis(filename, log=False, undo=False, append=True),
                     lambda f=filename: os.remove(f)
                 ])
-        self.mini_df = self.mini_df[(~self.mini_df['t'].isin(selection))|(self.mini_df['channel']!=app.interface.channel)]
+        self.mini_df = self.mini_df[(~self.mini_df['t'].isin(selection)) | (self.mini_df['channel'] != app.interface.current_channel)]
         self.module.data_tab.delete(selection)
         self.update_event_markers(draw=True)
 
@@ -207,9 +207,9 @@ class ModuleControl(BaseModuleControl):
         if self.mini_df.shape[0] == 0:
             return None
         if t:
-            return self.mini_df[(self.mini_df['t'].isin(t)) & (self.mini_df['channel'] == app.interface.channel)]
+            return self.mini_df[(self.mini_df['t'].isin(t)) & (self.mini_df['channel'] == app.interface.current_channel)]
         else:
-            return self.mini_df[self.mini_df['channel'] == app.interface.channel]
+            return self.mini_df[self.mini_df['channel'] == app.interface.current_channel]
 
     def find_mini_manual(self, x):
         if x is None:
@@ -234,7 +234,7 @@ class ModuleControl(BaseModuleControl):
         mini = app.interface.al.find_mini_manual(xlim=(x1, x2), xs=xs, ys=ys,
                                                  x_sigdig=app.interface.recordings[0].x_sigdig,
                                                  sampling_rate=app.interface.recordings[0].sampling_rate,
-                                                 channel=app.interface.recordings[0].channel,
+                                                 channel=app.interface.current_channel,
                                                  reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
                                                  x_unit=app.interface.recordings[0].x_unit, **params)
         if mini['success']:
@@ -269,7 +269,7 @@ class ModuleControl(BaseModuleControl):
         #     detector_tab.changed = False
         self.log()
 
-    def find_mini_all_thread(self, interrupt=True):
+    def find_mini_all_thread(self, popup=True):
         params = self.get_params()
         try:
             xs = app.trace_display.sweeps['Sweep_0'].get_xdata()
@@ -278,7 +278,7 @@ class ModuleControl(BaseModuleControl):
             return
         df = app.interface.al.find_mini_auto(xlim=None, xs=xs, ys=ys, x_sigdig=app.interface.recordings[0].x_sigdig,
                                              sampling_rate=app.interface.recordings[0].sampling_rate,
-                                             channel=app.interface.recordings[0].channel,
+                                             channel=app.interface.current_channel,
                                              reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
                                              x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
 
@@ -294,10 +294,10 @@ class ModuleControl(BaseModuleControl):
             self.saved = False  # track change
             if app.interface.is_accepting_undo():
                 self.module.add_undo(
-                    [lambda s=df[df.channel == app.interface.channel]['t']: self.delete_selection(s, undo=False)]
+                    [lambda s=df[df.channel == app.interface.current_channel]['t']: self.delete_selection(s, undo=False)]
                 )
         app.clear_progress_bar()
-        if interrupt:
+        if popup:
             self.module.destroy_interrupt_popup()
     def find_mini_range(self, event=None, interrupt=True):
         if len(app.interface.recordings) == 0:
@@ -307,7 +307,7 @@ class ModuleControl(BaseModuleControl):
         self.module.start_thread(lambda i=interrupt:self.find_mini_range_thread(i), app.interface.al, interrupt)
         self.log()
 
-    def find_mini_range_thread(self, interrupt=True):
+    def find_mini_range_thread(self, popup=True):
         try:
             xs = app.trace_display.sweeps['Sweep_0'].get_xdata()
             ys = app.trace_display.sweeps['Sweep_0'].get_ydata()
@@ -318,7 +318,7 @@ class ModuleControl(BaseModuleControl):
         df = app.interface.al.find_mini_auto(xlim=app.trace_display.ax.get_xlim(), xs=xs, ys=ys,
                                              x_sigdig=app.interface.recordings[0].x_sigdig,
                                              sampling_rate=app.interface.recordings[0].sampling_rate,
-                                             channel=app.interface.recordings[0].channel,
+                                             channel=app.interface.channel,
                                              reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
                                              x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
         self.mini_df = pd.concat([self.mini_df, df])
@@ -328,10 +328,10 @@ class ModuleControl(BaseModuleControl):
             self.saved = False  # track change
         if app.interface.is_accepting_undo():
             self.module.add_undo(
-                [lambda s=df[df.channel == app.interface.channel]['t']: self.delete_selection(s, undo=False)]
+                [lambda s=df[df.channel == app.interface.current_channel]['t']: self.delete_selection(s, undo=False)]
             )
         app.clear_progress_bar()
-        if interrupt:
+        if popup:
             self.module.destroy_interrupt_popup()
 
     def find_mini_reanalyze(self, selection, accept=False):
@@ -341,7 +341,7 @@ class ModuleControl(BaseModuleControl):
         except:  # no traces yet
             return
 
-        data = self.mini_df[(self.mini_df['t'].isin(selection)) & (self.mini_df['channel'] == app.interface.channel)]
+        data = self.mini_df[(self.mini_df['t'].isin(selection)) & (self.mini_df['channel'] == app.interface.current_channel)]
         if app.interface.is_accepting_undo():
             filename = app.interface.get_temp_filename()
             self.mini_df.to_csv(filename)
@@ -375,10 +375,10 @@ class ModuleControl(BaseModuleControl):
             params['max_s2n'] = np.inf
         for peak_idx in peaks:
             mini = app.interface.al.analyze_candidate_mini(xs=xs, ys=ys, peak_idx=peak_idx, x_sigdig=app.interface.recordings[0].x_sigdig,
-                                             sampling_rate=app.interface.recordings[0].sampling_rate,
-                                             channel=app.interface.recordings[0].channel,
-                                             reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
-                                             x_unit=app.interface.recordings[0].x_unit, **params)
+                                                           sampling_rate=app.interface.recordings[0].sampling_rate,
+                                                           channel=app.interface.current_channel,
+                                                           reference_df=self.mini_df, y_unit=app.interface.recordings[0].y_unit,
+                                                           x_unit=app.interface.recordings[0].x_unit, **params)
             if mini['success']:
                 hits.append(mini)
         new_df = pd.DataFrame.from_dict(hits)
@@ -430,7 +430,7 @@ class ModuleControl(BaseModuleControl):
         return params
     def log(self, event=None):
         self.module.log(f'Find mini.\n{str(self.get_params())}', header=True)
-        self.looged = True
+        self.logged = True
     def open_zoom(self, event=None):
         self.module.guide_window.show_window()
         pass
@@ -518,16 +518,16 @@ class ModuleControl(BaseModuleControl):
                 'filename': app.interface.recordings[0].filename,
                 'analysis': 'mini',
                 'num_minis': 0,
-                'channel': app.interface.recordings.channel
+                'channel': app.interface.current_channel
             })
             return None
-        mini_df = self.mini_df[self.mini_df['channel'] == app.interface.channel]
+        mini_df = self.mini_df[self.mini_df['channel'] == app.interface.current_channel]
         if mini_df.shape[0] == 0:
             app.results_display.report({
                 'filename': app.interface.recordings[0].filename,
                 'analysis': 'mini',
                 'num_minis': 0,
-                'channel': app.interface.recordings.channel
+                'channel': app.interface.current_channel
             })
             return None
         data = {
@@ -556,7 +556,7 @@ class ModuleControl(BaseModuleControl):
             data['baseline_unit'] = mini_df['baseline_unit'].iloc[0]
             data['baseline_std'] = mini_df['baseline'].std()
         if 'channel' in self.module.data_tab.columns:
-            data['channel'] = app.interface.recordings[0].channel
+            data['channel'] = app.interface.current_channel
         if 'compound' in self.module.data_tab.columns:
             data['num_compound'] = mini_df['compound'].sum()
         # calculate frequency
@@ -579,12 +579,14 @@ class ModuleControl(BaseModuleControl):
             self.module.log(f'Minis saved to: {filename}', header=True)
         app.clear_progress_bar()
 
-    def save_minis_dialogue(self, event=None):
+    def ask_save_minis(self, event=None):
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
+            app.interface.focus()
             return None
         if self.mini_df.shape[0] == 0:
             if not messagebox.askyesno('Warning', 'No minis to save. Proceed?'):
+                app.interface.focus()
                 return None
         if not self.mini_filename:
             initialfilename = os.path.splitext(app.interface.recordings[0].filename)[0]
@@ -593,37 +595,40 @@ class ModuleControl(BaseModuleControl):
                                      defaultextension='.mini',
                                      initialfile=initialfilename)
         if not filename:
+            app.interface.focus()
             return None
         try:
             self.save_minis(filename, overwrite=True, log=True, update_status=True)
+            app.interface.focus()
             return filename
         except Exception as e:
             messagebox.showerror('Error', f'Could not write data to file.\n Error: {e}')
+            app.interface.focus()
             return None
 
-    def export_minis_dialogue(self, event=None):
-        if len(app.interface.recordings) == 0:
-            messagebox.showerror('Error', 'Please open a recording file first')
-            return None
-        if self.mini_df.shape[0] == 0:
-            if not messagebox.askyesno('Warning', 'No minis to export. Proceed?'):
-                return None
-        if not self.mini_filename:
-            initialfilename = os.path.splitext(app.interface.recordings[0].filename)[0]+self.name
-
-        filename = filedialog.asksaveasfilename(filetypes=[('csv file', '*.csv')],
-                                     defaultextension='.csv',
-                                     initialfile=initialfilename)
-        if not filename:
-            return None
-        try:
-            self.module.data_tab.export(filename, mode='w')
-            app.clear_progress_bar()
-            return filename
-        except Exception as e:
-            messagebox.showerror('Error', f'Could not write data to file.\n Error: {e}')
-            app.clear_progress_bar()
-            return None
+    # def export_minis_dialogue(self, event=None):
+    #     if len(app.interface.recordings) == 0:
+    #         messagebox.showerror('Error', 'Please open a recording file first')
+    #         return None
+    #     if self.mini_df.shape[0] == 0:
+    #         if not messagebox.askyesno('Warning', 'No minis to export. Proceed?'):
+    #             return None
+    #     if not self.mini_filename:
+    #         initialfilename = os.path.splitext(app.interface.recordings[0].filename)[0]+'_Mini'
+    #
+    #     filename = filedialog.asksaveasfilename(filetypes=[('csv file', '*.csv')],
+    #                                  defaultextension='.csv',
+    #                                  initialfile=initialfilename)
+    #     if not filename:
+    #         return None
+    #     try:
+    #         self.module.data_tab.export(filename, mode='w')
+    #         app.clear_progress_bar()
+    #         return filename
+    #     except Exception as e:
+    #         messagebox.showerror('Error', f'Could not write data to file.\n Error: {e}')
+    #         app.clear_progress_bar()
+    #         return None
 
     def open_minis(self, filename, log=True, undo=True, append=False):
         if len(app.interface.recordings) == 0:
@@ -778,13 +783,13 @@ class ModuleControl(BaseModuleControl):
                 return df
             return pd.DataFrame()  # empty
 
-    def open_minis_dialogue(self, event=None):
+    def ask_open_minis(self, event=None):
         if not self.saved and self.mini_df.shape[0]>0:
             choice = messagebox.askyesnocancel('Warning', 'Save mini data?')
             if choice is None:
                 return
             if choice:
-                self.save_minis_dialogue()
+                self.ask_save_minis()
 
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
@@ -839,7 +844,7 @@ class ModuleControl(BaseModuleControl):
 
         if self.mini_df.shape[0] == 0:
             return None
-        df = self.mini_df[self.mini_df['channel'] == app.interface.channel]
+        df = self.mini_df[self.mini_df['channel'] == app.interface.current_channel]
         df = df[(df['t'] > xlim[0]) & (df['t'] < xlim[1])
                 & (df['peak_coord_y'] > ylim[0]) & (df['peak_coord_y'] < ylim[1])]
 
@@ -856,7 +861,7 @@ class ModuleControl(BaseModuleControl):
             if mini is None:
                 selection = [float(t) for t in self.module.data_tab.table.selection()]
                 if len(selection) == 1:
-                    mini = self.mini_df[(self.mini_df['t'].isin(selection)) & (self.mini_df['channel'] == app.interface.channel)]
+                    mini = self.mini_df[(self.mini_df['t'].isin(selection)) & (self.mini_df['channel'] == app.interface.current_channel)]
                     mini = mini.to_dict(orient='records')[0]
                 else:
                     return
@@ -1194,8 +1199,8 @@ class ModuleControl(BaseModuleControl):
         app.root.bind('<<Plot>>', lambda e, func=self.update_event_markers:self.call_if_visible(func), add='+')
         app.root.bind('<<Plotted>>', lambda e, func=self.synch_table: self.call_if_enabled(func), add='+')
 
-        app.root.bind('<<OverlayView>>', self.module.disable_module, add='+')
-        app.root.bind('<<ContinuousView>>', self.module.enable_module, add='+')
+        app.root.bind('<<ChangeToOverlayView>>', self.module.disable_module, add='+')
+        app.root.bind('<<ChangeToContinuousView>>', self.module.enable_module, add='+')
 
         app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release:self.call_if_focus(func), add='+')
         # app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
@@ -1210,13 +1215,6 @@ class ModuleControl(BaseModuleControl):
 
     def _modify_GUI(self):
         # menubar
-        # file_menu = app.menubar.make_file_menu_cascade(self.module.menu_label)
-        self.insert_file_menu_command(label='Open mini file', command=self.open_minis_dialogue)
-        self.insert_file_menu_command(label='Save minis as...', command=self.save_minis_dialogue)
-        self.insert_file_menu_command(label='Export table', command=self.export_minis_dialogue)
-        # file_menu.add_command(label='Open mini file', command=self.open_minis_dialogue)
-        # file_menu.add_command(label='Save minis as...', command=self.save_minis_dialogue)
-        # file_menu.add_command(label='Export table', command=self.export_minis_dialogue)
 
         # style tab
         style_tab = app.modules['style'].control_tab

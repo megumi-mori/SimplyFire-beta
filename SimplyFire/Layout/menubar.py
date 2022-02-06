@@ -3,6 +3,7 @@ from tkinter import ttk, filedialog, messagebox
 import os
 from SimplyFire.config import config
 from SimplyFire.utils.custom_widgets import VarWidget
+from SimplyFire.utils import abfWriter
 from SimplyFire.Backend import interface
 from SimplyFire.DataVisualizer import trace_display, results_display
 import gc
@@ -32,11 +33,11 @@ def load(menubar):
     file_menu.add_command(label='Save recording data as...', command=ask_save_recording)
     file_menu.add_separator()
 
-    file_menu.add_separator()
     file_menu.add_command(label='Export plot', command=ask_save_plot)
     # file_menu.add_command(label='Export mini analysis table', command=export_events)
     # file_menu.add_command(label='Export evoked analysis table', command=export_evoked)
-    file_menu.add_command(label='Export results table', command=export_results)
+    file_menu.add_command(label='Export results table', command=ask_export_results)
+    file_menu.add_separator()
     file_menu.add_separator()
 
     # Edit menu
@@ -62,12 +63,12 @@ def load(menubar):
     menubar.add_cascade(label='Analysis', menu=analysis_menu)
 
     # Window menu
-    global window_menu
-    window_menu = Tk.Menu(menubar, tearoff=0)
-    menubar.add_cascade(label='Window', menu=window_menu)
+    global module_menu
+    module_menu = Tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label='Modules', menu=module_menu)
     widgets['window_param_guide'] = VarWidget(name='window_param_guide')
     if widgets['window_param_guide'].get() == '1':
-        window_menu.invoke(window_menu.index('Parameter-guide'))
+        module_menu.invoke(module_menu.index('Parameter-guide'))
 
     global settings_menu
     settings_menu = Tk.Menu(menubar, tearoff=0)
@@ -84,6 +85,7 @@ def load(menubar):
 
 def ask_open_recording():
     gc.collect()
+    app.root.event_generate('<<AskOpenRecording>>')
     fname = filedialog.askopenfilename(title='Open', filetypes=[('abf files', "*.abf"), ('All files', '*.*')])
     app.root.update()
     if not fname:
@@ -91,58 +93,53 @@ def ask_open_recording():
     interface.open_recording(fname)
     # app.compare_tab.start_msg.grid_forget()
     interface.focus()
+    app.root.event_generate('<<AskedOpenRecording>>')
     return fname
 
 def ask_save_plot(e=None):
     app.trace_display.canvas.toolbar.save_figure()
 
-def ask_save_recording(e=None, save_events=True):
+def ask_save_recording(e=None):
     if len(interface.recordings)==0:
         messagebox.showerror(title='Error', message='No recording to export. Please open a recording first.')
         return None
-    save = False
-    if save is not None:
-        initialfname = formatting.format_save_filename(os.path.splitext(interface.recordings[0].filename)[0] + '_Modified', False)
-        filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('All files', '*.*')],
-                                                defaultextension='.abf',
-                                                initialfile=initialfname)
-        try:
-            if filename:
-                save_recording(filename)
-        except (FileExistsError):
-            messagebox.showerror(title='Error', message='ABF files cannot be overwritten. Please choose another filename.')
-            ask_save_recording(save_events=False)
+    app.root.event_generate('<<AskSaveRecording>>')
+    initialfname = formatting.format_save_filename(os.path.splitext(interface.recordings[0].filename)[0] + '_Modified', False)
+    filename = filedialog.asksaveasfilename(filetype=[('abf files', '*.abf'), ('All files', '*.*')],
+                                            defaultextension='.abf',
+                                            initialfile=initialfname)
+    try:
+        if filename:
+            save_recording(filename)
+    except (FileExistsError):
+        messagebox.showerror(title='Error', message='ABF files cannot be overwritten. Please choose another filename.')
+        ask_save_recording(save_events=False)
+    app.root.event_generate('<<AskedSaveRecording>>')
 
 def save_recording(filename):
-    interface.save_recording(filename)
+    abfWriter.writeABF1(app.interface.recordings[0], filename)
     interface.open_recording(filename, xlim=app.trace_display.ax.get_xlim(),
-                             ylim=app.trace_display.ax.get_ylim())  # move this to interface?
+                             ylim=app.trace_display.ax.get_ylim(),
+                             channel=app.interface.current_channel)
 
-def export_evoked():
-    if len(interface.recordings) == 0:
-        messagebox.showerror(title='Save error', message='Please open a trace to analyze first')
-        return None
-    filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('ALl files', '*.*')],
-                                            defaultextension='.csv',
-                                            initialfile=interface.recordings[0].filename.split('.')[
-                                                            0] + '_evoked.csv')
-    evoked_data_display.dataframe.export(filename)
-
-
-def export_results():
-    filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('ALl files', '*.*')],
-                                            defaultextension='.csv',
-                                            initialfile='results.csv')
-    if filename:
-        results_display.dataframe.export(filename)
-
+def ask_export_results():
+    app.root.event_generate('<<AskExportResults>>')
+    if len(app.results_display.dataframe.get_children()) == 0:
+        answer = messagebox.askyesno('Warning', 'No entries in results table. Proceed?')
+        if answer:
+            filename = filedialog.asksaveasfilename(filetype=[('csv files', '*.csv'), ('ALl files', '*.*')],
+                                                    defaultextension='.csv',
+                                                    initialfile='results.csv')
+            if filename:
+                results_display.dataframe.export(filename)
+    app.root.event_generate('<<AskedExportResults>>')
 def set_view_continuous(save_undo=True):
     global widgets
     global prev_trace_mode
     if prev_trace_mode == 'continuous':
         print('stays in continuous')
         return
-    app.root.event_generate('<<ContinuousView>>')
+    app.root.event_generate('<<ChangeToContinuousView>>')
     if save_undo and prev_trace_mode == 'overlay':
         interface.add_undo([
             lambda s=False: set_view_overlay(s),
@@ -162,6 +159,7 @@ def set_view_continuous(save_undo=True):
     #     interface.config_data_tab('mini', state='normal')
     # interface.config_cp_tab('adjust', state='normal')
     prev_trace_mode = 'continuous'
+    app.root.event_generate('<<ChangedToContinuousView>>')
     pass
 
 def set_view_overlay(save_undo=True):
@@ -170,7 +168,7 @@ def set_view_overlay(save_undo=True):
     if prev_trace_mode == 'overlay':
         print('stays in overlay')
         return
-    app.root.event_generate('<<OverlayView>>')
+    app.root.event_generate('<<ChangeToOverlayView>>')
     if save_undo and prev_trace_mode == 'continuous':
         interface.add_undo([
             lambda d=False: set_view_continuous(d)
@@ -185,11 +183,8 @@ def set_view_overlay(save_undo=True):
         interface.plot()
     except:
         pass
-    # if widgets['analysis_mode'].get() == 'mini':
-    #     interface.config_cp_tab('mini', state='disabled')
-    #     interface.config_data_tab('mini', state='disabled')
-    # interface.config_cp_tab('adjust',state='normal')
     prev_trace_mode = 'overlay'
+    app.root.event_generate('<<ChangedToOverlayView>>')
     pass
 
 def undo_disable():

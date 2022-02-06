@@ -1,7 +1,7 @@
 import numpy as np
-from SimplyFire.Backend import analyzer2
+from SimplyFire.utils.recording import Recording
 
-def subtract_baseline(recording:analyzer2.Recording,
+def subtract_baseline(recording:Recording,
                       plot_mode:str='continuous',
                       channels:list=None,
                       sweeps:list=None,
@@ -11,7 +11,7 @@ def subtract_baseline(recording:analyzer2.Recording,
     """
 
     """
-    assert type(recording) == analyzer2.Recording, f'data passed must be of type {analyzer2.Recording}'
+    assert type(recording) == Recording, f'data passed must be of type {Recording}'
     assert plot_mode in ['continuous', 'overlay'], 'plot_mode argument must be in ["continuous", "overlay"]'
     if not channels:
         channels = range(recording.channel_count)
@@ -34,12 +34,12 @@ def shift_y_data(recording, shift, plot_mode='continuous', channels=None, sweeps
     recording.replace_y_data(mode=plot_mode, channels=channels, sweeps=sweeps, new_data=result)
 
 
-def filter_Boxcar(recording:analyzer2.Recording,
+def filter_Boxcar(recording:Recording,
                   params:dict=None,
                   channels:list=None,
                   sweeps:list=None,
                   ):
-    assert type(recording) == analyzer2.Recording, f'data passed must be of type {analyzer2.Recording}'
+    assert type(recording) == Recording, f'data passed must be of type {Recording}'
     width = int(params['width'])
     kernel = np.ones(width)/width
     if not channels:
@@ -59,10 +59,10 @@ def filter_Boxcar(recording:analyzer2.Recording,
 
 # implement Boxel 8pole 1000Hz!
 
-def average_sweeps(recording:analyzer2.Recording,
+def average_sweeps(recording:Recording,
                    channels:list=None,
                    sweeps:list=None):
-    assert type(recording) == analyzer2.Recording, f'data passed must be of type {analyzer2.Recording}'
+    assert type(recording) == Recording, f'data passed must be of type {Recording}'
     if not channels:
         channels = range(recording.channel_count)
     if not sweeps:

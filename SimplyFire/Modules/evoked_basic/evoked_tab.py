@@ -38,7 +38,7 @@ class ModuleControl(BaseModuleControl):
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         if self.widgets['channel_target'].get():
-            target_channels = [app.interface.channel]
+            target_channels = [app.interface.current_channel]
         else:
             target_channels = range(app.interface.recordings[0].channel_count)
 
@@ -153,6 +153,7 @@ class ModuleControl(BaseModuleControl):
             text='Calculate Min/Max',
             command=self.calculate_min_max
         )
+
 
     def _load_binding(self):
         app.root.bind('<<LoadCompleted>>', self.module.update_module_display, add='+')

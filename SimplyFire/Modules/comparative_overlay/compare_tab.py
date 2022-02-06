@@ -2,6 +2,7 @@ from SimplyFire.Modules.base_module_control import BaseModuleControl
 from SimplyFire import app
 from SimplyFire.Backend import analyzer2 as analyzer
 from SimplyFire.utils import custom_widgets, formatting
+from SimplyFire.utils.recording import Recording
 import tkinter as Tk
 from tkinter import filedialog, messagebox, ttk
 import gc
@@ -79,9 +80,9 @@ class ModuleControl(BaseModuleControl):
         app.root.update()
         if not fname:
             return None
-        record = analyzer.Recording(fname)
+        record = Recording(fname)
         try:
-            record.set_channel(int(app.interface.channel))
+            record.set_channel(int(app.interface.current_channel))
         except (IndexError): # does not have the channel
             record.set_channel(0)
             app.interface.change_channel(0) # set to 0th channel
@@ -119,8 +120,8 @@ class ModuleControl(BaseModuleControl):
         if get_color:
             color = self.panel_list[file_index]['color_entry'].get()
         if app.custom_widgets['trace_mode'].get() == 'continuous':
-            app.trace_display.plot_trace(recording.get_xs(mode='continuous', channel=app.interface.channel),
-                                         recording.get_ys(mode='continuous', channel=app.interface.channel),
+            app.trace_display.plot_trace(recording.get_xs(mode='continuous', channel=app.interface.current_channel),
+                                         recording.get_ys(mode='continuous', channel=app.interface.current_channel),
                                          draw=False,
                                          relim=False,
                                          name=f'{self.file_prefix}{file_index}_{self.sweep_prefix}_0',
@@ -136,8 +137,8 @@ class ModuleControl(BaseModuleControl):
                 self.panel_list[file_index]['idx_entry'].set(formatting.format_list_indices(visible_list))
                 print(visible_list)
             for i in range(recording.sweep_count):
-                xs = recording.get_xs(mode='overlay', sweep=i, channel=app.interface.channel)
-                ys = recording.get_ys(mode='overlay', sweep=i, channel=app.interface.channel)
+                xs = recording.get_xs(mode='overlay', sweep=i, channel=app.interface.current_channel)
+                ys = recording.get_ys(mode='overlay', sweep=i, channel=app.interface.current_channel)
                 app.trace_display.plot_trace(xs, ys,
                                              draw=False,
                                              relim=False,
@@ -210,7 +211,7 @@ class ModuleControl(BaseModuleControl):
         pass
 
 
-    def create_file_panel(self, recording:analyzer.Recording, index=None):
+    def create_file_panel(self, recording:Recording, index=None):
         if not index:
             index = len(self.panel_list)
         panel_dict = {}

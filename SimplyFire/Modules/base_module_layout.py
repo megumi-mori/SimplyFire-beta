@@ -27,12 +27,6 @@ class BaseModuleLayout():
         if self.is_visible():
             function()
 
-    def insert_file_menu_command(self, **kwargs):
-        if self.module.file_menu is None:
-            self.module.make_file_menu_cascade()
-        self.module.file_menu.add_command(**kwargs)
-        pass
-
     def listen_to_event(self, event:str, function, condition:str=None):
         assert condition in {'focused', 'enabled', 'visible', None}, 'condition must be None, "focus", or "enabled"'
         assert callable(function), f'{function} is not callable'

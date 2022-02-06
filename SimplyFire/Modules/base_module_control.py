@@ -44,6 +44,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
 
         self.notebook = notebook
         self.notebook.add(self, text=self.module.tab_label)
+
         self.name = name
 
     # def update_module_display(self, event=None):
@@ -185,9 +186,6 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
                 # self.widgets[k].set_to_default()
                 self.widgets[k].set(self.default[k])
         app.interface.focus()
-    def insert_file_menu(self):
-        self.file_menu = Tk.Menu(app.menubar.file_menu, tearoff=0)
-        app.menubar.file_menu.add_cascade(label=self.module.name, menu=self.file_menu)
 
     def get_widget_dict(self):
         return {k:self.widgets[k].get() for k in self.widgets}

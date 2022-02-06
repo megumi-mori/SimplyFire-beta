@@ -16,7 +16,7 @@ class ModuleControl(BaseModuleControl):
         if app.widgets['trace_mode'].get() == 'continuous':
             return
         if self.widgets['channel_target'].get():
-            target_channels = [app.interface.channel]
+            target_channels = [app.interface.current_channel]
         else:
             target_channels = range(app.interface.recordings[0].channel_count)
         target_sweeps = []
@@ -63,7 +63,7 @@ class ModuleControl(BaseModuleControl):
         if len(app.interface.recordings)==0:
             return None # nothing to process
         if self.widgets['channel_target'].get():
-            target_channels = [app.interface.channel]
+            target_channels = [app.interface.current_channel]
         else:
             target_channels = range(app.interface.recordings[0].channel_count)
         xlim = None
@@ -123,7 +123,7 @@ class ModuleControl(BaseModuleControl):
         if len(app.interface.recordings)==0:
             return None # nothing to process
         if self.widgets['channel_target'].get():
-            target_channels = [app.interface.channel]
+            target_channels = [app.interface.current_channel]
         else:
             target_channels = range(app.interface.recordings[0].channel_count)
 

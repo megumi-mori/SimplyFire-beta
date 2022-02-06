@@ -49,7 +49,7 @@ class ModuleDataTable(BaseModuleDataTable):
                 'filename': app.interface.recordings[0].filename,
                 'analysis': 'evoked',
                 'sweep': None,
-                'channel': app.interface.recordings[0].channel
+                'channel': app.interface.recordings[0].current_channel
             }, )
             return None
         df = pd.DataFrame.from_dict(df, orient='index')

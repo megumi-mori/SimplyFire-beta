@@ -1,15 +1,16 @@
-from tkinter import BooleanVar, ttk
+from tkinter import BooleanVar, ttk, messagebox, filedialog
 from SimplyFire.utils.custom_widgets import DataTable
 from SimplyFire import app
 import tkinter as Tk
-from tkinter import Frame
 from SimplyFire.Modules.base_module import BaseModule
 import pandas as pd
+import os
 class BaseModuleDataTable(DataTable):
     def __init__(self,
                  module:BaseModule,
                  name:str='data_tab',
-                 notebook: ttk.Notebook = app.data_notebook
+                 notebook: ttk.Notebook = app.data_notebook,
+                 data_overwrite=True
                  ):
         super().__init__(app.root)
         self.module=module
@@ -44,8 +45,9 @@ class BaseModuleDataTable(DataTable):
 
         self.notebook = notebook
         self.notebook.add(self, text=self.module.tab_label)
-        self.name = name
 
+        self.data_overwrite=data_overwrite
+        self.name = name
         self._loaded = False
     def add(self, datadict, parent="", index='end', undo=True):
         self.disable()
@@ -119,12 +121,43 @@ class BaseModuleDataTable(DataTable):
                 self.fit_columns()
                 self._loaded = True
 
-    def export(self, filename, overwrite=False):
-        if overwrite:
-            mode = 'w'
-        else:
-            mode = 'x'
+    def export(self, filename, overwrite=False, mode=None):
+        if not mode:
+            if overwrite:
+                mode = 'w'
+            else:
+                mode = 'x'
         super().export(filename, mode)
+
+    def ask_export_data(self, event=None, overwrite=None, mode=None):
+        if overwrite is None and mode is None:
+            overwrite = self.data_overwrite
+        if len(app.interface.recordings) == 0:
+            messagebox.showerror('Error', 'Please open a recording file first')
+            app.interface.focus()
+            return None
+        if len(self.table.get_children())==0:
+            if not messagebox.askyesno('Warning', 'The data table is empty. Proceed?'):
+                app.interface.focus()
+                return None
+        initialfilename = os.path.splitext(app.interface.recordings[0].filename)[0] + '_'+self.module.name
+        filename = filedialog.asksaveasfilename(filetypes=[('csv file', '*.csv')],
+                                                defaultextension='.csv',
+                                                initialfile=initialfilename)
+        if not filename:
+            app.interface.focus()
+            return None
+        try:
+            self.export(filename,overwrite=overwrite, mode=mode)
+            app.clear_progress_bar()
+            return filename
+        except Exception as e:
+            messagebox.showerror('Error', f'Cojuld not write data to {filename}.\nError:{e}')
+            app.clear_progress_bar()
+        app.interface.focus()
+
+
+
 
 
 
