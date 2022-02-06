@@ -156,4 +156,4 @@ class ModuleControl(BaseModuleControl):
 
 
     def _load_binding(self):
-        app.root.bind('<<LoadCompleted>>', self.module.update_module_display, add='+')
+        self.listen_to_event('<<LoadCompleted>>', self.module.update_module_display)

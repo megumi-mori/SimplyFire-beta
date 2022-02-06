@@ -340,15 +340,14 @@ class ModuleControl(BaseModuleControl):
         self.insert_panel(self.list_frame, separator=False)
 
     def _load_binding(self):
-        app.root.bind('<<OpenedRecording>>',
-                      self.reset_sweep_list, add='+')
-        app.root.bind('<<LoadCompleted>>', self.module.update_module_display, add='+')
-        app.root.bind('<<ChangeToOverlayView>>', self.module.enable_module, add='+')
-        app.root.bind('<<Plotted>>', lambda e, func=self.apply_sweep_list:self.call_if_enabled(func), add='+')
-        app.root.bind('<<ChangeToContinuousView>>', self.module.disable_module, add='+')
+        self.listen_to_event('<<OpenedRecording>>', self.reset_sweep_list)
+        self.listen_to_event('<<LoadCompleted>>', self.module.update_module_display)
+        self.listen_to_event('<<ChangeToOverlayView>>', self.module.enable_module)
+        self.listen_to_event('<<Plotted>>', self.apply_sweep_list)
+        self.listen_to_event('<<ChangeToContinuousView>>', self.module.disable_module)
+        self.listen_to_event("<<CanvasMouseRelease>>", self.canvas_mouse_release, condition='focused')
+        self.listen_to_event('<<CanvasDrawRect>>', self.canvas_draw_rect, condition='focused')
 
-        app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release: self.call_if_focus(func), add="+")
-        app.root.bind("<<CanvasDrawRect>>", lambda e, func=self.canvas_draw_rect: self.call_if_focus(func), add='+')
         for key in app.config.key_deselect:
             app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=self.clear_higlight: self.call_if_focus(func), add='+')
         for key in app.config.key_select_all:

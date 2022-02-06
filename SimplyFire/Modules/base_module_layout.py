@@ -27,16 +27,15 @@ class BaseModuleLayout():
         if self.is_visible():
             function()
 
-    def listen_to_event(self, event:str, function, condition:str=None):
+    def listen_to_event(self, event:str, function, condition:str=None, target=app.root):
         assert condition in {'focused', 'enabled', 'visible', None}, 'condition must be None, "focus", or "enabled"'
-        assert callable(function), f'{function} is not callable'
-
-        if condition is not None:
-            app.root.bind(event, function, add="+")
+        # assert callable(function), f'{function} is not callable'
+        if condition is None:
+            target.bind(event, lambda e:function(), add="+")
         elif condition == 'enabled':
-            app.root.bind(event, lambda f=function:self.call_if_enabled(f), add='+')
+            target.bind(event, lambda e, f=function:self.call_if_enabled(f), add='+')
         elif condition == 'focused':
-            app.root.bind(event, lambda f=function:self.call_if_focus(f), add="+")
+            target.bind(event, lambda e, f=function:self.call_if_focus(f), add="+")
         elif condition == 'visible':
-            app.root.bind(event, lambda f=function: self.call_if_visible(f), add='+')
+            target.bind(event, lambda e, f=function: self.call_if_visible(f), add='+')
 

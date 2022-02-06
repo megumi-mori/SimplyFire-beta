@@ -165,15 +165,14 @@ class ModuleControl(BaseModuleControl):
         if draw:
             self.update_event_markers(draw=True)
         self.update_module_table()
-    def delete_in_window(self, undo=True):
-        # deal with undo later
+    def delete_in_window(self, event=None, undo=True):
         xlim = app.trace_display.ax.get_xlim()
         selection = self.mini_df[(self.mini_df['t'] > xlim[0]) &
                                  (self.mini_df['t'] < xlim[1]) &
                                  (self.mini_df['channel'] == app.interface.current_channel)].t.values
-        self.delete_selection(selection)
+        self.delete_selection(selection, undo)
 
-    def delete_from_canvas(self, undo=True):
+    def delete_from_canvas(self, event=None, undo=True):
         self.module.data_tab.delete_selected() # make this direct within  class?
 
 
@@ -252,7 +251,7 @@ class ModuleControl(BaseModuleControl):
 
 
 
-    def find_mini_all(self, event=None, interrupt=True):
+    def find_mini_all(self, event=None, interrupt=True, undo=True):
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
             return None
@@ -261,7 +260,7 @@ class ModuleControl(BaseModuleControl):
             return None
         if app.widgets['trace_mode'].get() != 'continuous':
             return None # disable module
-        self.module.start_thread(lambda i=interrupt:self.find_mini_all_thread(i), app.interface.al, interrupt)
+        self.module.start_thread(lambda i=interrupt, u=undo:self.find_mini_all_thread(i,undo=u), app.interface.al, interrupt)
         # if detector_tab.changed:
         #     log_display.search_update('Auto')
         #     log_display.param_update(detector_tab.changes)
@@ -269,7 +268,7 @@ class ModuleControl(BaseModuleControl):
         #     detector_tab.changed = False
         self.log()
 
-    def find_mini_all_thread(self, popup=True):
+    def find_mini_all_thread(self, popup=True, undo=True):
         params = self.get_params()
         try:
             xs = app.trace_display.sweeps['Sweep_0'].get_xdata()
@@ -292,22 +291,22 @@ class ModuleControl(BaseModuleControl):
             self.update_event_markers(draw=True)
             self.module.data_tab.append(df, undo=False)
             self.saved = False  # track change
-            if app.interface.is_accepting_undo():
+            if undo and app.interface.is_accepting_undo():
                 self.module.add_undo(
                     [lambda s=df[df.channel == app.interface.current_channel]['t']: self.delete_selection(s, undo=False)]
                 )
         app.clear_progress_bar()
         if popup:
             self.module.destroy_interrupt_popup()
-    def find_mini_range(self, event=None, interrupt=True):
+    def find_mini_range(self, event=None, interrupt=True, undo=True):
         if len(app.interface.recordings) == 0:
             messagebox.showerror('Error', 'Please open a recording file first')
             return None
         self.module.data_tab.unselect()
-        self.module.start_thread(lambda i=interrupt:self.find_mini_range_thread(i), app.interface.al, interrupt)
+        self.module.start_thread(lambda i=interrupt, u=undo:self.find_mini_range_thread(popup=i,undo=u), app.interface.al, interrupt)
         self.log()
 
-    def find_mini_range_thread(self, popup=True):
+    def find_mini_range_thread(self, popup=True, undo=True):
         try:
             xs = app.trace_display.sweeps['Sweep_0'].get_xdata()
             ys = app.trace_display.sweeps['Sweep_0'].get_ydata()
@@ -326,10 +325,10 @@ class ModuleControl(BaseModuleControl):
             self.update_event_markers(draw=True)
             self.module.data_tab.append(df, undo=False)
             self.saved = False  # track change
-        if app.interface.is_accepting_undo():
-            self.module.add_undo(
-                [lambda s=df[df.channel == app.interface.current_channel]['t']: self.delete_selection(s, undo=False)]
-            )
+            if undo and app.interface.is_accepting_undo():
+                self.module.add_undo(
+                    [lambda s=df[df.channel == app.interface.current_channel]['t']: self.delete_selection(s, undo=False)]
+                )
         app.clear_progress_bar()
         if popup:
             self.module.destroy_interrupt_popup()
@@ -1189,23 +1188,20 @@ class ModuleControl(BaseModuleControl):
 
     def _load_binding(self):
         # event bindings:
-        app.root.bind('<<LoadCompleted>>', self._apply_column_options, add='+')
-        app.root.bind('<<LoadCompleted>>', self.module.update_module_display, add='+')
-        app.root.bind('<<OpenRecording>>', lambda save=False, draw=False: self.delete_clear(save, draw), add="+")
-        app.root.bind('<<OpenRecording>>', setattr(self, 'logged', False), add="+")
-        app.root.bind('<<CanvasDrawRect>>', lambda e, func=self.select_from_rect: self.call_if_focus(func), add="+")
-        # app.root.bind('<<ChangeChannel>>', self.change_channel, add="+")
-
-        app.root.bind('<<Plot>>', lambda e, func=self.update_event_markers:self.call_if_visible(func), add='+')
-        app.root.bind('<<Plotted>>', lambda e, func=self.synch_table: self.call_if_enabled(func), add='+')
-
-        app.root.bind('<<ChangeToOverlayView>>', self.module.disable_module, add='+')
-        app.root.bind('<<ChangeToContinuousView>>', self.module.enable_module, add='+')
-
-        app.root.bind("<<CanvasMouseRelease>>", lambda e, func=self.canvas_mouse_release:self.call_if_focus(func), add='+')
-        # app.trace_display.canvas.mpl_connect('button_release_event', self.canvas_mouse_release)
+        self.listen_to_event('<<LoadCompleted>>', self._apply_column_options)
+        self.listen_to_event('<<LoadCompleted>>', self.module.update_module_display)
+        self.listen_to_event('<<OpenRecording>>', lambda save=False, draw=False: self.delete_clear(save, draw))
+        self.listen_to_event('<<OpenRecording>>', lambda s=self, v='logged', m=False:setattr(s,v,m))
+        self.listen_to_event('<<CanvasDrawRect>>', self.select_from_rect, condition='focused')
+        self.listen_to_event('<<Plot>>', self.update_event_markers, condition='visible')
+        self.listen_to_event('<<Plotted>>', function=self.synch_table, condition='enabled')
+        self.listen_to_event('<<ChangeToOverlayView>>', self.module.disable_module)
+        self.listen_to_event('<<ChangeToContinuousView>>', self.module.enable_module)
+        self.listen_to_event("<<CanvasMouseRelease>>", self.canvas_mouse_release, condition='focused')
+        #
         app.trace_display.canvas.mpl_connect('pick_event', self.select_from_event_pick)
         for key in app.config.key_delete:
+        #     # self.listen_to_event(key, self.delete_from_canvas, condition='focused', target=app.trace_display.canvas.get_tk_widget())
             app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=self.delete_from_canvas: self.call_if_focus(func), add='+')
         for key in app.config.key_deselect:
             app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=self.select_clear: self.call_if_focus(func), add='+')

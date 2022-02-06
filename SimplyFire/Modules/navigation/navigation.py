@@ -163,4 +163,4 @@ class ModuleControl(BaseModuleControl):
         self.insert_button(text='Apply', command=self.apply_navigation)
         self.insert_button(text='Default', command=lambda filter='navigation':self.set_to_default(filter=filter))
     def _load_binding(self):
-        app.root.bind('<<OpenedRecording>>', self.on_open, add='+')
+        self.listen_to_event('<<OpenedRecording>>', self.on_open)

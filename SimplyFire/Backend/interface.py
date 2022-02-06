@@ -253,9 +253,9 @@ def change_channel(num: int,
     global recordings
     # store process in undo
     app.root.event_generate('<<ChangeChannel>>')
-    if save_undo and num != recordings[0].current_channel:
-        add_undo(lambda n= recordings[0].current_channel, s=False:change_channel(n, s))
     global current_channel
+    if save_undo and num != current_channel:
+        add_undo(lambda n= current_channel, s=False:change_channel(n, s))
     try:
         current_channel = num
         for r in recordings:
@@ -266,7 +266,7 @@ def change_channel(num: int,
         for r in recordings:
             r.set_channel(0)
         log_display.log(f'@ graph_viewer: unable to switch to channel {num}. Reverting to channel 0')
-    app.graph_panel.widgets['channel_option'].set(f'{recordings[0].current_channel}: {recordings[0].y_label}') #0 indexing for channel num
+    app.graph_panel.widgets['channel_option'].set(f'{recordings[0].channel}: {recordings[0].y_label}') #0 indexing for channel num
 
     xlim = app.trace_display.ax.get_xlim()
     # plot data points
@@ -317,6 +317,7 @@ def plot(fix_x=False, fix_y=False, clear=True, **kwargs):
     trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
     trace_display.ax.tick_params(axis='x', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
     app.root.event_generate('<<Plotted>>')
+    app.root.event_generate('<<PlotDone>>')
     app.trace_display.draw_ani()
 
 

@@ -254,15 +254,29 @@ class BaseModule():
         app.batch_popup.insert_command_category(self.menu_label)
 
     def add_batch_command(self, name, func, interrupt=None):
-        # def temp():
-        #     if not self.is_enabled():
-        #         app.batch_popup.batch_log.insert(f'{self.menu_label} is not enabled.\n')
-        #         return
-        #     func()
-        app.batch_popup.insert_command(name, self.menu_label, lambda f=func: self.batch_command_decorator(f), interrupt=interrupt)
+        app.batch_popup.insert_command(name, self.menu_label, lambda f=func: self._batch_command_decorator(f), interrupt=interrupt)
 
-    def batch_command_decorator(self, func):
+    def _batch_command_decorator(self, func):
         if not self.is_enabled():
             app.batch_popup.batch_log.insert(f'WARNING: {self.menu_label} is not enabled. Command not executed.')
             return
         func()
+
+    def call_if_enabled(self, func):
+        if self.is_enabled():
+            func()
+    def call_if_visible(self, func):
+        if self.is_visible():
+            func()
+    def listen_to_event(self, event:str, function, condition:str=None, target=app.root):
+        if condition == 'focused':
+            raise AssertionError(f'"focused" is not a valid condition at the {type(self)} level.')
+        assert condition in {'enabled', 'visible', None}, 'condition must be None, "enabled", or "visible"'
+        assert callable(function), f'{function} is not callable'
+
+        if condition is None:
+            target.bind(event, lambda e:function(), add="+")
+        elif condition == 'enabled':
+            target.bind(event, lambda e, f=function:self.call_if_enabled(f), add='+')
+        elif condition == 'visible':
+            target.bind(event, lambda e, f=function: self.call_if_visible(f), add='+')

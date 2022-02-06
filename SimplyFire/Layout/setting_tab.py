@@ -174,20 +174,18 @@ def load(parent):
     set_fontsize(widgets['font_size'].get())
     global menu_var
     menu_var = Tk.BooleanVar()
-    app.menubar.settings_menu.add_checkbutton(label='Open settings tab',
+    def toggle_tab_display(event=None):
+        if menu_var.get():
+            app.cp_notebook.tab(frame, state='normal')
+        else:
+            app.cp_notebook.tab(frame, state='hidden')
+    app.menubar.settings_menu.add_checkbutton(label='Settings tab',
                                              command=toggle_tab_display,
                                              variable=menu_var,
                                              onvalue=True,
                                              offvalue=False)
 
     return frame
-
-def toggle_tab_display(event=None):
-    global menu_var
-    if menu_var.get():
-        app.config_cp_tab(frame, state='normal')
-    else:
-        app.config_cp_tab(frame, state='hidden')
 
 def load_config(e=None):
     interface.focus()

@@ -50,9 +50,11 @@ class BaseModuleDataTable(DataTable):
         self.name = name
         self._loaded = False
     def add(self, datadict, parent="", index='end', undo=True):
-        self.disable()
+        if self.is_visible():
+            self.disable()
         super().add(datadict, parent, index)
-        self.enable()
+        if self.is_visible():
+            self.enable()
         if self.module.control_tab.has_focus():
             self.select()
         if undo and app.interface.is_accepting_undo():
@@ -62,9 +64,11 @@ class BaseModuleDataTable(DataTable):
             )
 
     def append(self, dataframe, undo=True):
-        self.disable()
+        if self.is_visible():
+            self.disable()
         super().append(dataframe)
-        self.enable()
+        if self.is_visible():
+            self.enable()
         if self.module.control_tab.has_focus():
             self.select()
         if undo and app.interface.is_accepting_undo():
@@ -75,9 +79,11 @@ class BaseModuleDataTable(DataTable):
                 ])
 
     def set(self, dataframe):
-        self.disable()
+        if self.is_visible():
+            self.disable()
         super().set(dataframe)
-        self.enable()
+        if self.is_visible():
+            self.enable()
         if self.module.control_tab.has_focus():
             self.select()
 

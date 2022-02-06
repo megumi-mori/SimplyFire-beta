@@ -78,4 +78,4 @@ class ModuleControl(BaseModuleControl):
 
 
     def _load_binding(self):
-        app.root.bind('<<LoadCompleted>>', lambda e, u=False:self.apply_styles(undo=u), add='+')
+        self.listen_to_event('<<LoadCompleted>>', lambda u=False:self.apply_styles(undo=u))

@@ -40,18 +40,18 @@ class Module(BaseModule):
     def _load_batch(self):
         self.create_batch_category()
         def find_all():
-            self.control_tab.find_mini_all_thread(popup=False)
+            self.control_tab.find_mini_all_thread(popup=False, undo=False)
             batch_popup.batch_log.insert(f'{self.control_tab.mini_df.shape[0]} minis found.\n')
         self.add_batch_command('Find all', func=find_all, interrupt=app.interface.al)
 
         def find_in_range():
-            self.control_tab.find_mini_range_thread(popup=False)
+            self.control_tab.find_mini_range_thread(popup=False, undo=False)
             batch_popup.batch_log.insert(f'{self.control_tab.mini_df.shape[0]} minis found.\n')
-        self.add_batch_command('Find in window', func=find_in_range, interrupt=app.interface.al)
+        self.add_batch_command('Find in window', func=lambda u=False:find_in_range(undo=u), interrupt=app.interface.al)
 
-        self.add_batch_command('Delete all', func=self.control_tab.delete_all)
+        self.add_batch_command('Delete all', func=lambda u=False:self.control_tab.delete_all(undo=u))
 
-        self.add_batch_command('Delete in window', func=self.control_tab.delete_in_window)
+        self.add_batch_command('Delete in window', func=lambda u=False:self.control_tab.delete_in_window(undo=u))
 
         self.add_batch_command('Report results', func=self.control_tab.report_results)
 
@@ -71,7 +71,7 @@ class Module(BaseModule):
                 os.path.splitext(batch_popup.current_filename)[0] + '_minis.csv', overwrite=False)
             self.data_tab.export(fname, overwrite=False)
             batch_popup.batch_log.insert(f"Exported minis to: {fname}\n")
-        self.add_batch_command('Export minis', func=export_minis)
+        self.add_batch_command('Export minis', ffunc=export_minis)
 
 
     def _modify_GUI(self):

@@ -380,37 +380,13 @@ def get_module(module_name, component=None):
     else:
         return module
 
-def get_cp_frame(name):
-    return control_panel_dict[name]
-
-def get_cp_module(name):
-    return control_panel_dict[name]
-
-def get_data_module(name):
-    return data_notebook_dict[name]
-
-def get_data_frame(name):
-    return data_notebook_dict[name]
-
-def get_data_table(name):
-    return data_notebook_dict[name]
-
-def config_cp_tab(tab, **kwargs):
-    cp_notebook.tab(tab, **kwargs)
-
-def config_data_tab(tab, **kwargs):
-    data_notebook.tab(tab, **kwargs)
-
 def synch_tab_focus(event=None):
     try:
         module = root.children.get(cp_notebook.select().split('.')[-1]).module
         module.select()
     except:
         pass
-    # try:
-    #     data_notebook.select(root.children.get(cp_notebook.select().split('.')[-1]).module.data_tab)
-    # except: # no data tab associated with the module with focus
-    #     pass
+
 def advance_progress_bar(value, mode='determinate'):
     if mode == 'determinate':
         pb['value'] += value
