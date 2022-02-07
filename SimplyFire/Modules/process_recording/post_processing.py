@@ -40,14 +40,14 @@ class ModuleControl(BaseModuleControl):
         if self.widgets['sweep_target'].get() == 'All sweeps':
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
-            target_sweeps = app.modules_dict['sweeps'].control_tab.get_visible_sweeps()
+            target_sweeps = app.modules['sweeps'].control_tab.get_visible_sweeps()
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
-            target_sweeps = app.modules_dict['sweeps'].control_tab.get_highlighted_sweeps()
+            target_sweeps = app.modules['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -58,22 +58,22 @@ class ModuleControl(BaseModuleControl):
                                            channels=target_channels,
                                            sweeps=target_sweeps)
         if app.interface.is_accepting_undo():
-            sweep_list = tuple(app.modules_dict['sweeps'].control_tab.get_visible_sweeps())
+            sweep_list = tuple(app.modules['sweeps'].control_tab.get_visible_sweeps())
             self.module.add_undo(
                 [
                     app.interface.recordings[0].delete_last_sweep,
                     app.interface.plot,
-                    app.modules_dict['sweeps'].control_tab.synch_sweep_list,
+                    app.modules['sweeps'].control_tab.synch_sweep_list,
                     'test tentry string!',
-                    lambda l=sweep_list, u=False: app.modules_dict['sweeps'].control_tab.show_list(selection=l, undo=u)
+                    lambda l=sweep_list, u=False: app.modules['sweeps'].control_tab.show_list(selection=l, undo=u)
                 ]
             )
         app.interface.recordings[0].append_sweep(avg_sweep)
         app.interface.plot(fix_x=True, fix_y=True)
-        app.modules_dict['sweeps'].control_tab.synch_sweep_list()
+        app.modules['sweeps'].control_tab.synch_sweep_list()
         if self.widgets['average_show_result'].get():
-            app.modules_dict['sweeps'].control_tab.hide_all(undo=False)
-            app.modules_dict['sweeps'].control_tab.show_list(selection=[app.interface.recordings[0].sweep_count-1], undo=False)
+            app.modules['sweeps'].control_tab.hide_all(undo=False)
+            app.modules['sweeps'].control_tab.show_list(selection=[app.interface.recordings[0].sweep_count-1], undo=False)
 
     def subtract_baseline(self, event=None):
         if len(app.interface.recordings)==0:
@@ -98,14 +98,14 @@ class ModuleControl(BaseModuleControl):
         if self.widgets['sweep_target'].get() == 'All sweeps':
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
-            target_sweeps = app.modules_dict['sweeps'].control_tab.get_visible_sweeps()
+            target_sweeps = app.modules['sweeps'].control_tab.get_visible_sweeps()
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
-            target_sweeps = app.modules_dict['sweeps'].control_tab.get_highlighted_sweeps()
+            target_sweeps = app.modules['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -147,14 +147,14 @@ class ModuleControl(BaseModuleControl):
         if self.widgets['sweep_target'].get() == 'All sweeps':
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
-            target_sweeps = app.modules_dict['sweeps'].control_tab.get_visible_sweeps()
+            target_sweeps = app.modules['sweeps'].control_tab.get_visible_sweeps()
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
             elif app.widgets['trace_mode'].get() == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
-            target_sweeps = app.modules_dict['sweeps'].control_tab.get_highlighted_sweeps()
+            target_sweeps = app.modules['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
             if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -175,7 +175,7 @@ class ModuleControl(BaseModuleControl):
         filter_choice = self.widgets['filter_algorithm'].get()
         filter_algorithm = self.widgets[f'filter_{filter_choice}_algorithm'].get()
         params = {}
-        for key in self.default[f'{filter_algorithm}_params']:
+        for key in self.defaults[f'{filter_algorithm}_params']:
             params[key] = self.widgets[key].get()
 
         # deal with undo later

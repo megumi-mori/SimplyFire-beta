@@ -64,7 +64,7 @@ class Module(BaseModule):
         def find_in_range():
             self.control_tab.find_mini_range_thread(popup=False, undo=False)
             batch_popup.batch_log.insert(f'{self.control_tab.mini_df.shape[0]} minis found.\n')
-        self.add_batch_command('Find in window', func=lambda u=False:find_in_range(undo=u), interrupt=app.interface.al)
+        self.add_batch_command('Find in window', func=find_in_range, interrupt=app.interface.al)
 
         self.add_batch_command('Delete all', func=lambda u=False:self.control_tab.delete_all(undo=u))
 

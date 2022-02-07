@@ -540,7 +540,7 @@ def export_plot(event=None, ext='.png'):
     global batch_log
     fname = formatting.format_save_filename(os.path.splitext(file_list[file_idx])[0]+ext, overwrite=False)
     app.trace_display.canvas.figure.savefig(fname, tranparent=app.trace_display.transparent_background)
-    batch_log.insert(f'Image saved toL {fname}\n')
+    batch_log.insert(f'Image saved to: {fname}\n')
 
 
 def process_interrupt(event=None):
