@@ -28,7 +28,7 @@ from SimplyFire.config import config
 
 from pandas import DataFrame, Series
 import pandas as pd
-from scipy.optimize import curve_fit
+from scipy import optimize
 from time import time  # debugging
 from SimplyFire.utils.recording import Recording
 
@@ -874,7 +874,7 @@ class Analyzer():
         y_weight.fill(10)
         y_weight[0] = 0.001
         # fit
-        results = curve_fit(single_exponent,
+        results = optimize.curve_fit(single_exponent,
                             x_data,
                             y_data,
                             p0=p0,
@@ -931,7 +931,7 @@ class Analyzer():
         y_weight[0] = 0.001
 
         # fit
-        results = curve_fit(single_exponent,
+        results = optimize.curve_fit(single_exponent,
                             x_data,
                             y_data,
                             sigma=y_weight,
