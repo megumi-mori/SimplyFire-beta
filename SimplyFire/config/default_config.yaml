@@ -30,7 +30,7 @@
 #################################################################
 
 # version
-version : '3.0.0'
+version : '3.0.1b0'
 
 #aesthetics
 default_geometry : '900x600'

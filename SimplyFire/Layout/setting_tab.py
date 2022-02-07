@@ -240,7 +240,6 @@ def save_config_as():
 
 def save(event=None):
     interface.focus()
-    print(app.custom_widgets)
     app.dump_user_setting(widgets['config_user_path'].get())
 
 

@@ -52,7 +52,6 @@ class ModulePopup(BaseModulePopup):
         self.data = None
 
     def report(self, xs:np.ndarray, ys:np.ndarray, data:dict):
-        print('report called')
         self.clear()
         self.data = data
         if data['failure']:
@@ -151,7 +150,6 @@ class ModulePopup(BaseModulePopup):
                      alpha=0.9)
 
     def plot_base_extrapolate(self, xs, end, data):
-        print('plot base extrapolate called')
         self.tracker = True
         try:
             if self.tracker:

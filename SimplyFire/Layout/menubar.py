@@ -156,7 +156,6 @@ def set_view_continuous(save_undo=True):
     global widgets
     global prev_trace_mode
     if prev_trace_mode == 'continuous':
-        print('stays in continuous')
         return
     app.root.event_generate('<<ChangeToContinuousView>>')
     if save_undo and prev_trace_mode == 'overlay':
@@ -185,7 +184,6 @@ def set_view_overlay(save_undo=True):
     global prev_trace_mode
     global widgets
     if prev_trace_mode == 'overlay':
-        print('stays in overlay')
         return
     app.root.event_generate('<<ChangeToOverlayView>>')
     if save_undo and prev_trace_mode == 'continuous':

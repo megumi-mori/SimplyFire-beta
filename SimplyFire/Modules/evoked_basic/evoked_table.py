@@ -29,7 +29,6 @@ class ModuleDataTable(BaseModuleDataTable):
         super().__init__(
             module=module
         )
-        print(f'evoked table name: {self.name}')
         # self.table.bind('<<OpenRecordings>>', self.clear)
         self.define_columns(('#','sweep','channel'), iid_header='#')
         # self.set_iid('index')

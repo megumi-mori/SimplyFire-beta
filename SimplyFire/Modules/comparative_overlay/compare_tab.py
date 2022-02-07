@@ -154,7 +154,6 @@ class ModuleControl(BaseModuleControl):
                 visible_list = [int(sweep_module.sweep_namevars[i].split('_')[-1]) for i in visible_list if
                      f'{self.file_prefix}{file_index}_Sweep_' in sweep_module.sweep_namevars[i]]
                 self.panel_list[file_index]['idx_entry'].set(formatting.format_list_indices(visible_list))
-                print(visible_list)
             for i in range(recording.sweep_count):
                 xs = recording.get_xs(mode='overlay', sweep=i, channel=app.interface.current_channel)
                 ys = recording.get_ys(mode='overlay', sweep=i, channel=app.interface.current_channel)

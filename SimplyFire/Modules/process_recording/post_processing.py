@@ -59,7 +59,6 @@ class ModuleControl(BaseModuleControl):
                                            sweeps=target_sweeps)
         if app.interface.is_accepting_undo():
             sweep_list = tuple(app.modules_dict['sweeps'].control_tab.get_visible_sweeps())
-            print(sweep_list)
             self.module.add_undo(
                 [
                     app.interface.recordings[0].delete_last_sweep,

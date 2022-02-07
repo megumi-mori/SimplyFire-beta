@@ -186,5 +186,4 @@ class ModuleControl(BaseModuleControl):
 
         show_all_keys = getattr(app.config, 'key_show_all', self.defaults.get('key_show_all', []))
         for key in show_all_keys:
-            print(key)
             app.trace_display.canvas.get_tk_widget().bind(key, self.show_all, add='+')

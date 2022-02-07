@@ -207,7 +207,6 @@ class Recording():
             if sweeps is None:
                 sweeps = range(new_data.shape[1])
         else:
-            print(f'incorrect mode: {mode}')
             return None
         if inplace:
             for i, c in enumerate(channels):

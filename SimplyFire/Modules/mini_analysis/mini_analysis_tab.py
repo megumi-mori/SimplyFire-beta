@@ -175,7 +175,6 @@ class ModuleControl(BaseModuleControl):
         try:
             self.mini_df = self.mini_df[self.mini_df['channel'] != app.interface.current_channel]
         except Exception as e:
-            print(f'Mini analysis delete all exceptionL {e}')
             # no data yet
             pass
         if draw:

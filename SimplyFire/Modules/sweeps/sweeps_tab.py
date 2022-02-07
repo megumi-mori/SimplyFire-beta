@@ -219,7 +219,6 @@ class ModuleControl(BaseModuleControl):
 
     ##### control sweep visibility #####
     def show_all(self, event=None, draw=True, undo=True):
-        print('show all called')
         if undo and app.interface.is_accepting_undo():
             hide_list = tuple([i for i, v in enumerate(self.sweep_vars) if not v.get()])
             self.module.add_undo(
@@ -282,7 +281,6 @@ class ModuleControl(BaseModuleControl):
             app.trace_display.draw_ani()
 
     def show_list(self, event=None, selection=None, draw=True, undo=True):
-        print(f'show list: {selection}')
         if selection is None:
             return None
         if undo and app.interface.is_accepting_undo():

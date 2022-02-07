@@ -36,7 +36,6 @@ class Module(BaseModule):
                 self._add_disable()
             except:
                 pass
-        print('loading batch')
         self._load_batch()
         self._modify_GUI()
 
@@ -89,7 +88,7 @@ class Module(BaseModule):
                 os.path.splitext(batch_popup.current_filename)[0] + '_minis.csv', overwrite=False)
             self.data_tab.export(fname, overwrite=False)
             batch_popup.batch_log.insert(f"Exported minis to: {fname}\n")
-        self.add_batch_command('Export minis', ffunc=export_minis)
+        self.add_batch_command('Export minis', func=export_minis)
 
 
     def _modify_GUI(self):

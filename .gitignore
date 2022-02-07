@@ -20,3 +20,6 @@ SimplyFire/config/test_user_config.yaml
 *.mini
 *.abf
 test_recordings/20112011-EJC test.png
+*.txt
+*.whl
+*.gz

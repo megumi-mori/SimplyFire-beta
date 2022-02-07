@@ -161,7 +161,7 @@ class BaseModule():
 
     def _error_log(self, msg):
         # connect to log later
-        print(f'module load error: {msg}')
+        pass
 
     def _load_components(self):
         component_dict = self.config.get('GUI_components', None)

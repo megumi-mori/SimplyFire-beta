@@ -251,8 +251,7 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
         try:
             self.set_undo()
             self.command(e)
-        except Exception as ex:
-            print(ex)
+        except Exception:
             pass
         #     interface.add_undo([
         #         lambda v=self.undo_value: self.var.set(v),
@@ -302,8 +301,6 @@ class VarCheckbutton(VarWidget, ttk.Checkbutton):
             default=default,
             type=type
         )
-        if name == 'config_autoload':
-            print(f'from checkbutton: {self.var.get()}')
         ttk.Checkbutton.__init__(
             self,
             master=parent,
@@ -481,7 +478,6 @@ class NavigationToolbar(NavigationToolbar2Tk):
             self.mode = 'test'
 
         self._update_buttons_checked() ################ this is what you need to update the checked buttons in toolbar
-        print(self.mode)
         # self.test_button.config(relief='sunken')
 
         self.canvas.widgetlock(self)
@@ -585,7 +581,7 @@ class DataTable(Tk.Frame):
         if type == 'delete':
             for key in config.key_delete:
                 self.table.bind(key)
-            print('remove binding')
+
     def popup(self, event):
         try:
             self.menu.tk_popup(event.x_root, event.y_root)
@@ -707,10 +703,10 @@ class DataTable(Tk.Frame):
                     app.pb['value'] = i/total*100
                     app.pb.update()
                 except Exception as e:
-                    print(f'datatable append{e}')
+
                     pass
         except Exception as e:
-            print(f'widget dataframe append error {e}')
+
             pass
         app.pb['value']=0
         app.pb.update()
