@@ -44,12 +44,12 @@ setup(
         # 'Modules':['*/config.yaml', '*/default_values.yaml']
     },
     install_requires=[
-        'numpy',
-        'pandas',
-        'matplotlib',
-        'scipy',
-        'pyyaml',
-        'pyabf'
+        'numpy>=1.22.0',
+        'pandas>=1.3.5',
+        'matplotlib>=3.5.1',
+        'scipy>=1.7.3',
+        'pyyaml>=6.0',
+        'pyabf>=2.3.5'
 
     ],
     license='GNU General Public License v3',
