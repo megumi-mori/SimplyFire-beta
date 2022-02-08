@@ -1154,7 +1154,7 @@ class Analyzer():
                             mini['success'] = False
                             mini['failure'] = 'The compound mini could not be analyzed - need more data points'
                         if min((ys[prev_peak_idx_offset:peak_idx]-prev_peak['baseline']) * direction) > prev_peak[
-                            'amp'] * direction * p_valley / 100:
+                            'amp'] * direction * (1-p_valley) / 100:
                             mini['success'] = False
                             mini['failure'] = 'Minimum peak_to_valley % not reached for the previous mini'
                             return mini
