@@ -1,0 +1,42 @@
+"""
+simplyfire - Customizable analysis of electrophysiology data
+Copyright (C) 2022 Megumi Mori
+This program comes with ABSOLUTELY NO WARRANTY
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+from simplyfire.Modules.base_module import BaseModule
+from simplyfire import app
+class Module(BaseModule):
+    def __init__(self):
+        super().__init__(
+            name='sweeps',
+            menu_label='Sweeps',
+            tab_label='Sweeps',
+            filename=__file__
+        )
+
+        if app.widgets['trace_mode'].get() != 'overlay':
+            try:
+                self._add_disable()
+            except:
+                pass
+
+        self._load_batch()
+
+
+    def _load_batch(self):
+        self.create_batch_category()
+        self.add_batch_command('Show All', lambda u=False:self.control_tab.show_all(undo=u))
+        self.add_batch_command('Hide All', lambda u=False:self.control_tab.hide_all(undo=u))
