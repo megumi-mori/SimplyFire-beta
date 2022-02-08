@@ -16,22 +16,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-from simplyfire.Modules.base_module import BaseModule
-
+from simplyfire.modules.base_module import BaseModule
+from simplyfire import app
 class Module(BaseModule):
     def __init__(self):
         super().__init__(
-            name='process_recording',
-            menu_label='Process Recording',
-            tab_label='Process',
+            name='sweeps',
+            menu_label='Sweeps',
+            tab_label='Sweeps',
             filename=__file__
         )
 
+        if app.widgets['trace_mode'].get() != 'overlay':
+            try:
+                self._add_disable()
+            except:
+                pass
+
         self._load_batch()
+
 
     def _load_batch(self):
         self.create_batch_category()
-        self.add_batch_command('Apply baseline subtraction', self.control_tab.subtract_baseline)
-        self.add_batch_command('Average sweeps', self.control_tab.average_sweeps)
-        self.add_batch_command('Filter recording', self.control_tab.filter_data)
-
+        self.add_batch_command('Show All', lambda u=False:self.control_tab.show_all(undo=u))
+        self.add_batch_command('Hide All', lambda u=False:self.control_tab.hide_all(undo=u))

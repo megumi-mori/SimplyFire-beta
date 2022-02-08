@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-from simplyfire.Modules.base_module_control import BaseModuleControl
+from simplyfire.modules.base_module_control import BaseModuleControl
 from simplyfire import app
 from simplyfire.utils.custom_widgets import VarEntry
 from tkinter import ttk

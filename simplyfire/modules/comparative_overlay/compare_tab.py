@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from simplyfire.Modules.base_module_control import BaseModuleControl
+from simplyfire.modules.base_module_control import BaseModuleControl
 from simplyfire import app
 from simplyfire.backend import analyzer2 as analyzer
 from simplyfire.utils import custom_widgets, formatting

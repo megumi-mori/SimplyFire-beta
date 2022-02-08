@@ -296,7 +296,7 @@ def load(splash):
         widgets[k] = v
 
     batch_popup.load()
-    menubar.analysis_menu.add_command(label='Batch Processing', command=batch_popup.show)
+    menubar.batch_menu.add_command(label='Batch Processing', command=batch_popup.show)
 
     global control_panel_dict
     control_panel_dict = {}
@@ -365,7 +365,7 @@ def load_module(module_name):
     # load modules
     module_path = os.path.join(config.MODULES_DIR, module_name)
     try:
-        module = importlib.import_module(f'simplyfire.Modules.{module_name}.{module_name}')
+        module = importlib.import_module(f'simplyfire.modules.{module_name}.{module_name}')
     except ModuleNotFoundError:
         log_display.log(f'Load error. Module {module_name} does not have file {module_name}.py', '@Load')
         return

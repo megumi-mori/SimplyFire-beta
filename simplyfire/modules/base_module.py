@@ -173,7 +173,7 @@ class BaseModule():
         self.popup_list = []
         self.children = []
         for component, object in component_dict.items(): # 'py file name': {dict of details}
-            module_py = importlib.import_module(f'simplyfire.Modules.{self.name}.{component}')
+            module_py = importlib.import_module(f'simplyfire.modules.{self.name}.{component}')
             # try:
             tab = getattr(module_py, object, None)(self)
             if tab.name:

@@ -20,8 +20,8 @@ from tkinter import BooleanVar, ttk, messagebox, filedialog
 from simplyfire.utils.custom_widgets import DataTable
 from simplyfire import app
 import tkinter as Tk
-from simplyfire.Modules.base_module import BaseModule
-from simplyfire.Modules.base_module_layout import BaseModuleLayout
+from simplyfire.modules.base_module import BaseModule
+from simplyfire.modules.base_module_layout import BaseModuleLayout
 import pandas as pd
 import os
 class BaseModuleDataTable(DataTable, BaseModuleLayout):

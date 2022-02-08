@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from simplyfire.Modules.base_module_table import BaseModuleDataTable
+from simplyfire.modules.base_module_table import BaseModuleDataTable
 from simplyfire import app
 from simplyfire.utils import formatting
 import pandas as pd

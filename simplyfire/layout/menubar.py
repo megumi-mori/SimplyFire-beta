@@ -76,9 +76,9 @@ def load(menubar):
     view_menu.add_radiobutton(label='Overlay', command=set_view_overlay, variable=trace_var, value='overlay')
 
     # Analysis menu
-    global analysis_menu
-    analysis_menu = Tk.Menu(menubar, tearoff=0)
-    menubar.add_cascade(label='Analysis', menu=analysis_menu)
+    global batch_menu
+    batch_menu = Tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label='Batch', menu=batch_menu)
 
     # Window menu
     global module_menu
@@ -96,7 +96,7 @@ def load(menubar):
     # widgets['analysis_mode'].set(config.analysis_mode)
     widgets['trace_mode'].set(config.trace_mode)
     # view_menu.invoke({'continuous': 0, 'overlay': 1, 'compare':2}[config.trace_mode])
-    # analysis_menu.invoke({'mini': 0, 'evoked': 1}[config.analysis_mode])
+    # batch_menu.invoke({'mini': 0, 'evoked': 1}[config.analysis_mode])
 
     undo_disable()
     return menubar
