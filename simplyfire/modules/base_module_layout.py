@@ -31,6 +31,7 @@ class BaseModuleLayout():
     """
     def __init__(self, module):
         self.module=module
+        self.widgets = {}
         pass
 
     def call_if_enabled(self, function):

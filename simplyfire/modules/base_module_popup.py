@@ -27,7 +27,8 @@ class BaseModulePopup(Toplevel, BaseModuleLayout):
                  ) -> None:
         self.module = module
         self.visible=False
-        super().__init__(app.root)
+        Toplevel.__init__(self, app.root)
+        BaseModuleLayout.__init__(self, module)
         super().withdraw()
         self.protocol('WM_DELETE_WINDOW', self._on_close)
         self.widgets = self.module.widgets

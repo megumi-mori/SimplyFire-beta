@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import tkinter as Tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from tkinter import ttk, font
 
 from simplyfire.utils import custom_widgets
@@ -26,6 +26,8 @@ from simplyfire.layout import batch_popup, trace_display
 from simplyfire.config import config
 from simplyfire import app
 from simplyfire.backend import interface
+
+import os
 
 
 def load(parent):
@@ -37,12 +39,23 @@ def load(parent):
 
     def _ask_dirname(e=None):
         global widgets
-        d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
-                                           defaultextension='.yaml')
+        # d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
+                                           # defaultextension='.yaml')
+        d = filedialog.askdirectory(title='Select a directory')
+        if d and os.path.exists(os.path.join(d, 'user_config.yaml')):
+            answer = messagebox.askyesnocancel(title='Load config?', message='A configuration file already exists in this directory.\nLoad configuration?\n(The file will be overwritten when the program closes.)')
+            if answer is None:
+                return
+            if answer:
+                app.load_config(filename = os.path.join(d, 'user_config.yaml'))
+            if not answer:
+                pass
         if d:
-            widgets['config_user_path'].config(state="normal")
-            widgets['config_user_path'].set(d)
-            widgets['config_user_path'].config(state='disabled')
+            widgets['config_user_dir'].config(state="normal")
+            widgets['config_user_dir'].set(d)
+            widgets['config_user_dir'].config(state='disabled')
+
+
 
 
 
@@ -103,13 +116,13 @@ def load(parent):
     global dir_entry
     dir_entry = custom_widgets.VarText(
         parent=dir_frame,
-        name='config_user_path',
-        value=config.config_user_path,
-        default=config.default_config_user_path
+        name='config_user_dir',
+        value=config.config_user_dir,
+        default=config.default_config_user_dir
     )
     dir_entry.configure(state='disabled', height=2)
     dir_entry.grid(column=0,row=1,sticky='news')
-    widgets['config_user_path'] = dir_entry
+    widgets['config_user_dir'] = dir_entry
 
     Tk.Button(
         master=dir_frame,
@@ -119,10 +132,10 @@ def load(parent):
 
 
     # optionframe.insert_button("Save",
-    #                           command= lambda e=widgets['config_user_path'].get():
+    #                           command= lambda e=widgets['config_user_dir'].get():
     #                         app.dump_user_setting(e))
-    optionframe.insert_button(text='Save',
-                              command=save)
+    # optionframe.insert_button(text='Save',
+    #                           command=save)
 
     optionframe.insert_button(text="Save As...", command=save_config_as)
 
@@ -204,7 +217,9 @@ def load(parent):
 
 def load_config(e=None):
     interface.focus()
-    app.load_config()
+    filename = filedialog.askopenfilename()
+    print(filename)
+    app.load_config(filename=filename)
 
 def apply_geometry(e=None):
     app.root.geometry(f'{widgets["window_width"].get()}x{widgets["window_height"].get()}')
@@ -238,7 +253,7 @@ def save_config_as():
 
 def save(event=None):
     interface.focus()
-    app.dump_user_setting(widgets['config_user_path'].get())
+    app.dump_user_setting(widgets['config_user_dir'].get())
 
 
 def set_fontsize(fontsize=None):

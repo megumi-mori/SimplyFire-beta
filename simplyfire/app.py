@@ -425,7 +425,7 @@ def dump_user_setting(filename=None):
     ignore = ['config_', '_log', 'temp_']
     print('Writing out configuration variables....')
     if filename is None:
-        filename = widgets['config_user_path'].var.get().strip()
+        filename = os.path.join(widgets['config_user_dir'].var.get().strip(), 'user_config.yaml')
         # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
         print('writing dump user config {}'.format(filename))
@@ -492,16 +492,26 @@ def dump_config_var(key, filename, title=None):
         f.write(yaml.safe_dump(dict([(n, getattr(config, n)) for n in config.user_vars if key in n])))
     print('Completed')
 
-def load_config(e=None):
-    f = filedialog.askopenfile()
-    if not f:
+def load_config(filename=None):
+    if not filename:
         return None
-    configs = yaml.safe_load(f)
-    for c, v in configs.items():
+    with open(filename) as f:
+        loaded_configs = yaml.safe_load(f)
+    for key in widgets.keys():
         try:
-            widgets[c].set(v)
+            value = loaded_configs.get(key, None)
+            if value:
+                widgets[key].set(value)
         except:
             pass
+    for modulename in modules:
+        for key in modules[modulename].widgets.keys():
+            try:
+                value = loaded_configs[modulename].get(key, None)
+                if value:
+                    modules[modulename].widgets[key].set(value)
+            except:
+                pass
 
 def print_time_lapse(msg=""):
     global t0

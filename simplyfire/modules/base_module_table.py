@@ -31,7 +31,8 @@ class BaseModuleDataTable(DataTable, BaseModuleLayout):
                  notebook: ttk.Notebook = app.data_notebook,
                  data_overwrite=True
                  ):
-        super().__init__(app.root)
+        DataTable.__init__(self, app.root)
+        BaseModuleLayout.__init__(self, module)
 
         self.module=module
         # self.grid_columnconfigure(0, weight=1)

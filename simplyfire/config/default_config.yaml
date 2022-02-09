@@ -200,6 +200,7 @@ default_navigation_mirror_x_scroll : 1
 #
 #system
 default_config_user_path : "user_config.yaml"
+default_config_user_dir: ~
 default_config_system_path : 'system_config.yaml'
 default_config_keymap_path: 'key_map.yaml'
 default_config_autoload : 1

@@ -49,7 +49,12 @@ with open(default_config_path) as f:
         elif 'config' in c:
             globals()[c[8:]] = v
             system_vars[c[8:]] = v
+global default_config_user_dir
+default_config_user_dir = pkg_resources.resource_filename('simplyfire', 'config')
+global config_user_dir
+config_user_dir = default_config_user_dir
 print('completed')
+
 
 def load():
     # Load user configurations
@@ -65,28 +70,40 @@ def load():
     except:
         pass
 
-    global config_keymap_path
-    config_keymap_path = os.path.join(CONFIG_DIR, default_config_keymap_path)
-    try:
-        with open(config_keymap_path) as f:
-            configs = yaml.safe_load(f)
-            for c, v in configs.items():
-                globals()[c] = v
-                user_vars[c] = v
-    except:
-        pass
+    # global config_keymap_path
+    # config_keymap_path = os.path.join(CONFIG_DIR, default_config_keymap_path)
+    # try:
+    #     with open(config_keymap_path) as f:
+    #         configs = yaml.safe_load(f)
+    #         for c, v in configs.items():
+    #             globals()[c] = v
+    #             user_vars[c] = v
+    # except:
+    #     pass
 
-    global config_user_path
-    if config_autoload == 1 or config_autoload == '1': # info stored in system_config
+    # global config_user_path
+    # if config_autoload == 1 or config_autoload == '1': # info stored in system_config
+    #     try:
+    #         d, f = os.path.split(config_user_path)
+    #         if not os.path.isdir(d):
+    #             config_user_path = os.path.join(CONFIG_DIR, config_user_path)
+    #     except Exception as e:
+    #         print('config load error: {}'.format(e))
+    #         config_user_path = convert_to_path('')
+    #     try:
+    #         print('loading {}'.format(config_user_path))
+    #         with open(config_user_path) as f:
+    #             configs = yaml.safe_load(f)
+    #             for c, v in configs.items():
+    #                 globals()[c] = v
+    #                 user_vars[c] = v
+    #     except:
+    #         pass
+    global config_user_dir
+    if config_autoload == 1 or config_autoload == '1':
         try:
-            d, f = os.path.split(config_user_path)
-            if not os.path.isdir(d):
-                config_user_path = os.path.join(CONFIG_DIR, config_user_path)
-        except Exception as e:
-            print('config load error: {}'.format(e))
-            config_user_path = convert_to_path('')
-        try:
-            print('loading {}'.format(config_user_path))
+            print(f'loading user_config.yaml from {config_user_dir}')
+            config_user_path = os.path.join(config_user_dir, 'user_config.yaml')
             with open(config_user_path) as f:
                 configs = yaml.safe_load(f)
                 for c, v in configs.items():
@@ -94,6 +111,7 @@ def load():
                     user_vars[c] = v
         except:
             pass
+
     print('config user path at config: {}'.format(config_user_path))
 
 

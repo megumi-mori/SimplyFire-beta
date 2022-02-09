@@ -179,6 +179,11 @@ class BaseModule():
             if tab.name:
                 setattr(self, tab.name, tab)
             self.children.append(tab)
+            for w in tab.widgets.keys(): # share widget references
+                self.widgets[w] = tab.widgets[w]
+
+
+
             # except Exception as e:
             #     print(f'{self.name}, {e}')
             #     pass
