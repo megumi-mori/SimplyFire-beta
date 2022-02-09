@@ -100,6 +100,8 @@ def load():
     #     except:
     #         pass
     global config_user_dir
+    global user_config_load_error
+    user_config_load_error = None
     if config_autoload == 1 or config_autoload == '1':
         try:
             print(f'loading user_config.yaml from {config_user_dir}')
@@ -109,7 +111,8 @@ def load():
                 for c, v in configs.items():
                     globals()[c] = v
                     user_vars[c] = v
-        except:
+        except FileNotFoundError as e:
+            user_config_load_error = e
             pass
 
     print('config user path at config: {}'.format(config_user_path))

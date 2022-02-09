@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-from tkinter import ttk, filedialog
+from tkinter import ttk, messagebox
 import tkinter as Tk
 import yaml
 from PIL import Image
@@ -354,6 +354,8 @@ def load(splash):
     root.deiconify()
     # # finalize the data viewer - table
     root.geometry(config.geometry)
+    if config.user_config_load_error is not None:
+        messagebox.showwarning('Warning', f'Error while loading user settings: {config.user_config_load_error}\nReverting to default configurations.')
     return None
 
 
