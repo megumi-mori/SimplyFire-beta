@@ -34,15 +34,6 @@ setup(
         ]
     },
     include_package_data = True,
-    package_data={
-        'SimplyFire': ['config/default_config.yaml',
-                       'config/modules.yaml',
-                       'img/*.*',
-                       'temp/*.*',
-                       'Modules/*/config.yaml',
-                       'Modules/*/default_values.yaml']
-        # 'Modules':['*/config.yaml', '*/default_values.yaml']
-    },
     install_requires=[
         'numpy>=1.22.0',
         'pandas>=1.3.5',

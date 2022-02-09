@@ -1,7 +1,8 @@
 # SimplyFire
 A customizable analysis package for electrophysiologists
 
-  
+
+
 # Disclaimer
 SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
