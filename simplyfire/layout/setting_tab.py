@@ -42,23 +42,21 @@ def load(parent):
         # d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
                                            # defaultextension='.yaml')
         d = filedialog.askdirectory(title='Select a directory')
-        if d and os.path.exists(os.path.join(d, 'user_config.yaml')):
-            answer = messagebox.askyesnocancel(title='Load config?', message='A configuration file already exists in this directory.\nLoad configuration?\n(The file will be overwritten when the program closes.)')
-            if answer is None:
-                return
-            if answer:
-                app.load_config(filename = os.path.join(d, 'user_config.yaml'))
-            if not answer:
-                pass
         if d:
             widgets['config_user_dir'].config(state="normal")
             widgets['config_user_dir'].set(d)
             widgets['config_user_dir'].config(state='disabled')
-
-
-
-
-
+            if os.path.exists(os.path.join(d, 'user_config.yaml')):
+                answer = messagebox.askyesnocancel(title='Load config?', message='A configuration file already exists in this directory.\nLoad configuration?\n(The file will be overwritten when the program closes.)')
+                if answer is None:
+                    return
+                if answer:
+                    app.load_config(filename = os.path.join(d, 'user_config.yaml'))
+                if not answer:
+                    pass
+            else:
+                app.dump_user_setting()
+                app.dump_system_setting()
 
     ##################################################
     #                    Populate                    #
@@ -137,6 +135,7 @@ def load(parent):
     # optionframe.insert_button(text='Save',
     #                           command=save)
 
+    optionframe.insert_button(text="Save", command=save_config)
     optionframe.insert_button(text="Save As...", command=save_config_as)
 
     optionframe.insert_button(text="Load", command=load_config)
@@ -240,6 +239,11 @@ def change_pw_entries(e=None):
 def default(e=None):
     interface.focus()
     optionframe.default(widgets=widgets)
+
+def save_config():
+    interface.focus()
+    app.dump_user_setting(os.path.join(config.config_user_dir, 'user_config.yaml'))
+    app.dump_system_setting()
 def save_config_as():
     interface.focus()
     d = filedialog.asksaveasfilename(filetypes=[('yaml file', '*.yaml')], defaultextension='.yaml').strip()

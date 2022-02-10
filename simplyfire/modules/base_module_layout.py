@@ -58,3 +58,8 @@ class BaseModuleLayout():
         elif condition == 'visible':
             target.bind(event, lambda e, f=function: self.call_if_visible(f), add='+')
 
+    def apply_vales(self, values):
+        # this function is called whenever user_config files are read and user parameters are changed
+        # implement this function for effects that need to take place whenever parameters are changed
+        pass
+
