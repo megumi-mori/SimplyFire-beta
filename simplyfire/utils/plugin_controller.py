@@ -45,12 +45,14 @@ class PluginController():
 
         self.name = name
         self.menu_label = menu_label
-        self.menu_var = BooleanVar(value=self.name in getattr(app.config, 'start_plugins', []))
+        self.inputs = {}
+        self.inputs['is_visible'] = BooleanVar(app.root, False)
+        self.menu_var = self.inputs['is_visible']
         self.disable_stack = []
 
         menu_target.add_checkbutton(label=self.menu_label,
                                                 command=self.toggle_module_display,
-                                                variable=self.menu_var,
+                                                variable=self.inputs['is_visible'],
                                                 onvalue=True,
                                                 offvalue=False)
 
@@ -64,7 +66,7 @@ class PluginController():
 
 
     def toggle_module_display(self, event=None, undo=True):
-        if self.menu_var.get():
+        if self.inputs['is_visible'].get():
             self.show_tab()
             if not self.disable_stack:
                 self.select()
@@ -73,12 +75,12 @@ class PluginController():
 
         if undo and app.interface.is_accepting_undo():
             app.interface.add_undo([
-                lambda v=not self.menu_var.get(): self.menu_var.set(v),
+                lambda v=not self.inputs['is_visible'].get(): self.inputs['is_visible'].set(v),
                 lambda u=False: self.toggle_module_display(undo=u)]
             )
 
     def update_plugin_display(self, event=None):
-        if self.menu_var.get(): # menu checkbutton is ON
+        if self.inputs['is_visible'].get(): # menu checkbutton is ON
             self.show_tab()
         else:
             self.hide()
@@ -88,6 +90,7 @@ class PluginController():
             for c in self.children:
                 c.enable()
         else:
+            print('there is disable')
             for c in self.children:
                 c.disable()
 
@@ -102,6 +105,7 @@ class PluginController():
         if not source:
             source = self.name
         if source not in self.disable_stack:
+            print('add disable')
             self.disable_stack.append(source)
         self.update_plugin_display()
 
@@ -118,20 +122,15 @@ class PluginController():
             self._error_log(f'{source} is not part of the disable stack')
         self.update_plugin_display()
 
-    def disable_module(self, event=None, modulename=None):
-        if not modulename:
-            self._add_disable()
-        else:
-            app.modules_dict[modulename]._add_disable(source=self.name)
+    def disable_module(self, event=None, source:str=None):
+        print('disable module')
+        self._add_disable(source=source)
 
-    def enable_module(self, event=None, modulename=None):
-        if not modulename:
-            self._remove_disable()
-        else:
-            app.modules_dict[modulename]._remove_disable(source=self.name)
+    def enable_module(self, event=None, source:str=None):
+        self._remove_disable(source=source)
 
     def is_visible(self):
-        return self.menu_var.get()
+        return self.inputs['is_visible'].get()
 
     def is_enabled(self):
         return not self.disable_stack
@@ -238,7 +237,7 @@ class PluginController():
 
 
     def save(self):
-        data = {}
+        data = {k:v.get() for k,v in self.inputs.items()}
         for c in self.children:
             try:
                 for k, v in c.save().items():
@@ -250,7 +249,8 @@ class PluginController():
     def load_values(self, data=None):
         if data is None:
             data = self.values
-        print(data)
+        for key,widget in self.inputs.items():
+            widget.set(data.get(key, self.inputs[key].get()))
         for c in self.children:
             try:
                 c.load_values(data)

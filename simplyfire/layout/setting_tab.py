@@ -110,7 +110,7 @@ def load(parent):
     dir_frame.grid(column=0, row=0, sticky='news')
     dir_frame.columnconfigure(0, weight=1)
     ttk.Label(master=dir_frame,
-             text='Configuration file path:').grid(column=0, row=0, sticky='news')
+             text='Data directory:').grid(column=0, row=0, sticky='news')
     global dir_entry
     dir_entry = custom_widgets.VarText(
         parent=dir_frame,

@@ -29,12 +29,10 @@ def load_plugin(plugin_name):
 def save_plugin_data():
     data = {}
     for plugin_name in plugin_list:
-        # try:
-        temp = globals()[plugin_name].save()
-        data[plugin_name] = temp
-        print(f'at the manager level: {data[plugin_name]}')
-        print(f'at the manager level: {temp}')
-        # except IndexError:
-        #     data[plugin_name] = getattr(app.config, plugin_name, {}) #keep old save data
+        try:
+            data[plugin_name] = globals()[plugin_name].save()
+        except:
+            data[plugin_name] = getattr(app.config, plugin_name, {}) #keep old save data
+
     return data
 

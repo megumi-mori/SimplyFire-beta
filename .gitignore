@@ -14,3 +14,4 @@ test_recordings/*
 *.whl
 *.gz
 
+simplyfire/active_plugins.yaml

@@ -2,7 +2,7 @@ from simplyfire import app
 import pkg_resources
 import os
 import yaml
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import tkinter as Tk
 from simplyfire.utils.scrollable_option_frame import ScrollableOptionFrame
 import textwrap
@@ -10,8 +10,10 @@ from packaging.version import parse
 import importlib
 
 def load():
-    global plugins
-    plugins = {}
+    global plugin_vars
+    plugin_vars = {}
+    global active_plugins
+    active_plugins = []
     global window
     window = Tk.Toplevel(app.root)
 
@@ -40,12 +42,28 @@ def load():
 
     button_frame = Tk.Frame(window)
     button_frame.grid(column=0, row=1, sticky='news')
+    button_frame.grid_columnconfigure(0, weight=1)
+    button_frame.grid_columnconfigure(1, weight=1)
 
-    ttk.Button(button_frame, text='Apply').grid(column=0, row=0, sticky='nse')
-    ttk.Button(button_frame, text='Cancel').grid(column=0, row=0, sticky='nsw')
+    ttk.Button(button_frame, text='Apply', command=apply).grid(column=0, row=0, sticky='nse')
+    ttk.Button(button_frame, text='Cancel', command=cancel).grid(column=1, row=0, sticky='nsw')
 
     _populate_plugins()
     _load_plugins()
+
+def apply():
+    messagebox.showwarning('Warning', 'Please reopen the software to apply changes')
+    global active_plugins
+    active_plugins = [plugin_name for plugin_name in plugin_vars.keys() if plugin_vars[plugin_name].get()]
+    window.withdraw()
+
+def cancel():
+    window.withdraw()
+    for plugin_name, var in plugin_vars.items():
+        if plugin_name in active_plugins:
+            var.set(True)
+        else:
+            var.set(False)
 
 def _on_close():
     window.withdraw()
@@ -67,7 +85,7 @@ def _populate_plugins():
         first = True
         if requirements:
             for r in requirements:
-                if r not in plugins.keys():
+                if r not in manifests.keys():
                     if first:
                         description += '\nWarning: Missing requirements - '
                     description += f' {r},'
@@ -81,7 +99,7 @@ def _populate_plugins():
         label.grid(column=1, row=i, sticky='news')
 
         var = Tk.BooleanVar(frame)
-        plugins[plugin_name] = var
+        plugin_vars[plugin_name] = var
         var.set(False)
         checkbutton = ttk.Checkbutton(frame, var=var, onvalue=True, offvalue=False)
         checkbutton.grid(column=2, row=i, sticky='news')
@@ -92,13 +110,15 @@ def _load_plugins():
     plugin_list = app.config.active_plugins  # get plugin list from the user_config file
     if plugin_list:  # check for None type
         for plugin_name in plugin_list:
-            plugin_var = plugins.get(plugin_name, None)
+            plugin_var = plugin_vars.get(plugin_name, None)
             if plugin_var: # a manifest exists for the specified plugin_name
                 plugin_var.set(True)
                 app.plugin_manager.load_plugin(plugin_name)
+                active_plugins.append(plugin_name)
+
 
 def get_plugins():
-    return [plugin_name for plugin_name in plugins.keys() if plugins[plugin_name].get()]
+    return [plugin_name for plugin_name in plugin_vars.keys() if plugin_vars[plugin_name].get()]
 
 #
 #

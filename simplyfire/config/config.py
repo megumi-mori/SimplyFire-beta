@@ -121,6 +121,17 @@ def load():
 
     print('config user path at config: {}'.format(config_user_path))
 
+    try:
+        print(f'loading active_plugins.yaml from {config_user_dir}')
+        active_plugin_path = os.path.join(config_user_dir, 'active_plugins.yaml')
+        with open(active_plugin_path) as f:
+            configs = yaml.safe_load(f)
+            globals()['active_plugins'] = configs['active_plugins']
+            user_vars['active_plugins'] = configs['active_plugins']
+    except (FileNotFoundError, AttributeError, KeyError) as e:
+        print(f'Error loading active plugins: {e}')
+        pass
+
 
 def convert_to_path(paths):
     """

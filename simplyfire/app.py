@@ -55,6 +55,7 @@ def _on_close():
     # if widgets['config_autosave'].get():
     # try:
     dump_user_setting()
+    dump_plugin_setting()
     # except:
     #     Tk.messagebox.showinfo(title='Error', message='Error while writing out user preferences.\n Please select a new filename.')
     #     f = setting_tab.save_config_as()
@@ -437,10 +438,6 @@ def dump_user_setting(filename=None):
         # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
         print('writing dump user config {}'.format(filename))
-        f.write("#################################################################\n")
-        f.write("# PyMini user configurations\n")
-        f.write("#################################################################\n")
-        f.write("\n")
         # pymini.pb.initiate()
         d = {}
         for key in inputs.keys():
@@ -462,16 +459,31 @@ def dump_user_setting(filename=None):
 
         # d['compare_color_list'] = config.compare_color_list
         # d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
-        d['active_plugins'] = plugin_tab.get_plugins()
         save_data = plugin_manager.save_plugin_data()
         for key,value in save_data.items():
             d[key] = value
-
+        # write if no error takes place
+        f.write("#################################################################\n")
+        f.write("# PyMini user configurations\n")
+        f.write("#################################################################\n")
+        f.write("\n")
         f.write(yaml.safe_dump(d))
         # pymini.pb.clear()
-
         # f.write(yaml.safe_dump(user_vars))
     print('Completed')
+
+def dump_plugin_setting(filename=None):
+    if filename is None:
+        filename = os.path.join(inputs['config_user_dir'].var.get().strip(), 'active_plugins.yaml')
+        # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
+    with open(filename, 'w') as f:
+        d = {'active_plugins':plugin_tab.get_plugins()}
+        f.write("#################################################################\n")
+        f.write("# PyMini active plugin list\n")
+        f.write("#################################################################\n")
+        f.write("\n")
+        f.write(yaml.safe_dump(d))
+
 
 def dump_system_setting():
     print('Saving config options....')

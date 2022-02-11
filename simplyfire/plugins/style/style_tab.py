@@ -81,15 +81,8 @@ controller.listen_to_event('<<LoadCompleted>>', lambda u=False:apply_styles(undo
 controller.listen_to_event('<<LoadedConfig>>', controller.load_values)
 controller.listen_to_event('<<LoadedConfig>>', lambda u=False:apply_styles(undo=u))
 
-
-
-
-
-
-
 controller.children.append(form)
-
-controller.update_plugin_display()
 controller.load_values()
+controller.update_plugin_display()
 
 plugin_manager.style.save = controller.save

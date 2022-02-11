@@ -196,6 +196,7 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
             self.notebook.select(self)
 
     def disable(self):
+        print('disable tab')
         self.notebook.tab(self, state='disabled')
 
     def hide(self):
