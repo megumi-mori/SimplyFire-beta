@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import yaml
 import os
 import pkg_resources
+import sys
 
 # set up default parameters during module import
 
@@ -28,7 +29,6 @@ global CONFIG_DIR # package config file path
 CONFIG_DIR = pkg_resources.resource_filename('simplyfire', 'config/')
 IMG_DIR = pkg_resources.resource_filename('simplyfire', 'img/')
 TEMP_DIR = pkg_resources.resource_filename('simplyfire', 'temp/')
-MODULES_DIR =pkg_resources.resource_filename('simplyfire', 'Modules/')
 
 # Load defaults
 default_vars = {}
@@ -50,7 +50,7 @@ with open(default_config_path) as f:
             globals()[c[8:]] = v
             system_vars[c[8:]] = v
 global default_config_user_dir
-default_config_user_dir = pkg_resources.resource_filename('simplyfire', 'config')
+default_config_user_dir = pkg_resources.resource_filename('simplyfire', '')
 global config_user_dir
 config_user_dir = default_config_user_dir
 print('completed')
@@ -69,6 +69,10 @@ def load():
                 user_vars[c] = v
     except:
         pass
+    global config_user_dir
+    global PLUGIN_DIR
+    PLUGIN_DIR = os.path.join(config_user_dir, 'plugins')
+    sys.path.insert(0, config_user_dir)
 
     # global config_keymap_path
     # config_keymap_path = os.path.join(CONFIG_DIR, default_config_keymap_path)
@@ -99,7 +103,7 @@ def load():
     #                 user_vars[c] = v
     #     except:
     #         pass
-    global config_user_dir
+
     global user_config_load_error
     user_config_load_error = None
     if config_autoload == 1 or config_autoload == '1':
@@ -111,7 +115,7 @@ def load():
                 for c, v in configs.items():
                     globals()[c] = v
                     user_vars[c] = v
-        except FileNotFoundError as e:
+        except (FileNotFoundError, AttributeError) as e:
             user_config_load_error = e
             pass
 

@@ -1,0 +1,9 @@
+name: 'style'
+title: 'Graph Style'
+author: 'MM'
+description: 'Easily configure graph styles. Part of the CORE plugins'
+version: '1.0.0'
+minimumCoreVersion: '3.0.0'
+scripts:
+  - 'style_tab'
+

@@ -271,9 +271,9 @@ class ModuleControl(BaseModuleControl):
             messagebox.showerror('Error', 'Please open a recording file first')
             return None
         self.module.data_tab.unselect()
-        if app.widgets['trace_mode'].get() != 'continuous':
+        if app.inputs['trace_mode'].get() != 'continuous':
             return None
-        if app.widgets['trace_mode'].get() != 'continuous':
+        if app.inputs['trace_mode'].get() != 'continuous':
             return None # disable module
         self.module.start_thread(lambda i=interrupt, u=undo:self.find_mini_all_thread(i,undo=u), app.interface.al, interrupt)
         # if detector_tab.changed:
@@ -934,11 +934,11 @@ class ModuleControl(BaseModuleControl):
                                             ys=app.trace_display.sweeps['Sweep_0'].get_ydata(),
                                             data=mini)
     def update_event_markers(self, event=None, draw=False):
-        if app.widgets['trace_mode'].get() == 'overlay':
+        if app.inputs['trace_mode'].get() == 'overlay':
             self.plot_peak(None,None)
             self.plot_decay(None,None)
             self.plot_start(None,None)
-        elif app.widgets['trace_mode'].get() == 'continuous':
+        elif app.inputs['trace_mode'].get() == 'continuous':
             self.plot_peak(self.extract_column('peak_coord_x'), self.extract_column('peak_coord_y'))
             self.plot_decay(self.extract_column('decay_coord_x'), self.extract_column('decay_coord_y'))
             self.plot_start(self.extract_column('start_coord_x'), self.extract_column('start_coord_y'))

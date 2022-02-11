@@ -1,0 +1,12 @@
+################################
+#
+################################
+
+acitve_plugins:
+#  - 'mini_analysis'
+  - 'style'
+#  - 'sweeps'
+#  - 'process_recording'
+#  - 'evoked_basic'
+##  - 'comparative_overlay'
+#  - 'navigation'

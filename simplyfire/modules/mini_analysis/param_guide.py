@@ -267,11 +267,11 @@ class ModulePopup(BaseModulePopup):
 
     def update(self, event=None):
         self.ax.set_xlabel(app.trace_display.ax.get_xlabel(),
-                           fontsize=int(app.widgets['font_size'].get()))
+                           fontsize=int(app.inputs['font_size'].get()))
         self.ax.set_ylabel(app.trace_display.ax.get_ylabel(),
-                           fontsize=int(app.widgets['font_size'].get()))
-        self.ax.tick_params(axis='y', which='major', labelsize=int(app.widgets['font_size'].get()))
-        self.ax.tick_params(axis='y', which='major', labelsize=int(app.widgets['font_size'].get()))
+                           fontsize=int(app.inputs['font_size'].get()))
+        self.ax.tick_params(axis='y', which='major', labelsize=int(app.inputs['font_size'].get()))
+        self.ax.tick_params(axis='y', which='major', labelsize=int(app.inputs['font_size'].get()))
         self.canvas.draw()
 
     ###############################
@@ -384,7 +384,7 @@ class ModulePopup(BaseModulePopup):
                                                 default='',
                                                 state='disabled')
         self.msg_label.grid(column=0, row=0, sticky='news')
-        Tk.Text.configure(self.msg_label, font=Tk.font.Font(size=int(float(app.widgets['font_size'].get()))))
+        Tk.Text.configure(self.msg_label, font=Tk.font.Font(size=int(float(app.inputs['font_size'].get()))))
 
         vsb = ttk.Scrollbar(msg_frame, orient=Tk.VERTICAL, command=self.msg_label.yview)
         vsb.grid(column=1, row=0, sticky='ns')

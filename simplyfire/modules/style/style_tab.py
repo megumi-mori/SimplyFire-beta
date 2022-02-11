@@ -89,11 +89,5 @@ class ModuleControl(BaseModuleControl):
         self.apply_styles()
         pass
 
-    def _revert(self, event=None):
-        self.widgets['style_trace_line_color'].set(self.trace_color)
-        self.widgets['style_trace_line_width'].set(self.trace_width)
-        self.apply_styles(undo=False)
-
-
     def _load_binding(self):
         self.listen_to_event('<<LoadCompleted>>', lambda u=False:self.apply_styles(undo=u))

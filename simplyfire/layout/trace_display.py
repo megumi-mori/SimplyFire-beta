@@ -621,8 +621,8 @@ def get_sweep(idx):
 
 def toggle_sweep_highlight(idx, exclusive=True, draw=False):
     global highlighted_sweep
-    c = app.widgets['style_trace_line_color'].get()
-    w = float(app.widgets['style_trace_line_width'].get())
+    c = app.inputs['style_trace_line_color'].get()
+    w = float(app.inputs['style_trace_line_width'].get())
     if exclusive:
         for l in sweeps:
             sweeps[l].set_color(c)
@@ -643,8 +643,8 @@ def toggle_sweep_highlight(idx, exclusive=True, draw=False):
             pass
     else:
         try:
-            sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_highlight_color'].get())
-            sweeps[f'sweep_{idx}'].set_linewidth(float(app.widgets['style_trace_highlight_width'].get()))
+            sweeps['sweep_{}'.format(idx)].set_color(app.inputs['style_trace_highlight_color'].get())
+            sweeps[f'sweep_{idx}'].set_linewidth(float(app.inputs['style_trace_highlight_width'].get()))
             highlighted_sweep.append(idx)
         except:
             pass
@@ -655,8 +655,8 @@ def remove_highlight_sweep(draw=True):
     global highlighted_sweep
     for idx in highlighted_sweep:
         try:
-            sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_line_color'].ge())
-            sweeps[f'sweep_{idx}'].set_linewidth(float(app.widgets['style_trace_line_width'].get()))
+            sweeps['sweep_{}'.format(idx)].set_color(app.inputs['style_trace_line_color'].ge())
+            sweeps[f'sweep_{idx}'].set_linewidth(float(app.inputs['style_trace_line_width'].get()))
             highlighted_sweep.remove(idx)
         except:
             pass
@@ -667,15 +667,15 @@ def remove_highlight_sweep(draw=True):
 def set_highlight_sweep(idx, highlight=True, draw=True):
     if idx not in highlighted_sweep and highlight:
         try:
-            sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_highlight_color'].get())
-            sweeps[f'sweep_{idx}'].set_linewidth(float(app.widgets['style_trace_highlight_width'].get()))
+            sweeps['sweep_{}'.format(idx)].set_color(app.inputs['style_trace_highlight_color'].get())
+            sweeps[f'sweep_{idx}'].set_linewidth(float(app.inputs['style_trace_highlight_width'].get()))
             highlighted_sweep.append(idx)
         except:
             pass
     elif not highlight and idx in highlighted_sweep:
         try:
-            sweeps['sweep_{}'.format(idx)].set_color(app.widgets['style_trace_line_color'].get())
-            sweeps[f'sweep_{idx}'].set_linewidth(float(app.widgets['style_trace_line_width'].get()))
+            sweeps['sweep_{}'.format(idx)].set_color(app.inputs['style_trace_line_color'].get())
+            sweeps[f'sweep_{idx}'].set_linewidth(float(app.inputs['style_trace_line_width'].get()))
             highlighted_sweep.remove(idx)
         except:
             pass
@@ -689,8 +689,8 @@ def plot_highlight(xs, ys):
     except:
         pass
     try:
-        markers['highlight'], = ax.plot(xs, ys, marker='o', c=app.widgets['style_event_highlight_color'].get(),
-                                        markersize=app.widgets['style_event_highlight_size'].get(),
+        markers['highlight'], = ax.plot(xs, ys, marker='o', c=app.inputs['style_event_highlight_color'].get(),
+                                        markersize=app.inputs['style_event_highlight_size'].get(),
                                         linestyle='None',
                                         alpha=0.5, animated=False)
         # canvas.draw()
@@ -705,9 +705,9 @@ def plot_peak(xs, ys):
     except Exception as e:
         pass
     try:
-        markers['peak'] = ax.scatter(xs, ys, marker='o', c=app.widgets['style_event_peak_color'].get(), picker=True,
-                                     s=float(app.widgets['style_event_peak_size'].get()) ** 2,
-                                     pickradius=float(app.widgets['style_event_pick_offset'].get()), animated=False)
+        markers['peak'] = ax.scatter(xs, ys, marker='o', c=app.inputs['style_event_peak_color'].get(), picker=True,
+                                     s=float(app.inputs['style_event_peak_size'].get()) ** 2,
+                                     pickradius=float(app.inputs['style_event_pick_offset'].get()), animated=False)
         # canvas.draw()
     except:
         pass
@@ -720,8 +720,8 @@ def plot_start(xs, ys):
     except:
         pass
     try:
-        markers['start'], = ax.plot(xs, ys, marker='x', c=app.widgets['style_event_start_color'].get(),
-                                    markersize=app.widgets['style_event_start_size'].get(),
+        markers['start'], = ax.plot(xs, ys, marker='x', c=app.inputs['style_event_start_color'].get(),
+                                    markersize=app.inputs['style_event_start_size'].get(),
                                     linestyle='None',
                                     animated=False)
         # canvas.draw()
@@ -736,8 +736,8 @@ def plot_decay(xs, ys):
     except:
         pass
     try:
-        markers['decay'], = ax.plot(xs, ys, marker='x', c=app.widgets['style_event_decay_color'].get(),
-                                    markersize=app.widgets['style_event_decay_size'].get(),
+        markers['decay'], = ax.plot(xs, ys, marker='x', c=app.inputs['style_event_decay_color'].get(),
+                                    markersize=app.inputs['style_event_decay_size'].get(),
                                     linestyle='None',
                                     animated=False)
         # canvas.draw()
@@ -752,7 +752,7 @@ def plot_end(xs, ys):
     except:
         pass
     try:
-        markers['end'], = ax.plot(xs, ys, marker='x', c=app.widgets['style_event_color_end'].get(),
+        markers['end'], = ax.plot(xs, ys, marker='x', c=app.inputs['style_event_color_end'].get(),
                                   animated=False)
         # canvas.draw()
     except:
@@ -765,11 +765,11 @@ def apply_styles(keys, draw=True):
         try:
             if k == 'style_trace_line_width':
                 for l in ax.lines:
-                    l.set_linewidth(float(app.widgets[k].get()))
+                    l.set_linewidth(float(app.inputs[k].get()))
             if k == 'style_trace_line_color':
-                if not app.widgets['trace_mode'].get() == 'compare':
+                if not app.inputs['trace_mode'].get() == 'compare':
                     for l in ax.lines:
-                        l.set_color(app.widgets[k].get())
+                        l.set_color(app.inputs[k].get())
             if k == 'compare_color_list':
                 idx_offset = 0
                 for i,r in enumerate(interface.recordings):
@@ -777,29 +777,29 @@ def apply_styles(keys, draw=True):
                         sweeps[f'sweep_{j+idx_offset}'].set_color(app.compare_tab.get_color(i))
                     idx_offset += r.sweep_count
             if k == 'style_event_peak_color':
-                markers['peak'].set_color(app.widgets[k].get())
+                markers['peak'].set_color(app.inputs[k].get())
             if k == 'style_event_peak_size':
-                markers['peak'].set_sizes([float(app.widgets[k].get()) ** 2])
+                markers['peak'].set_sizes([float(app.inputs[k].get()) ** 2])
             if k == 'style_event_start_color':
-                markers['start'].set_color(app.widgets[k].get())
+                markers['start'].set_color(app.inputs[k].get())
             if k == 'style_event_start_size':
-                markers['start'].set_markersize(app.widgets[k].get())
+                markers['start'].set_markersize(app.inputs[k].get())
             if k == 'style_event_decay_color':
-                markers['decay'].set_color(app.widgets[k].get())
+                markers['decay'].set_color(app.inputs[k].get())
             if k == 'style_event_decay_size':
-                markers['decay'].set_markersize(app.widgets[k].get())
+                markers['decay'].set_markersize(app.inputs[k].get())
             if k == 'style_event_highlight_color':
-                markers['highlight'].set_color(app.widgets[k].get())
+                markers['highlight'].set_color(app.inputs[k].get())
             if k == 'style_event_highlight_size':
-                markers['highlight'].set_markersize(app.widgets[k].get())
+                markers['highlight'].set_markersize(app.inputs[k].get())
             if k == 'style_trace_highlight_width':
                 for idx in highlighted_sweep:
-                    sweeps[f'sweep_{idx}'].set_linewidth(float(app.widgets[k].get()))
+                    sweeps[f'sweep_{idx}'].set_linewidth(float(app.inputs[k].get()))
             if k == 'style_trace_highlight_color':
                 for idx in highlighted_sweep:
-                    sweeps[f'sweep_{idx}'].set_color(app.widgets[k].get())
+                    sweeps[f'sweep_{idx}'].set_color(app.inputs[k].get())
             if k == 'style_event_pick_offset':
-                markers['peak'].set_picker(float(app.widgets[k].get()))
+                markers['peak'].set_picker(float(app.inputs[k].get()))
         except:
             pass
     if draw:

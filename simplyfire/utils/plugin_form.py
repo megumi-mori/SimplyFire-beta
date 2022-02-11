@@ -26,62 +26,34 @@ import yaml
 import os
 from tkinter import ttk
 import tkinter as Tk
-from .base_module import BaseModule
-from .base_module_layout import BaseModuleLayout
-class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
+from simplyfire.utils.plugin_GUI import PluginGUI
+class PluginForm(ScrollableOptionFrame, PluginGUI):
     def __init__(self,
-                 module:BaseModule,
-                 name:str='control_tab',
+                 tab_label: str=None,
                  scrollbar:bool=True,
                  notebook:ttk.Notebook=app.cp_notebook
                  ) -> None:
         ScrollableOptionFrame.__init__(self, app.root, scrollbar)
-        BaseModuleLayout.__init__(self, module)
+        PluginGUI.__init__(self)
 
-        self.defaults = self.module.defaults
-        self.values = self.module.values
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        self.widgets = self.module.inputs
-        # app.menubar.window_menu.add_checkbutton(label=self.menu_label, command=self.update_module_display, variable=self.status_var,
-        #                                onvalue=True, offvalue=False)
-        # if scrollbar:
-        #     self.frame = ScrollableOptionFrame(self)
-        #     self.optionframe = self.frame.frame
-        # else:
-        #     self.frame = OptionFrame(self)
-        #     self.optionframe = self.frame
-
-        # pass
-        # self.frame.grid(row=0, column=0, sticky='news')
         self.insert_panel = self.frame.insert_panel
         self.make_panel = self.frame.make_panel
         self.insert_separator = self.frame.insert_separator
         self.insert_widget = self.frame.insert_widget
 
         self.notebook = notebook
-        self.notebook.add(self, text=self.module.tab_label)
-
-        self.name = name
-
-    # def update_module_display(self, event=None):
-    #     if self.status_var.get():
-    #         self.show_tab()
-    #         if self.enabled:
-    #             app.cp_notebook.select(self)
-    #     else:
-    #         self.hide_tab()
-    #     try:
-    #         self.module_table.update_module_display()
-    #     except:
-    #         pass
+        self.tab_label = tab_label
+        if notebook:
+            self.notebook.add(self, text=self.tab_label)
 
     def insert_title(self, **kwargs):
         # title = self.optionframe.insert_title(**kwargs)
         title = self.frame.insert_title(**kwargs)
         try:
-            self.widgets[kwargs['name']] = title
+            self.inputs[kwargs['name']] = title
         except Exception as e:
             pass
         return title
@@ -93,7 +65,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
             kwargs['default'] = self.defaults.get(kwargs['name'], None)
         entry = self.frame.insert_label_entry(**kwargs)
         try:
-            self.widgets[kwargs['name']] = entry
+            self.inputs[kwargs['name']] = entry
         except:
             pass
         return entry
@@ -101,7 +73,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
     def insert_button(self, **kwargs):
         button = self.frame.insert_button(self, **kwargs)
         try:
-            self.widgets[kwargs['name']] = button
+            self.inputs[kwargs['name']] = button
         except:
             pass
         return button
@@ -113,7 +85,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
             kwargs['default'] = self.defaults.get(kwargs['name'], None)
         checkbox = self.frame.insert_label_checkbox(**kwargs)
         try:
-            self.widgets[kwargs['name']] = checkbox
+            self.inputs[kwargs['name']] = checkbox
         except:
             pass
         return checkbox
@@ -125,21 +97,21 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
             kwargs['default'] = self.defaults.get(kwargs['name'], None)
         optionmenu = self.frame.insert_label_optionmenu(**kwargs)
         try:
-            self.widgets[kwargs['name']] = optionmenu
+            self.inputs[kwargs['name']] = optionmenu
         except:
             pass
 
     def insert_StringVar(self, name):
-        self.widgets[name] = Tk.StringVar(self, value=self.load_config_value(name))
+        self.inputs[name] = Tk.StringVar(self, value=self.load_config_value(name))
 
     def make_entry(self, parent, **kwargs):
         if 'value' not in kwargs.keys():
             kwargs['value'] = self.values.get(kwargs['name'], None)
         if 'default' not in kwargs.keys():
             kwargs['default'] = self.defaults.get(kwargs['name'], None)
-        self.widgets[kwargs['name']] = custom_widgets.VarEntry(parent=parent,
+        self.inputs[kwargs['name']] = custom_widgets.VarEntry(parent=parent,
                                                                **kwargs)
-        return self.widgets[kwargs['name']]
+        return self.inputs[kwargs['name']]
 
     def make_label(self, parent, **kwargs):
         return ttk.Label(parent, **kwargs)
@@ -168,7 +140,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
 
     def hide_widget(self, widgetname=None, target=None):
         if widgetname:
-            target = self.widgets.get(widgetname, None)
+            target = self.inputs.get(widgetname, None)
         if target is None:
             return
         try:
@@ -182,7 +154,7 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
 
     def show_widget(self, widgetname=None, target=None):
         if widgetname:
-            target = self.widgets.get(widgetname, None)
+            target = self.inputs.get(widgetname, None)
         if target is None:
             return
         if target is None:
@@ -193,20 +165,23 @@ class BaseModuleControl(ScrollableOptionFrame, BaseModuleLayout):
             target.grid()
 
     def set_to_default(self, filter=""):
-        for k, v in self.widgets.items():
+        for k, v in self.inputs.items():
             if filter:
                 if filter in k:
                     # try:
-                    #     self.widgets[k].set_to_default()
+                    #     self.inputs[k].set_to_default()
                     # except:
-                    self.widgets[k].set(self.defaults[k])
+                    self.inputs[k].set(self.defaults[k])
             else:
-                # self.widgets[k].set_to_default()
-                self.widgets[k].set(self.defaults[k])
+                # self.inputs[k].set_to_default()
+                try:
+                    self.inputs[k].set(self.inputs[k].default)
+                except:
+                    pass
         app.interface.focus()
 
     def get_widget_dict(self):
-        return {k:self.widgets[k].get() for k in self.widgets}
+        return {k:self.inputs[k].get() for k in self.inputs}
 
     def load_config_value(self, name):
         return self.values.get(name, self.defaults.get(name, None))

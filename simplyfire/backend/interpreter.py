@@ -352,13 +352,13 @@ def plot_mouse_scroll(event):
     global scroll_axis
     if scroll_axis == 'x':
         app.trace_display.zoom_x_by(direction={'up':-1, 'down':1}[event.button],
-                                                  percent=float(app.widgets['navigation_zoom_x_percent'].get()),
-                                                  event=event)
+                                    percent=float(app.inputs['navigation_zoom_x_percent'].get()),
+                                    event=event)
 
     else:
         app.trace_display.zoom_y_by(direction={'up':1, 'down':-1}[event.button],
-                                                  percent=float(app.widgets['navigation_zoom_x_percent'].get()),
-                                                  event=event)
+                                    percent=float(app.inputs['navigation_zoom_x_percent'].get()),
+                                    event=event)
 
 def scroll_x_key(event, direction):
     global scrolling_x
@@ -366,9 +366,9 @@ def scroll_x_key(event, direction):
     #     app.trace_display.scroll_x_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
     #                           float(app.widgets['navigation_scroll_percent'].get()))
     if not scrolling_x:
-        scroll_x_repeat(direction * int(app.widgets['navigation_mirror_x_scroll'].get()),
-                        int(app.widgets['navigation_fps'].get()),
-                        float(app.widgets['navigation_scroll_x_percent'].get()) * navigation_speed)
+        scroll_x_repeat(direction * int(app.inputs['navigation_mirror_x_scroll'].get()),
+                        int(app.inputs['navigation_fps'].get()),
+                        float(app.inputs['navigation_scroll_x_percent'].get()) * navigation_speed)
     scrolling_x = True
 
 def scroll_y_key(event, direction):
@@ -376,9 +376,9 @@ def scroll_y_key(event, direction):
     if not scrolling_y:
         # app.trace_display.scroll_y_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
         #                       float(app.widgets['navigation_scroll_percent'].get()))
-        scroll_y_repeat(direction * int(app.widgets['navigation_mirror_y_scroll'].get()),
-                        int(app.widgets['navigation_fps'].get()),
-                        float(app.widgets['navigation_scroll_y_percent'].get()))
+        scroll_y_repeat(direction * int(app.inputs['navigation_mirror_y_scroll'].get()),
+                        int(app.inputs['navigation_fps'].get()),
+                        float(app.inputs['navigation_scroll_y_percent'].get()))
     scrolling_y = True
 
 def scroll_x_repeat(direction, fps, percent):
@@ -447,8 +447,8 @@ def zoom_x_key(event, direction):
     global zooming_x
     if not zooming_x:
         zoom_x_repeat(direction,
-                      int(app.widgets['navigation_fps'].get()),
-                      float(app.widgets['navigation_zoom_x_percent'].get()))
+                      int(app.inputs['navigation_fps'].get()),
+                      float(app.inputs['navigation_zoom_x_percent'].get()))
     zooming_x = True
 
 def zoom_x_repeat(direction, fps, percent):
@@ -471,8 +471,8 @@ def zoom_y_key(event, direction):
     if not zooming_y:
         zoom_y_repeat(
             direction,
-            int(app.widgets['navigation_fps'].get()),
-            float(app.widgets['navigation_zoom_y_percent'].get())
+            int(app.inputs['navigation_fps'].get()),
+            float(app.inputs['navigation_zoom_y_percent'].get())
         )
     zooming_y = True
 

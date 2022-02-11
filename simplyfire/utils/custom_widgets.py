@@ -35,7 +35,7 @@ class VarWidget():
     def __init__(
             self,
             parent=None,
-            name="",
+            name=None,
             value=None,
             default=None,
             type=None,
@@ -51,8 +51,10 @@ class VarWidget():
             self.var = Tk.DoubleVar()
         if default is not None:
             self.default=default
-        else:
-            if config.default_vars.get('default_{}'.format(name), None):
+        elif name is None:
+            self.default = ""
+        elif name is not None:
+            if config.default_vars.get('default_{}'.format(name), None) is not None:
                 self.default = config.default_vars['default_{}'.format(name)]
             else:
                 self.default=""
@@ -61,13 +63,15 @@ class VarWidget():
                 self.var.set(value)
             except:
                 pass
-        else:
+        elif name is not None:
             if config.user_vars.get(name, None) is not None:
                 self.var.set(config.user_vars[name])
             elif config.system_vars.get(name, None) is not None:
                 self.var.set(config.system_vars[name])
             else:
                 self.var.set(self.default)
+        else:
+            self.var.set(self.default)
 
         self.undo_value = self.get()
 

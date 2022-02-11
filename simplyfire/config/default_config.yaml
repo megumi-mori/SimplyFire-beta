@@ -64,7 +64,7 @@ default_temp_path :
   - 'temp'
 
 # modules
-default_start_module:
+default_start_plugins:
   - 'style'
 ## navigation
 #default_min_x : 'auto'
@@ -234,9 +234,8 @@ default_force_channel_id: 0
 default_trace_mode : 'continuous'
 #default_analysis_mode : 'mini'
 
-default_module_list:
-  - 'mini_analysis'
-
+default_active_plugins:
+  - 'style'
 
 #####################
 #      key map      #

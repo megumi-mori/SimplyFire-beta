@@ -40,8 +40,8 @@ setup(
         'matplotlib>=3.5.1',
         'scipy>=1.7.3',
         'pyyaml>=6.0',
-        'pyabf>=2.3.5'
-
+        'pyabf>=2.3.5',
+        'packaging'
     ],
     license='GNU General Public License v3',
     zip_safe = False,

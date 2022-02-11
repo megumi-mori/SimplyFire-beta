@@ -43,17 +43,17 @@ class ModuleControl(BaseModuleControl):
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
             target_sweeps = app.modules_dict['sweeps'].control_tab.get_visible_sweeps()
-            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+            if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
-            elif app.widgets['trace_mode'].get() == 'overlay':
+            elif app.inputs['trace_mode'].get() == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
             target_sweeps = app.modules_dict['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
-            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+            if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
-            elif app.widgets['trace_mode'].get() == 'overlay':
+            elif app.inputs['trace_mode'].get() == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         if self.widgets['channel_target'].get():
@@ -70,17 +70,17 @@ class ModuleControl(BaseModuleControl):
 
         recording = app.interface.recordings[0]
         mins, mins_std = evoked_analysis.calculate_min_sweeps(recording,
-                                                              plot_mode=app.widgets['trace_mode'].get(),
+                                                              plot_mode=app.inputs['trace_mode'].get(),
                                                               channels=target_channels,
                                                               sweeps=target_sweeps,
                                                               xlim=xlim)
         maxs, maxs_std = evoked_analysis.calculate_max_sweeps(recording,
-                                                              plot_mode=app.widgets['trace_mode'].get(),
+                                                              plot_mode=app.inputs['trace_mode'].get(),
                                                               channels=target_channels,
                                                               sweeps=target_sweeps,
                                                               xlim=xlim)
         # report
-        if app.widgets['trace_mode'].get() == 'continuous':
+        if app.inputs['trace_mode'].get() == 'continuous':
             target_sweeps = [0] # continuous mode only has 1 sweep
         for i,c in enumerate(target_channels):
             for j,s in enumerate(target_sweeps):

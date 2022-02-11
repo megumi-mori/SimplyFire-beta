@@ -30,7 +30,7 @@ class ModuleControl(BaseModuleControl):
                  )
         self._load_layout()
     def average_sweeps(self, event=None):
-        if app.widgets['trace_mode'].get() == 'continuous':
+        if app.inputs['trace_mode'].get() == 'continuous':
             return
         if self.widgets['channel_target'].get():
             target_channels = [app.interface.current_channel]
@@ -41,17 +41,17 @@ class ModuleControl(BaseModuleControl):
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
             target_sweeps = app.modules['sweeps'].control_tab.get_visible_sweeps()
-            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+            if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
-            elif app.widgets['trace_mode'].get () == 'overlay':
+            elif app.inputs['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
             target_sweeps = app.modules['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
-            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+            if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
-            elif app.widgets['trace_mode'].get () == 'overlay':
+            elif app.inputs['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         avg_sweep = process.average_sweeps(app.interface.recordings[0],
@@ -99,22 +99,22 @@ class ModuleControl(BaseModuleControl):
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
             target_sweeps = app.modules['sweeps'].control_tab.get_visible_sweeps()
-            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+            if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
-            elif app.widgets['trace_mode'].get () == 'overlay':
+            elif app.inputs['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
             target_sweeps = app.modules['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
-            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+            if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
-            elif app.widgets['trace_mode'].get () == 'overlay':
+            elif app.inputs['trace_mode'].get () == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         if len(target_sweeps) == 0:
             return
-        plot_mode = app.widgets['trace_mode'].get()
+        plot_mode = app.inputs['trace_mode'].get()
         result, baseline = process.subtract_baseline(app.interface.recordings[0],
                                                      plot_mode=plot_mode,
                                                      channels=target_channels,
@@ -148,17 +148,17 @@ class ModuleControl(BaseModuleControl):
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif self.widgets['sweep_target'].get() == 'Visible sweeps':
             target_sweeps = app.modules['sweeps'].control_tab.get_visible_sweeps()
-            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+            if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
-            elif app.widgets['trace_mode'].get() == 'overlay':
+            elif app.inputs['trace_mode'].get() == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
         elif self.widgets['sweep_target'].get() == 'Highlighted sweeps':
             target_sweeps = app.modules['sweeps'].control_tab.get_highlighted_sweeps()
             # account for more recordings being open (consider only the main file open)
-            if app.widgets['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
+            if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
                 target_sweeps = range(app.interface.recordings[0].sweep_count)
-            elif app.widgets['trace_mode'].get() == 'overlay':
+            elif app.inputs['trace_mode'].get() == 'overlay':
                 # account for more recordings being open (consider only the main file open)
                 target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
 

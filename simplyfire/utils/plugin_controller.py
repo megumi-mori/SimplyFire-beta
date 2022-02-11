@@ -25,29 +25,19 @@ from simplyfire import app
 import inspect
 from threading import Thread
 
-class BaseModule():
+class PluginController():
+    """
+    Use this class to manage visibily of GUI plug-in components.
+    """
+
     def __init__(self,
                  name:str,
                  menu_label:str,
-                 tab_label:str,
                  filename:str = None,
-                 menu_target=app.menubar.module_menu,
+                 menu_target=app.menubar.plugin_menu,
                  file_menu:bool=False
                  ):
         filename = inspect.getfile(self.__class__)
-        self.widgets = {}
-        try:
-            with open(os.path.join(os.path.dirname(filename), 'default_values.yaml'), 'r') as f:
-                self.defaults = yaml.safe_load(f)
-        except:
-            self.defaults = {}
-
-        try:
-            with open(os.path.join(os.path.dirname(filename), 'config.yaml'), 'r') as f:
-                self.config = yaml.safe_load(f)
-        except:
-                self.config = {}
-
         try:
             self.values = app.config.user_vars[name]
         except:
@@ -55,8 +45,7 @@ class BaseModule():
 
         self.name = name
         self.menu_label = menu_label
-        self.tab_label = tab_label
-        self.menu_var = BooleanVar(value=False)
+        self.menu_var = BooleanVar(value=self.name in getattr(app.config, 'start_plugins', []))
         self.disable_stack = []
 
         menu_target.add_checkbutton(label=self.menu_label,
@@ -69,9 +58,9 @@ class BaseModule():
         if file_menu:
             self.file_menu = self.create_file_menu_cascade() #expand this later
 
-
-        self._load_components()
-        self._load_binding()
+        self.children = []
+        # self._load_components()
+        # self._load_binding()
 
 
     def toggle_module_display(self, event=None, undo=True):
@@ -88,7 +77,7 @@ class BaseModule():
                 lambda u=False: self.toggle_module_display(undo=u)]
             )
 
-    def update_module_display(self, event=None):
+    def update_plugin_display(self, event=None):
         if self.menu_var.get(): # menu checkbutton is ON
             self.show_tab()
         else:
@@ -114,11 +103,11 @@ class BaseModule():
             source = self.name
         if source not in self.disable_stack:
             self.disable_stack.append(source)
-        self.update_module_display()
+        self.update_plugin_display()
 
     def force_enable(self, event=None):
         self.disable_stack = []
-        self.update_module_display()
+        self.update_plugin_display()
 
     def _remove_disable(self, event=None, source:str=None):
         if not source:
@@ -127,7 +116,7 @@ class BaseModule():
             self.disable_stack.remove(source)
         except ValueError:
             self._error_log(f'{source} is not part of the disable stack')
-        self.update_module_display()
+        self.update_plugin_display()
 
     def disable_module(self, event=None, modulename=None):
         if not modulename:
@@ -163,62 +152,6 @@ class BaseModule():
         # connect to log later
         pass
 
-    def _load_components(self):
-        component_dict = self.config.get('GUI_components', None)
-        if not component_dict:
-            return
-        # make empty components:
-        self.control_tab = None
-        self.data_tab = None
-        self.popup_list = []
-        self.children = []
-        for component, object in component_dict.items(): # 'py file name': {dict of details}
-            module_py = importlib.import_module(f'simplyfire.modules.{self.name}.{component}')
-            # try:
-            tab = getattr(module_py, object, None)(self)
-            if tab.name:
-                setattr(self, tab.name, tab)
-            self.children.append(tab)
-            for w in tab.inputs.keys(): # share widget references
-                self.widgets[w] = tab.inputs[w]
-
-
-
-            # except Exception as e:
-            #     print(f'{self.name}, {e}')
-            #     pass
-                # if details['location'] == 'control_panel':
-                #     module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
-                #     # try:
-                #     tab = getattr(module_py, 'ModuleControl', None)(self)
-                #     if tab.name:
-                #         setattr(self, tab.name, tab)
-                #     self.children.append(tab)
-                #     # except TypeError:
-                #     #     self._error_log(f'component {component} does not have attribute ModuleControl')
-                # elif details['location'] == 'data_notebook':
-                #     module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
-                #     try:
-                #         tab = getattr(module_py, 'ModuleDataTable', None)(self)
-                #         if tab.name:
-                #             setattr(self, tab.name, tab)
-                #         self.children.append(self.data_tab)
-                #     except TypeError:
-                #         self._error_log(f'component {component} does not have attribute ModuleTable')
-                #         pass
-                # elif details['location'] == 'popup':
-                #     module_py = importlib.import_module(f'PyMini.Modules.{self.name}.{component}')
-                #     try:
-                #         self.popup_list.append(getattr(module_py, 'ModulePopup', None)(self))
-                #         self.children.append(self.popup_list[-1])
-                #         if self.popup_list[-1].name:
-                #             setattr(self, self.popup_list[-1].name, self.popup_list[-1])
-                #     except TypeError:
-                #         self._error_log(f'component {component} does not have attribute ModulePopup')
-                #         pass
-
-
-
     def create_menubar_cascade(self, target):
         menu = Tk.Menu(target, tearoff=0)
         target.add_cascade(label=self.menu_label, menu=menu)
@@ -251,7 +184,6 @@ class BaseModule():
         t.start()
         if popup:
             return self.show_interrupt_popup(target_interrupt)
-
 
     def show_interrupt_popup(self, target_interrupt):
         self.popup_window = Tk.Toplevel(app.root)
@@ -303,3 +235,25 @@ class BaseModule():
             target.bind(event, lambda e, f=function:self.call_if_enabled(f), add='+')
         elif condition == 'visible':
             target.bind(event, lambda e, f=function: self.call_if_visible(f), add='+')
+
+
+    def save(self):
+        data = {}
+        for c in self.children:
+            try:
+                for k, v in c.save().items():
+                    data[k] = v
+            except Exception as e:
+                pass
+        return data
+
+    def load_values(self, data=None):
+        if data is None:
+            data = self.values
+        print(data)
+        for c in self.children:
+            try:
+                c.load_values(data)
+            except:
+                pass
+

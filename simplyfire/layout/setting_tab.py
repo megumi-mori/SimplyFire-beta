@@ -51,7 +51,7 @@ def load(parent):
                 if answer is None:
                     return
                 if answer:
-                    app.load_config(filename = os.path.join(d, 'user_config.yaml'))
+                    load_config(filename = os.path.join(d, 'user_config.yaml'))
                 if not answer:
                     pass
             else:
@@ -214,11 +214,12 @@ def load(parent):
 
     return frame
 
-def load_config(e=None):
+def load_config(e=None, filename=None):
     interface.focus()
-    filename = filedialog.askopenfilename()
-    print(filename)
+    if filename is None:
+        filename = filedialog.askopenfilename()
     app.load_config(filename=filename)
+    app.root.event_generate('<<LoadedConfig>>')
 
 def apply_geometry(e=None):
     app.root.geometry(f'{widgets["window_width"].get()}x{widgets["window_height"].get()}')

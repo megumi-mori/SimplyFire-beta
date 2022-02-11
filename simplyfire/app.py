@@ -21,13 +21,15 @@ import tkinter as Tk
 import yaml
 from PIL import Image
 import os
+import pkg_resources
 from simplyfire.utils import custom_widgets
-from simplyfire.backend import interpreter, interface
+from simplyfire.backend import interpreter, interface, plugin_manager
 from simplyfire.config import config
 # from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
 #     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar,\
 #     compare_tab
-from simplyfire.layout import menubar, graph_panel, setting_tab, batch_popup, log_display, results_display, trace_display, results_display, log_display
+from simplyfire.layout import menubar, graph_panel, setting_tab, batch_popup, \
+    trace_display, results_display, log_display, plugin_tab
 # from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display, param_guide
 import importlib
 # debugging
@@ -37,7 +39,7 @@ import time
 
 
 event_filename = None
-widgets = {}
+inputs = {}
 
 ##################################################
 #                    Methods                     #
@@ -49,7 +51,7 @@ def _on_close():
     Uses the config module to write out user-defined parameters
     :return: None
     """
-    global widgets
+    global inputs
     # if widgets['config_autosave'].get():
     # try:
     dump_user_setting()
@@ -66,22 +68,22 @@ def _on_close():
 
 def get_value(key, tab=None):
     try:
-        v = widgets[key].get()
+        v = inputs[key].get()
         return v
     except Exception as e:
         pass
 
 def get_widget(key, tab=None):
     try:
-        return widgets[key]
+        return inputs[key]
     except:
         pass
 
 
 def set_value(key, value, tab=None):
-    widgets[key].set(value)
+    inputs[key].set(value)
     try:
-        widgets[key].set(value)
+        inputs[key].set(value)
         return
     except:
         raise
@@ -134,7 +136,7 @@ def load(splash):
     global arrow_img
     arrow_img = Image.open(os.path.join(IMG_DIR, 'arrow.png'))
 
-    global widgets
+    global inputs
     global pw
     pw = Tk.PanedWindow(
         root,
@@ -238,7 +240,7 @@ def load(splash):
     # cp_notebook.add(test, text='test')
 
     for k, v in graph_panel.widgets.items():
-        widgets[k] = v
+        inputs[k] = v
 
     # get reference to widgets
     # for module in [detector_tab, evoked_tab, adjust_tab, navigation_tab, style_tab, setting_tab, graph_panel]:
@@ -246,15 +248,15 @@ def load(splash):
     #         widgets[k] = v
     # setting_tab.set_fontsize(widgets['font_size'].get())
     # # set focus rules
-    for key in widgets:
-        if type(widgets[key]) == custom_widgets.VarEntry:
-            widgets[key].bind('<Return>', lambda e: interface.focus(), add='+')
-        if type(widgets[key]) == custom_widgets.VarCheckbutton:
-            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
-        if type(widgets[key]) == custom_widgets.VarOptionmenu:
-            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
-        if type(widgets[key]) == custom_widgets.VarCheckbutton:
-            widgets[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
+    for key in inputs:
+        if type(inputs[key]) == custom_widgets.VarEntry:
+            inputs[key].bind('<Return>', lambda e: interface.focus(), add='+')
+        if type(inputs[key]) == custom_widgets.VarCheckbutton:
+            inputs[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
+        if type(inputs[key]) == custom_widgets.VarOptionmenu:
+            inputs[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
+        if type(inputs[key]) == custom_widgets.VarCheckbutton:
+            inputs[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
 
     # set up font adjustment bar
     # fb = font_bar.load(left, config.font_size)
@@ -289,11 +291,11 @@ def load(splash):
     globals()['menubar'] = menubar
 
     for k, v in menubar.widgets.items():
-        widgets[k] = v
+        inputs[k] = v
 
     setting_tab.load(root)
     for k, v in setting_tab.widgets.items():
-        widgets[k] = v
+        inputs[k] = v
 
     batch_popup.load()
     menubar.batch_menu.add_command(label='Batch Processing', command=batch_popup.show)
@@ -307,11 +309,13 @@ def load(splash):
     global modules
     modules = {}
 
-    with open(os.path.join(config.CONFIG_DIR, 'modules.yaml')) as f:
-        module_list = yaml.safe_load(f)['modules']
-        for module_name in module_list:
-            load_module(module_name)
-
+    # with open(os.path.join(config.CONFIG_DIR, 'modules.yaml')) as f:
+    #     module_list = yaml.safe_load(f)['modules']
+    #     for module_name in module_list:
+    #         load_module(module_name)
+    # plugin_controller = plugin_tab.PluginController()
+    # plugin_controller.load_plugins()
+    plugin_tab.load()
 
             # except Exception as e:
             #     print(e)
@@ -333,14 +337,15 @@ def load(splash):
     # set up event bindings
     interpreter.initialize()
 
-    for modulename in config.start_module:
-        try:
-            modules[modulename].menu_var.set(True)
-        except: # module removed from module-list
-            pass
-    for module_name, module in modules.items():
-        module.update_module_display()
-
+    # for modulename in config.start_module:
+    #     try:
+    #         modules[modulename].menu_var.set(True)
+    #     except: # module removed from module-list
+    #         pass
+    # for module_name, module in modules.items():
+    #     module.update_module_display()
+    print('hide tab')
+    cp_notebook.add(setting_tab.frame, text='Setting', state='disabled')
     cp_notebook.add(setting_tab.frame, text='Setting', state='hidden')
     root.update()
     ## root2 = root
@@ -357,6 +362,7 @@ def load(splash):
     if config.user_config_load_error is not None:
         messagebox.showwarning('Warning', f'Error while loading user settings: {config.user_config_load_error}\nReverting to default configurations.')
     return None
+
 
 
 
@@ -423,11 +429,11 @@ def clear_progress_bar():
     pb.update()
 
 def dump_user_setting(filename=None):
-    global widgets
+    global inputs
     ignore = ['config_', '_log', 'temp_']
     print('Writing out configuration variables....')
     if filename is None:
-        filename = os.path.join(widgets['config_user_dir'].var.get().strip(), 'user_config.yaml')
+        filename = os.path.join(inputs['config_user_dir'].var.get().strip(), 'user_config.yaml')
         # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
         print('writing dump user config {}'.format(filename))
@@ -437,15 +443,15 @@ def dump_user_setting(filename=None):
         f.write("\n")
         # pymini.pb.initiate()
         d = {}
-        for key in widgets.keys():
+        for key in inputs.keys():
             try:
                 for ig in ignore:
                     if ig in key:
                         break
                 else:
-                    d[key] = widgets[key].get()
+                    d[key] = inputs[key].get()
             except:
-                d[key] = widgets[key].get()
+                d[key] = inputs[key].get()
         global cp
         if loaded:
             d['zoomed'] = root.state() == 'zoomed'
@@ -456,11 +462,10 @@ def dump_user_setting(filename=None):
 
         # d['compare_color_list'] = config.compare_color_list
         # d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
-        d['start_module'] = [name for name, module in modules.items() if module.menu_var.get()]
-        for modulename, module in modules.items():
-            d[modulename] = dict([(key, var.get()) for key, var in module.widgets.items() if 'key_' not in key])
-            for key in [k for k in module.defaults.keys() if 'key_' in k]:
-                setattr(config, key, module.defaults[key])
+        d['active_plugins'] = plugin_tab.get_plugins()
+        save_data = plugin_manager.save_plugin_data()
+        for key,value in save_data.items():
+            d[key] = value
 
         f.write(yaml.safe_dump(d))
         # pymini.pb.clear()
@@ -479,7 +484,7 @@ def dump_system_setting():
 
         # f.write(yaml.safe_dump(dict([(key, widgets[key].get()) for key in widgets if 'config' in key])))
         # f.write(yaml.safe_dump(dict([(n, getattr(config, n)) for n in config.user_vars if 'config' in n])))
-        f.write(yaml.safe_dump(dict([(key, value.get()) for key, value in widgets.items() if 'config' in key])))
+        f.write(yaml.safe_dump(dict([(key, value.get()) for key, value in inputs.items() if 'config' in key])))
 
     print('Completed')
 
@@ -499,21 +504,14 @@ def load_config(filename=None):
         return None
     with open(filename) as f:
         loaded_configs = yaml.safe_load(f)
-    for key in widgets.keys():
+    for key in inputs.keys():
         try:
             value = loaded_configs.get(key, None)
             if value:
-                widgets[key].set(value)
+                inputs[key].set(value)
         except:
             pass
-    for modulename in modules:
-        for key in modules[modulename].widgets.keys():
-            try:
-                value = loaded_configs[modulename].get(key, None)
-                if value:
-                    modules[modulename].widgets[key].set(value)
-            except:
-                pass
+
 
 def print_time_lapse(msg=""):
     global t0

@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from simplyfire import app
 
-class BaseModuleLayout():
+class PluginGUI():
     """
     parent class for module GUI components
     the child class must implement the following fucntions that returns a bool for the event binding to work:
@@ -30,7 +30,7 @@ class BaseModuleLayout():
 
     """
     def __init__(self):
-        self.widgets = {}
+        self.inputs = {}
         pass
 
     def call_if_enabled(self, function):
@@ -63,5 +63,8 @@ class BaseModuleLayout():
         pass
 
     def save(self):
-        print({k:self.widgets[k].get() for k in self.widgets.keys()})
-        return {k:self.widgets[k].get() for k in self.widgets.keys()}
+        return {k:self.inputs[k].get() for k in self.inputs.keys()}
+
+    def load_values(self, data):
+        for key in self.inputs.keys():
+            self.inputs[key].set(data.get(key, self.inputs[key].get())) # keep the same value if no data available

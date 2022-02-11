@@ -189,7 +189,7 @@ class ModuleControl(BaseModuleControl):
         if file_index == 0:
             style_module = app.get_module('style', 'style_tab')
             if style_module:
-                style_module.widgets['style_trace_line_color'].set(color)
+                style_module.inputs['style_trace_line_color'].set(color)
         if app.custom_widgets['trace_mode'].get() == 'overlay':
             sweeps_module = app.get_module('sweeps', 'sweeps_tab')
             if sweeps_module:
@@ -244,7 +244,7 @@ class ModuleControl(BaseModuleControl):
             default_sweeps = analyzer.format_list_indices(range(recording.sweep_count))
         idx_entry = custom_widgets.VarEntry(panel, validate_type='indices', value=default_sweeps, default=0)
         color_label = ttk.Label(panel, text='Color:')
-        color = app.get_module('style', 'style_tab').widgets['style_trace_line_color'].get()
+        color = app.get_module('style', 'style_tab').inputs['style_trace_line_color'].get()
         color_entry = custom_widgets.VarEntry(panel, validate_type='color',
                                               value=color,
                                               default=self.default['color'])

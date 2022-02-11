@@ -46,7 +46,7 @@ def get_temp_num():
     global temp_num
     try:
         temp_num += 1
-        return temp_num % int(app.widgets['config_undo_stack'].get())
+        return temp_num % int(app.inputs['config_undo_stack'].get())
     except:
         temp_num = 0
         return 0
@@ -57,7 +57,7 @@ def get_temp_filename():
 def get_prev_temp_num():
     global temp_num
     try:
-        return temp_num % int(app.widgets['config_undo_stack'].get())
+        return temp_num % int(app.inputs['config_undo_stack'].get())
     except:
         return None
 
@@ -82,7 +82,7 @@ def add_undo(task):
     else:
         undo_stack.append([task])
     try:
-        if len(undo_stack) > int(app.widgets['config_undo_stack'].get()):
+        if len(undo_stack) > int(app.inputs['config_undo_stack'].get()):
             temp = undo_stack.pop(0)
             del temp
     except:
@@ -91,7 +91,7 @@ def add_undo(task):
 
 def is_accepting_undo():
     if not app.batch_popup.processing:
-        return int(app.widgets['config_undo_stack'].get()) > 0
+        return int(app.inputs['config_undo_stack'].get()) > 0
     else:
         return False
 
@@ -377,7 +377,7 @@ def select_left(e=None):
     If a mini in the viewing window is already highlighted, the highlight will move to the proceeding mini.
     """
     # check if mini analysis mode is activated
-    if app.widgets['analysis_mode'].get()!= 'mini':
+    if app.inputs['analysis_mode'].get()!= 'mini':
         return None
     # get the x-axis limits
     xlim_low, xlim_high = app.trace_display.ax.get_xlim()
@@ -413,7 +413,7 @@ def select_left(e=None):
 # update changes made to the y-data in the recording data to the plot
 def update_plot_ys(sweeps):
     global recordings
-    if app.widgets['trace_mode'].get() == 'continuous':
+    if app.inputs['trace_mode'].get() == 'continuous':
         trace_display.get_sweep(0).set_ydata(recordings[0].get_ys(mode='continuous'))
     else:
         for s in sweeps:

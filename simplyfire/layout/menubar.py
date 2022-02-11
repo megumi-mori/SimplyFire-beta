@@ -20,7 +20,6 @@ import tkinter as Tk
 from tkinter import filedialog, messagebox
 import os
 from simplyfire.config import config
-from simplyfire.utils.custom_widgets import VarWidget
 from simplyfire.utils import abfWriter
 from simplyfire.backend import interface
 from simplyfire.layout import results_display
@@ -81,12 +80,9 @@ def load(menubar):
     menubar.add_cascade(label='Batch', menu=batch_menu)
 
     # Window menu
-    global module_menu
-    module_menu = Tk.Menu(menubar, tearoff=0)
-    menubar.add_cascade(label='Modules', menu=module_menu)
-    widgets['window_param_guide'] = VarWidget(name='window_param_guide')
-    if widgets['window_param_guide'].get() == '1':
-        module_menu.invoke(module_menu.index('Parameter-guide'))
+    global plugin_menu
+    plugin_menu = Tk.Menu(menubar, tearoff=0)
+    menubar.add_cascade(label='Plug-ins', menu=plugin_menu)
 
     global settings_menu
     settings_menu = Tk.Menu(menubar, tearoff=0)

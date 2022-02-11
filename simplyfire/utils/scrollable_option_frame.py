@@ -29,8 +29,12 @@ from simplyfire.backend import interface
 from functools import wraps
 
 class OptionFrame(Tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, textwrap_length=None):
         super().__init__(parent)
+        self.textwrap_length = textwrap_length
+        if self.textwrap_length == None:
+            self.textwrap_length = config.default_label_length
+
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -55,12 +59,15 @@ class OptionFrame(Tk.Frame):
                 value=None,
                 default=None,
                 separator=config.default_separator,
+                textwrap_length=None,
                 **kwargs
         ):
             panel = self.make_panel(separator=separator)
             frame = ttk.Frame(panel)
             frame.grid_columnconfigure(0, weight=1)
             frame.grid_rowconfigure(0, weight=1)
+            if textwrap_length == None:
+                textwrap_length = self.textwrap_length
             wrapped_label = textwrap.wrap(text, width=config.default_label_length)
             formatted_text='\n'.join(wrapped_label)
             label = ttk.Label(frame, text=formatted_text)

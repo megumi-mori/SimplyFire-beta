@@ -31,7 +31,7 @@ class Module(BaseModule):
             file_menu=True
         )
 
-        if app.widgets['trace_mode'].get() != 'continuous':
+        if app.inputs['trace_mode'].get() != 'continuous':
             try:
                 self._add_disable()
             except:

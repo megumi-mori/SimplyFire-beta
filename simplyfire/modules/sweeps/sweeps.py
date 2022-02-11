@@ -27,7 +27,7 @@ class Module(BaseModule):
             filename=__file__
         )
 
-        if app.widgets['trace_mode'].get() != 'overlay':
+        if app.inputs['trace_mode'].get() != 'overlay':
             try:
                 self._add_disable()
             except:

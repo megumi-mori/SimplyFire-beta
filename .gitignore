@@ -4,7 +4,7 @@
 *.pyc
 simplyfire/config/key_map.yaml
 simplyfire/config/system_config.yaml
-simplyfire/config/user_config.yaml
+simplyfire/user_config.yaml
 *.temp
 *.csv
 *.mini

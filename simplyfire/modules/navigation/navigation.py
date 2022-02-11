@@ -69,13 +69,13 @@ class ModuleControl(BaseModuleControl):
 
     def apply_navigation(self, event=None):
         app.interpreter.navigation_fps = int(self.widgets['navigation_fps'].get())
-        app.widgets['navigation_fps'].set(int(self.widgets['navigation_fps'].get()))
-        app.widgets['navigation_scroll_x_percent'].set(float(self.widgets['navigation_scroll_x_percent'].get()))
-        app.widgets['navigation_zoom_x_percent'].set(float(self.widgets['navigation_zoom_x_percent'].get()))
-        app.widgets['navigation_scroll_y_percent'].set(float(self.widgets['navigation_scroll_y_percent'].get()))
-        app.widgets['navigation_zoom_y_percent'].set(float(self.widgets['navigation_zoom_y_percent'].get()))
-        app.widgets['navigation_mirror_x_scroll'].set(int(self.widgets['navigation_mirror_x_scroll'].get()))
-        app.widgets['navigation_mirror_y_scroll'].set(int(self.widgets['navigation_mirror_y_scroll'].get()))
+        app.inputs['navigation_fps'].set(int(self.widgets['navigation_fps'].get()))
+        app.inputs['navigation_scroll_x_percent'].set(float(self.widgets['navigation_scroll_x_percent'].get()))
+        app.inputs['navigation_zoom_x_percent'].set(float(self.widgets['navigation_zoom_x_percent'].get()))
+        app.inputs['navigation_scroll_y_percent'].set(float(self.widgets['navigation_scroll_y_percent'].get()))
+        app.inputs['navigation_zoom_y_percent'].set(float(self.widgets['navigation_zoom_y_percent'].get()))
+        app.inputs['navigation_mirror_x_scroll'].set(int(self.widgets['navigation_mirror_x_scroll'].get()))
+        app.inputs['navigation_mirror_y_scroll'].set(int(self.widgets['navigation_mirror_y_scroll'].get()))
         app.interface.focus()
 
 

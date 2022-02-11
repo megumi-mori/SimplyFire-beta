@@ -233,7 +233,7 @@ def load():
         default="")
     path_entry.grid(column=1, row=1, sticky='news')
     Tk.Text.configure(path_entry,
-                      font=Tk.font.Font(size=int(float(app.widgets['font_size'].get()))))
+                      font=Tk.font.Font(size=int(float(app.inputs['font_size'].get()))))
     path_entry.configure(state='disabled', height=2)
     path_button_frame = ttk.Frame(file_frame)
     path_button_frame.grid(column=2, row=1, sticky='news')
@@ -244,7 +244,7 @@ def load():
     ttk.Label(file_frame, text='File path list:').grid(column=0, row=2, sticky='nw')
     global file_entry
     file_entry = Tk.Text(master=file_frame)
-    Tk.Text.configure(file_entry, font=Tk.font.Font(size=int(float(app.widgets['font_size'].get()))))
+    Tk.Text.configure(file_entry, font=Tk.font.Font(size=int(float(app.inputs['font_size'].get()))))
     file_entry.grid(column=1, row=2, sticky='news')
     file_button_frame = ttk.Frame(file_frame)
     file_button_frame.grid(column=2, row=2, sticky='news')
@@ -289,7 +289,7 @@ def load():
     batch_log = VarText(parent=batch_frame, value="Press Start to begin...", default="Press Start to begin...", lock=False)
     batch_log.grid(column=0, row=1, sticky='news')
     Tk.Text.configure(batch_log,
-                      font=Tk.font.Font(size=int(float(app.widgets['font_size'].get()))))
+                      font=Tk.font.Font(size=int(float(app.inputs['font_size'].get()))))
 
     global progress_message
     progress_message = VarLabel(batch_frame, value="Processing 0/0 files. At 0/0 steps", default="Processing 0/0 files. At 0/0 steps")
