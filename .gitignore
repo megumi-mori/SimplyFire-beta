@@ -15,3 +15,4 @@ test_recordings/*
 *.gz
 
 simplyfire/active_plugins.yaml
+simplyfire/key_map.yaml

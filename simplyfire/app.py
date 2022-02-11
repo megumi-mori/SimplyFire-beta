@@ -62,7 +62,7 @@ def _on_close():
     #     if f:
     #         widgets['config_user_path'].set(f)
 
-    dump_config_var(key='key_', filename=config.config_keymap_path, title='Keymap')
+    dump_config_var(key='key_', filename=os.path.join(config.config_user_dir, 'key_map.yaml'), title='Keymap')
     dump_system_setting()
     root.destroy()
     app_root.destroy()
@@ -503,7 +503,7 @@ def dump_system_setting():
 def dump_config_var(key, filename, title=None):
     print('Saving "{}" config values...'.format(key))
     print(filename)
-    with open(filename, 'w') as f:
+    with open(filename, mode='w') as f:
         f.write("#################################################################\n")
         f.write("# PyMini {} configurations\n".format(title))
         f.write("#################################################################\n")
