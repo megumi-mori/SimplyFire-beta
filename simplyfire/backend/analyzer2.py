@@ -417,8 +417,10 @@ class Analyzer():
         prev_peak = None
         while start_idx < xlim_idx[1] and not self.stop:
             peak_idx = self.find_peak_recursive(xs, ys, start=start_idx, end=end_idx, direction=direction)
+            # print(f'find peak recursive: {peak_idx}')
             self.print_time('find peak', show_time)
             if peak_idx is not None:
+                # print(f'before analysis, prev peak is: {prev_peak}')
                 mini = self.analyze_candidate_mini(
                     xs=xs,
                     ys=ys,
@@ -448,6 +450,8 @@ class Analyzer():
                     else:
                         start_idx += stride
                     self.print_time("don't append mini", show_time)
+                # print(f'end of analysis, mini was: {mini}')
+                # print(f'end of analysis, prev_peak is set to: {prev_peak}')
 
             else:
                 start_idx += stride
@@ -1026,6 +1030,7 @@ class Analyzer():
                 If set to False, previously found minis will be ignored.
 
         """
+        # print(f'start of analysis, prev peak passed is: {prev_peak}')
 
         show_time = False
         # perform conversions
@@ -1045,15 +1050,18 @@ class Analyzer():
         if peak_t is None and peak_idx is None:
             return {'success':False, 'failure':'peak idx not provided'}
         min_peak2peak = min_peak2peak_ms/1000*sampling_rate
-        if prev_peak:
+        if prev_peak: # had the prev peak provided as dict
             try:
                 prev_peak_idx = prev_peak['peak_idx']
             except:
+                print('prev peak is None')
                 prev_peak = None
-        elif prev_peak_idx: # had index provided
+        elif prev_peak_idx: # had index provided but not the dict
             try:
-                prev_peak = reference_df.loc[(reference_df['peak_idx'] == prev_peak_idx) &
-                                         (reference_df['channel'] == channel)].squeeze().to_dict()
+                prev_peak_candidate = reference_df.loc[(reference_df['peak_idx'] == prev_peak_idx) &
+                                         (reference_df['channel'] == channel)]
+                if prev_peak_candidate.shape[0] > 0:
+                    prev_peak = prev_peak_candidate.squeeze().to_dict()
             except:
                 prev_peak = None
         # initiate mini data dict
@@ -1080,7 +1088,7 @@ class Analyzer():
         # check if the peak is duplicate of existing mini data
         if reference_df is not None and not reanalyze:
             try:
-                if mini['t'] in reference_df.t.values:
+                if mini['t'] in reference_df[(reference_df['channel']==channel)].t.values: # check if t exists in the channel
                     mini = reference_df.loc[(reference_df['t'] == mini['t']) &
                                                  (reference_df['channel'] == channel)].squeeze().to_dict()
                     mini['success'] = False
@@ -1135,7 +1143,10 @@ class Analyzer():
 
                     prev_peak = reference_df.loc[(reference_df['peak_idx'] == prev_peak_idx) &
                                              (reference_df['channel'] == channel)].squeeze().to_dict()
+                    # print(f'got prev peak from ref df: {prev_peak["peak_idx"]}')
             if prev_peak is not None:
+                # print(prev_peak['peak_idx'])
+                # print(f'at the problematic location, prev peak is set to: {prev_peak}')
                 prev_peak_idx_offset = int(prev_peak['peak_idx']) - offset
                 #check if previous peak has decayed sufficiently
                 if compound:
