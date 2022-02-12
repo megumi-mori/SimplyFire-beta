@@ -27,9 +27,11 @@ import os
 from tkinter import ttk
 import tkinter as Tk
 from simplyfire.utils.plugin_GUI import PluginGUI
+from simplyfire.utils.plugin_controller import PluginController
 class PluginForm(ScrollableOptionFrame, PluginGUI):
     def __init__(self,
-                 tab_label: str=None,
+                 plugin_controller:PluginController,
+                 tab_label: str="",
                  scrollbar:bool=True,
                  notebook:ttk.Notebook=app.cp_notebook
                  ) -> None:
@@ -48,6 +50,7 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         self.tab_label = tab_label
         if notebook:
             self.notebook.add(self, text=self.tab_label)
+        self.module = plugin_controller
 
     def insert_title(self, **kwargs):
         # title = self.optionframe.insert_title(**kwargs)
@@ -59,10 +62,10 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         return title
 
     def insert_label_entry(self, **kwargs):
-        if 'value' not in kwargs.keys():
-            kwargs['value'] = self.values.get(kwargs['name'], None)
-        if 'default' not in kwargs.keys():
-            kwargs['default'] = self.defaults.get(kwargs['name'], None)
+        # if 'value' not in kwargs.keys():
+        #     kwargs['value'] = self.values.get(kwargs['name'], None)
+        # if 'default' not in kwargs.keys():
+        #     kwargs['default'] = self.defaults.get(kwargs['name'], None)
         entry = self.frame.insert_label_entry(**kwargs)
         try:
             self.inputs[kwargs['name']] = entry
@@ -79,10 +82,10 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         return button
 
     def insert_label_checkbox(self, **kwargs):
-        if 'value' not in kwargs.keys():
-            kwargs['value'] = self.values.get(kwargs['name'], None)
-        if 'default' not in kwargs.keys():
-            kwargs['default'] = self.defaults.get(kwargs['name'], None)
+        # if 'value' not in kwargs.keys():
+        #     kwargs['value'] = self.values.get(kwargs['name'], None)
+        # if 'default' not in kwargs.keys():
+        #     kwargs['default'] = self.defaults.get(kwargs['name'], None)
         checkbox = self.frame.insert_label_checkbox(**kwargs)
         try:
             self.inputs[kwargs['name']] = checkbox
@@ -91,10 +94,10 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         return checkbox
 
     def insert_label_optionmenu(self, **kwargs):
-        if 'value' not in kwargs.keys():
-            kwargs['value'] = self.values.get(kwargs['name'], None)
-        if 'default' not in kwargs.keys():
-            kwargs['default'] = self.defaults.get(kwargs['name'], None)
+        # if 'value' not in kwargs.keys():
+        #     kwargs['value'] = self.values.get(kwargs['name'], None)
+        # if 'default' not in kwargs.keys():
+        #     kwargs['default'] = self.defaults.get(kwargs['name'], None)
         optionmenu = self.frame.insert_label_optionmenu(**kwargs)
         try:
             self.inputs[kwargs['name']] = optionmenu
@@ -105,10 +108,10 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         self.inputs[name] = Tk.StringVar(self, value=self.load_config_value(name))
 
     def make_entry(self, parent, **kwargs):
-        if 'value' not in kwargs.keys():
-            kwargs['value'] = self.values.get(kwargs['name'], None)
-        if 'default' not in kwargs.keys():
-            kwargs['default'] = self.defaults.get(kwargs['name'], None)
+        # if 'value' not in kwargs.keys():
+        #     kwargs['value'] = self.values.get(kwargs['name'], None)
+        # if 'default' not in kwargs.keys():
+        #     kwargs['default'] = self.defaults.get(kwargs['name'], None)
         self.inputs[kwargs['name']] = custom_widgets.VarEntry(parent=parent,
                                                                **kwargs)
         return self.inputs[kwargs['name']]
@@ -131,12 +134,6 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
 
     def is_enabled(self):
         return self.module.is_enabled()
-
-    def hide_label_widget(self, widget):
-        widget.master.master.grid_remove()
-
-    def show_label_widget(self, widget):
-        widget.master.master.grid()
 
     def hide_widget(self, widgetname=None, target=None):
         if widgetname:
@@ -168,14 +165,15 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         for k, v in self.inputs.items():
             if filter:
                 if filter in k:
-                    # try:
-                    #     self.inputs[k].set_to_default()
-                    # except:
-                    self.inputs[k].set(self.defaults[k])
+                    try:
+                        self.inputs[k].set_to_default()
+                    except:
+                        pass
+                    # self.inputs[k].set(self.defaults[k])
             else:
                 # self.inputs[k].set_to_default()
                 try:
-                    self.inputs[k].set(self.inputs[k].default)
+                    self.inputs[k].set_to_default()
                 except:
                     pass
         app.interface.focus()

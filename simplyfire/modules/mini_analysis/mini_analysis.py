@@ -26,9 +26,7 @@ class Module(BaseModule):
         super().__init__(
             name='mini_analysis',
             menu_label='Mini Analysis',
-            tab_label='Mini',
-            filename=__file__,
-            file_menu=True
+            tab_label='Mini'
         )
 
         if app.inputs['trace_mode'].get() != 'continuous':

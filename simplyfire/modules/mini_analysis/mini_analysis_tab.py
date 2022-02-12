@@ -138,6 +138,7 @@ class ModuleControl(BaseModuleControl):
     #     pass
     def synch_table(self, event=None):
         self.module.data_tab.set_data(self.extract_channel_subset())
+
     def _default_core_params(self, e=None):
         self.set_to_default('detector_core')
         self.populate_decay_algorithms()

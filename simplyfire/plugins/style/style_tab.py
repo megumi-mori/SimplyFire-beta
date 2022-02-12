@@ -15,7 +15,7 @@ controller = PluginController(
     menu_label = 'Style',
 )
 
-form = PluginForm(tab_label=tab_label, scrollbar=True, notebook=app.cp_notebook)
+form = PluginForm(plugin_controller=controller, tab_label=tab_label, scrollbar=True, notebook=app.cp_notebook)
 
 ############ format form #################
 form.main_panel = form.make_panel(separator=False)
