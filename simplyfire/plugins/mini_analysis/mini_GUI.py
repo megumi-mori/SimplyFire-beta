@@ -1974,6 +1974,7 @@ if app.inputs['trace_mode'].get() != 'continuous':
         pass
 
 controller.listen_to_event('<<LoadCompleted>>', _apply_column_options)
+controller.listen_to_event('<<LoadCompleted>>', datapanel.datatable.fit_columns)
 controller.listen_to_event('<<LoadCompleted>>', controller.update_plugin_display)
 def _on_open(event=None):
     delete_clear(undo=False, draw=False)

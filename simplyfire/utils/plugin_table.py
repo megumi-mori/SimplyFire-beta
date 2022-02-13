@@ -64,6 +64,7 @@ class PluginTable(Tk.Frame, PluginGUI):
         self.datatable.add(datadict, parent, index)
         if self.is_visible():
             self.enable()
+            self.select()
         if undo and app.interface.is_accepting_undo():
             d = (datadict[self.datatable.iid_header],)
             self.module.add_undo(
@@ -91,6 +92,17 @@ class PluginTable(Tk.Frame, PluginGUI):
         if self.is_visible():
             self.enable()
             self.select()
+
+    def delete_all(self, e=None, undo=True):
+        if undo and app.interface.is_accepting_undo():
+            undo_df = {}
+            for i in self.datatable.table.get_children():
+                undo_df[i] = self.datatable.table.set(i)
+            undo_df = pd.DataFrame.from_dict(undo_df, orient='index')
+            self.module.add_undo(
+                [lambda df=undo_df, u=False: self.append(df, u)]
+            )
+        self.datatable.clear()
 
     def delete_selected(self, e=None, undo=True):
         selection = self.datatable.table.selection()
