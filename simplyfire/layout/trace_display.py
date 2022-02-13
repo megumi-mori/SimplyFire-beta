@@ -549,7 +549,7 @@ def clear_markers(key=None):
 
     draw_ani()
 
-def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None, name=""):
+def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None, name="", relim_axis='both'):
     global sweeps
     global trace_color
     global trace_width
@@ -569,15 +569,17 @@ def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None, nam
                                               c=color,
                                               animated=False)  # pickradius=int(app.widgets['style_event_pick_offset'].get())
     if relim:
-        ax.autoscale(enable=True, axis='both', tight=True)
+        ax.autoscale(enable=False, axis='both')
+        ax.autoscale(enable=True, axis=relim_axis, tight=True)
         ax.relim(visible_only=True)
         # canvas.draw()
         draw_ani()
-        global default_xlim
-        default_xlim = ax.get_xlim()
-
-        global default_ylim
-        default_ylim = ax.get_ylim()
+        if relim_axis == 'x' or relim_axis == 'both':
+            global default_xlim
+            default_xlim = ax.get_xlim()
+        if relim_axis == 'y' or relim_axis =='both':
+            global default_ylim
+            default_ylim = ax.get_ylim()
 
 
     if draw:

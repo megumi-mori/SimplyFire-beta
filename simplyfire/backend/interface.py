@@ -288,7 +288,7 @@ def change_channel(num: int,
 
     xlim = app.trace_display.ax.get_xlim()
     # plot data points
-    plot(clear=False)
+    plot(clear=False, relim=True, relim_axis='y')
     # if app.menubar.widgets['trace_mode'].get() == 'continuous':
     #     plot_continuous(recordings[0], fix_x=True, draw=False)
     # elif app.menubar.widgets['trace_mode'].get() == 'compare':
@@ -304,7 +304,7 @@ def change_channel(num: int,
 
     # param_guide.update()
     app.root.event_generate('<<ChangedChannel>>')
-    trace_display.set_axis_limit('x', xlim)
+    # trace_display.set_axis_limit('x', xlim)
     trace_display.draw_ani()
     app.pb['value'] = 0
     app.pb.update()
