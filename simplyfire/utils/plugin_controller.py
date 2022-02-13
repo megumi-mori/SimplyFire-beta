@@ -33,11 +33,9 @@ class PluginController():
     def __init__(self,
                  name:str,
                  menu_label:str,
-                 filename:str = None,
                  menu_target=app.menubar.plugin_menu,
                  file_menu:bool=False
                  ):
-        filename = inspect.getfile(self.__class__)
         try:
             self.values = app.config.user_vars[name]
         except:
