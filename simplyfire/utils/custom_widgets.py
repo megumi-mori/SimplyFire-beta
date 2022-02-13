@@ -165,8 +165,8 @@ class VarEntry(VarWidget, Tk.Entry):
     def get(self):
         # if validation.is_na(self.var.get()):
         #     return None
-        return validation.convert(self.validate_type, self.var.get())
-        # return self.var.get()
+        # return validation.convert(self.validate_type, self.var.get())
+        return self.var.get()
     def undo(self, value):
         self.set(value)
         self.focus_set()

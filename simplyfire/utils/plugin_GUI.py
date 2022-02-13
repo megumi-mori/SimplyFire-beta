@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from simplyfire import app
-
+from .plugin_controller import PluginController
 class PluginGUI():
     """
     parent class for module GUI components
@@ -29,8 +29,11 @@ class PluginGUI():
 
 
     """
-    def __init__(self):
+    def __init__(self,
+                 plugin_controller:PluginController):
         self.inputs = {}
+        self.module = plugin_controller
+        self.module.children.append(self)
         pass
 
     def call_if_enabled(self, function):

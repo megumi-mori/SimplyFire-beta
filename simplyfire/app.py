@@ -317,6 +317,7 @@ def load(splash):
     # plugin_controller = plugin_tab.PluginController()
     # plugin_controller.load_plugins()
     plugin_tab.load()
+    plugin_manager.load_plugins()
 
             # except Exception as e:
             #     print(e)
@@ -362,6 +363,8 @@ def load(splash):
     root.geometry(config.geometry)
     if config.user_config_load_error is not None:
         messagebox.showwarning('Warning', f'Error while loading user settings: {config.user_config_load_error}\nReverting to default configurations.')
+    if not plugin_manager.error_free:
+        messagebox.showwarning('Warning', f'Error encountered while loading plugins. See log-display for more details.')
     return None
 
 

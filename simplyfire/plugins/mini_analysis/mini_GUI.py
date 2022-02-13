@@ -1,14 +1,19 @@
 from simplyfire.utils.plugin_controller import PluginController
 from simplyfire.utils.plugin_form import PluginForm
 from simplyfire.utils.plugin_table import PluginTable
+from simplyfire.utils.plugin_popup import PluginPopup
 from simplyfire import app
 from simplyfire.backend import plugin_manager, analyzer2
-from simplyfire.utils import formatting, custom_widgets
+from simplyfire.utils import formatting, custom_widgets, threader
 import pandas as pd
 from . import mini_analysis
 import os
-from tkinter import messagebox, filedialog
+from tkinter import messagebox, filedialog, ttk
+import tkinter as Tk
 import numpy as np
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import gc
 
 #### set module variables #####
 tab_label = 'Mini'
@@ -28,6 +33,10 @@ parameters = {}
 changes = {}
 changed = False
 logged = True
+
+popup_tracker = False
+popup_data = {}
+popup_peak = None
 
 #### Default values ####
 peak_color = 'green'
@@ -79,6 +88,13 @@ detector_filter_min_dr = 0
 detector_filter_max_dr = 'None'
 detector_filter_min_s2n = 0
 detector_filter_max_s2n = 'None'
+
+# guide
+guide_geometry_height = 600
+guide_geometry_width = 500
+guide_panel_height = 400
+
+guide_markers = {}
 
 # misc
 # store the column name and the name of the widget controlling its visibility
@@ -176,7 +192,7 @@ class MiniTable(PluginTable):
         delete_all(True)
 
     def delete_selected(self, event=None, undo=True):
-        delete_selection([float(s) for s in self.table.selection()], undo=undo)
+        delete_selection([float(s) for s in self.datatable.table.selection()], undo=undo)
 
     def report(self, event=None):
         report_results()
@@ -184,6 +200,12 @@ class MiniTable(PluginTable):
     def report_selected(self, event=None):
         report_selected_results()
 
+#### modify the PluginPopup class ####
+class MiniPopup(PluginPopup):
+    def show_window(self, event=None):
+        popup_clear()
+        super().show_window()
+        print(f'visible is set to: {self.is_visible()}')
 
 #### define functions ####
 # private functions
@@ -192,7 +214,7 @@ def _apply_column_options(event=None):
     called when column checkbox is toggled
     changes the visibility of columns in the datapanel
     """
-    datapanel.show_columns(
+    datapanel.datatable.show_columns(
         [k for k,v in mini_header2config.items() if form.inputs[v].get()]
     )
 
@@ -209,6 +231,46 @@ def _apply_parameters(event=None):
             changes[i] = form.inputs[i].get()
             changed = True
             parameters[i] = form.inputs[i].get()
+
+
+def _apply_styles(event=None, draw=True, undo=True):
+    """
+    Applies graph style setting to canvas
+    """
+    global peak_size
+    global peak_color
+    global start_size
+    global start_color
+    global decay_size
+    global decay_color
+    global highlight_size
+    global highlight_color
+    if undo and app.interface.is_accepting_undo():
+        controller.add_undo([
+            lambda c=peak_size:form.inputs['style_mini_size'].set(c),
+            lambda c=peak_color:form.inputs['style_mini_color'].set(c),
+            lambda c=start_size:form.inputs['style_start_size'].set(c),
+            lambda c=start_color:form.inputs['style_start_color'].set(c),
+            lambda c=decay_size:form.inputs['style_decay_size'].set(c),
+            lambda c=decay_color:form.inputs['style_decay_color'].set(c),
+            lambda c=highlight_size:form.inputs['style_highlight_size'].set(c),
+            lambda c=highlight_color:form.inputs['style_highlight_color'].set(c),
+            lambda u=False:_apply_styles(undo=u)
+        ])
+    app.interface.focus()
+    peak_size = float(form.inputs['style_mini_size'].get())
+    peak_color = form.inputs['style_mini_color'].get()
+    start_size = float(form.inputs['style_start_size'].get())
+    start_color = form.inputs['style_start_color'].get()
+    decay_size = float(form.inputs['style_decay_size'].get())
+    decay_color = form.inputs['style_decay_color'].get()
+    highlight_size = float(form.inputs['style_highlight_size'].get())
+    highlight_color = form.inputs['style_highlight_color'].get()
+
+    if draw and form.is_enabled():
+        update_event_markers()
+        if popup.is_visible():
+            popup_update()
 
 def _columns_show_all(event=None):
     """
@@ -231,9 +293,15 @@ def _default_core_params(event=None):
     Called by the 'Default' button for core parameters.
     Fill the form with default values, and show/hide some widgets accordingly
     """
+    app.interface.focus()
     form.set_to_default('detector_core')
     _populate_decay_algorithms()
     _populate_compound_params()
+
+def _default_style_params(event=None):
+    form.set_to_default('style_')
+    app.interface.focus()
+    _apply_styles()
 
 # populate widgets
 def _populate_decay_algorithms(event=None):
@@ -244,6 +312,7 @@ def _populate_decay_algorithms(event=None):
         else:
             form.hide_widget(form.inputs[d['name']])
     record_param_change('decay algorithm', algorithm)
+    app.interface.focus()
 
 def _populate_compound_params(event=None):
     state = form.inputs['detector_core_compound'].get()
@@ -253,6 +322,7 @@ def _populate_compound_params(event=None):
     else:
         for k, d in compound_params.items():
             form.hide_widget(form.inputs[d['name']])
+    app.interface.focus()
 
 # canvas response
 def canvas_mouse_release(event=None):
@@ -305,7 +375,7 @@ def batch_save_minis():
     app.batch_popup.batch_log.insert(f'Saved minis to: {fname}\n')
 
 def batch_export_minis():
-    if len(datapanel.table.get_children()) == 0:
+    if len(datapanel.datatable.table.get_children()) == 0:
         app.batch_popup.batch_log.insert('Warning: Exporting an empty data table.\n')
     fname = formatting.format_save_filename(
         os.path.splitext(app.batch_popup.current_filename)[0] + '_minis.csv', overwrite=False
@@ -338,7 +408,7 @@ def delete_all(undo=True, draw=True):
     Delete all results in the datapanel
     """
     global mini_df
-    if undo and len(datapanel.table.get_children())>0: # there are results to be stored
+    if undo and len(datapanel.datatable.table.get_children())>0: # there are results to be stored
         if app.interface.is_accepting_undo():
             # store the current data in a temp file. Open the csv if undo is called
             filename = app.interface.get_temp_filename()
@@ -387,7 +457,7 @@ def delete_selection(selection:list, undo:bool=True, draw:bool=True):
                 lambda f=filename: os.remove(f)
             ])
     mini_df = mini_df[(~mini_df['t'].isin(selection)) | (mini_df['channel'] != app.interface.current_channel)]
-    datapanel.delete(selection) # delete the entries in the datapanel
+    datapanel.datatable.delete(selection) # delete the entries in the datapanel
     update_event_markers(draw=draw)
 
 # getters
@@ -426,14 +496,14 @@ def find_mini_all(event=None, popup:bool=True, undo:bool=True):
     datapanel.unselect()
     if app.inputs['trace_mode'].get() != 'continuous': # should be disabled. Don't do anything
         return
-    controller.start_thread(lambda i=popup, u=undo: _find_mini_all_thread(i, undo=u), mini_analysis,
+    threader.start_thread(lambda i=popup, u=undo: _find_mini_all_thread(i, undo=u), mini_analysis.interrupt,
                              popup)
     # if detector_tab.changed:
     #     log_display.search_update('Auto')
     #     log_display.param_update(detector_tab.changes)
     #     detector_tab.changes = {}
     #     detector_tab.changed = False
-    log()
+    log_search()
 
 def _find_mini_all_thread(popup=True, undo=True):
     """
@@ -447,7 +517,7 @@ def _find_mini_all_thread(popup=True, undo=True):
         ys = app.trace_display.sweeps['Sweep_0'].get_ydata()
     except:  # no traces yet
         return
-    df = app.interface.al.find_mini_auto(xlim=None, xs=xs, ys=ys, x_sigdig=app.interface.recordings[0].x_sigdig,
+    df = mini_analysis.find_mini_auto(xlim=None, xs=xs, ys=ys, x_sigdig=app.interface.recordings[0].x_sigdig,
                                          sampling_rate=app.interface.recordings[0].sampling_rate,
                                          channel=app.interface.current_channel,
                                          reference_df=mini_df, y_unit=app.interface.recordings[0].y_unit,
@@ -468,8 +538,7 @@ def _find_mini_all_thread(popup=True, undo=True):
                 [lambda s=df[df.channel == app.interface.current_channel]['t']: delete_selection(s, undo=False)]
             )
     app.clear_progress_bar()
-    if popup:
-        controller.destroy_interrupt_popup()
+
 
 def find_mini_at(x1, x2):
     """
@@ -479,7 +548,7 @@ def find_mini_at(x1, x2):
     xs = app.trace_display.sweeps['Sweep_0'].get_xdata() # have a proper getter?
     ys = app.trace_display.sweeps['Sweep_0'].get_ydata()
     params = get_params()
-    mini = app.interface.al.find_mini_manual(xlim=(x1,x2), xs=xs, ys=ys,
+    mini = mini_analysis.find_mini_manual(xlim=(x1,x2), xs=xs, ys=ys,
                                           x_sigdig=app.interface.recordings[0].x_sigdig,
                                           sampling_rate=app.interface.recordings[0].sampling_rate,
                                           channel=app.interface.current_channel,
@@ -511,7 +580,7 @@ def find_mini_manual(x):
     xlim = app.trace_display.ax.get_xlim() # get the current window limits
     r = (xlim[1] - xlim[0]) * float(form.inputs['detector_core_search_radius'].get())/100 # calculate the search radius
     find_mini_at(max(x-r, xlim[0]), min(x+r, xlim[1]))
-    log()
+    log_search()
 
 def find_mini_range(event=None, popup=True, undo=True):
     """
@@ -522,9 +591,9 @@ def find_mini_range(event=None, popup=True, undo=True):
         messagebox.showerror('Error', 'Please open a recording file first')
         return None
     datapanel.unselect()
-    controller.start_thread(lambda i=popup, u=undo: _find_mini_range_thread(popup=i, undo=u), mini_analysis,
+    threader.start_thread(lambda i=popup, u=undo: _find_mini_range_thread(popup=i, undo=u), mini_analysis.interrupt,
                              popup)
-    log()
+    log_search()
 
 def _find_mini_range_thread(popup=True, undo=True):
     """
@@ -539,7 +608,7 @@ def _find_mini_range_thread(popup=True, undo=True):
         return
     params = get_params()
 
-    df = app.interface.al.find_mini_auto(xlim=app.trace_display.ax.get_xlim(), xs=xs, ys=ys,
+    df = mini_analysis.find_mini_auto(xlim=app.trace_display.ax.get_xlim(), xs=xs, ys=ys,
                                          x_sigdig=app.interface.recordings[0].x_sigdig,
                                          sampling_rate=app.interface.recordings[0].sampling_rate,
                                          channel=app.interface.current_channel,
@@ -556,10 +625,8 @@ def _find_mini_range_thread(popup=True, undo=True):
                 [lambda s=df[df.channel == app.interface.current_channel]['t']: delete_selection(s, undo=False)]
             )
     app.clear_progress_bar()
-    if popup:
-        controller.destroy_interrupt_popup()
 
-def find_mini_reanalyze(selection:list, accept:bool=False):
+def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
     """
     reanalyze previously found (or analyzed) minis
     """
@@ -573,16 +640,17 @@ def find_mini_reanalyze(selection:list, accept:bool=False):
 
     data = mini_df[
         (mini_df['t'].isin(selection)) & (mini_df['channel'] == app.interface.current_channel)]
-    if app.interface.is_accepting_undo():
+    if undo and app.interface.is_accepting_undo():
         filename = app.interface.get_temp_filename()
         mini_df.to_csv(filename)
         controller.add_undo([
+            lambda s='undoing the reanalyze':print(s),
             lambda f=filename: open_minis(filename, log=False, undo=False, append=True),
             lambda f=filename: os.remove(f),
         ])
     try:
         if data.shape[0] > 0:  # assume reanalyzing all existing minis
-            delete_selection(selection)
+            delete_selection(selection, undo=False)
             peaks = data['peak_idx']
         else:
             peaks = [analyzer2.search_index(s, xs, app.interface.recordings[0].sampling_rate) for s in selection]
@@ -605,7 +673,7 @@ def find_mini_reanalyze(selection:list, accept:bool=False):
         params['min_s2n'] = 0.0
         params['max_s2n'] = np.inf
     for peak_idx in peaks:
-        mini = app.interface.al.analyze_candidate_mini(xs=xs, ys=ys, peak_idx=peak_idx,
+        mini = mini_analysis.analyze_candidate_mini(xs=xs, ys=ys, peak_idx=peak_idx,
                                                        x_sigdig=app.interface.recordings[0].x_sigdig,
                                                        sampling_rate=app.interface.recordings[0].sampling_rate,
                                                        channel=app.interface.current_channel,
@@ -633,7 +701,7 @@ def filter_all(event=None):
     global mini_df
     if mini_df.shape[0] == 0: # no minis found yet, nothing to filter
         return
-    if len(datapanel.table.get_children()) == 0: # no minis in the current channel
+    if len(datapanel.datatable.table.get_children()) == 0: # no minis in the current channel
         return
     params = get_params()
     mini_df = mini_analysis.filter_mini(mini_df=mini_df, xlim=None, **params)
@@ -645,7 +713,7 @@ def filter_window(event=None):
     global mini_df
     if mini_df.shape[0] == 0:  # no minis found yet, nothing to filter
         return
-    if len(datapanel.table.get_children()) == 0:  # no minis in the current channel
+    if len(datapanel.datatable.table.get_children()) == 0:  # no minis in the current channel
         return
     params=get_params()
     xlim = app.trace_display.ax.get_xlim()
@@ -694,20 +762,19 @@ def get_params():
                 params[k] = d['conversion'](form.inputs[d['name']].get())
             except:
                 params[k] = form.inputs[d['name']].get()
-    print(params)
     return params
 
 # log
-def log(event=None):
+def log_search(event=None):
     """
     Log a message in the log_display
     """
     global logged
-    # controller.log(f'Find mini.\n{str(changes)}', header=True)
+    global changes
+    if changes:
+        controller.log(f'{str(changes)}', header=True)
+    changes = {}
     logged = True
-
-def open_guide(event=None):
-    pass
 
 # open mini files
 def open_minis(filename, log=True, undo=True, append=False):
@@ -721,7 +788,6 @@ def open_minis(filename, log=True, undo=True, append=False):
     if filetype not in ('.mini','.csv','.temp','.minipy'):
         if not messagebox.askyesno('Warning', f'{filetype} is not a recognized filetype. The file may not be read properly. Proceed?'):
             return
-    filetype = os.path.splitext(filename)[1]
     df = pd.DataFrame()
     if filetype in ('.csv', '.temp', '.event', '.mini'):
         df = open_mini_csv(filename)
@@ -735,7 +801,6 @@ def open_minis(filename, log=True, undo=True, append=False):
             lambda: open_minis(temp_filename, log=False, undo=False, append=False),
             lambda f=filename: os.remove(f)
             ])
-
     if not append:
         mini_df = df
         update_module_table()
@@ -750,11 +815,11 @@ def open_minis(filename, log=True, undo=True, append=False):
 
     app.clear_progress_bar()
 
-def open_mini_csv(self,filename):
+def open_mini_csv(filename):
     df = pd.read_csv(filename, comment='@')
     return df
 
-def open_minipy(self,filename):
+def open_minipy(filename):
     """
     open mini files from Minipy (ancestral version)
     """
@@ -788,7 +853,7 @@ def open_minipy(self,filename):
                     'decay_coord_x': float(info[header_idx['tau_x']]),
                     'decay_coord_y': float(info[header_idx['tau_y']]),
                     'decay_max_points': int(
-                        float(self.widgets['detector_core_decay_max_interval'].get()) / 1000 * app.interface.recordings[
+                        float(form.inputs['detector_core_decay_max_interval'].get()) / 1000 * app.interface.recordings[
                             0].sampling_rate),
                     'failure': None,
                     'lag': int(info[header_idx['lag']]),
@@ -834,7 +899,7 @@ def open_minipy(self,filename):
                 mini['stdev'] = np.std(ys[mini['base_idx_L']:mini['base_idx_R']])
 
                 # try finding halfwidth
-                hw_start_idx, hw_end_idx = app.interface.al.find_mini_halfwidth(amp=mini['amp'],
+                hw_start_idx, hw_end_idx = mini_analysis.find_mini_halfwidth(amp=mini['amp'],
                                                                                 xs=xs[mini['baseline_idx']:mini[
                                                                                     'end_idx']],
                                                                                 ys=ys[mini['baseline_idx']:mini[
@@ -936,7 +1001,316 @@ def plot_start(xs, ys):
         markers['start'], = app.trace_display.ax.plot([], [], marker='x', color=decay_color,
                                                                          markersize=decay_size, linestyle='None',
                                                                          animated=False)
+# popup functions
+def popup_accept(event=None):
+    global popup_data
+    find_mini_reanalyze((popup_data['t'],), accept=True, undo=True)
 
+
+def popup_clear():
+    global popup_tracker
+    popup_tracker = False
+    try:
+        popup.msg_label.clear()
+        for l in popup.ax.lines:
+            l.remove()
+        for c in popup.ax.collections:
+            c.remove()
+        for m in guide_markers:
+            try:
+                m.remove()
+            except:
+                pass
+        guide_markers.clear()
+        popup.ax.clear()
+        popup.canvas.draw()
+        gc.collect()
+    except:
+        pass
+    global popup_data
+    popup_data = {}
+    pass
+
+def popup_plot_amplitude(x, y, baseline):
+    """
+    Call this to plot the baseline-to-peak line representing the amplitude on the popup guide
+    """
+    if not x or not y:
+        return
+    popup.ax.plot((x, x), (y, baseline),
+                  linewidth=app.trace_display.trace_width,
+                  c='black',
+                  alpha=0.9)
+
+def popup_plot_base_extrapolate(xs, end, data):
+    """
+    Plot the baseline on the popup guide, as extrapolation from the decay of the previous peak
+    """
+    global popup_tracker
+    popup_tracker = True
+
+    xs = xs[int(data['prev_peak_idx']):end]
+    A = data['prev_decay_A']
+    decay = data['prev_decay_const'] / 1000
+    baseline = data['prev_baseline']
+    direction = data['direction']
+    popup.ax.plot(xs, mini_analysis.single_exponent(xs - xs[0], A, decay) * direction + baseline,
+                  linewidth=app.trace_display.trace_width,
+                  c='black',
+                  alpha=0.9,
+                  label='Prev decay'
+                  )
+
+def popup_plot_base_range(xs, ys, data):
+    """
+    Plot info on the popup guide.
+    Marks the datapoints that were referenced to estimate the baseline
+    """
+    popup.ax.plot(xs[int(data['base_idx_L']): int(data['base_idx_R'])],
+                  ys[int(data['base_idx_L']): int(data['base_idx_R'])],
+                  linewidth=app.trace_display.trace_width * 3,
+                  c='pink',
+                  alpha=0.9,
+                  label='Baseline sample')
+
+def popup_plot_base_simple(xs, end, data):
+    """
+    Plot info on the popup guide.
+    Creates a horizontal line marking the baseline value.
+    """
+    x1 = xs[int(data['start_idx'])]
+    x2 = xs[end]
+    baseline = data['baseline']
+    popup.ax.plot([x1, x2], [baseline, baseline],
+                  linewidth=app.trace_display.trace_width,
+                  c='black',
+                  alpha=0.9)
+
+def popup_plot_decay_fit(xs, end, data):
+    """
+    Plot info on the popup guide
+    Plot a single-exponential decay
+    """
+    xs = xs[int(data['peak_idx']):end]
+    A = data['decay_A']
+    tau = data['decay_const'] / 1000
+    decay_base = data['decay_baseline']  # support for constant
+    baseline = data['baseline']
+    direction = data['direction']
+    guide_markers['decay_fit'], = popup.ax.plot(xs,
+                  mini_analysis.single_exponent_constant(xs - xs[0], A, tau, decay_base) * direction + baseline,
+                  linewidth=app.trace_display.trace_width,
+                  c=decay_color,
+                  label='Decay fit')
+
+def popup_plot_decay_extrapolate(xs, end, data):
+    """
+    Plot info on the popup guide
+    Plot the single-exponential decay offset by the decay of the previous mini of the compound mini
+    """
+    xs = xs[int(data['peak_idx']):end]
+    A = data['decay_A']
+    tau = data['decay_const'] / 1000
+    decay_base = data['decay_baseline']  # support for constant
+    baseline = data['baseline']
+    direction = data['direction']
+
+    ys = mini_analysis.single_exponent_constant(xs - xs[0], A, tau, decay_base) * direction
+
+    delta_t = data['t'] - data['prev_t']
+    prev_A = data['prev_decay_A']
+    prev_decay = data['prev_decay_const'] / 1000
+    prev_base = data['prev_decay_baseline']
+
+    prev_ys = mini_analysis.single_exponent_constant(xs - xs[0] + delta_t, prev_A, prev_decay, prev_base) * direction
+
+    ys = ys + prev_ys + baseline
+
+    popup.ax.plot(xs, ys, linewidth=app.trace_display.trace_width,
+                  c=decay_color,
+                  label='Decay fit')
+
+def popup_plot_decay_point(data):
+    """
+    Plots info on the popup guide.
+    Plots a single data point representing when t=tau
+    """
+    popup.ax.plot(data['decay_coord_x'], data['decay_coord_y'], marker='x',
+                 c=decay_color,
+                 markersize=decay_size,
+                 label='t=tau')
+
+def popup_plot_halfwidth(data):
+    """
+    Plots info on the popup guide.
+    Plots a line from 50% amp on rise to 50% amp on decay.
+    """
+    popup.ax.plot((data['halfwidth_start_coord_x'], data['halfwidth_end_coord_x']),
+                 (data['halfwidth_start_coord_y'], data['halfwidth_end_coord_y']),
+                 linewidth=app.trace_display.trace_width,
+                 alpha=0.9,
+                 c='black'
+                 )
+
+def popup_plot_peak(x, y):
+    if not x or not y:
+        return None
+    global popup_peak
+    popup_peak, = popup.ax.plot(x, y, marker='o', c=peak_color,
+                             markersize=peak_size,
+                             linestyle='None',
+                             label='Peak')
+    guide_markers['peak'] = popup_peak
+
+def popup_plot_recording(xs, ys, data):
+    start_lim_idx = int(max(data.get('start_idx', 0) - data.get('lag', 0) - data.get('delta_x', 0), 0))
+    start_idx = int(min(start_lim_idx, data.get('xlim_idx_L', np.inf)))
+    if data['compound']:
+        start_idx = int(min(start_idx, int(data['prev_peak_idx'])))
+
+    end_lim_idx = int(min(data.get('peak_idx', 0) + data.get('decay_max_points', 0), len(xs) - 1))
+    end_idx = int(max(end_lim_idx, data.get('xlim_idx_R', 0)))
+
+    popup.ax.plot(xs[start_idx:end_idx],
+                 ys[start_idx:end_idx],
+                 linewidth=app.trace_display.trace_width,
+                 color=app.trace_display.trace_color,
+                 )
+    popup.ax.set_xlim((xs[start_lim_idx], xs[end_lim_idx]))
+    popup_plot_start(xs[int(data['start_idx'])], ys[int(data['start_idx'])])
+    return start_idx, end_idx
+
+def popup_plot_start(x, y):
+    guide_markers['start'], = popup.ax.plot(x, y, marker='x', c=start_color,
+                 markersize=start_size,
+                 label='Event start')
+
+
+def popup_reanalyze(event=None):
+    find_mini_reanalyze((popup_data['t'],), accept=False, undo=True)
+
+
+def popup_reject(event=None):
+    datapanel.datatable.table.selection_set([str(popup_data['t'])])
+    datapanel.delete_selected()
+
+def popup_report(xs:np.ndarray, ys:np.ndarray, data:dict):
+    """
+    Call this function to plot the results to the popup guide
+    """
+    popup_clear()
+    global popup_data
+    popup_data = data
+    if data['failure']:
+        popup.msg_label.insert(text=str(data.get('failure'))+'\n')
+    else:
+        popup.msg_label.insert(text='Success!' + '\n')
+    try:
+        start, end = popup_plot_recording(xs, ys, data)  # start coordinate and the plot
+    except:
+        pass
+    try:
+        popup.msg_label.insert(f'Peak: {data["peak_coord_x"]:.3f}, {data["peak_coord_y"]:.3f}\n')
+        popup_plot_peak(data['peak_coord_x'], data['peak_coord_y'])
+        popup_plot_amplitude(data['peak_coord_x'], data['peak_coord_y'], data['baseline'])
+    except KeyError:
+        pass
+    try:
+        if data['base_idx_L'] is not None and not data['compound']:
+            popup_plot_base_range(xs, ys, data)
+    except:
+        pass
+
+    try:
+        popup.msg_label.insert(f'Baseline: {data["baseline"]:.3f} {data["baseline_unit"]}\n')
+        if data['compound']:
+            popup.msg_label.insert(f'Baseline extrapolated from preceding mini\n')
+        else:
+            left_idx = data.get('base_idx_L', None)
+            right_idx = data.get('base_idx_R', None)
+            if left_idx and right_idx:
+                popup.msg_label.insert(
+                    f'Baseline calculated by averaging: {xs[int(left_idx)]:.3f}-{xs[int(right_idx)]:.3f}\n')
+            else:
+                popup.msg_label.inesrt(f'Baseline calculated by averaging data points.\n')
+    except:
+        pass
+
+    try:
+        popup.msg_label.insert(f"Amplitude: {data['amp']:.3f} {data['amp_unit']}\n")
+    except:
+        pass
+    try:
+        popup.msg_label.insert(f"Rise: {data['rise_const']:.3f} {data['rise_unit']}\n")
+    except:
+        pass
+
+    try:
+        if not data['compound']:
+            popup_plot_base_simple(xs, end, data)
+        else:
+            popup_plot_base_extrapolate(xs, end, data)
+    except:
+        pass
+
+    try:
+        popup.msg_label.insert(f'Decay: {data["decay_const"]:.3f} {data["decay_unit"]}\n')
+        if data['min_drr'] > 0 or data['max_drr'] is not np.inf:
+            popup.msg_label.insert(f'Decay:rise ratio: {data["decay_const"] / data["rise_const"]:.3f}\n')
+    except:
+        pass
+
+    try:
+        if not data['compound']:
+            popup_plot_decay_fit(xs, end, data)
+        else:
+            popup_plot_decay_extrapolate(xs, end, data)
+    except:
+        pass
+
+    try:
+        popup_plot_decay_point(data)
+    except:
+        pass
+
+    try:
+        popup_plot_halfwidth(data)
+        popup.msg_label.insert(f'Halfwidth: {data["halfwidth"]:.3f} {data["halfwidth_unit"]}\n')
+    except:
+        pass
+
+    try:
+        popup.msg_label.insert(f'Signal-to-noise ratio: {data["amp"] * data["direction"] / data["stdev"]:.3f}\n')
+    except:
+        pass
+    popup.ax.legend(frameon=False)
+    popup.ax.autoscale(enable=True, axis='y', tight=False)
+    popup.ax.relim()
+
+    popup.canvas.draw()
+
+def popup_update(event=None):
+    popup.ax.set_xlabel(app.trace_display.ax.get_xlabel(),
+                       fontsize=int(app.inputs['font_size'].get()))
+    popup.ax.set_ylabel(app.trace_display.ax.get_ylabel(),
+                       fontsize=int(app.inputs['font_size'].get()))
+    popup.ax.tick_params(axis='y', which='major', labelsize=int(app.inputs['font_size'].get()))
+    popup.ax.tick_params(axis='y', which='major', labelsize=int(app.inputs['font_size'].get()))
+    for key, marker in guide_markers.items():
+        if 'decay' in key:
+            marker.set_color(decay_color)
+            marker.set_markersize(decay_size)
+        elif 'start' in key:
+            marker.set_color(start_color)
+            marker.set_markersize(start_size)
+        elif 'peak' in key:
+            marker.set_color(peak_color)
+            marker.set_markersize(peak_size)
+
+    popup.canvas.draw()
+
+
+# store change in parameters # link to this later
 def record_param_change(pname, pvalue):
     """
     call this function to record the change in parameter
@@ -979,36 +1353,36 @@ def report_results(event=None):
         'analysis': 'mini',
         'num_minis': df.shape[0]
     }
-    if 'amp' in datapanel.columns:
+    if 'amp' in datapanel.datatable.columns:
         data['amp'] = df['amp'].mean()
         data['amp_unit'] = df['amp_unit'].iloc[0]
         data['amp_std'] = df['amp'].std()
-    if 'decay_const' in datapanel.columns:
+    if 'decay_const' in datapanel.datatable.columns:
         data['decay_const'] = df['decay_const'].mean()
         data['decay_unit'] = df['decay_unit'].iloc[0]
         data['decay_std'] = df['decay_const'].std()
-    if 'rise_const' in datapanel.columns:
+    if 'rise_const' in datapanel.datatable.columns:
         data['rise_const'] = df['rise_const'].mean()
         data['rise_unit'] = df['rise_unit'].iloc[0]
         data['decay_std'] = df['rise_const'].std()
-    if 'halfwidth' in datapanel.columns:
+    if 'halfwidth' in datapanel.datatable.columns:
         data['halfwidth'] = df['halfwidth'].mean()
         data['halfwidth_unit'] = df['halfwidth_unit'].iloc[0]
         data['halfwidth_std'] = df['halfwidth'].std()
-    if 'baseline' in datapanel.columns:
+    if 'baseline' in datapanel.datatable.columns:
         data['baseline'] = df['baseline'].mean()
         data['baseline_unit'] = df['baseline_unit'].iloc[0]
         data['baseline_std'] = df['baseline'].std()
-    if 'channel' in datapanel.columns:
+    if 'channel' in datapanel.datatable.columns:
         data['channel'] = app.interface.current_channel
-    if 'compound' in datapanel.columns:
+    if 'compound' in datapanel.datatable.columns:
         data['num_compound'] = df['compound'].sum()
     # calculate frequency
     data['Hz'] = df.shape[0] / (df['t'].max() - df['t'].min())
 
     app.results_display.report(data)
 
-def report_selected_results(self):
+def report_selected_results(event=None):
     """
     summarize the selected entries in the datapanel and enter into the result_display
     It ignores many of the data that's found in mini_df
@@ -1016,7 +1390,7 @@ def report_selected_results(self):
     if len(app.interface.recordings) == 0:
         messagebox.showerror('Error', 'Please open a recording file first')
         return None
-    selection = [float(i) for i in datapanel.table.selection()]
+    selection = [float(i) for i in datapanel.datatable.table.selection()]
     if len(selection) == 0:
         app.results_display.report({
             'filename': app.interface.recordings[0].filename,
@@ -1033,29 +1407,29 @@ def report_selected_results(self):
         'analysis': 'mini',
         'num_minis': df.shape[0]
     }
-    if 'amp' in datapanel.columns:
+    if 'amp' in datapanel.datatable.columns:
         data['amp'] = df['amp'].mean()
         data['amp_unit'] = df['amp_unit'].iloc[0]
         data['amp_std'] = df['amp'].std()
-    if 'decay_const' in datapanel.columns:
+    if 'decay_const' in datapanel.datatable.columns:
         data['decay_const'] = df['decay_const'].mean()
         data['decay_unit'] = df['decay_unit'].iloc[0]
         data['decay_std'] = df['decay_const'].std()
-    if 'rise_const' in datapanel.columns:
+    if 'rise_const' in datapanel.datatable.columns:
         data['rise_const'] = df['rise_const'].mean()
         data['rise_unit'] = df['rise_unit'].iloc[0]
         data['decay_std'] = df['rise_const'].std()
-    if 'halfwidth' in datapanel.columns:
+    if 'halfwidth' in datapanel.datatable.columns:
         data['halfwidth'] = df['halfwidth'].mean()
         data['halfwidth_unit'] = df['halfwidth_unit'].iloc[0]
         data['halfwidth_std'] = df['halfwidth'].std()
-    if 'baseline' in datapanel.columns:
+    if 'baseline' in datapanel.datatable.columns:
         data['baseline'] = df['baseline'].mean()
         data['baseline_unit'] = df['baseline_unit'].iloc[0]
         data['baseline_std'] = df['baseline'].std()
-    if 'channel' in datapanel.columns:
+    if 'channel' in datapanel.datatable.columns:
         data['channel'] = app.interface.current_channel
-    if 'compound' in datapanel.columns:
+    if 'compound' in datapanel.datatable.columns:
         data['num_compound'] = df['compound'].sum()
     # calculate frequency
     data['Hz'] = df.shape[0] / (df['t'].max() - df['t'].min())
@@ -1063,20 +1437,21 @@ def report_selected_results(self):
     app.results_display.report(data)
 
 def report_to_guide(event=None, mini=None):
-    pass # do this later
-    # if self.module.guide_window.visible:
-    #     self.module.guide_window.clear()
-    #     if mini is None:
-    #         selection = [float(t) for t in self.module.data_tab.table.selection()]
-    #         if len(selection) == 1:
-    #             mini = self.mini_df[
-    #                 (self.mini_df['t'].isin(selection)) & (self.mini_df['channel'] == app.interface.current_channel)]
-    #             mini = mini.to_dict(orient='records')[0]
-    #         else:
-    #             return
-    #     self.module.guide_window.report(xs=app.trace_display.sweeps['Sweep_0'].get_xdata(),
-    #                                     ys=app.trace_display.sweeps['Sweep_0'].get_ydata(),
-    #                                     data=mini)
+    print('report to guide called')
+    if popup.is_visible():
+        print('popup is visible')
+        popup_clear()
+        if mini is None:
+            selection = [float(t) for t in datapanel.datatable.table.selection()]
+            if len(selection) == 1:
+                mini = mini_df[
+                    (mini_df['t'].isin(selection)) & (mini_df['channel'] == app.interface.current_channel)]
+                mini = mini.to_dict(orient='records')[0]
+            else:
+                return
+        popup_report(xs=app.trace_display.sweeps['Sweep_0'].get_xdata(),
+                     ys=app.trace_display.sweeps['Sweep_0'].get_ydata(),
+                     data=mini)
 
 # save minis
 def save_minis(filename, overwrite=True, log=False, update_status = True):
@@ -1133,9 +1508,6 @@ def ask_save_minis(self, event=None):
         return None
 
 # mini selection
-def select_all(event=None):
-    pass
-
 def select_from_event_pick(event=None):
     """
     Fire this function whenever a peak (pickable matplotlib scatter) is clicked by the user
@@ -1147,9 +1519,9 @@ def select_from_event_pick(event=None):
     event_pick = True  # use this to avoid invoking other mouse-related events
     xdata, ydata = event.artist.get_offsets()[event.ind][0]
     if app.interpreter.multi_select:
-        datapanel.selection_toggle([round(xdata, app.interface.recordings[0].x_sigdig)])
+        datapanel.datatable.selection_toggle([round(xdata, app.interface.recordings[0].x_sigdig)])
     else:
-        datapanel.selection_set([round(xdata, app.interface.recordings[0].x_sigdig)])
+        datapanel.datatable.selection_set([round(xdata, app.interface.recordings[0].x_sigdig)])
 
 def select_from_table(event=None):
     """
@@ -1157,7 +1529,7 @@ def select_from_table(event=None):
     """
     if not form.is_enabled():
         return None
-    selection = [float(i) for i in datapanel.table.selection()]
+    selection = [float(i) for i in datapanel.datatable.table.selection()]
     # pass a list of str for 't' column (index for table)
     if selection:
         xs = extract_column('peak_coord_x', selection)
@@ -1192,7 +1564,7 @@ def select_from_rect(self, event=None):
     df = df[(df['t'] > xlim[0]) & (df['t'] < xlim[1])
             & (df['peak_coord_y'] > ylim[0]) & (df['peak_coord_y'] < ylim[1])]
 
-    datapanel.selection_set(list(df['t']))
+    datapanel.datatable.selection_set(list(df['t']))
 
 def select_clear(event=None):
     """
@@ -1235,10 +1607,7 @@ def update_module_table():
 controller = MiniController(name=name, menu_label=menu_label)
 form = PluginForm(plugin_controller=controller, tab_label=tab_label, scrollbar=True, notebook=app.cp_notebook)
 datapanel = MiniTable(plugin_controller=controller, tab_label=tab_label, notebook=app.data_notebook)
-
-
-controller.children.append(form)
-controller.children.append(datapanel)
+popup = MiniPopup(plugin_controller=controller)
 
 #### Set up Form GUI ####
 
@@ -1248,7 +1617,7 @@ form.insert_button(text='Delete all', command=delete_all)
 form.insert_button(text='Find in\nwindow', command=find_mini_range)
 form.insert_button(text='Delete in\nwindow', command=delete_in_window)
 form.insert_button(text='Report stats', command=report_results)
-form.insert_button(text='Open guide', command=open_guide)
+form.insert_button(text='Open guide', command=popup.show_window)
 
 form.insert_title(text='Core Parameters')
 form.insert_label_optionmenu(name='detector_core_direction', text='Direction', options=['positive', 'negative'],
@@ -1263,18 +1632,19 @@ form.insert_label_entry(name='detector_core_auto_radius',
                         validate_type='float',
                         default=detector_core_auto_radius)
 form.insert_label_entry(name='detector_core_deltax_ms',
-                        label='Window before peak to estimate baseline (ms)',
+                        text='Window before peak to estimate baseline (ms)',
                         validate_type='float/zero',
                         default=detector_core_deltax_ms)
 form.insert_label_entry(name='detector_core_lag_ms',
-                        label='Window averaged to find start of mini (ms)',
+                        text='Window averaged to find start of mini (ms)',
                         validate_type='float',
                         default=detector_core_lag_ms)
 form.insert_label_checkbox(name='detector_core_extrapolate_hw',
                            text='Use decay to extrapolate halfwidth',
                            onvalue='1',
                            offvalue='',
-                           default=detector_core_extrapolate_hw)
+                           default=detector_core_extrapolate_hw,
+                           command=_apply_parameters)
 # decay
 form.insert_title(text='Decay fitting options')
 form.insert_label_optionmenu(name='detector_core_decay_algorithm',
@@ -1324,7 +1694,7 @@ form.insert_label_entry(name='detector_filter_min_amp',
                         validate_type='float/None',
                         default=detector_filter_min_amp)
 form.insert_label_entry(name='detector_filter_max_amp',
-                        text='Maximum amplitude (aboslute value)',
+                        text='Maximum amplitude (absolute value)',
                         validate_type='float/None',
                         default=detector_filter_max_amp)
 form.insert_label_entry(name='detector_filter_min_decay',
@@ -1436,14 +1806,14 @@ form.insert_label_checkbox(name='data_display_compound',
 form.insert_button(text='Show All', command=_columns_show_all)
 form.insert_button(text='Hide All', command=_columns_hide_all)
 for widget in form.inputs:
-    if type(widget) == type(custom_widgets.VarEntry):
-        widget.bind('<Return>', _apply_parameters, add='+')
-        widget.bind('<FocusOut>', _apply_parameters, add='+')
+    if type(form.inputs[widget]) == custom_widgets.VarEntry:
+        form.inputs[widget].bind('<Return>', _apply_parameters, add='+')
+        form.inputs[widget].bind('<FocusOut>', _apply_parameters, add='+')
 
 ##### Batch Commands #####
 controller.create_batch_category()
-controller.add_batch_command('Find all', func=batch_find_all, interrupt=app.interface.al)
-controller.add_batch_command('Find in window', func=batch_find_in_range, interrupt=app.interface.al)
+controller.add_batch_command('Find all', func=batch_find_all, interrupt=mini_analysis)
+controller.add_batch_command('Find in window', func=batch_find_in_range, interrupt=mini_analysis)
 controller.add_batch_command('Delete all', func=lambda u=False: delete_all(undo=u))
 controller.add_batch_command('Delete in window', func=lambda u=False: delete_in_window(undo=u))
 controller.add_batch_command('Report results', func=report_results)
@@ -1452,10 +1822,72 @@ controller.add_batch_command('Export minis', func=batch_export_minis)
 
 #### setup Table GUI ####
 for key in app.config.key_delete:
-    datapanel.table.bind(key, datapanel.delete_selected, add='')
-datapanel.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
-datapanel.table.bind('<<TreeviewSelect>>', select_from_table)
+    datapanel.datatable.table.bind(key, datapanel.delete_selected, add='')
+datapanel.datatable.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
+datapanel.datatable.table.bind('<<TreeviewSelect>>', select_from_table)
 
+#### setup Popup GUI ####
+popup.inputs['guide_geometry_height'] = Tk.IntVar(value=guide_geometry_height)
+popup.inputs['guide_geometry_width'] = Tk.IntVar(value=guide_geometry_width)
+popup.geometry(f'{guide_geometry_width}x{guide_geometry_height}')
+# update geometry data
+popup.grid_columnconfigure(0, weight=1)
+popup.grid_rowconfigure(0, weight=1)
+
+popup.pw = Tk.PanedWindow(popup, orient=Tk.VERTICAL, showhandle=True, sashrelief=Tk.SUNKEN,
+                          handlesize=app.config.default_pw_handlesize)
+popup.pw.grid(column=0, row=0, sticky='news')
+popup.frame = Tk.Frame(popup.pw)
+popup.frame.grid(column=0, row=0, sticky='news')
+popup.frame.grid_columnconfigure(0, weight=1)
+popup.frame.grid_rowconfigure(1, weight=1)
+
+popup.pw.add(popup.frame)
+popup.pw.paneconfig(popup.frame, height=guide_panel_height)
+
+popup.fig = Figure()
+popup.fig.set_tight_layout(True)
+popup.ax = popup.fig.add_subplot(111)
+popup.fig.subplots_adjust(right=1, top=1)
+
+popup.canvas = FigureCanvasTkAgg(popup.fig, master=popup.frame)
+popup.canvas.get_tk_widget().grid(column=0, row=1, sticky='news')
+popup.ax.plot()
+
+popup.toolbar = custom_widgets.NavigationToolbar(popup.canvas, popup.frame)
+popup.toolbar.grid(column=0, row=0, sticky='news')
+
+popup.msg_frame = Tk.Frame(popup.pw)
+popup.msg_frame.grid(column=0, row=0, sticky='news')
+popup.msg_frame.grid_columnconfigure(0, weight=1)
+popup.msg_frame.grid_rowconfigure(0, weight=1)
+
+popup.button_frame = Tk.Frame(popup.msg_frame)
+popup.button_frame.grid_rowconfigure(0, weight=1)
+popup.button_frame.grid_columnconfigure(0, weight=0)
+popup.button_frame.grid_columnconfigure(1, weight=0)
+popup.button_frame.grid_columnconfigure(2, weight=0)
+popup.button_frame.grid_columnconfigure(3, weight=0)
+popup.button_frame.grid(column=0, row=1, sticky='news')
+
+popup.accept_button = ttk.Button(popup.button_frame, text='Remove\nRestrictions', command=popup_accept)
+popup.accept_button.grid(column=0, row=0, sticky='news')
+
+popup.reanalyze_button = ttk.Button(popup.button_frame, text='Reanalyze', command=popup_reanalyze)
+popup.reanalyze_button.grid(column=1, row=0, sticky='news')
+
+popup.reject_button = ttk.Button(popup.button_frame, text='Reject', command=popup_reject)
+popup.reject_button.grid(column=2, row=0, sticky='news')
+
+popup.pw.add(popup.msg_frame)
+popup.msg_label = custom_widgets.VarText(parent=popup.msg_frame, value='', default='', state='disabled')
+popup.msg_label.grid(column=0, row=0, sticky='news')
+Tk.Text.configure(popup.msg_label, font=Tk.font.Font(size=int(float(app.inputs['font_size'].get()))))
+
+popup.vsb = ttk.Scrollbar(popup.msg_frame, orient=Tk.VERTICAL, command=popup.msg_label.yview)
+popup.vsb.grid(column=1, row=0, sticky='ns')
+
+popup_update()
 
 #### Modify Other GUI Components ####
 # File menu
@@ -1463,9 +1895,77 @@ controller.add_file_menu_command(label='Open mini file', command=ask_open_minis)
 controller.add_file_menu_command(label='Save minis as...', command=ask_save_minis)
 controller.add_file_menu_command(label='Export data table', command=datapanel.ask_export_data)
 
+# style tab
+style_plugin = getattr(app.plugin_manager, 'style', None)
+if style_plugin is not None:
+    style_form = style_plugin.style_tab.form
+    style_form.insert_separator()
+    style_form.insert_title(text='Mini Analysis plot style')
+    style_panel = style_form.make_panel(separator=False)
+    style_panel.grid_columnconfigure(0, weight=1)
+    style_panel.grid_columnconfigure(1, weight=1)
+    style_panel.grid_columnconfigure(2, weight=1)
+
+    row = 0
+    ttk.Label(style_panel, text='size', justify=Tk.CENTER).grid(column=style_plugin.style_tab.size_column, row=row,
+                                                          sticky='news')
+    ttk.Label(style_panel, text='color', justify=Tk.CENTER).grid(column=style_plugin.style_tab.color_column, row=row,
+                                                           sticky='news')
+
+
+    def place_VarEntry(name, column, row, frame, default, width=None, validate_type=""):
+        form.inputs[name] = custom_widgets.VarEntry(frame, width=width, default=default,
+                                                    validate_type=validate_type)
+        form.inputs[name].grid(column=column, row=row, sticky='news')
+
+    row += 1
+    label_column = style_plugin.style_tab.label_column
+    size_column = style_plugin.style_tab.size_column
+    size_width = style_plugin.style_tab.size_width
+    color_column = style_plugin.style_tab.color_column
+    color_width = style_plugin.style_tab.color_width
+
+    ttk.Label(style_panel, text='Peak marker').grid(column=label_column, row=row, sticky='news')
+    place_VarEntry(name='style_mini_size', column=size_column, row=row, frame=style_panel,
+                   width=size_width, validate_type='float', default=peak_size)
+    place_VarEntry(name='style_mini_color', column=color_column, row=row, frame=style_panel,
+                   width=color_width, validate_type='color', default=peak_color)
+    row += 1
+    ttk.Label(style_panel, text='Start marker').grid(column=label_column, row=row, sticky='news')
+    place_VarEntry(name='style_start_size', column=size_column, row=row, frame=style_panel,
+                   width=size_width, validate_type='float', default=start_size)
+    place_VarEntry(name='style_start_color', column=color_column, row=row, frame=style_panel,
+                   width=color_width, validate_type='color', default=start_color)
+
+    row += 1
+    ttk.Label(style_panel, text='Decay marker').grid(column=label_column, row=row, sticky='news')
+    place_VarEntry(name='style_decay_size', column=size_column, row=row, frame=style_panel,
+                   width=size_width, validate_type='float', default=decay_size)
+    place_VarEntry(name='style_decay_color', column=color_column, row=row, frame=style_panel,
+                   width=color_width, validate_type='color', default=decay_color)
+
+    row += 1
+    ttk.Label(style_panel, text='Highlight marker').grid(column=label_column, row=row, sticky='news')
+    place_VarEntry(name='style_highlight_size', column=size_column, row=row, frame=style_panel,
+                   width=size_width, validate_type='float', default=highlight_size)
+    place_VarEntry(name='style_highlight_color', column=color_column, row=row, frame=style_panel,
+                   width=color_width, validate_type='color', default=highlight_color)
+
+
+    for key in form.inputs.keys():
+        if 'style' in key:
+            form.inputs[key].bind('<Return>', _apply_styles)
+            form.inputs[key].bind('<FocusOut>', _apply_styles)
+
+    style_form.insert_button(text='Apply', command=_apply_styles)
+    style_form.insert_button(text='Default', command=_default_style_params)
+
 
 controller.load_values()
 _populate_decay_algorithms()
+_populate_compound_params()
+_apply_styles()
+_apply_column_options()
 
 if app.inputs['trace_mode'].get() != 'continuous':
     try:
@@ -1479,12 +1979,24 @@ def _on_open(event=None):
     delete_clear(undo=False, draw=False)
     logged = False
 controller.listen_to_event('<<OpenRecording>>', _on_open)
-form.listen_to_event('<<CanvasDrawRect>>', select_from_rect, condition='focused')
-controller.listen_to_event('<<Plot>>', update_event_markers, condition='enabled')
-controller.listen_to_event('<<Plotted>>', update_module_table, condition='enabled')
+controller.listen_to_event('<<CanvasDrawRect>>', select_from_rect, condition_function=form.has_focus)
+controller.listen_to_event('<<Plot>>', update_event_markers, condition_function=controller.is_enabled)
+controller.listen_to_event('<<Plotted>>', update_module_table, condition_function=controller.is_enabled)
 controller.listen_to_event('<<ChangeToOverlayView>>', controller.disable_module)
 controller.listen_to_event('<<ChangeToContinuousView>>', controller.enable_module)
-form.listen_to_event('<<CanvasMouseRelease>>', canvas_mouse_release, condition='focused')
+controller.listen_to_event('<<CanvasMouseRelease>>', canvas_mouse_release, condition_function=form.has_focus)
 
-parameters = get_params()
+app.trace_display.canvas.mpl_connect('pick_event', select_from_event_pick) # peak point selected
+for key in app.config.key_delete:
+    app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=delete_from_canvas: form.call_if_focus(func),
+                                                  add='+')
+for key in app.config.key_deselect:
+    app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=select_clear: form.call_if_focus(func),
+                                                  add='+')
+for key in app.config.key_select_all:
+    app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=datapanel.datatable.select_all: form.call_if_focus(func),
+                                                  add='+')
+
+parameters = {k:v.get() for k,v in form.inputs.items()}
+changes = {k:v for k,v in parameters.items()}
 plugin_manager.mini_analysis.save = controller.save

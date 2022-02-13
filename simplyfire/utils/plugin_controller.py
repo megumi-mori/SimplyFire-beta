@@ -178,29 +178,29 @@ class PluginController():
         tasks.insert(0, self.select)
         app.interface.add_undo(tasks)
 
-    def start_thread(self, target_func, target_interrupt, popup=True):
-        t = Thread(target=target_func)
-        t.start()
-        if popup:
-            return self.show_interrupt_popup(target_interrupt)
-
-    def show_interrupt_popup(self, target_interrupt):
-        self.popup_window = Tk.Toplevel(app.root)
-        app.root.attributes('-disabled', True)
-        def disable():
-            pass
-        self.popup_window.protocol('WM_DELETE_WINDOW', disable)
-        label = ttk.Label(master=self.popup_window, text='Running analysis. Press STOP to interrupt')
-        label.pack()
-        button = ttk.Button(master=self.popup_window, text='STOP', command=lambda t=target_interrupt:self.destroy_interrupt_popup(t))
-        button.pack()
-        return self.popup_window
-
-    def destroy_interrupt_popup(self, target_interrupt=None):
-        if target_interrupt:
-            target_interrupt.stop=True
-        app.root.attributes('-disabled', False)
-        self.popup_window.destroy()
+    # def start_thread(self, target_func, target_interrupt, popup=True):
+    #     t = Thread(target=target_func)
+    #     t.start()
+    #     if popup:
+    #         return self.show_interrupt_popup(target_interrupt)
+    #
+    # def show_interrupt_popup(self, target_interrupt):
+    #     self.popup_window = Tk.Toplevel(app.root)
+    #     app.root.attributes('-disabled', True)
+    #     def disable():
+    #         pass
+    #     self.popup_window.protocol('WM_DELETE_WINDOW', disable)
+    #     label = ttk.Label(master=self.popup_window, text='Running analysis. Press STOP to interrupt')
+    #     label.pack()
+    #     button = ttk.Button(master=self.popup_window, text='STOP', command=lambda t=target_interrupt:self.destroy_interrupt_popup(t))
+    #     button.pack()
+    #     return self.popup_window
+    #
+    # def destroy_interrupt_popup(self, target_interrupt=None):
+    #     if target_interrupt:
+    #         target_interrupt.stop=True
+    #     app.root.attributes('-disabled', False)
+    #     self.popup_window.destroy()
     def _load_binding(self):
         pass
 
@@ -222,19 +222,23 @@ class PluginController():
     def call_if_visible(self, func):
         if self.is_visible():
             func()
-    def listen_to_event(self, event:str, function, condition:str=None, target=app.root):
-        if condition == 'focused':
-            raise AssertionError(f'"focused" is not a valid condition at the {type(self)} level.')
-        assert condition in {'enabled', 'visible', None}, 'condition must be None, "enabled", or "visible"'
+    def listen_to_event(self, event:str, function, condition_attribute=None, condition_function=None, target=app.root):
         assert callable(function), f'{function} is not callable'
-
-        if condition is None:
+        if condition_function:
+            assert callable(condition_function), f'{condition_function} is not callable'
+        if condition_attribute is None and condition_attribute is None:
             target.bind(event, lambda e:function(), add="+")
-        elif condition == 'enabled':
-            target.bind(event, lambda e, f=function:self.call_if_enabled(f), add='+')
-        elif condition == 'visible':
-            target.bind(event, lambda e, f=function: self.call_if_visible(f), add='+')
+        else:
+            target.bind(event,
+                        lambda e, f=function, ca=condition_attribute, cf=condition_function:
+                        self.call_if_condition(function=f, condition_attribute=ca, condition_function=cf))
 
+    def call_if_condition(self, function, condition_attribute=None, condition_function=None):
+        if condition_attribute is not None and condition_function is False:
+            return
+        if condition_function is not None and condition_function() is False:
+            return
+        function()
 
     def save(self):
         data = {k:v.get() for k,v in self.inputs.items()}

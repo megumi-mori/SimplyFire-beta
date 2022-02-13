@@ -36,7 +36,7 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
                  notebook:ttk.Notebook=app.cp_notebook
                  ) -> None:
         ScrollableOptionFrame.__init__(self, app.root, scrollbar)
-        PluginGUI.__init__(self)
+        PluginGUI.__init__(self, plugin_controller)
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -50,7 +50,6 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         self.tab_label = tab_label
         if notebook:
             self.notebook.add(self, text=self.tab_label)
-        self.module = plugin_controller
 
     def insert_title(self, **kwargs):
         # title = self.optionframe.insert_title(**kwargs)

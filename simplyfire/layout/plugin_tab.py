@@ -49,7 +49,9 @@ def load():
     ttk.Button(button_frame, text='Cancel', command=cancel).grid(column=1, row=0, sticky='nsw')
 
     _populate_plugins()
-    _load_plugins()
+
+
+    active_plugins = [p for p in app.config.active_plugins]
 
 def apply():
     messagebox.showwarning('Warning', 'Please reopen the software to apply changes')
@@ -104,18 +106,6 @@ def _populate_plugins():
         checkbutton = ttk.Checkbutton(frame, var=var, onvalue=True, offvalue=False)
         checkbutton.grid(column=2, row=i, sticky='news')
         i += 1
-
-
-def _load_plugins():
-    plugin_list = app.config.active_plugins  # get plugin list from the user_config file
-    if plugin_list:  # check for None type
-        for plugin_name in plugin_list:
-            plugin_var = plugin_vars.get(plugin_name, None)
-            if plugin_var: # a manifest exists for the specified plugin_name
-                plugin_var.set(True)
-                app.plugin_manager.load_plugin(plugin_name)
-                active_plugins.append(plugin_name)
-
 
 def get_plugins():
     return [plugin_name for plugin_name in plugin_vars.keys() if plugin_vars[plugin_name].get()]

@@ -23,11 +23,11 @@ form.main_panel.grid_columnconfigure(0, weight=1)
 form.main_panel.grid_columnconfigure(1, weight=1)
 form.main_panel.grid_columnconfigure(2, weight=1)
 
-form.color_width = 10
-form.size_width = 5
-form.label_column = 1
-form.size_column = 2
-form.color_column = 3
+color_width = 10
+size_width = 5
+label_column = 1
+size_column = 2
+color_column = 3
 
 form.trace_color = app.trace_display.trace_color
 form.trace_width = app.trace_display.trace_width
@@ -36,8 +36,8 @@ form.default_color = 'black'
 form.default_size = 1
 
 row = 0
-ttk.Label(form.main_panel, text='size', justify='center').grid(column=form.size_column, row=row, sticky='news')
-ttk.Label(form.main_panel, text='color', justify='center').grid(column=form.color_column, row=row, sticky='news')
+ttk.Label(form.main_panel, text='size', justify='center').grid(column=size_column, row=row, sticky='news')
+ttk.Label(form.main_panel, text='color', justify='center').grid(column=color_column, row=row, sticky='news')
 
 row += 1
 def insert_VarEntry(column, row, name, width, validate_type, default):
@@ -46,10 +46,10 @@ def insert_VarEntry(column, row, name, width, validate_type, default):
     print(entry.default)
     form.inputs[name] = entry
 
-ttk.Label(form.main_panel, text='Trace plot').grid(column=form.label_column, row=row, sticky='news')
-insert_VarEntry(column=form.size_column, row=row, name='style_trace_line_width', width=form.size_width,
+ttk.Label(form.main_panel, text='Trace plot').grid(column=label_column, row=row, sticky='news')
+insert_VarEntry(column=size_column, row=row, name='style_trace_line_width', width=size_width,
                 validate_type='float', default=form.default_size)
-insert_VarEntry(column=form.color_column, row=row, name='style_trace_line_color', width=form.color_width,
+insert_VarEntry(column=color_column, row=row, name='style_trace_line_color', width=color_width,
                 validate_type='color', default=form.default_color)
 
 def apply_styles(event=None, undo=True):

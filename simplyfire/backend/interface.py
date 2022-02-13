@@ -107,8 +107,8 @@ def undo(e=None):
             app.pb.update()
             try:
                 task()
-            except:
-                pass
+            except Exception as e:
+                log(f'Error during undo: {e}')
             del task
 
         del task_stack
