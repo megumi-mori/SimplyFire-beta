@@ -132,10 +132,13 @@ def ask_save_recording(e=None):
     app.root.event_generate('<<AskedSaveRecording>>')
 
 def save_recording(filename):
-    abfWriter.writeABF1(app.interface.recordings[0], filename)
-    interface.open_recording(filename, xlim=app.trace_display.ax.get_xlim(),
-                             ylim=app.trace_display.ax.get_ylim(),
-                             channel=app.interface.current_channel)
+    recording = app.interface.recordings[0]
+    abfWriter.writeABF1(recording, filename)
+    recording.filepath = filename
+    recording.filename= os.path.splitext(filename)[1]
+    recording.filedir, recording.filename = os.path.split(filename)
+    app.graph_panel.widgets['trace_info'].set(
+        f'{recording.filename}: {recording.sampling_rate}Hz : {recording.channel_count} channels')
 
 def ask_export_results():
     app.root.event_generate('<<AskExportResults>>')

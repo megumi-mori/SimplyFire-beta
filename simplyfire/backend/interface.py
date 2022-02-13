@@ -192,11 +192,10 @@ def open_recording(fname: str,
 
         # update file info displayed in the GUI
         app.graph_panel.widgets['trace_info'].set(
-            '{}: {}Hz : {} channel{}'.format(
+            '{}: {}Hz : {} channels'.format(
                 record.filename,
                 record.sampling_rate,
-                record.channel_count,
-                's' if record.channel_count > 1 else ""
+                record.channel_count
             )
         )
         app.trace_display.ax.autoscale(enable=True, axis='both', tight=True)
