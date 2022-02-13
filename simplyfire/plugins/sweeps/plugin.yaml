@@ -1,0 +1,11 @@
+name: 'sweeps'
+title: 'Sweeps'
+author: 'MM'
+description: 'Show/Hide sweeps in overlay mode'
+version: '1.0.0'
+minimumCoreVersion: '3.0.0'
+scripts:
+  - 'sweeps_GUI'
+requirements:
+  - 'style'
+

@@ -1546,7 +1546,7 @@ def select_from_table(event=None):
     plot_highlight(xs, ys)  # get peak coordinates
     app.trace_display.draw_ani()
 
-def select_from_rect(self, event=None):
+def select_from_rect(event=None):
     """
     This function should be called in response to the user drawing a rect on the convas (drag)
     """
@@ -1969,7 +1969,7 @@ _apply_column_options()
 
 if app.inputs['trace_mode'].get() != 'continuous':
     try:
-        controller.disable_module()
+        controller.disable_plugin()
     except:
         pass
 
@@ -1982,9 +1982,9 @@ controller.listen_to_event('<<OpenRecording>>', _on_open)
 controller.listen_to_event('<<CanvasDrawRect>>', select_from_rect, condition_function=form.has_focus)
 controller.listen_to_event('<<Plot>>', update_event_markers, condition_function=controller.is_enabled)
 controller.listen_to_event('<<Plotted>>', update_module_table, condition_function=controller.is_enabled)
-controller.listen_to_event('<<ChangeToOverlayView>>', controller.disable_module)
-controller.listen_to_event('<<ChangeToContinuousView>>', controller.enable_module)
 controller.listen_to_event('<<CanvasMouseRelease>>', canvas_mouse_release, condition_function=form.has_focus)
+controller.listen_to_event('<<ChangeToOverlayView>>', controller.disable_plugin)
+controller.listen_to_event('<<ChangeToContinuousView>>', controller.enable_plugin)
 
 app.trace_display.canvas.mpl_connect('pick_event', select_from_event_pick) # peak point selected
 for key in app.config.key_delete:

@@ -110,7 +110,7 @@ def average_sweeps(event=None):
     #         # account for more recordings being open (consider only the main file open)
     #         target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
     elif form.inputs['sweep_target'].get() == 'Highlighted sweeps':
-        target_sweeps = app.modules['sweeps'].control_tab.get_highlighted_sweeps()
+        target_sweeps = getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_highlighted_sweeps()
         # account for more recordings being open (consider only the main file open)
         if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
             target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -121,22 +121,21 @@ def average_sweeps(event=None):
                                        channels=target_channels,
                                        sweeps=target_sweeps)
     if app.interface.is_accepting_undo():
-        sweep_list = tuple(app.plugin_manager.sweeps.sweep_GUI.get_visible_sweeps())
+        sweep_list = tuple(getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_visible_sweeps())
         controller.add_undo(
             [
                 app.interface.recordings[0].delete_last_sweep,
-                app.interface.plot,
-                app.plugin_manager.sweeps.sweep_GUI.synch_sweep_list,
-                'test tentry string!',
-                lambda l=sweep_list, u=False: app.modules['sweeps'].control_tab.show_list(selection=l, undo=u)
+                lambda c=False:app.interface.plot(c, fix_y=True, fix_x=True, relim=False),
+                getattr(app.plugin_manager, 'sweeps.sweeps_GUI').synch_sweep_list,
+                lambda l=sweep_list, u=False: getattr(app.plugin_manager, 'sweeps.sweeps_GUI').show_list(selection=l, undo=u)
             ]
         )
     app.interface.recordings[0].append_sweep(avg_sweep)
-    app.interface.plot(fix_x=True, fix_y=True)
-    app.modules['sweeps'].control_tab.synch_sweep_list()
+    app.interface.plot(fix_x=True, fix_y=True, clear=False, relim=False)
+    getattr(app.plugin_manager, 'sweeps.sweeps_GUI').synch_sweep_list()
     if form.inputs['average_show_result'].get():
-        app.modules['sweeps'].control_tab.hide_all(undo=False)
-        app.modules['sweeps'].control_tab.show_list(selection=[app.interface.recordings[0].sweep_count - 1], undo=False)
+        getattr(app.plugin_manager, 'sweeps.sweeps_GUI').hide_all(undo=False)
+        getattr(app.plugin_manager, 'sweeps.sweeps_GUI').show_list(selection=[app.interface.recordings[0].sweep_count - 1], undo=False)
 
 def subtract_baseline(event=None):
     if len(app.interface.recordings)==0:
@@ -161,14 +160,14 @@ def subtract_baseline(event=None):
     if form.inputs['sweep_target'].get() == 'All sweeps':
         target_sweeps = range(app.interface.recordings[0].sweep_count)
     elif form.inputs['sweep_target'].get() == 'Visible sweeps':
-        target_sweeps = app.plugin_manager.sweeps.sweeps_GUI.get_visible_sweeps()
+        target_sweeps = getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_visible_sweeps()
         if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif app.inputs['trace_mode'].get () == 'overlay':
             # account for more recordings being open (consider only the main file open)
             target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
     elif form.inputs['sweep_target'].get() == 'Highlighted sweeps':
-        target_sweeps = app.plugin_manager.sweeps.sweeps_GUI.get_highlighted_sweeps()
+        target_sweeps = getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_highlighted_sweeps()
         # account for more recordings being open (consider only the main file open)
         if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
             target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -191,10 +190,10 @@ def subtract_baseline(event=None):
         controller.add_undo([
             lambda r=app.interface.recordings[0], s=baseline, m=plot_mode, c=target_channels,
                    t=target_sweeps: process_recording.shift_y_data(r, s, m, c, t),
-            app.interface.plot
+            lambda c=False:app.interface.plot(clear=c, fix_x=True)
         ])
 
-    app.interface.plot(fix_x=True)
+    app.interface.plot(clear=False, fix_x=True)
     pass
 
 def filter_data(event=None):
@@ -209,14 +208,14 @@ def filter_data(event=None):
     if form.inputs['sweep_target'].get() == 'All sweeps':
         target_sweeps = range(app.interface.recordings[0].sweep_count)
     elif form.inputs['sweep_target'].get() == 'Visible sweeps':
-        target_sweeps = app.plugin_manager.sweeps.sweeps_GUI.get_visible_sweeps()
+        target_sweeps = getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_visible_sweeps()
         if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif app.inputs['trace_mode'].get() == 'overlay':
             # account for more recordings being open (consider only the main file open)
             target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
     elif form.inputs['sweep_target'].get() == 'Highlighted sweeps':
-        target_sweeps = app.plugin_manager.sweeps.sweeps_GUI.get_highlighted_sweeps()
+        target_sweeps = getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_highlighted_sweeps()
         # account for more recordings being open (consider only the main file open)
         if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
             target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -231,7 +230,7 @@ def filter_data(event=None):
                                                 sweeps=target_sweeps)
         controller.add_undo([
             lambda f=temp_filename, c=target_channels, s=target_sweeps: app.interface.recordings[0].load_y_data(f,c,s),
-            app.interface.plot,
+            lambda c=False:app.interface.plot(clear=c, relim=False, fix_x=True, fix_y=True),
             lambda f=temp_filename:os.remove(f)
         ])
     filter_choice = form.inputs['filter_algorithm'].get()
@@ -246,7 +245,7 @@ def filter_data(event=None):
                                                    params,
                                                    target_channels,
                                                    target_sweeps)
-    app.interface.plot(fix_x=True, fix_y=True)
+    app.interface.plot(fix_x=True, fix_y=True, clear=False, relim=False)
 
 
 

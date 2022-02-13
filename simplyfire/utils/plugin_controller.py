@@ -88,7 +88,6 @@ class PluginController():
             for c in self.children:
                 c.enable()
         else:
-            print('there is disable')
             for c in self.children:
                 c.disable()
 
@@ -103,7 +102,6 @@ class PluginController():
         if not source:
             source = self.name
         if source not in self.disable_stack:
-            print('add disable')
             self.disable_stack.append(source)
         self.update_plugin_display()
 
@@ -120,11 +118,10 @@ class PluginController():
             self._error_log(f'{source} is not part of the disable stack')
         self.update_plugin_display()
 
-    def disable_module(self, event=None, source:str=None):
-        print('disable module')
+    def disable_plugin(self, event=None, source:str=None):
         self._add_disable(source=source)
 
-    def enable_module(self, event=None, source:str=None):
+    def enable_plugin(self, event=None, source:str=None):
         self._remove_disable(source=source)
 
     def is_visible(self):
@@ -220,20 +217,16 @@ class PluginController():
     def call_if_visible(self, func):
         if self.is_visible():
             func()
-    def listen_to_event(self, event:str, function, condition_attribute=None, condition_function=None, target=app.root):
+    def listen_to_event(self, event:str, function, condition_function=None, target=app.root):
         assert callable(function), f'{function} is not callable'
         if condition_function:
             assert callable(condition_function), f'{condition_function} is not callable'
-        if condition_attribute is None and condition_attribute is None:
-            target.bind(event, lambda e:function(), add="+")
-        else:
-            target.bind(event,
-                        lambda e, f=function, ca=condition_attribute, cf=condition_function:
-                        self.call_if_condition(function=f, condition_attribute=ca, condition_function=cf))
+        target.bind(event,
+                    lambda e, f=function, cf=condition_function:
+                    self.call_if_condition(function=f, condition_function=cf),
+                    add='+')
 
-    def call_if_condition(self, function, condition_attribute=None, condition_function=None):
-        if condition_attribute is not None and condition_function is False:
-            return
+    def call_if_condition(self, function, condition_function=None):
         if condition_function is not None and condition_function() is False:
             return
         function()

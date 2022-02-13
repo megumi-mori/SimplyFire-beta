@@ -339,18 +339,18 @@ def plot(fix_x=False, fix_y=False, clear=True, **kwargs):
     app.trace_display.draw_ani()
 
 
-def plot_continuous(recording, draw=False, sweep_name_suffix='Sweep'):
+def plot_continuous(recording, draw=False, sweep_name_suffix='Sweep', relim=True):
     global current_channel
     trace_display.plot_trace(recording.get_xs(mode='continuous', channel=current_channel),
                              recording.get_ys(mode='continuous', channel=current_channel),
-                             draw=False,
-                             relim=True,
+                             draw=draw,
+                             relim=relim,
                              name=f'{sweep_name_suffix}_0')
     if draw:
         trace_display.draw_ani()
 
 
-def plot_overlay(recording, draw=False, sweep_name_suffix='Sweep'):
+def plot_overlay(recording, draw=False, sweep_name_suffix='Sweep', relim=True):
     for i in range(recording.sweep_count):
         app.pb['value'] = (i+1)/recording.sweep_count*100
         app.pb.update()
@@ -358,7 +358,7 @@ def plot_overlay(recording, draw=False, sweep_name_suffix='Sweep'):
         ys = recording.get_ys(mode='overlay', sweep=i, channel=current_channel)
         trace_display.plot_trace(xs, ys,
                                  draw=False,
-                                 relim=i == recording.sweep_count-1,  #relim for the final sweep
+                                 relim=(i == recording.sweep_count-1 and relim),  #relim for the final sweep
                                  name = f"{sweep_name_suffix}_{i}")
     if draw:
         trace_display.draw_ani()

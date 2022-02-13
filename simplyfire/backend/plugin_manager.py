@@ -26,12 +26,12 @@ def load_plugins():
             if manifest is not None:
                 app.plugin_tab.plugin_vars[plugin_name].set(True) # toggle the BooleanVar
                 #check for requirements
-                try:
-                    load_plugin(plugin_name)
-                except Exception as e:
-                    app.log_display.log(f'Error loading {plugin_name}: {e}', 'Load Plug-in')
+                # try:
+                load_plugin(plugin_name)
+                # except Exception as e:
+                #     app.log_display.log(f'Error loading {plugin_name}: {e}', 'Load Plug-in')
                     # account for requirements not being met
-                    pass
+                    # pass
 
 
 def load_plugin(plugin_name):

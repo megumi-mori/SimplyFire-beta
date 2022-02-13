@@ -8,3 +8,4 @@ scripts:
   - 'process_GUI'
 requirements:
   - 'style'
+  - 'sweeps'
