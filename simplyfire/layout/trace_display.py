@@ -29,9 +29,6 @@ import simplyfire.backend.analyzer2 as analyzer
 from simplyfire.backend import interface
 from simplyfire.layout import graph_panel
 
-
-temp = []
-markers = {}
 sweeps = {}
 
 event_pick = False
@@ -83,10 +80,6 @@ def load(parent):
     global default_ylim
     default_ylim = ax.get_ylim()
 
-    global state
-    state = State()
-    state.press = False
-    state.move = False
     global trace_color
     trace_color = 'Black'
     global trace_width
@@ -95,31 +88,13 @@ def load(parent):
     transparent_background = True
     # connect user events:
     # canvas.mpl_connect('pick_event', _on_event_pick)
-    canvas.mpl_connect('button_press_event', _on_mouse_press)
-    canvas.mpl_connect('motion_notify_event', _on_mouse_move)
+
     # canvas.mpl_connect('button_release_event', _on_mouse_release)
 
     draw_ani()
     # canvas.draw()
     # refresh()
     return frame
-
-
-def _on_mouse_press(event):
-    # canvas.get_tk_widget().focus_set()
-    interface.focus()
-    if canvas.toolbar.mode == "" and event.button == 3:
-        state.press_coord = (event.x, event.y)
-    # print('click! {}'.format(event))
-    pass
-
-
-def _on_mouse_move(event):
-    if canvas.toolbar.mode == '' and event.button == 3:
-        state.move = True
-        pass
-
-    pass
 
 
 ################# Navigation ####################
@@ -481,15 +456,6 @@ def update_y_scrollbar(ylim=None, xlim=None):
 
 
 def clear():
-    for t in temp:
-        temp[t].remove()
-    temp.clear()
-    for m in markers.keys():
-        try:
-            markers[m].remove()
-        except:
-            pass
-    markers.clear()
     for s in sweeps.keys():
         try:
             sweeps[s].remove()
@@ -501,15 +467,6 @@ def clear():
     draw_ani()
 
 def refresh():
-    for t in temp:
-        temp[t].remove()
-    temp.clear()
-    for m in markers.keys():
-        try:
-            markers[m].remove()
-        except:
-            pass
-    markers.clear()
     for s in sweeps.keys():
         try:
             sweeps[s].remove()
@@ -523,30 +480,6 @@ def refresh():
     ax.clear()
     gc.collect()
     # canvas.draw()
-    draw_ani()
-
-
-def clear_markers(key=None):
-    for t in temp:
-        temp[t].remove()
-    temp.clear()
-    if key:
-        try:
-            markers[key].remove()
-        except:
-            pass
-        markers[key] = None
-    else:
-        for m in markers.keys():
-            try:
-                markers[m].remove()
-            except:
-                pass
-        markers.clear()
-        for c in ax.collections:
-            c.remove()
-    # canvas.draw()
-
     draw_ani()
 
 def plot_trace(xs, ys, draw=True, relim=True, idx=0, color=None, width=None, name="", relim_axis='both'):
@@ -606,208 +539,12 @@ def show_sweep(idx, draw=False):
     if draw:
         # canvas.draw()
         draw_ani()
-def delete_last_sweep(draw=False):
-    sweeps['sweep_{}'.format(len(sweeps) - 1)].remove()
-    # print('length of ax lines after removing sweep: {}'.format(len(ax.lines)))
-    # ax lines are removed - memory leak not because of the axis retaining object
-    del sweeps['sweep_{}'.format(len(sweeps) - 1)]
-
-
 
 def get_sweep(idx):
     try:
         return sweeps['sweep_{}'.format(idx)]
     except:
         return None
-
-
-def toggle_sweep_highlight(idx, exclusive=True, draw=False):
-    global highlighted_sweep
-    c = app.inputs['style_trace_line_color'].get()
-    w = float(app.inputs['style_trace_line_width'].get())
-    if exclusive:
-        for l in sweeps:
-            sweeps[l].set_color(c)
-            sweeps[l].set_linewidth(w)
-        if idx in highlighted_sweep and len(highlighted_sweep) == 1:
-            highlighted_sweep = []
-            if draw:
-                # canvas.draw()
-                draw_ani()
-                return None
-        highlighted_sweep = []
-    if idx in highlighted_sweep:
-        try:
-            sweeps['sweep_{}'.format(idx)].set_color(c)
-            sweeps[f'sweep_{idx}'].set_linewidth(w)
-            highlighted_sweep.remove(idx)
-        except:
-            pass
-    else:
-        try:
-            sweeps['sweep_{}'.format(idx)].set_color(app.inputs['style_trace_highlight_color'].get())
-            sweeps[f'sweep_{idx}'].set_linewidth(float(app.inputs['style_trace_highlight_width'].get()))
-            highlighted_sweep.append(idx)
-        except:
-            pass
-    if draw:
-        # canvas.draw()
-        draw_ani()
-def remove_highlight_sweep(draw=True):
-    global highlighted_sweep
-    for idx in highlighted_sweep:
-        try:
-            sweeps['sweep_{}'.format(idx)].set_color(app.inputs['style_trace_line_color'].ge())
-            sweeps[f'sweep_{idx}'].set_linewidth(float(app.inputs['style_trace_line_width'].get()))
-            highlighted_sweep.remove(idx)
-        except:
-            pass
-    highlighted_sweep = []
-    if draw:
-        # canvas.draw()
-        draw_ani()
-def set_highlight_sweep(idx, highlight=True, draw=True):
-    if idx not in highlighted_sweep and highlight:
-        try:
-            sweeps['sweep_{}'.format(idx)].set_color(app.inputs['style_trace_highlight_color'].get())
-            sweeps[f'sweep_{idx}'].set_linewidth(float(app.inputs['style_trace_highlight_width'].get()))
-            highlighted_sweep.append(idx)
-        except:
-            pass
-    elif not highlight and idx in highlighted_sweep:
-        try:
-            sweeps['sweep_{}'.format(idx)].set_color(app.inputs['style_trace_line_color'].get())
-            sweeps[f'sweep_{idx}'].set_linewidth(float(app.inputs['style_trace_line_width'].get()))
-            highlighted_sweep.remove(idx)
-        except:
-            pass
-    if draw:
-        # canvas.draw()
-        draw_ani()
-
-def plot_highlight(xs, ys):
-    try:
-        markers['highlight'].remove()
-    except:
-        pass
-    try:
-        markers['highlight'], = ax.plot(xs, ys, marker='o', c=app.inputs['style_event_highlight_color'].get(),
-                                        markersize=app.inputs['style_event_highlight_size'].get(),
-                                        linestyle='None',
-                                        alpha=0.5, animated=False)
-        # canvas.draw()
-    except:
-        pass
-
-
-def plot_peak(xs, ys):
-    global markers
-    try:
-        markers['peak'].remove()
-    except Exception as e:
-        pass
-    try:
-        markers['peak'] = ax.scatter(xs, ys, marker='o', c=app.inputs['style_event_peak_color'].get(), picker=True,
-                                     s=float(app.inputs['style_event_peak_size'].get()) ** 2,
-                                     pickradius=float(app.inputs['style_event_pick_offset'].get()), animated=False)
-        # canvas.draw()
-    except:
-        pass
-
-
-def plot_start(xs, ys):
-    global markers
-    try:
-        markers['start'].remove()
-    except:
-        pass
-    try:
-        markers['start'], = ax.plot(xs, ys, marker='x', c=app.inputs['style_event_start_color'].get(),
-                                    markersize=app.inputs['style_event_start_size'].get(),
-                                    linestyle='None',
-                                    animated=False)
-        # canvas.draw()
-    except:
-        pass
-
-
-def plot_decay(xs, ys):
-    global markers
-    try:
-        markers['decay'].remove()
-    except:
-        pass
-    try:
-        markers['decay'], = ax.plot(xs, ys, marker='x', c=app.inputs['style_event_decay_color'].get(),
-                                    markersize=app.inputs['style_event_decay_size'].get(),
-                                    linestyle='None',
-                                    animated=False)
-        # canvas.draw()
-    except:
-        pass
-
-
-def plot_end(xs, ys):
-    global markers
-    try:
-        markers['end'].remove()
-    except:
-        pass
-    try:
-        markers['end'], = ax.plot(xs, ys, marker='x', c=app.inputs['style_event_color_end'].get(),
-                                  animated=False)
-        # canvas.draw()
-    except:
-        pass
-
-
-def apply_styles(keys, draw=True):
-    global highlighted_sweep
-    for k in keys:
-        try:
-            if k == 'style_trace_line_width':
-                for l in ax.lines:
-                    l.set_linewidth(float(app.inputs[k].get()))
-            if k == 'style_trace_line_color':
-                if not app.inputs['trace_mode'].get() == 'compare':
-                    for l in ax.lines:
-                        l.set_color(app.inputs[k].get())
-            if k == 'compare_color_list':
-                idx_offset = 0
-                for i,r in enumerate(interface.recordings):
-                    for j in range(r.sweep_count):
-                        sweeps[f'sweep_{j+idx_offset}'].set_color(app.compare_tab.get_color(i))
-                    idx_offset += r.sweep_count
-            if k == 'style_event_peak_color':
-                markers['peak'].set_color(app.inputs[k].get())
-            if k == 'style_event_peak_size':
-                markers['peak'].set_sizes([float(app.inputs[k].get()) ** 2])
-            if k == 'style_event_start_color':
-                markers['start'].set_color(app.inputs[k].get())
-            if k == 'style_event_start_size':
-                markers['start'].set_markersize(app.inputs[k].get())
-            if k == 'style_event_decay_color':
-                markers['decay'].set_color(app.inputs[k].get())
-            if k == 'style_event_decay_size':
-                markers['decay'].set_markersize(app.inputs[k].get())
-            if k == 'style_event_highlight_color':
-                markers['highlight'].set_color(app.inputs[k].get())
-            if k == 'style_event_highlight_size':
-                markers['highlight'].set_markersize(app.inputs[k].get())
-            if k == 'style_trace_highlight_width':
-                for idx in highlighted_sweep:
-                    sweeps[f'sweep_{idx}'].set_linewidth(float(app.inputs[k].get()))
-            if k == 'style_trace_highlight_color':
-                for idx in highlighted_sweep:
-                    sweeps[f'sweep_{idx}'].set_color(app.inputs[k].get())
-            if k == 'style_event_pick_offset':
-                markers['peak'].set_picker(float(app.inputs[k].get()))
-        except:
-            pass
-    if draw:
-        # canvas.draw()
-        draw_ani()
-
 
 def show_all_plot(update_default=False):
     ax.autoscale(enable=True, axis='both', tight=True)
@@ -820,7 +557,9 @@ def show_all_plot(update_default=False):
         global default_ylim
         default_ylim = ax.get_ylim()
 
-def update_default_lim(x=True, y=True):
+def update_default_lim(x=True, y=True, fix_x=False, fix_y=False):
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
     ax.autoscale(enable=True, axis='both', tight=True)
     ax.relim(visible_only=True)
     draw_ani()
@@ -830,9 +569,10 @@ def update_default_lim(x=True, y=True):
     if y:
         global default_ylim
         default_ylim = ax.get_ylim()
-
-
-
+    if fix_x:
+        ax.set_xlim(xlim)
+    if fix_y:
+        ax.set_ylim(ylim)
 
 get_axis_limits = lambda axis: getattr(ax, 'get_{}lim'.format(axis))()
 
@@ -854,16 +594,6 @@ def set_axis_limit(axis, lim):
         ax.set_ylim(l)
     # canvas.draw()
     draw_ani()
-
-class State():
-    def __init__(self):
-        self.press = False
-        self.release = False
-        self.move = False
-        self.press_coord = (None, None)
-        self.release_coord = (None, None)
-    ####
-
 
 ##################
 def draw_rect(coord_start, coord_end):
