@@ -214,7 +214,9 @@ def load(parent):
                                              offvalue=False)
 
     for w in widgets:
-        widgets[w].set(getattr(config, w))
+        value = getattr(config, w, None)
+        if value:
+            widgets[w].set(value)
     set_fontsize(widgets['font_size'].get())
     return frame
 

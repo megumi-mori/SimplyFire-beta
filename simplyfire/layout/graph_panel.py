@@ -278,7 +278,9 @@ def load(parent):
     # x_scrollbar.bind('<ButtonRelease-1>', lambda e:trace_display.update_y_scrollbar)
 
     for w in widgets:
-        widgets[w].set(getattr(config, w))
+        value = getattr(config, w, None)
+        if value:
+            widgets[w].set(value)
     return frame
 
 def scroll_x_to(e):
