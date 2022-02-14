@@ -119,7 +119,9 @@ def load():
                 for c, v in configs.items():
                     globals()[c] = v
                     user_vars[c] = v
-        except (FileNotFoundError, AttributeError) as e:
+        except FileNotFoundError:
+            pass
+        except AttributeError as e:
             user_config_load_error = e
             pass
 
@@ -132,7 +134,9 @@ def load():
             configs = yaml.safe_load(f)
             globals()['active_plugins'] = configs['active_plugins']
             user_vars['active_plugins'] = configs['active_plugins']
-    except (FileNotFoundError, AttributeError, KeyError) as e:
+    except FileNotFoundError:
+        pass
+    except (AttributeError, KeyError) as e:
         print(f'Error loading active plugins: {e}')
         pass
 
