@@ -87,90 +87,11 @@ def add_trace(e=None):
         return None
     interface.open_recording(fname, append=True)
 
-
-def reset_trace_list(fname):
-    global trace_list
-    global num_visible
-    if len(trace_list)>0:
-        for t in trace_list[1:]:
-            t['panel'].grid_remove()
-        trace_list[0]['title'].config(text=f'File {os.path.split(fname)[1]}'),
-        trace_list[0]['sweep_entry'].set(analyzer2.format_list_indices(range(interface.recordings[0].sweep_count)))
-        num_visible = 1
-    else:
-        increase_trace_list(fname)
-    global apply_button
-    apply_button.config(state='normal')
-
-    global add_button
-    add_button.config(state='normal')
-
-    pass
 def get_color(idx):
     try:
         return var_list[idx].get()
     except:
         return app.config.default_compare_color_list[-1]
-
-def increase_trace_list(fname):
-    global trace_list
-    global num_visible
-    global list_frame
-    if len(trace_list) > num_visible:
-        trace_list[num_visible]['panel'].grid()
-    else:
-        entry_panel = scrollable_option_frame.OptionFrame(list_frame.frame)
-        entry_panel.grid_columnconfigure(0, weight=1)
-        list_frame.frame.insert_panel(entry_panel)
-
-        if len(interface.recordings) == 1:
-            default_sweeps = range(interface.recordings[0].sweep_count)
-        else:
-            default_sweeps = range(interface.recordings[-1].sweep_count)
-        default_sweeps = analyzer2.format_list_indices(default_sweeps)
-        try:
-            default_color = app.config.compare_color_list[len(interface.recordings)-1]
-        except:
-            default_color = app.config.default_compare_color_list[-1]
-        trace_list.append({
-            'title': entry_panel.insert_title(
-                text=f'File {os.path.split(fname)[1]}',
-                separator=False
-            ),
-            'sweep_entry': entry_panel.insert_label_entry(
-                value=default_sweeps,
-                default=0,
-                label='Sweep indices',
-                validate_type='indices',
-                separator=False,
-            ),
-            'color_entry': entry_panel.insert_label_entry(
-                value=default_color,
-                default="Black",
-                label='Plot color',
-                validate_type='color',
-                separator=False
-            ),
-            'panel':entry_panel
-        })
-        trace_list[-1]['color_entry'].bind('<Return>', apply, add='+')
-        trace_list[-1]['sweep_entry'].bind('<Return>', apply, add='+')
-        global var_list
-        var_list.append(trace_list[-1]['color_entry'].var)
-        num_visible += 1
-
-def apply(e=None):
-    SimplyFire.Layout.trace_display.apply_styles(['compare_color_list'], draw=False)
-    idx_offset = 0
-    for i,r  in enumerate(interface.recordings):
-        for idx in range(r.sweep_count):
-            SimplyFire.Layout.trace_display.hide_sweep(idx + idx_offset)
-        for idx in get_sweep_list(i):
-            SimplyFire.Layout.trace_display.show_sweep(idx + idx_offset)
-        idx_offset += r.sweep_count
-    pass
-    SimplyFire.Layout.trace_display.canvas.get_tk_widget().focus_set()
-    SimplyFire.Layout.trace_display.canvas.draw()
 
 def get_sweep_list(num):
     global trace_list

@@ -212,7 +212,8 @@ def open_recording(fname: str,
     #         record.set_channel(recordings[0].channel)
     #     except:
     #         _change_channel(0, save_undo=False) # cannot open channel
-    app.trace_display.clear()
+    # app.trace_display.clear()
+    app.trace_display.refresh()
     plot()
     app.trace_display.draw_ani()
     # param_guide.update()
@@ -285,23 +286,9 @@ def change_channel(num: int,
         log_display.log(f'@ graph_viewer: unable to switch to channel {num}. Reverting to channel 0')
     app.graph_panel.widgets['channel_option'].set(f'{recordings[0].channel}: {recordings[0].y_label}') #0 indexing for channel num
 
-    xlim = app.trace_display.ax.get_xlim()
     # plot data points
-    plot(clear=False, relim=True, relim_axis='y')
-    # if app.menubar.widgets['trace_mode'].get() == 'continuous':
-    #     plot_continuous(recordings[0], fix_x=True, draw=False)
-    # elif app.menubar.widgets['trace_mode'].get() == 'compare':
-    #     for i,r in enumerate(recordings):
-    #         plot_overlay(r, fix_x=True, draw=False, append=(i!=0))
-    # elif app.menubar.widgets['trace_mode'].get() == 'overlay':
-    #     plot_overlay(recordings[0], fix_x=True, draw=False)
-    # add other modes here
-    # data_display.clear()
+    plot(clear=False, fix_x=True, relim=True, relim_axis='y')
 
-    # populate_data_display()
-    # update_event_marker()
-
-    # param_guide.update()
     app.root.event_generate('<<ChangedChannel>>')
     # trace_display.set_axis_limit('x', xlim)
     trace_display.draw_ani()
@@ -438,3 +425,9 @@ def log(msg, header=False):
 def focus(event=None):
     app.trace_display.canvas.get_tk_widget().focus_set()
 
+#########################
+# Info Getters
+#########################
+
+def has_open_recording():
+    return len(recordings) > 0

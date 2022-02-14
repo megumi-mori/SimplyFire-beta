@@ -1,0 +1,8 @@
+name: 'comparison_plot'
+title: 'Comparison'
+author: 'MM'
+description: 'Compare traces from different recording files.'
+version: '1.0.0'
+minimumCoreVersion: '3.0.0'
+scripts:
+  - 'comparison_GUI'
