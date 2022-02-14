@@ -61,10 +61,13 @@ def apply_styles(event=None, undo=True):
         ])
     app.trace_display.trace_color = form.inputs['style_trace_line_color'].get()
     app.trace_display.trace_width = float(form.inputs['style_trace_line_width'].get())
+    for s in app.trace_display.sweeps.keys():
+        app.trace_display.sweeps[s].set_color(app.trace_display.trace_color)
+        app.trace_display.sweeps[s].set_linewidth(app.trace_display.trace_width)
     form.trace_color = app.trace_display.trace_color
     form.trace_width = app.trace_display.trace_width
-
-    app.interface.plot()
+    app.trace_display.draw_ani()
+    # app.interface.plot(fix_y=True, fix_x=True)
     app.interface.focus()
 
 def apply_default(event=None):
