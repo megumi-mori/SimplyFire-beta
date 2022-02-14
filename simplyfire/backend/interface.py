@@ -25,6 +25,7 @@ import pandas as pd
 import os
 from simplyfire.layout import menubar, trace_display, log_display
 from simplyfire.backend import analyzer2
+from simplyfire.loader import config
 
 # This module is the workhorse of the GUI
 # Use this module to connect analysis functions to the GUI
@@ -52,7 +53,7 @@ def get_temp_num():
         return 0
 
 def get_temp_filename():
-    return os.path.join(app.config.TEMP_DIR,
+    return os.path.join(config.TEMP_DIR,
                                        'temp_{}.temp'.format(get_temp_num()))
 def get_prev_temp_num():
     global temp_num

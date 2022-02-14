@@ -23,21 +23,26 @@ import pkg_resources
 import sys
 
 # set up default parameters during module import
-
 # Constants
-global CONFIG_DIR # package config file path
-CONFIG_DIR = pkg_resources.resource_filename('simplyfire', 'config/')
+global CONFIG_DIR  # package config file path
+CONFIG_DIR = pkg_resources.resource_filename('simplyfire', 'loader/')
+global IMG_DIR
 IMG_DIR = pkg_resources.resource_filename('simplyfire', 'img/')
+global TEMP_DIR
 TEMP_DIR = pkg_resources.resource_filename('simplyfire', 'temp/')
 
 # Load defaults
+global default_vars
 default_vars = {}
+global system_vars
 system_vars = {}
+global user_vars
 user_vars = {}
+global keymap_vars
 keymap_vars = {}
 
 print('loading default config')
-default_config_path = os.path.join(CONFIG_DIR, "default_config.yaml") #config/default_config.yaml
+default_config_path = os.path.join(CONFIG_DIR, "default_config.yaml")  # config/default_config.yaml
 with open(default_config_path) as f:
     configs = yaml.safe_load(f)
     for c, v in configs.items():
@@ -54,7 +59,6 @@ default_config_user_dir = pkg_resources.resource_filename('simplyfire', '')
 global config_user_dir
 config_user_dir = default_config_user_dir
 print('completed')
-
 
 def load():
     # Load user configurations

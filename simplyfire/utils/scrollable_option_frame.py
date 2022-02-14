@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import tkinter as Tk
 from tkinter import ttk
 from simplyfire.utils import custom_widgets
-from simplyfire.config import config
+from simplyfire.loader import config
 import yaml
 import textwrap
 from simplyfire.backend import interface

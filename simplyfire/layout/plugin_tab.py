@@ -1,4 +1,5 @@
 from simplyfire import app
+from simplyfire.loader import config
 import pkg_resources
 import os
 import yaml
@@ -51,7 +52,7 @@ def load():
     _populate_plugins()
 
 
-    active_plugins = [p for p in app.config.active_plugins]
+    active_plugins = [p for p in config.active_plugins]
 
 def apply():
     messagebox.showwarning('Warning', 'Please reopen the software to apply changes')
@@ -92,7 +93,7 @@ def _populate_plugins():
                         description += '\nWarning: Missing requirements - '
                     description += f' {r},'
 
-        if parse(manifests[plugin_name]['minimumCoreVersion']) > parse(app.config.version):
+        if parse(manifests[plugin_name]['minimumCoreVersion']) > parse(config.version):
             description += f'\nWarning: Minimum core requirement not met!'
 
         label = Tk.Text(master=frame, height=4)
@@ -122,7 +123,7 @@ def get_plugins():
 #         if not self.plugins[r].get('loaded', False):
 #             self._load_plugin(r)
 #     sources = manifest.get('sources', [])
-#     directory = app.config.PLUGIN_DIR
+#     directory = config.PLUGIN_DIR
 #     for filename in sources:
 #         source_path = os.path.join(directory, filename)
 #         importlib.import_module(source_path)

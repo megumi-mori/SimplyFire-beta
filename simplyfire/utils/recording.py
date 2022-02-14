@@ -20,7 +20,7 @@ import numpy as np
 import os
 from pyabf import abf
 from simplyfire.utils import abfWriter
-from simplyfire import app
+from simplyfire.loader import config
 from math import ceil
 
 class Recording():
@@ -156,7 +156,7 @@ class Recording():
         if channel is None:
             channel = self.channel
         with open(filename, 'x') as f:
-            f.write(f'@version={app.config.version}\n')
+            f.write(f'@version={config.version}\n')
             f.write(f'@sweep_count={self.sweep_count}\n')
             f.write(f'@sweep_points={self.sweep_points}\n')
             f.write(f'@channel_unit={self.channel_units[channel]}\n')

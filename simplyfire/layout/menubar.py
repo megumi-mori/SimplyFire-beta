@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import tkinter as Tk
 from tkinter import filedialog, messagebox
 import os
-from simplyfire.config import config
+from simplyfire.loader import config
 from simplyfire.utils import abfWriter
 from simplyfire.backend import interface
 from simplyfire.layout import results_display

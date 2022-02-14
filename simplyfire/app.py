@@ -22,9 +22,10 @@ import yaml
 from PIL import Image
 import os
 import pkg_resources
+import simplyfire
 from simplyfire.utils import custom_widgets
-from simplyfire.backend import interpreter, interface, plugin_manager
-from simplyfire.config import config
+from simplyfire.backend import interpreter, plugin_manager, interface
+from simplyfire.loader import config
 # from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
 #     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar,\
 #     compare_tab

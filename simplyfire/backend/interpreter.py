@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from simplyfire import app
 from simplyfire.backend import interface
-from simplyfire.config import config
+from simplyfire.loader import config
 
 # debugging
 import time

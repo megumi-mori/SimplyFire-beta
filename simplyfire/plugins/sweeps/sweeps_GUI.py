@@ -1,6 +1,7 @@
 from simplyfire.utils.plugin_controller import PluginController
 from simplyfire.utils.plugin_form import PluginForm
 from simplyfire import app
+from simplyfire.loader import config
 from simplyfire.backend import analyzer2
 from simplyfire.utils.scrollable_option_frame import ScrollableOptionFrame
 import numpy as np
@@ -337,13 +338,13 @@ controller.listen_to_event('<<ChangeToContinuousView>>', controller.disable_plug
 controller.listen_to_event("<<CanvasMouseRelease>>", canvas_mouse_release, condition_function=form.has_focus)
 controller.listen_to_event('<<CanvasDrawRect>>', canvas_draw_rect, condition_function=form.has_focus)
 
-for key in app.config.key_deselect:
+for key in config.key_deselect:
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=clear_higlight: form.call_if_focus(func),
                                                   add='+')
-for key in app.config.key_select_all:
+for key in config.key_select_all:
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=highlight_all: form.call_if_focus(func),
                                                   add='+')
-for key in app.config.key_delete:
+for key in config.key_delete:
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=hide_selected: form.call_if_focus(func),
                                                   add='+')
 if app.inputs['trace_mode'].get() != 'overlay':

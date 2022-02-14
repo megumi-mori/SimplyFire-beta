@@ -19,17 +19,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import tkinter as Tk
 from tkinter import ttk
 
-from simplyfire.config import config
+# from simplyfire.loader import config
 from simplyfire.utils import validation
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import matplotlib as mpl
 import yaml
 from simplyfire import app
+from simplyfire.loader import config
 import textwrap
 import os
-
-
-
 
 class VarWidget():
     def __init__(
@@ -51,25 +49,25 @@ class VarWidget():
             self.var = Tk.DoubleVar()
         if default is not None:
             self.default=default
-        elif name is None:
+        else:
             self.default = ""
-        elif name is not None:
-            if config.default_vars.get('default_{}'.format(name), None) is not None:
-                self.default = config.default_vars['default_{}'.format(name)]
-            else:
-                self.default=""
+        # elif name is not None:
+        #     if config.default_vars.get('default_{}'.format(name), None) is not None:
+        #         self.default = config.default_vars['default_{}'.format(name)]
+        #     else:
+        #         self.default=""
         if value is not None:
             try:
                 self.var.set(value)
             except:
                 pass
-        elif name is not None:
-            if config.user_vars.get(name, None) is not None:
-                self.var.set(config.user_vars[name])
-            elif config.system_vars.get(name, None) is not None:
-                self.var.set(config.system_vars[name])
-            else:
-                self.var.set(self.default)
+        # elif name is not None:
+        #     if config.user_vars.get(name, None) is not None:
+        #         self.var.set(config.user_vars[name])
+        #     elif config.system_vars.get(name, None) is not None:
+        #         self.var.set(config.system_vars[name])
+        #     else:
+        #         self.var.set(self.default)
         else:
             self.var.set(self.default)
 

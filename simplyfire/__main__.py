@@ -43,7 +43,6 @@ def load_splash():
     #     except:
     #         pass
     IMG_DIR = pkg_resources.resource_filename('simplyfire', 'img/')
-
     # method 1:
     global splash
     splash.title('SimplyFire')
@@ -113,7 +112,6 @@ def load_app():
 
 
 if __name__ == '__main__':
-
     # t = Thread(target=load_splash)
     # t.start()
 

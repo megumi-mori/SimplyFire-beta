@@ -22,6 +22,7 @@ import importlib
 from tkinter import BooleanVar, ttk
 import tkinter as Tk
 from simplyfire import app
+from simplyfire.loader import config
 import inspect
 from threading import Thread
 
@@ -37,7 +38,7 @@ class PluginController():
                  file_menu:bool=False
                  ):
         try:
-            self.values = app.config.user_vars[name]
+            self.values = config.user_vars[name]
         except:
             self.values = {}
 

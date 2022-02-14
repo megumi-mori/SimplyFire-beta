@@ -23,7 +23,8 @@ from tkinter import ttk, font
 from simplyfire.utils import custom_widgets
 from simplyfire.utils.scrollable_option_frame import ScrollableOptionFrame
 from simplyfire.layout import batch_popup, trace_display
-from simplyfire.config import config
+# from simplyfire.loader import config
+from simplyfire.loader import config
 from simplyfire import app
 from simplyfire.backend import interface
 
@@ -198,7 +199,7 @@ def load(parent):
         text='Apply',
         command=apply_geometry
     )
-    set_fontsize(widgets['font_size'].get())
+
     global menu_var
     menu_var = Tk.BooleanVar()
     def toggle_tab_display(event=None):
@@ -212,6 +213,9 @@ def load(parent):
                                              onvalue=True,
                                              offvalue=False)
 
+    for w in widgets:
+        widgets[w].set(getattr(config, w))
+    set_fontsize(widgets['font_size'].get())
     return frame
 
 def load_config(e=None, filename=None):

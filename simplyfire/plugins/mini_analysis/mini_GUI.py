@@ -3,6 +3,8 @@ from simplyfire.utils.plugin_form import PluginForm
 from simplyfire.utils.plugin_table import PluginTable
 from simplyfire.utils.plugin_popup import PluginPopup
 from simplyfire import app
+from simplyfire.loader import config
+import simplyfire
 from simplyfire.backend import plugin_manager, analyzer2
 from simplyfire.utils import formatting, custom_widgets, threader
 import pandas as pd
@@ -1463,7 +1465,7 @@ def save_minis(filename, overwrite=True, log=False, update_status = True):
     filename = formatting.format_save_filename(filename, overwrite)
     with open(filename, mode) as f:
         f.write(f'@filename: {app.interface.recordings[0].filename}\n')
-        f.write(f'@version: {app.config.version}\n')
+        f.write(f'@version: {config.version}\n')
         f.write(mini_df.to_csv(index=False))
     if update_status:
         saved = True
@@ -1817,7 +1819,7 @@ controller.add_batch_command('Save minis', func=batch_save_minis)
 controller.add_batch_command('Export minis', func=batch_export_minis)
 
 #### setup Table GUI ####
-for key in app.config.key_delete:
+for key in config.key_delete:
     datapanel.datatable.table.bind(key, datapanel.delete_selected, add='')
 datapanel.datatable.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
 datapanel.datatable.table.bind('<<TreeviewSelect>>', select_from_table)
@@ -1831,7 +1833,7 @@ popup.grid_columnconfigure(0, weight=1)
 popup.grid_rowconfigure(0, weight=1)
 
 popup.pw = Tk.PanedWindow(popup, orient=Tk.VERTICAL, showhandle=True, sashrelief=Tk.SUNKEN,
-                          handlesize=app.config.default_pw_handlesize)
+                          handlesize=config.default_pw_handlesize)
 popup.pw.grid(column=0, row=0, sticky='news')
 popup.frame = Tk.Frame(popup.pw)
 popup.frame.grid(column=0, row=0, sticky='news')
@@ -1984,13 +1986,13 @@ controller.listen_to_event('<<ChangeToOverlayView>>', controller.disable_plugin)
 controller.listen_to_event('<<ChangeToContinuousView>>', controller.enable_plugin)
 
 app.trace_display.canvas.mpl_connect('pick_event', select_from_event_pick) # peak point selected
-for key in app.config.key_delete:
+for key in config.key_delete:
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=delete_from_canvas: form.call_if_focus(func),
                                                   add='+')
-for key in app.config.key_deselect:
+for key in config.key_deselect:
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=select_clear: form.call_if_focus(func),
                                                   add='+')
-for key in app.config.key_select_all:
+for key in config.key_select_all:
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=datapanel.datatable.select_all: form.call_if_focus(func),
                                                   add='+')
 

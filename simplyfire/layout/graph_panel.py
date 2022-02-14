@@ -24,6 +24,7 @@ from simplyfire.utils import custom_widgets
 from simplyfire.utils import scrollable_option_frame
 from simplyfire.layout import trace_display
 from simplyfire.backend import interface
+from simplyfire.loader import config
 from simplyfire import app
 import os
 
@@ -32,20 +33,20 @@ def load(parent):
     global widgets
     widgets = {}
 
-    widgets['navigation_fps'] = Tk.IntVar(value=int(app.config.default_vars.get('default_navigation_fps')))
+    widgets['navigation_fps'] = Tk.IntVar(value=int(config.default_vars.get('default_navigation_fps')))
     widgets['navigation_mirror_x_scroll'] = Tk.IntVar(
-        value=int(app.config.default_vars.get('default_navigation_mirror_x_scroll')))
+        value=int(config.default_vars.get('default_navigation_mirror_x_scroll')))
     widgets['navigation_scroll_x_percent'] = Tk.DoubleVar(
-        value=float(app.config.default_vars.get('default_navigation_scroll_x_percent')))
+        value=float(config.default_vars.get('default_navigation_scroll_x_percent')))
     widgets['navigation_zoom_x_percent'] = Tk.DoubleVar(
-        value=float(app.config.default_vars.get('default_navigation_zoom_x_percent')))
+        value=float(config.default_vars.get('default_navigation_zoom_x_percent')))
 
     widgets['navigation_scroll_y_percent'] = Tk.DoubleVar(
-        value=float(app.config.default_vars.get('default_navigation_scroll_y_percent')))
+        value=float(config.default_vars.get('default_navigation_scroll_y_percent')))
     widgets['navigation_mirror_y_scroll'] = Tk.IntVar(
-        value=int(app.config.default_vars.get('default_navigation_mirror_y_scroll')))
+        value=int(config.default_vars.get('default_navigation_mirror_y_scroll')))
     widgets['navigation_zoom_y_percent'] = Tk.DoubleVar(
-        value=float(app.config.default_vars.get('default_navigation_zoom_y_percent')))
+        value=float(config.default_vars.get('default_navigation_zoom_y_percent')))
 
     ##################################################
     #                    Methods                     #
@@ -135,7 +136,7 @@ def load(parent):
     y_zoom_frame.grid_rowconfigure(0, weight=1)
     y_zoom_frame.grid_rowconfigure(1, weight=1)
 
-    IMG_DIR = app.config.IMG_DIR
+    IMG_DIR = config.IMG_DIR
 
     y_zoom_in = ttk.Button(y_zoom_frame)
     y_zoom_in.image = Tk.PhotoImage(file=os.path.join(IMG_DIR,'y_zoom_in.png'))
@@ -225,8 +226,8 @@ def load(parent):
         parent=widgets['force_channel'].master,
         name='force_channel_id',
         validate_type='int',
-        value=app.config.user_vars['force_channel_id'],
-        default=app.config.default_vars['default_force_channel_id']
+        value=config.user_vars['force_channel_id'],
+        default=config.default_vars['default_force_channel_id']
     )
     force_channel()
     widgets['force_channel_id'].grid(column=2, row=0, sticky='ews')
@@ -276,6 +277,8 @@ def load(parent):
     x_scrollbar.set(50)
     # x_scrollbar.bind('<ButtonRelease-1>', lambda e:trace_display.update_y_scrollbar)
 
+    for w in widgets:
+        widgets[w].set(getattr(config, w))
     return frame
 
 def scroll_x_to(e):
