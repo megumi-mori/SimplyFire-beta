@@ -205,7 +205,6 @@ class MiniPopup(PluginPopup):
     def show_window(self, event=None):
         popup_clear()
         super().show_window()
-        print(f'visible is set to: {self.is_visible()}')
 
 #### define functions ####
 # private functions
@@ -644,7 +643,6 @@ def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
         filename = app.interface.get_temp_filename()
         mini_df.to_csv(filename)
         controller.add_undo([
-            lambda s='undoing the reanalyze':print(s),
             lambda f=filename: open_minis(filename, log=False, undo=False, append=True),
             lambda f=filename: os.remove(f),
         ])
@@ -1283,7 +1281,7 @@ def popup_report(xs:np.ndarray, ys:np.ndarray, data:dict):
         popup.msg_label.insert(f'Signal-to-noise ratio: {data["amp"] * data["direction"] / data["stdev"]:.3f}\n')
     except:
         pass
-    popup.ax.legend(frameon=False)
+    popup.ax.legend(frameon=True, fancybox=True)
     popup.ax.autoscale(enable=True, axis='y', tight=False)
     popup.ax.relim()
 
@@ -1437,9 +1435,7 @@ def report_selected_results(event=None):
     app.results_display.report(data)
 
 def report_to_guide(event=None, mini=None):
-    print('report to guide called')
     if popup.is_visible():
-        print('popup is visible')
         popup_clear()
         if mini is None:
             selection = [float(t) for t in datapanel.datatable.table.selection()]
