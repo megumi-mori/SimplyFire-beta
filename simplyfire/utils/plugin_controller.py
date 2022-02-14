@@ -252,3 +252,9 @@ class PluginController():
             except:
                 pass
 
+    def log(self, msg, header=True):
+        if header:
+            msg = f'{self.name}:{msg}'
+        else:
+            msg = f'    {msg}'
+        app.log_display.log(msg, header=True)
