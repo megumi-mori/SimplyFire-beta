@@ -19,7 +19,6 @@ highlight_width = 1
 
 #### Functions ####
 def canvas_draw_rect(event=None):
-    print('canvas draw rect')
     selection = []
     xlim = (app.interpreter.drag_coord_start[0], app.interpreter.drag_coord_end[0])
     ylim = (app.interpreter.drag_coord_start[1], app.interpreter.drag_coord_end[1])
@@ -117,6 +116,7 @@ def reset_sweep_list(event=None, sweep_name_suffix='Sweep'):
 
         temp = sweep_vars.pop()
         del temp
+    apply_sweep_list()
 
 
 def synch_sweep_list(event=None):
@@ -332,7 +332,7 @@ controller.add_batch_command('Hide All', lambda u=False:hide_all(undo=u))
 controller.listen_to_event('<<OpenedRecording>>', reset_sweep_list)
 controller.listen_to_event('<<LoadCompleted>>', controller.update_plugin_display)
 controller.listen_to_event('<<ChangeToOverlayView>>', controller.enable_plugin)
-controller.listen_to_event('<<Plotted>>', apply_sweep_list)
+# controller.listen_to_event('<<Plotted>>', apply_sweep_list)
 controller.listen_to_event('<<ChangeToContinuousView>>', controller.disable_plugin)
 controller.listen_to_event("<<CanvasMouseRelease>>", canvas_mouse_release, condition_function=form.has_focus)
 controller.listen_to_event('<<CanvasDrawRect>>', canvas_draw_rect, condition_function=form.has_focus)
