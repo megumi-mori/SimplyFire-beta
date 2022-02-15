@@ -41,26 +41,27 @@ user_vars = {}
 global keymap_vars
 keymap_vars = {}
 
-print('loading default config')
-default_config_path = os.path.join(CONFIG_DIR, "default_config.yaml")  # config/default_config.yaml
-with open(default_config_path) as f:
-    configs = yaml.safe_load(f)
-    for c, v in configs.items():
-        globals()[c] = v
-        default_vars[c] = v
-        if 'system' not in c:
-            globals()[c] = v
-            user_vars[c] = v
-        elif 'system' in c:
-            globals()[c] = v
-            system_vars[c] = v
-global default_config_user_dir
-default_system_user_dir = pkg_resources.resource_filename('simplyfire', '')
-global system_user_dir
-system_user_dir = default_system_user_dir
-print('completed')
+
 
 def load():
+    print('loading default config')
+    default_config_path = os.path.join(CONFIG_DIR, "default_config.yaml")  # config/default_config.yaml
+    with open(default_config_path) as f:
+        configs = yaml.safe_load(f)
+        for c, v in configs.items():
+            globals()[c] = v
+            default_vars[c] = v
+            if 'system' not in c:
+                globals()[c] = v
+                user_vars[c] = v
+            elif 'system' in c:
+                globals()[c] = v
+                system_vars[c] = v
+    global default_system_user_dir
+    default_system_user_dir = pkg_resources.resource_filename('simplyfire', '')
+    global system_user_dir
+    system_user_dir = default_system_user_dir
+    print('completed')
     # Load user configurations
     global system_setting_path
     system_setting_path = os.path.join(CONFIG_DIR, default_vars['system_setting_path'])
