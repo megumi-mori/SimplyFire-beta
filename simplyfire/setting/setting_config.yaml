@@ -2,4 +2,7 @@
 # PyMini system configurations
 #################################################################
 
-{}
+system_autoload: '1'
+system_autosave: '1'
+system_data_dir: C:\Users\megum\Documents\GitHub\PyMini-GitHubDesktop\simplyfire
+system_undo_stack: '2'

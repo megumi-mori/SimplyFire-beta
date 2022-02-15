@@ -40,9 +40,9 @@ def load(parent):
                                            # defaultextension='.yaml')
         d = filedialog.askdirectory(title='Select a directory')
         if d:
-            widgets['system_user_dir'].config(state="normal")
-            widgets['system_user_dir'].set(d)
-            widgets['system_user_dir'].config(state='disabled')
+            widgets['system_data_dir'].config(state="normal")
+            widgets['system_data_dir'].set(d)
+            widgets['system_data_dir'].config(state='disabled')
             if os.path.exists(os.path.join(d, 'user_config.yaml')):
                 answer = messagebox.askyesnocancel(title='Load config?', message='A configuration file already exists in this directory.\nLoad configuration?\n(The file will be overwritten when the program closes.)')
                 if answer is None:
@@ -54,6 +54,7 @@ def load(parent):
             else:
                 app.dump_user_setting()
                 app.dump_system_setting()
+                app.dump_plugin_setting()
 
     ##################################################
     #                    Populate                    #
@@ -114,13 +115,13 @@ def load(parent):
     global dir_entry
     dir_entry = custom_widgets.VarText(
         parent=dir_frame,
-        name='system_user_dir',
-        value=app.config.get_value('system_user_dir'),
-        default=app.config.default_system_user_dir
+        name='system_data_dir',
+        value=app.config.get_value('system_data_dir'),
+        default=app.config.get_default_value('system_data_dir')
     )
     dir_entry.configure(state='disabled', height=2)
     dir_entry.grid(column=0,row=1,sticky='news')
-    widgets['system_user_dir'] = dir_entry
+    widgets['system_data_dir'] = dir_entry
 
     Tk.Button(
         master=dir_frame,
@@ -268,11 +269,6 @@ def save_config_as():
         except:
             save_config_as()
     return d
-
-def save(event=None):
-    app.interface.focus()
-    app.dump_user_setting(widgets['system_user_dir'].get())
-
 
 def set_fontsize(fontsize=None):
     app.interface.focus()

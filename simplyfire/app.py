@@ -431,7 +431,7 @@ def dump_user_setting(filename=None):
     ignore = ['config_', '_log', 'temp_']
     print('Writing out configuration variables....')
     if filename is None:
-        filename = os.path.join(inputs['system_user_dir'].var.get().strip(), 'user_config.yaml')
+        filename = os.path.join(inputs['system_data_dir'].var.get().strip(), config.get_value('system_user_path'))
         # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
         print('writing dump user config {}'.format(filename))
@@ -473,7 +473,7 @@ def dump_user_setting(filename=None):
 
 def dump_plugin_setting(filename=None):
     if filename is None:
-        filename = os.path.join(inputs['system_user_dir'].var.get().strip(), 'active_plugins.yaml')
+        filename = os.path.join(inputs['system_data_dir'].var.get().strip(), config.get_value('system_plugin_path'))
         # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
         d = {'active_plugins':plugin_tab.get_plugins()}

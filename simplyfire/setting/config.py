@@ -24,12 +24,11 @@ import sys
 
 # set up default parameters during module import
 # Constants
-global CONFIG_DIR  # package config file path
-CONFIG_DIR = pkg_resources.resource_filename('simplyfire', 'setting/')
-global IMG_DIR
-IMG_DIR = pkg_resources.resource_filename('simplyfire', 'img/')
-global TEMP_DIR
-TEMP_DIR = pkg_resources.resource_filename('simplyfire', 'temp/')
+
+PKG_DIR = pkg_resources.resource_filename('simplyfire', '') # base directory
+SETTING_DIR = pkg_resources.resource_filename('simplyfire', 'setting/') # location of config
+IMG_DIR = pkg_resources.resource_filename('simplyfire', 'img/') # location of image files
+TEMP_DIR = pkg_resources.resource_filename('simplyfire', 'temp/') # location of temp files
 
 # Load defaults
 global default_vars
@@ -45,26 +44,26 @@ keymap_vars = {}
 
 def load():
     print('loading default config')
-    default_config_path = os.path.join(CONFIG_DIR, "default_config.yaml")  # config/default_config.yaml
+    default_config_path = os.path.join(SETTING_DIR, "default_config.yaml")  # config/default_config.yaml
     with open(default_config_path) as f:
         configs = yaml.safe_load(f)
         for c, v in configs.items():
             globals()[c] = v
             default_vars[c] = v
-            if 'system' not in c:
-                globals()[c] = v
-                user_vars[c] = v
-            elif 'system' in c:
-                globals()[c] = v
-                system_vars[c] = v
-    global default_system_user_dir
-    default_system_user_dir = pkg_resources.resource_filename('simplyfire', '')
-    global system_user_dir
-    system_user_dir = default_system_user_dir
+            # if 'system' not in c:
+            globals()[c] = v
+            user_vars[c] = v
+            # elif 'system' in c:
+            #     globals()[c] = v
+            #     system_vars[c] = v
+    if default_vars['system_data_dir'] is None:
+        default_vars['system_data_dir'] = PKG_DIR
+        user_vars['system_data_dir'] = PKG_DIR
     print('completed')
-    # Load user configurations
+
+    # load where user data is located
     global system_setting_path
-    system_setting_path = os.path.join(CONFIG_DIR, default_vars['system_setting_path'])
+    system_setting_path = os.path.join(SETTING_DIR, default_vars['system_setting_path'])
     try:
         with open(system_setting_path) as f:
             configs = yaml.safe_load(f)
@@ -74,10 +73,13 @@ def load():
                 user_vars[c] = v
     except:
         pass
-    global sysetm_user_dir
+
+    if user_vars['system_data_dir'] is None:
+        user_vars['system_data_dir'] = PKG_DIR
+
     global PLUGIN_DIR
-    PLUGIN_DIR = os.path.join(system_user_dir, 'plugins')
-    sys.path.insert(0, system_user_dir)
+    PLUGIN_DIR = os.path.join(user_vars['system_data_dir'], 'plugins')
+    sys.path.insert(0, user_vars['system_data_dir'])
 
     # global config_keymap_path
     # config_keymap_path = os.path.join(CONFIG_DIR, default_config_keymap_path)
@@ -111,10 +113,10 @@ def load():
 
     global user_config_load_error
     user_config_load_error = None
-    if system_autoload == 1 or system_autoload == '1':
+    if user_vars['system_autoload'] == 1 or user_vars['system_autoload'] == '1':
         try:
-            print(f'loading user_config.yaml from {system_user_dir}')
-            system_user_path = os.path.join(system_user_dir, 'user_config.yaml')
+            print(f'loading user_config.yaml from {user_vars["system_data_dir"]}')
+            system_user_path = os.path.join(user_vars["system_data_dir"], user_vars['system_user_path'])
             with open(system_user_path) as f:
                 configs = yaml.safe_load(f)
                 for c, v in configs.items():
@@ -127,7 +129,7 @@ def load():
             pass
 
     try:
-        active_plugin_path = os.path.join(system_user_dir, 'active_plugins.yaml')
+        active_plugin_path = os.path.join(user_vars['system_data_dir'], user_vars['system_plugin_path'])
         with open(active_plugin_path) as f:
             configs = yaml.safe_load(f)
             globals()['active_plugins'] = configs['active_plugins']

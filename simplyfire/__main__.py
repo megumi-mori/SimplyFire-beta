@@ -41,10 +41,12 @@ def load_splash():
         global app_start
         frame = frames[ind]
         ind+= 1
-        label.configure(image=frame)
+        try:
+            label.configure(image=frame)
+        except Tk.TclError:
+            pass
         if ind < 28:
             splash.after(30, update, ind)
-            
         splash.update()
     label.pack()
     splash.after(0, update, 0)

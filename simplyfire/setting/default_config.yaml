@@ -55,9 +55,10 @@ temp_path :
 
 #system
 system_user_path : "user_config.yaml"
-system_user_dir: ~
-system_setting_path : 'system_config.yaml'
+system_data_dir: ~
+system_setting_path : 'setting_config.yaml'
 system_keymap_path: 'key_map.yaml'
+system_plugin_path: 'active_plugins.yaml'
 system_autoload : 1
 system_autosave : 1
 system_file_autodir : 1
