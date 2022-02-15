@@ -23,10 +23,6 @@ from tkinter import messagebox
 
 import pandas as pd
 import os
-from simplyfire.layout import menubar, trace_display, log_display
-from simplyfire.backend import analyzer2
-from simplyfire.loader import config
-
 # This module is the workhorse of the GUI
 # Use this module to connect analysis functions to the GUI
 from simplyfire.utils import abfWriter
@@ -34,8 +30,6 @@ from simplyfire.utils.recording import Recording
 global mini_df
 mini_df = pd.DataFrame()
 
-global al
-al = analyzer2.Analyzer()
 
 global current_channel
 current_channel = 0
@@ -47,18 +41,18 @@ def get_temp_num():
     global temp_num
     try:
         temp_num += 1
-        return temp_num % int(app.inputs['config_undo_stack'].get())
+        return temp_num % int(app.inputs['system_undo_stack'].get())
     except:
         temp_num = 0
         return 0
 
 def get_temp_filename():
-    return os.path.join(config.TEMP_DIR,
+    return os.path.join(app.config.TEMP_DIR,
                                        'temp_{}.temp'.format(get_temp_num()))
 def get_prev_temp_num():
     global temp_num
     try:
-        return temp_num % int(app.inputs['config_undo_stack'].get())
+        return temp_num % int(app.inputs['system_undo_stack'].get())
     except:
         return None
 
@@ -72,18 +66,18 @@ def clear_undo():
     undo_stack = []
 
     # disable the undo command in the menubar
-    menubar.undo_disable()
+    app.menubar.undo_disable()
 
 def add_undo(task):
     # enable the undo command in the menubar
-    menubar.undo_enable()
+    app.menubar.undo_enable()
     global undo_stack
     if isinstance(task, list):
         undo_stack.append(task)
     else:
         undo_stack.append([task])
     try:
-        if len(undo_stack) > int(app.inputs['config_undo_stack'].get()):
+        if len(undo_stack) > int(app.inputs['system_undo_stack'].get()):
             temp = undo_stack.pop(0)
             del temp
     except:
@@ -92,7 +86,7 @@ def add_undo(task):
 
 def is_accepting_undo():
     if not app.batch_popup.processing:
-        return int(app.inputs['config_undo_stack'].get()) > 0
+        return int(app.inputs['system_undo_stack'].get()) > 0
     else:
         return False
 
@@ -121,7 +115,7 @@ def undo(e=None):
 
     # if the stack is empty, disable the undo command in the menubar
     if len(undo_stack) == 0:
-        menubar.undo_disable()
+        app.menubar.undo_disable()
 
 
 def configure(key, value): # delete?
@@ -159,7 +153,7 @@ def open_recording(fname: str,
         messagebox.showerror('Read file error', f'The selected file could not be opened.\nError code: {e}')
         return None
     try:
-        log_display.open_update(fname)
+        app.log_display.open_update(fname)
     except:
         return None
     if not append:
@@ -180,9 +174,9 @@ def open_recording(fname: str,
             if channel:
                 record.set_channel(channel)  # 0 indexing
                 current_channel = channel
-            elif app.graph_panel.widgets['force_channel'].get() == '1':
-                record.set_channel(int(app.graph_panel.widgets['force_channel_id'].get()))  # 0 indexing
-                current_channel = int(app.graph_panel.widgets['force_channel_id'].get())
+            elif app.graph_panel.inputs['force_channel'].get() == '1':
+                record.set_channel(int(app.graph_panel.inputs['force_channel_id'].get()))  # 0 indexing
+                current_channel = int(app.graph_panel.inputs['force_channel_id'].get())
             else:
                 record.set_channel(0)
                 current_channel = 0
@@ -192,7 +186,7 @@ def open_recording(fname: str,
             pass
 
         # update file info displayed in the GUI
-        app.graph_panel.widgets['trace_info'].set(
+        app.graph_panel.inputs['trace_info'].set(
             '{}: {}Hz : {} channels'.format(
                 record.filename,
                 record.sampling_rate,
@@ -234,15 +228,15 @@ def open_recording(fname: str,
         app.trace_display.update_x_scrollbar()
         app.trace_display.update_y_scrollbar()
 
-        app.graph_panel.widgets['channel_option'].clear_options()
+        app.graph_panel.inputs['channel_option'].clear_options()
         for i in range(record.channel_count):
-            app.graph_panel.widgets['channel_option'].add_command(
+            app.graph_panel.inputs['channel_option'].add_command(
                 label='{}: {}'.format(i, record.channel_labels[i]),
                 command=lambda c=i:change_channel(c)
             )
 
     # starting channel was set earlier in the code
-        app.graph_panel.widgets['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
+        app.graph_panel.inputs['channel_option'].set('{}: {}'.format(record.channel, record.y_label))
     # print(f'interface finished opening: {time.time() - app.t0}')
     # app.t0 = time.time()
     app.root.event_generate('<<OpenedRecording>>')
@@ -279,20 +273,20 @@ def change_channel(num: int,
         current_channel = num
         for r in recordings:
             r.set_channel(num)
-        log_display.log(f'@ graph_viewer: switch to channel {num}')
+        app.log_display.log(f'@ graph_viewer: switch to channel {num}')
     except:
         current_channel = 0
         for r in recordings:
             r.set_channel(0)
-        log_display.log(f'@ graph_viewer: unable to switch to channel {num}. Reverting to channel 0')
-    app.graph_panel.widgets['channel_option'].set(f'{recordings[0].channel}: {recordings[0].y_label}') #0 indexing for channel num
+        app.log_display.log(f'@ graph_viewer: unable to switch to channel {num}. Reverting to channel 0')
+    app.graph_panel.inputs['channel_option'].set(f'{recordings[0].channel}: {recordings[0].y_label}') #0 indexing for channel num
 
     # plot data points
     plot(clear=False, fix_x=True, relim=True, relim_axis='y')
 
     app.root.event_generate('<<ChangedChannel>>')
     # trace_display.set_axis_limit('x', xlim)
-    trace_display.draw_ani()
+    app.trace_display.draw_ani()
     app.pb['value'] = 0
     app.pb.update()
 
@@ -303,24 +297,24 @@ def plot(fix_x=False, fix_y=False, clear=True, **kwargs):
     xlim=None
     ylim=None
     if fix_x:
-        xlim = trace_display.get_axis_limits('x')
+        xlim = app.trace_display.get_axis_limits('x')
     if fix_y:
-        ylim= trace_display.get_axis_limits('y')
+        ylim= app.trace_display.get_axis_limits('y')
     if clear:
-        trace_display.clear()
+        app.trace_display.clear()
     if app.menubar.widgets['trace_mode'].get() == 'continuous':
         plot_continuous(recordings[0], draw=False, **kwargs)
     elif app.menubar.widgets['trace_mode'].get() == 'overlay':
         plot_overlay(recordings[0], draw=False, **kwargs)
     if xlim:
-        trace_display.set_axis_limit('x', xlim)
+        app.trace_display.set_axis_limit('x', xlim)
     if ylim:
-        trace_display.set_axis_limit('y', ylim)
+        app.trace_display.set_axis_limit('y', ylim)
 
-    trace_display.ax.set_xlabel(recordings[0].x_label)#, fontsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.set_ylabel(recordings[0].y_label)#, fontsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
-    trace_display.ax.tick_params(axis='x', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
+    app.trace_display.ax.set_xlabel(recordings[0].x_label)#, fontsize=int(float(app.widgets['font_size'].get())))
+    app.trace_display.ax.set_ylabel(recordings[0].y_label)#, fontsize=int(float(app.widgets['font_size'].get())))
+    app.trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
+    app.trace_display.ax.tick_params(axis='x', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
     app.root.event_generate('<<Plotted>>')
     app.root.event_generate('<<PlotDone>>')
     app.trace_display.draw_ani()
@@ -328,14 +322,14 @@ def plot(fix_x=False, fix_y=False, clear=True, **kwargs):
 
 def plot_continuous(recording, draw=False, sweep_name_suffix='Sweep', relim=True, **kwargs):
     global current_channel
-    trace_display.plot_trace(recording.get_xs(mode='continuous', channel=current_channel),
+    app.trace_display.plot_trace(recording.get_xs(mode='continuous', channel=current_channel),
                              recording.get_ys(mode='continuous', channel=current_channel),
                              draw=draw,
                              relim=relim,
                              name=f'{sweep_name_suffix}_0',
                              **kwargs)
     if draw:
-        trace_display.draw_ani()
+        app.trace_display.draw_ani()
 
 
 def plot_overlay(recording, draw=False, sweep_name_suffix='Sweep', relim=True, **kwargs):
@@ -344,14 +338,14 @@ def plot_overlay(recording, draw=False, sweep_name_suffix='Sweep', relim=True, *
         app.pb.update()
         xs = recording.get_xs(mode='overlay', sweep=i, channel=current_channel)
         ys = recording.get_ys(mode='overlay', sweep=i, channel=current_channel)
-        trace_display.plot_trace(xs, ys,
+        app.trace_display.plot_trace(xs, ys,
                                  draw=False,
                                  relim=(i == recording.sweep_count-1 and relim),  #relim for the final sweep
                                  name = f"{sweep_name_suffix}_{i}",
                                  **kwargs)
     if draw:
-        trace_display.draw_ani()
-        trace_display.draw_ani()
+        app.trace_display.draw_ani()
+        app.trace_display.draw_ani()
     app.pb['value'] = 0
     app.pb.update()
 
@@ -359,41 +353,41 @@ def plot_overlay(recording, draw=False, sweep_name_suffix='Sweep', relim=True, *
 # Handling GUI placements
 ######################################
 
-def select_left(e=None):
-    """
-    invoked when selection key (default = Space bar) is pressed while in mini analysis mode
-    If there are marked minis in the plot, the left most mini will be highlighted.
-    If a mini in the viewing window is already highlighted, the highlight will move to the proceeding mini.
-    """
-    # check if mini analysis mode is activated
-    if app.inputs['analysis_mode'].get()!= 'mini':
-        return None
-    # get the x-axis limits
-    xlim_low, xlim_high = app.trace_display.ax.get_xlim()
-    # check if a trace is open
-    if len(recordings)==0:
-        return None
-    # check if any mini has been detected
-    if len(app.data_display.table.get_children()) == 0:
-        return None
-
-    # look for highlighted mini within the viewing window
-    selection = app.data_display.dataframe.table.selection()
-    if len(selection)>0:
-        max_xlim = 0
-        for index in selection:
-            if float(index) > max_xlim and xlim_low < float(index) <xlim_high:
-                max_xlim = float(index)
-        xlim_low = max(max_xlim, xlim_low)
-
-    # look for mini data that match the criteria
-    df = mini_df[(mini_df.t < xlim_high) & (mini_df.t > xlim_low) & (
-                mini_df.channel == recordings[0].current_channel)].sort_values(by='t')
-    if df.shape[0]>0:
-        app.data_display.table.selection_set(str(df.iloc[0]['t']))
-    else:
-        app.data_display.unselect()
-    focus()
+# def select_left(e=None):
+#     """
+#     invoked when selection key (default = Space bar) is pressed while in mini analysis mode
+#     If there are marked minis in the plot, the left most mini will be highlighted.
+#     If a mini in the viewing window is already highlighted, the highlight will move to the proceeding mini.
+#     """
+#     # check if mini analysis mode is activated
+#     if app.inputs['analysis_mode'].get()!= 'mini':
+#         return None
+#     # get the x-axis limits
+#     xlim_low, xlim_high = app.trace_display.ax.get_xlim()
+#     # check if a trace is open
+#     if len(recordings)==0:
+#         return None
+#     # check if any mini has been detected
+#     if len(app.data_display.table.get_children()) == 0:
+#         return None
+# 
+#     # look for highlighted mini within the viewing window
+#     selection = app.data_display.dataframe.table.selection()
+#     if len(selection)>0:
+#         max_xlim = 0
+#         for index in selection:
+#             if float(index) > max_xlim and xlim_low < float(index) <xlim_high:
+#                 max_xlim = float(index)
+#         xlim_low = max(max_xlim, xlim_low)
+# 
+#     # look for mini data that match the criteria
+#     df = mini_df[(mini_df.t < xlim_high) & (mini_df.t > xlim_low) & (
+#                 mini_df.channel == recordings[0].current_channel)].sort_values(by='t')
+#     if df.shape[0]>0:
+#         app.data_display.table.selection_set(str(df.iloc[0]['t']))
+#     else:
+#         app.data_display.unselect()
+#     focus()
 
 ########################################
 # Adjust tab
@@ -402,13 +396,13 @@ def select_left(e=None):
 # update changes made to the y-data in the recording data to the plot
 def update_plot_ys(sweeps):
     global recordings
-    if app.inputs['trace_mode'].get() == 'continuous':
-        trace_display.get_sweep(0).set_ydata(recordings[0].get_ys(mode='continuous'))
+    if app.menubar.widgets['trace_mode'].get() == 'continuous':
+        app.trace_display.get_sweep(0).set_ydata(recordings[0].get_ys(mode='continuous'))
     else:
         for s in sweeps:
-            trace_display.get_sweep(s).set_ydata(recordings[0].get_ys(mode='overlay', sweep=s))
+            app.trace_display.get_sweep(s).set_ydata(recordings[0].get_ys(mode='overlay', sweep=s))
     # trace_display.canvas.draw()
-    trace_display.draw_ani()
+    app.trace_display.draw_ani()
 
 #####################
 # log
@@ -417,7 +411,7 @@ def update_plot_ys(sweeps):
 def log(msg, header=False):
     if not header:
         msg = '    '+msg
-    log_display.log(msg, header)
+    app.log_display.log(msg, header)
 
 ##########################
 # Controls

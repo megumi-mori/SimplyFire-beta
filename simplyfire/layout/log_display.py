@@ -21,10 +21,6 @@ from tkinter import ttk, filedialog, messagebox
 from simplyfire.utils import custom_widgets
 from simplyfire import app
 import datetime
-import os
-
-
-
 
 def load(parent):
     frame = Tk.Frame(parent)

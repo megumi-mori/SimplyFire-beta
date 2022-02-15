@@ -16,24 +16,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-# from utils.scrollable_frame import ScrollableFrame
 import tkinter as Tk
 from tkinter import ttk
 from simplyfire.utils import custom_widgets
-from simplyfire.loader import config
-import yaml
 import textwrap
-from simplyfire.backend import interface
 
 
-from functools import wraps
+#### values ####
+label_length = 30
+separator = True
 
 class OptionFrame(Tk.Frame):
     def __init__(self, parent, textwrap_length=None):
         super().__init__(parent)
         self.textwrap_length = textwrap_length
         if self.textwrap_length == None:
-            self.textwrap_length = config.default_label_length
+            self.textwrap_length = label_length
 
 
         self.grid_columnconfigure(0, weight=1)
@@ -58,7 +56,7 @@ class OptionFrame(Tk.Frame):
                 text="",
                 value=None,
                 default=None,
-                separator=config.default_separator,
+                separator=separator,
                 textwrap_length=None,
                 **kwargs
         ):
@@ -68,7 +66,7 @@ class OptionFrame(Tk.Frame):
             frame.grid_rowconfigure(0, weight=1)
             if textwrap_length == None:
                 textwrap_length = self.textwrap_length
-            wrapped_label = textwrap.wrap(text, width=config.default_label_length)
+            wrapped_label = textwrap.wrap(text, width=label_length)
             formatted_text='\n'.join(wrapped_label)
             label = ttk.Label(frame, text=formatted_text)
             label.grid(column=0, row=0, sticky='news')
@@ -152,7 +150,7 @@ class OptionFrame(Tk.Frame):
             self,
             name="",
             text="",
-            separator=config.default_separator,
+            separator=separator,
             justify=Tk.CENTER
     ):
         panel = self.make_panel(separator=separator)

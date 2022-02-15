@@ -22,11 +22,7 @@ from tkinter import ttk, font
 
 from simplyfire.utils import custom_widgets
 from simplyfire.utils.scrollable_option_frame import ScrollableOptionFrame
-from simplyfire.layout import batch_popup, trace_display
-# from simplyfire.loader import config
-from simplyfire.loader import config
 from simplyfire import app
-from simplyfire.backend import interface
 
 import os
 
@@ -44,9 +40,9 @@ def load(parent):
                                            # defaultextension='.yaml')
         d = filedialog.askdirectory(title='Select a directory')
         if d:
-            widgets['config_user_dir'].config(state="normal")
-            widgets['config_user_dir'].set(d)
-            widgets['config_user_dir'].config(state='disabled')
+            widgets['system_user_dir'].config(state="normal")
+            widgets['system_user_dir'].set(d)
+            widgets['system_user_dir'].config(state='disabled')
             if os.path.exists(os.path.join(d, 'user_config.yaml')):
                 answer = messagebox.askyesnocancel(title='Load config?', message='A configuration file already exists in this directory.\nLoad configuration?\n(The file will be overwritten when the program closes.)')
                 if answer is None:
@@ -90,18 +86,21 @@ def load(parent):
         name='config_settings',
         text='Config Auto-save/load'
     )
-    widgets['config_autoload'] = optionframe.insert_label_checkbox(
-        name='config_autoload',
+    widgets['system_autoload'] = optionframe.insert_label_checkbox(
+        name='system_autoload',
         text='Automatically load configurations at the beginning of the next session',
         onvalue='1',
         offvalue="",
-        # value=config.config_autoload
+        value=app.config.get_value('system_autoload'),
+        default=app.config.get_default_value('system_autoload')
     )
-    widgets['config_autosave'] = optionframe.insert_label_checkbox(
-        name='config_autosave',
+    widgets['system_autosave'] = optionframe.insert_label_checkbox(
+        name='system_autosave',
         text='Automatically save configurations at the end of this session',
         onvalue='1',
-        offvalue=""
+        offvalue="",
+        value=app.config.get_value('system_autosave'),
+        default=app.config.get_default_value('system_autosave')
     )
 
     # auto_load directory panel
@@ -115,13 +114,13 @@ def load(parent):
     global dir_entry
     dir_entry = custom_widgets.VarText(
         parent=dir_frame,
-        name='config_user_dir',
-        value=config.config_user_dir,
-        default=config.default_config_user_dir
+        name='system_user_dir',
+        value=app.config.get_value('system_user_dir'),
+        default=app.config.default_system_user_dir
     )
     dir_entry.configure(state='disabled', height=2)
     dir_entry.grid(column=0,row=1,sticky='news')
-    widgets['config_user_dir'] = dir_entry
+    widgets['system_user_dir'] = dir_entry
 
     Tk.Button(
         master=dir_frame,
@@ -157,9 +156,11 @@ def load(parent):
     #     offvalue=""
     # )
 
-    widgets['config_undo_stack'] = optionframe.insert_label_entry(
-        name='config_undo_stack',
+    widgets['system_undo_stack'] = optionframe.insert_label_entry(
+        name='system_undo_stack',
         text='Number of steps to store in memory for undo (Experimental)',
+        value=app.config.get_value('system_undo_stack'),
+        default=app.config.get_default_value('system_undo_stack')
     )
 
     optionframe.insert_title(
@@ -168,15 +169,15 @@ def load(parent):
     widgets['window_width'] = optionframe.insert_label_entry(
         name='window_width',
         text='Window width (px)',
-        value=config.geometry.split('x')[0],
-        default=config.default_geometry.split('x')[0]
+        value=app.config.get_value('geometry').split('x')[0],
+        default=app.config.get_default_value('geometry').split('x')[0]
     )
     widgets['window_width'].bind('<Return>', apply_geometry)
     widgets['window_height'] = optionframe.insert_label_entry(
         name='window_height',
         text='Window height (px)',
-        value=config.geometry.split('x')[1],
-        default=config.default_geometry.split('x')[1]
+        value=app.config.get_value('geometry').split('x')[1],
+        default=app.config.get_default_value('geometry').split('x')[1]
     )
     widgets['window_height'].bind('<Return>', apply_geometry)
     widgets['cp_width'] = optionframe.insert_label_entry(
@@ -205,6 +206,10 @@ def load(parent):
     def toggle_tab_display(event=None):
         if menu_var.get():
             app.cp_notebook.tab(frame, state='normal')
+            try:
+                app.cp_notebook.index(app.cp_notebook.select())
+            except:
+                app.cp_notebook.select(frame)
         else:
             app.cp_notebook.tab(frame, state='hidden')
     app.menubar.settings_menu.add_checkbutton(label='Settings tab',
@@ -214,14 +219,14 @@ def load(parent):
                                              offvalue=False)
 
     for w in widgets:
-        value = getattr(config, w, None)
+        value = app.config.get_value(w, None)
         if value:
             widgets[w].set(value)
     set_fontsize(widgets['font_size'].get())
     return frame
 
 def load_config(e=None, filename=None):
-    interface.focus()
+    app.interface.focus()
     if filename is None:
         filename = filedialog.askopenfilename()
     app.load_config(filename=filename)
@@ -244,15 +249,17 @@ def change_gp_entries(e=None):
 def change_pw_entries(e=None):
     widgets['cp_width'].set(app.cp.winfo_width())
 def default(e=None):
-    interface.focus()
+    app.interface.focus()
     optionframe.default(widgets=widgets)
 
 def save_config():
-    interface.focus()
-    app.dump_user_setting(os.path.join(config.config_user_dir, 'user_config.yaml'))
+    app.interface.focus()
     app.dump_system_setting()
+    app.dump_user_setting()
+    app.dump_plugin_setting()
+
 def save_config_as():
-    interface.focus()
+    app.interface.focus()
     d = filedialog.asksaveasfilename(filetypes=[('yaml file', '*.yaml')], defaultextension='.yaml').strip()
 
     if d:
@@ -263,12 +270,12 @@ def save_config_as():
     return d
 
 def save(event=None):
-    interface.focus()
-    app.dump_user_setting(widgets['config_user_dir'].get())
+    app.interface.focus()
+    app.dump_user_setting(widgets['system_user_dir'].get())
 
 
 def set_fontsize(fontsize=None):
-    interface.focus()
+    app.interface.focus()
     if fontsize is None:
         fontsize=widgets['font_size'].get()
     fontsize=int(float(fontsize))
@@ -286,16 +293,16 @@ def set_fontsize(fontsize=None):
     Tk.Text.configure(dir_entry, font=Tk.font.Font(size=fontsize))
     Tk.Text.configure(app.log_display.log_text, font=Tk.font.Font(size=fontsize))
     try:
-        trace_display.ax.xaxis.get_label().set_fontsize(fontsize)
-        trace_display.ax.yaxis.get_label().set_fontsize(fontsize)
-        trace_display.ax.tick_params(axis='y', which='major', labelsize=fontsize)
-        trace_display.ax.tick_params(axis='x', which='major', labelsize=fontsize)
+        app.trace_display.ax.xaxis.get_label().set_fontsize(fontsize)
+        app.trace_display.ax.yaxis.get_label().set_fontsize(fontsize)
+        app.trace_display.ax.tick_params(axis='y', which='major', labelsize=fontsize)
+        app.trace_display.ax.tick_params(axis='x', which='major', labelsize=fontsize)
     except:
         pass
 
     try:
-        Tk.Text.configure(batch_popup.path_entry, font=Tk.font.Font(size=fontsize))
-        Tk.Text.configure(batch_popup.file_entry, font=Tk.font.Font(size=fontsize))
-        Tk.Text.configure(batch_popup.batch_log, font=Tk.font.Font(size=fontsize))
+        Tk.Text.configure(app.batch_popup.path_entry, font=Tk.font.Font(size=fontsize))
+        Tk.Text.configure(app.batch_popup.file_entry, font=Tk.font.Font(size=fontsize))
+        Tk.Text.configure(app.batch_popup.batch_log, font=Tk.font.Font(size=fontsize))
     except:
         pass

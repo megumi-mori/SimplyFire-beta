@@ -24,10 +24,7 @@ from matplotlib.patches import Rectangle
 from matplotlib.animation import FuncAnimation
 from simplyfire import app
 import gc
-
-import simplyfire.backend.analyzer2 as analyzer
-from simplyfire.backend import interface
-from simplyfire.layout import graph_panel
+from simplyfire.utils import calculate
 
 sweeps = {}
 
@@ -174,7 +171,7 @@ def scroll_x_to(num):
     # start_animation()
     xlim = ax.get_xlim()
     if xlim[1] == default_xlim[1] and xlim[0] == default_xlim[0]:
-        graph_panel.x_scrollbar.set(50)
+        app.graph_panel.x_scrollbar.set(50)
         return None
     start = (default_xlim[1] - default_xlim[0] - (xlim[1] - xlim[0])) * float(num) / 100 + default_xlim[0]
     end = start + xlim[1] - xlim[0]
@@ -199,7 +196,7 @@ def scroll_y_to(num):
     height = ylim[1] - ylim[0]
     xlim = ax.get_xlim()
     ys = sweeps[list(sweeps.keys())[0]].get_ydata()
-    y = ys[analyzer.search_index(xlim[0], sweeps[list(sweeps.keys())[0]].get_xdata())]
+    y = ys[calculate.search_index(xlim[0], sweeps[list(sweeps.keys())[0]].get_xdata())]
     y1 = float(num) / 100 * (height) + y
     ax.set_ylim((y1 - height, y1))
     global fig
@@ -286,14 +283,8 @@ def center_plot_area(x1, x2, y1, y2):
 def zoom_x_by(direction=1, percent=0, event=None):
     # direction 1 = zoom in, -1=zoom out
     xlim = ax.get_xlim()
-    # delta = (win_lim[1] - win_lim[0]) * percent * dir / 100
-    # center_pos = 0.5
-    # try:
-    #     center_pos = (event.xdata - win_lim[0]) / (win_lim[1] - win_lim[0])
-    # except:
-    #     pass
-    # new_lim = (win_lim[0] + (1 - center_pos) * delta, win_lim[1] - (center_pos) * delta)
-    # print(center_pos)
+    if percent == 100 and direction == -1:
+        percent = 99
 
     width = xlim[1] - xlim[0]
     new_width = width + width * direction * percent/100
@@ -332,6 +323,8 @@ def anim_func(idx):
     return None
 
 def zoom_y_by(direction=1, percent=0, event=None):
+    if percent == 100 and direction == -1:
+        precent = 99 # avoid resulting in 0
     win_lim = ax.get_ylim()
     delta = (win_lim[1] - win_lim[0]) * percent * direction / 100
     center_pos = 0.5
@@ -412,14 +405,14 @@ def update_x_scrollbar(xlim=None):
     if xlim is None:
         xlim = ax.get_xlim()
     if abs(xlim[0] - default_xlim[0]) < 0.001 and abs(xlim[1] - default_xlim[1]) < 0.001:
-        graph_panel.x_scrollbar.set(50)
+        app.graph_panel.x_scrollbar.set(50)
         return
     if (default_xlim[1] - default_xlim[0]) - (xlim[1] - xlim[0]) < 0.001:
-        graph_panel.x_scrollbar.set(50)
+        app.graph_panel.x_scrollbar.set(50)
         return
     pos = xlim[0] - default_xlim[0]
     percent = pos / (default_xlim[1] - default_xlim[0] - (xlim[1] - xlim[0])) * 100
-    graph_panel.x_scrollbar.set(percent)
+    app.graph_panel.x_scrollbar.set(percent)
     return
 
 
@@ -429,11 +422,11 @@ def update_y_scrollbar(ylim=None, xlim=None):
     if xlim is None:
         xlim = ax.get_xlim()
     try:
-        idx = analyzer.search_index(xlim[0],sweeps[list(sweeps.keys())[0]].get_xdata())
+        idx = calculate.search_index(xlim[0],sweeps[list(sweeps.keys())[0]].get_xdata())
         y = sweeps[list(sweeps.keys())[0]].get_ydata()[idx]
 
         percent = (ylim[1] - y) / (ylim[1] - ylim[0]) * 100
-        graph_panel.y_scrollbar.set(percent)
+        app.graph_panel.y_scrollbar.set(percent)
     except:
         pass
 

@@ -20,7 +20,7 @@ import numpy as np
 import os
 from pyabf import abf
 from simplyfire.utils import abfWriter
-from simplyfire.loader import config
+from simplyfire.setting import config
 from math import ceil
 
 class Recording():

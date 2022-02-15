@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from matplotlib import colors
 import os
-from simplyfire.loader import config
+from simplyfire.setting import config
 from simplyfire.utils import formatting
 
 valid_types = [

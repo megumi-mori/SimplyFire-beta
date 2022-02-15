@@ -1,14 +1,8 @@
 from simplyfire import app
-from simplyfire.loader import config
-import pkg_resources
-import os
-import yaml
 from tkinter import ttk, messagebox
 import tkinter as Tk
 from simplyfire.utils.scrollable_option_frame import ScrollableOptionFrame
-import textwrap
 from packaging.version import parse
-import importlib
 
 def load():
     global plugin_vars
@@ -52,7 +46,7 @@ def load():
     _populate_plugins()
 
 
-    active_plugins = [p for p in config.active_plugins]
+    active_plugins = [p for p in app.config.get_value('active_plugins', [])]
 
 def apply():
     messagebox.showwarning('Warning', 'Please reopen the software to apply changes')
@@ -93,7 +87,7 @@ def _populate_plugins():
                         description += '\nWarning: Missing requirements - '
                     description += f' {r},'
 
-        if parse(manifests[plugin_name]['minimumCoreVersion']) > parse(config.version):
+        if parse(manifests[plugin_name]['minimumCoreVersion']) > parse(app.config.get_value('version')):
             description += f'\nWarning: Minimum core requirement not met!'
 
         label = Tk.Text(master=frame, height=4)

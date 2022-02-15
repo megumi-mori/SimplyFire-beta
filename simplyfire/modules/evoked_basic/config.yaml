@@ -1,5 +1,0 @@
-dependencies:
-  - 'sweeps'
-GUI_components:
-  evoked_tab: 'ModuleControl'
-  evoked_table: 'ModuleDataTable'

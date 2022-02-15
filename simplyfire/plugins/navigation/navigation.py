@@ -52,13 +52,13 @@ def apply_window(event=None):
 
 def apply_navigation(event=None):
     app.interpreter.navigation_fps = int(form.inputs['navigation_fps'].get())
-    app.inputs['navigation_fps'].set(int(form.inputs['navigation_fps'].get()))
-    app.inputs['navigation_scroll_x_percent'].set(float(form.inputs['navigation_scroll_x_percent'].get()))
-    app.inputs['navigation_zoom_x_percent'].set(float(form.inputs['navigation_zoom_x_percent'].get()))
-    app.inputs['navigation_scroll_y_percent'].set(float(form.inputs['navigation_scroll_y_percent'].get()))
-    app.inputs['navigation_zoom_y_percent'].set(float(form.inputs['navigation_zoom_y_percent'].get()))
-    app.inputs['navigation_mirror_x_scroll'].set(int(form.inputs['navigation_mirror_x_scroll'].get()))
-    app.inputs['navigation_mirror_y_scroll'].set(int(form.inputs['navigation_mirror_y_scroll'].get()))
+    app.graph_panel.navigation_fps = int(form.inputs['navigation_fps'].get())
+    app.graph_panel.navigation_scroll_x_percent = float(form.inputs['navigation_scroll_x_percent'].get())
+    app.graph_panel.navigation_zoom_x_percent = float(form.inputs['navigation_zoom_x_percent'].get())
+    app.graph_panel.navigation_scroll_y_percent = float(form.inputs['navigation_scroll_y_percent'].get())
+    app.graph_panel.navigation_zoom_y_percent = float(form.inputs['navigation_zoom_y_percent'].get())
+    app.graph_panel.navigation_mirror_x_scroll = int(form.inputs['navigation_mirror_x_scroll'].get())
+    app.graph_panel.navigation_mirror_y_scroll = int(form.inputs['navigation_mirror_y_scroll'].get())
     app.interface.focus()
 
 def get_current_lim(event=None):
@@ -169,3 +169,9 @@ controller.listen_to_event('<<OpenedRecording>>', on_open)
 
 for key in key_show_all:
     app.trace_display.canvas.get_tk_widget().bind(key, show_all, add='+')
+
+
+#### initialize ####
+controller.load_values()
+controller.update_plugin_display()
+app.plugin_manager.navigation.save = controller.save

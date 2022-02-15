@@ -66,6 +66,8 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         # if 'default' not in kwargs.keys():
         #     kwargs['default'] = self.defaults.get(kwargs['name'], None)
         entry = self.frame.insert_label_entry(**kwargs)
+        entry.bind('<Return>', app.interface.focus, add="+")
+        entry.bind('<FocusOut>', app.interface.focus, add="+")
         try:
             self.inputs[kwargs['name']] = entry
         except:
@@ -85,6 +87,8 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         #     kwargs['value'] = self.values.get(kwargs['name'], None)
         # if 'default' not in kwargs.keys():
         #     kwargs['default'] = self.defaults.get(kwargs['name'], None)
+        if kwargs.get('command', None) is None:
+            kwargs['command'] = app.interface.focus
         checkbox = self.frame.insert_label_checkbox(**kwargs)
         try:
             self.inputs[kwargs['name']] = checkbox

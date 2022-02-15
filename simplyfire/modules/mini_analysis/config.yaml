@@ -1,6 +1,0 @@
-dependencies:
-  - 'style'
-GUI_components:
-  mini_analysis_tab: 'ModuleControl'
-  mini_analysis_table: 'ModuleDataTable'
-  param_guide: 'ModulePopup'

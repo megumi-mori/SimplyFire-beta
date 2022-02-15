@@ -2,8 +2,8 @@
 *.xml
 *.iml
 *.pyc
-simplyfire/loader/key_map.yaml
-simplyfire/loader/system_config.yaml
+simplyfire/setting/key_map.yaml
+simplyfire/setting/system_config.yaml
 simplyfire/user_config.yaml
 *.temp
 *.csv

@@ -17,11 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from simplyfire import app
-from simplyfire.backend import interface
-from simplyfire.loader import config
 
-# debugging
-import time
 def initialize():
     global mouse_event
     mouse_event = None
@@ -42,21 +38,18 @@ def initialize():
     ################################
     # trace marker manipulation
     ################################
-    for key in config.key_deselect:
+    for key in get_keys('deselect'):
         bind_key(key, press_function=unselect_key, target=app.trace_display.canvas.get_tk_widget())
         # bind_key(key, press_function=unselect_key, target=app.data_display.table, add="")
 
-    for key in config.key_delete:
+    for key in get_keys('delete'):
         bind_key(key, release_function=delete_key, target=app.trace_display.canvas.get_tk_widget())
 
-    for key in config.key_select_all:
+    for key in get_keys('select_all'):
         bind_key(key, press_function=select_all_key, target=app.trace_display.canvas.get_tk_widget())
 
-    for key in config.key_select_window:
-        bind_key_dp(key, press_function=select_window_key)
 
-
-    for key in config.key_multi_select:
+    for key in get_keys('multi_select'):
         bind_key(key,
                  press_function=lambda e:exec('global multi_select; multi_select=True'),
                  release_function=lambda e: exec('global multi_select; multi_select=False'),
@@ -65,7 +58,7 @@ def initialize():
     #######################
     # navigation keys
     #######################
-    for key in config.key_pan_left:
+    for key in get_keys('pan_left'):
         bind_key_dp(key, press_function=lambda e, d=-1: scroll_x_key(e, d),
                     release_function=lambda e: stop_x_scroll())
                  # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
@@ -76,7 +69,7 @@ def initialize():
              # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
         except:
             pass
-    for key in config.key_pan_right:
+    for key in get_keys('pan_right'):
         bind_key_dp(key, press_function=lambda e, d=1: scroll_x_key(e, d),
                     release_function=lambda e: stop_x_scroll())
                  # release_function=lambda e: exec('global scrolling_x; scrolling_x=False'))
@@ -88,7 +81,7 @@ def initialize():
         except:
             pass
 
-    for key in config.key_pan_up:
+    for key in get_keys('pan_up'):
         bind_key_dp(key, press_function=lambda e, d=1: scroll_y_key(e, d),
                     release_function=lambda e: stop_y_scroll())
                  # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
@@ -100,7 +93,7 @@ def initialize():
         except:
             pass
 
-    for key in config.key_pan_down:
+    for key in get_keys('pan_down'):
         bind_key_dp(key, press_function=lambda e, d=-1: scroll_y_key(e, d),
                     release_function=lambda e: stop_y_scroll())
                  # release_function=lambda e: exec('global scrolling_y; scrolling_y=False'))
@@ -112,11 +105,7 @@ def initialize():
         except:
             pass
 
-    for key in config.key_scroll_rapid:
-        bind_key_dp(key, press_function=lambda e:exec('global navigation_speed; navigation_speed=2'),
-                 release_function=lambda e: exec('global navigation_speed; navigation_speed=1'))
-
-    for key in config.key_zoom_in_x:
+    for key in get_keys('zoom_in_x'):
         bind_key_dp(key, press_function=lambda e, d=1:zoom_x_key(e, d),
                  release_function=lambda e: stop_x_zoom())
         # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
@@ -125,7 +114,7 @@ def initialize():
             bind_key_dp(key.lower(), release_function=lambda e: stop_x_zoom())
         except:
             pass
-    for key in config.key_zoom_out_x:
+    for key in get_keys('zoom_out_x'):
         bind_key_dp(key, press_function=lambda e, d=-1:zoom_x_key(e, d),
                  release_function=lambda e: stop_x_zoom())
         # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
@@ -136,7 +125,7 @@ def initialize():
             pass
 
     bind_key_dp('<FocusOut>', press_function=lambda e: stop_all())
-    for key in config.key_zoom_in_y:
+    for key in get_keys('zoom_in_y'):
         bind_key_dp(key, press_function=lambda e, d=1:zoom_y_key(e, d),
                  release_function=lambda e: stop_y_zoom())
         # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
@@ -145,7 +134,7 @@ def initialize():
             bind_key_dp(key.lower(), release_function=lambda e: stop_y_zoom())
         except:
             pass
-    for key in config.key_zoom_out_y:
+    for key in get_keys('zoom_out_y'):
         bind_key_dp(key, press_function=lambda e, d=-1:zoom_y_key(e, d),
                  release_function=lambda e: stop_y_zoom())
         # if '<Shift_L>' in config.key_scroll_rapid or '<Shift_R>' in config.key_scroll_rapid:
@@ -154,15 +143,15 @@ def initialize():
             bind_key_dp(key.upper(), release_function=lambda e: stop_y_zoom())
         except:
             pass
-    for key in config.key_select:
-        bind_key_dp(key, release_function=interface.select_left)
+    # for key in get_keys('select'):
+    #     bind_key_dp(key, release_function=app.interface.select_left)
 
     ######################################
     # Toolbar Toggle
     ######################################
-    for key in config.key_toolbar_pan:
+    for key in get_keys('toolbar_pan'):
         bind_key_dp(key, press_function=lambda e:toolbar_toggle_pan())
-    for key in config.key_toolbar_zoom:
+    for key in get_keys('toolbar_zoom'):
         bind_key_dp(key, press_function=lambda e:toolbar_toggle_zoom())
 
     global event_pick
@@ -186,7 +175,7 @@ def initialize():
     def zoom_axis_release(event=None):
         global scroll_axis
         scroll_axis = 'x'
-    for key in config.key_zoom_axis:
+    for key in get_keys('zoom_axis'):
         bind_key_dp(key, zoom_axis_press, zoom_axis_release)
 
 
@@ -195,8 +184,8 @@ def initialize():
     #######################################
     # Global Keys
     #######################################
-    for key in config.key_undo:
-        app.root.bind(key, interface.undo)
+    for key in get_keys('undo'):
+        app.root.bind(key, app.interface.undo)
 
 def bind_key_dp(key, press_function=None, release_function=None, add='+'):
     if key is None:
@@ -280,20 +269,18 @@ def plot_event_pick(event):
     #             app.data_display.table.selection_toggle(str(xdata))
     #             # app.data_display.table.see(str(xdata))
     #         except:
-    #             app.data_display.table.selection_toggle(str(round(xdata,interface.recordings[0].x_sigdig)))
-    #             # app.data_display.table.see(str(round(xdata, interface.recordings[0].x_sigdig)))
+    #             app.data_display.table.selection_toggle(str(round(xdata,app.interface.recordings[0].x_sigdig)))
+    #             # app.data_display.table.see(str(round(xdata, app.interface.recordings[0].x_sigdig)))
     #         return
     #     try:
     #         app.data_display.table.selection_set(str(xdata))
     #         # app.data_display.table.see(str(xdata))
     #     except:
-    #         app.data_display.table.selection_set(str(round(xdata, interface.recordings[0].x_sigdig)))
-            # app.data_display.table.see(str(round(xdata, interface.recordings[0].x_sigdig)))
+    #         app.data_display.table.selection_set(str(round(xdata, app.interface.recordings[0].x_sigdig)))
+            # app.data_display.table.see(str(round(xdata, app.interface.recordings[0].x_sigdig)))
         # data_display.toggle_one(str(xdata))
 
 def plot_mouse_release(event):
-    global t0
-    t0 = time.time()
     global event_pick
     if event_pick:
         event_pick = False
@@ -316,10 +303,10 @@ def plot_mouse_release(event):
         if event.xdata and event.ydata:
             drag_coord_end = (event.xdata, event.ydata)
         # if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
-        #     interface.highlight_events_in_range((drag_coord_start[0], drag_coord_end[0]),
+        #     app.interface.highlight_events_in_range((drag_coord_start[0], drag_coord_end[0]),
         #                                      (drag_coord_start[1], drag_coord_end[1]))
         # elif app.widgets['trace_mode'].get() == 'overlay':
-        #     interface.highlight_sweep_in_range((drag_coord_start[0], drag_coord_end[0]),
+        #     app.interface.highlight_sweep_in_range((drag_coord_start[0], drag_coord_end[0]),
         #                                      (drag_coord_start[1], drag_coord_end[1]),
         #                                        draw=True)
         app.root.event_generate('<<CanvasDrawRect>>') # events bound to this will have access to drag_coord_start and drag_coord_end
@@ -339,11 +326,11 @@ def plot_mouse_release(event):
     #
     # if app.widgets['trace_mode'].get() == 'overlay' and event.xdata is not None:
     #     # overlay, a trace may have been selected
-    #     interface.select_trace_from_plot(event.xdata, event.ydata)
+    #     app.interface.select_trace_from_plot(event.xdata, event.ydata)
     #     return None
     # if app.widgets['trace_mode'].get() == 'continuous' and event.xdata is not None and app.widgets[
     #     'analysis_mode'].get() == 'mini' and event.button==1:
-    #     interface.pick_event_manual(event.xdata)
+    #     app.interface.pick_event_manual(event.xdata)
 
 # app.trace_display navigation by key-press
 
@@ -352,12 +339,12 @@ def plot_mouse_scroll(event):
     global scroll_axis
     if scroll_axis == 'x':
         app.trace_display.zoom_x_by(direction={'up':-1, 'down':1}[event.button],
-                                    percent=float(app.inputs['navigation_zoom_x_percent'].get()),
+                                    percent=float(app.graph_panel.navigation_zoom_x_percent),
                                     event=event)
 
     else:
         app.trace_display.zoom_y_by(direction={'up':1, 'down':-1}[event.button],
-                                    percent=float(app.inputs['navigation_zoom_x_percent'].get()),
+                                    percent=float(app.graph_panel.navigation_zoom_y_percent),
                                     event=event)
 
 def scroll_x_key(event, direction):
@@ -366,7 +353,7 @@ def scroll_x_key(event, direction):
     #     app.trace_display.scroll_x_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
     #                           float(app.widgets['navigation_scroll_percent'].get()))
     if not scrolling_x:
-        scroll_x_repeat(direction * int(app.inputs['navigation_mirror_x_scroll'].get()),
+        scroll_x_repeat(direction * int(app.graph_panel.navigation_mirror_x_scroll),
                         int(app.inputs['navigation_fps'].get()),
                         float(app.inputs['navigation_scroll_x_percent'].get()) * navigation_speed)
     scrolling_x = True
@@ -503,7 +490,7 @@ def unselect_key(event):
     #     app.data_display.unselect()
     #     return None
     # if app.widgets['trace_mode'].get() == 'overlay':
-    #     interface.unhighlight_all_sweeps()
+    #     app.interface.unhighlight_all_sweeps()
     pass
 
 def delete_key(event):
@@ -511,15 +498,15 @@ def delete_key(event):
     #     app.data_display.delete_selected()
     #     return
     # if app.widgets['trace_mode'].get() == 'overlay':
-    #     interface.hide_highlighted_sweep()
+    #     app.interface.hide_highlighted_sweep()
 
     # if app.widgets['trace_mode'].get() == 'overlay':
-    #     interface.hide_highlighted_sweep()
+    #     app.interface.hide_highlighted_sweep()
     pass
 
 def select_all_key(event):
     # if app.widgets['trace_mode'].get() == 'overlay':
-    #     interface.highlight_all_sweeps()
+    #     app.interface.highlight_all_sweeps()
     # if app.widgets['analysis_mode'].get() == 'mini' and app.root.focus_get() == app.trace_display.canvas.get_tk_widget():
     #     app.data_display.dataframe.select_all()
     pass
@@ -528,7 +515,10 @@ def select_window_key(event=None):
     xlim = app.trace_display.ax.get_xlim()
     ylim = app.trace_display.ax.get_ylim()
     # if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
-    #     interface.highlight_events_in_range(xlim, ylim)
+    #     app.interface.highlight_events_in_range(xlim, ylim)
     # elif app.widgets['trace_mode'].get() == 'overlay':
-    #     interface.highlight_sweep_in_range(xlim, ylim,
+    #     app.interface.highlight_sweep_in_range(xlim, ylim,
     #                                        draw=True)
+
+def get_keys(name):
+    return app.config.get_default_value('key_map')[f'key_{name}']

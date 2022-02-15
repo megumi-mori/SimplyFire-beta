@@ -3,10 +3,7 @@ from simplyfire.utils.plugin_form import PluginForm
 from simplyfire.utils.plugin_table import PluginTable
 from simplyfire.utils.plugin_popup import PluginPopup
 from simplyfire import app
-from simplyfire.loader import config
-import simplyfire
-from simplyfire.backend import plugin_manager, analyzer2
-from simplyfire.utils import formatting, custom_widgets, threader
+from simplyfire.utils import formatting, custom_widgets, threader, calculate
 import pandas as pd
 from . import mini_analysis
 import os
@@ -653,7 +650,7 @@ def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
             delete_selection(selection, undo=False)
             peaks = data['peak_idx']
         else:
-            peaks = [analyzer2.search_index(s, xs, app.interface.recordings[0].sampling_rate) for s in selection]
+            peaks = [calculate.search_index(s, xs, app.interface.recordings[0].sampling_rate) for s in selection]
     except:  # analyzing something not in the table
         return
 
@@ -884,17 +881,17 @@ def open_minipy(filename):
                     'success': True,
                 }
                 pass
-                mini['start_idx'] = int(analyzer2.search_index(mini['start_coord_x'], xs,
+                mini['start_idx'] = int(calculate.search_index(mini['start_coord_x'], xs,
                                                                rate=app.interface.recordings[0].sampling_rate))
                 mini['baseline_idx'] = mini['start_idx']
                 mini['base_idx_L'] = mini['start_idx'] - mini['lag']
                 mini['base_idx_R'] = mini['start_idx']
-                mini['decay_idx'] = int(analyzer2.search_index(mini['start_coord_x'] + mini['decay_const'], xs,
+                mini['decay_idx'] = int(calculate.search_index(mini['start_coord_x'] + mini['decay_const'], xs,
                                                                rate=app.interface.recordings[0].sampling_rate))
-                mini['peak_idx'] = int(analyzer2.search_index(mini['peak_coord_x'], xs,
+                mini['peak_idx'] = int(calculate.search_index(mini['peak_coord_x'], xs,
                                                               rate=app.interface.recordings[0].sampling_rate))
                 mini['decay_start_idx'] = mini['peak_idx']
-                mini['end_idx'] = analyzer2.search_index(mini['end_coord_x'], xs,
+                mini['end_idx'] = calculate.search_index(mini['end_coord_x'], xs,
                                                          rate=app.interface.recordings[0].sampling_rate)
                 mini['stdev'] = np.std(ys[mini['base_idx_L']:mini['base_idx_R']])
 
@@ -911,7 +908,7 @@ def open_minipy(filename):
                 if hw_start_idx is not None and hw_end_idx is None:
                     if form.inputs['detector_core_extrapolate_hw'].get():
                         t = np.log(0.5) * (-1) * mini['decay_const'] / 1000
-                        hw_end_idx = analyzer2.search_index(xs[mini['peak_idx']] + t, xs[mini['baseline_idx']:],
+                        hw_end_idx = calculate.search_index(xs[mini['peak_idx']] + t, xs[mini['baseline_idx']:],
                                                             app.interface.recordings[0].sampling_rate)
                 if hw_start_idx is None or hw_end_idx is None:
                     mini['halfwidth'] = 0  # could not be calculated
@@ -1465,7 +1462,7 @@ def save_minis(filename, overwrite=True, log=False, update_status = True):
     filename = formatting.format_save_filename(filename, overwrite)
     with open(filename, mode) as f:
         f.write(f'@filename: {app.interface.recordings[0].filename}\n')
-        f.write(f'@version: {config.version}\n')
+        f.write(f'@version: {app.config.get_value("version")}\n')
         f.write(mini_df.to_csv(index=False))
     if update_status:
         saved = True
@@ -1819,7 +1816,7 @@ controller.add_batch_command('Save minis', func=batch_save_minis)
 controller.add_batch_command('Export minis', func=batch_export_minis)
 
 #### setup Table GUI ####
-for key in config.key_delete:
+for key in app.interpreter.get_keys('delete'):
     datapanel.datatable.table.bind(key, datapanel.delete_selected, add='')
 datapanel.datatable.define_columns(tuple([key for key in mini_header2config]), iid_header='t')
 datapanel.datatable.table.bind('<<TreeviewSelect>>', select_from_table)
@@ -1833,7 +1830,7 @@ popup.grid_columnconfigure(0, weight=1)
 popup.grid_rowconfigure(0, weight=1)
 
 popup.pw = Tk.PanedWindow(popup, orient=Tk.VERTICAL, showhandle=True, sashrelief=Tk.SUNKEN,
-                          handlesize=config.default_pw_handlesize)
+                          handlesize=app.config.get_value('pw_handlesize'))
 popup.pw.grid(column=0, row=0, sticky='news')
 popup.frame = Tk.Frame(popup.pw)
 popup.frame.grid(column=0, row=0, sticky='news')
@@ -1986,16 +1983,16 @@ controller.listen_to_event('<<ChangeToOverlayView>>', controller.disable_plugin)
 controller.listen_to_event('<<ChangeToContinuousView>>', controller.enable_plugin)
 
 app.trace_display.canvas.mpl_connect('pick_event', select_from_event_pick) # peak point selected
-for key in config.key_delete:
+for key in app.interpreter.get_keys('delete'):
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=delete_from_canvas: form.call_if_focus(func),
                                                   add='+')
-for key in config.key_deselect:
+for key in app.interpreter.get_keys('deselect'):
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=select_clear: form.call_if_focus(func),
                                                   add='+')
-for key in config.key_select_all:
+for key in app.interpreter.get_keys('select_all'):
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=datapanel.datatable.select_all: form.call_if_focus(func),
                                                   add='+')
 
 parameters = {k:v.get() for k,v in form.inputs.items()}
 changes = {k:v for k,v in parameters.items()}
-plugin_manager.mini_analysis.save = controller.save
+app.plugin_manager.mini_analysis.save = controller.save

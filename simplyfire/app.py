@@ -16,21 +16,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+from simplyfire.setting import config
 from tkinter import ttk, messagebox
 import tkinter as Tk
 import yaml
 from PIL import Image
 import os
-import pkg_resources
-import simplyfire
 from simplyfire.utils import custom_widgets
 from simplyfire.backend import interpreter, plugin_manager, interface
-from simplyfire.loader import config
-# from PyMini.Layout import detector_tab, style_tab, setting_tab, navigation_tab, \
-#     sweep_tab, graph_panel, continuous_tab, adjust_tab, evoked_tab, batch_popup, menubar,\
-#     compare_tab
-from simplyfire.layout import menubar, graph_panel, setting_tab, batch_popup, \
-    trace_display, results_display, log_display, plugin_tab
+from simplyfire.layout import trace_display, menubar, graph_panel, setting_tab, batch_popup, \
+    results_display, log_display, plugin_tab
 # from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display, param_guide
 import importlib
 # debugging
@@ -63,10 +58,10 @@ def _on_close():
     #     if f:
     #         widgets['config_user_path'].set(f)
 
-    dump_config_var(key='key_', filename=os.path.join(config.config_user_dir, 'key_map.yaml'), title='Keymap')
+    # dump_config_var(key='key_', filename=os.path.join(inputs['system_user_dir'].get(), 'key_map.yaml'), title='Keymap')
     dump_system_setting()
+    # dump_key_setting() # implement this for customizable keys
     root.destroy()
-    app_root.destroy()
 
 def get_value(key, tab=None):
     try:
@@ -105,18 +100,19 @@ def set_value(key, value, tab=None):
 #                 pass
 #     return False
 
-def load(splash):
+def load(window, splash):
     # debugging:
     global t0
     t0 = time.time()
     global app_root
-    app_root = splash
+    # app_root = splash
     # tracemalloc.start()
     config.load()
     global root
     global loaded
     loaded = False
-    root = Tk.Toplevel()
+    root = window
+    # root = Tk.Toplevel()
     root.withdraw()
     root.title('simplyfire v{}'.format(config.version))
     IMG_DIR = config.IMG_DIR
@@ -145,7 +141,7 @@ def load(splash):
         orient=Tk.HORIZONTAL,
         showhandle=True,
         sashrelief=Tk.SUNKEN,
-        handlesize=config.default_pw_handlesize
+        handlesize=config.get_value('pw_handlesize')
     )
 
     pw.grid(column=0, row=0, sticky='news')
@@ -170,7 +166,7 @@ def load(splash):
         orient=Tk.VERTICAL,
         showhandle=True,
         sashrelief=Tk.SUNKEN,
-        handlesize=config.default_pw_handlesize
+        handlesize=config.get_value('pw_handlesize')
     )
 
 
@@ -240,9 +236,6 @@ def load(splash):
 
     # test = StyleTab(left, __import__(__name__), interface)
     # cp_notebook.add(test, text='test')
-
-    for k, v in graph_panel.widgets.items():
-        inputs[k] = v
 
     # get reference to widgets
     # for module in [detector_tab, evoked_tab, adjust_tab, navigation_tab, style_tab, setting_tab, graph_panel]:
@@ -357,7 +350,7 @@ def load(splash):
 
     root.focus_force()
     interface.focus()
-    splash.withdraw()
+    splash.destroy()
 
     root.deiconify()
     # # finalize the data viewer - table
@@ -438,7 +431,7 @@ def dump_user_setting(filename=None):
     ignore = ['config_', '_log', 'temp_']
     print('Writing out configuration variables....')
     if filename is None:
-        filename = os.path.join(inputs['config_user_dir'].var.get().strip(), 'user_config.yaml')
+        filename = os.path.join(inputs['system_user_dir'].var.get().strip(), 'user_config.yaml')
         # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
         print('writing dump user config {}'.format(filename))
@@ -453,6 +446,8 @@ def dump_user_setting(filename=None):
                     d[key] = inputs[key].get()
             except:
                 d[key] = inputs[key].get()
+        for key in graph_panel.inputs.keys():
+            d[key] = graph_panel.inputs[key].get()
         global cp
         if loaded:
             d['zoomed'] = root.state() == 'zoomed'
@@ -478,7 +473,7 @@ def dump_user_setting(filename=None):
 
 def dump_plugin_setting(filename=None):
     if filename is None:
-        filename = os.path.join(inputs['config_user_dir'].var.get().strip(), 'active_plugins.yaml')
+        filename = os.path.join(inputs['system_user_dir'].var.get().strip(), 'active_plugins.yaml')
         # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
         d = {'active_plugins':plugin_tab.get_plugins()}
@@ -491,8 +486,8 @@ def dump_plugin_setting(filename=None):
 
 def dump_system_setting():
     print('Saving config options....')
-    with open(config.config_system_path, 'w') as f:
-        print('dumping system config {}'.format(config.config_system_path))
+    with open(config.system_setting_path, 'w') as f:
+        print('dumping system config {}'.format(config.system_setting_path))
         f.write("#################################################################\n")
         f.write("# PyMini system configurations\n")
         f.write("#################################################################\n")
@@ -500,7 +495,7 @@ def dump_system_setting():
 
         # f.write(yaml.safe_dump(dict([(key, widgets[key].get()) for key in widgets if 'config' in key])))
         # f.write(yaml.safe_dump(dict([(n, getattr(config, n)) for n in config.user_vars if 'config' in n])))
-        f.write(yaml.safe_dump(dict([(key, value.get()) for key, value in inputs.items() if 'config' in key])))
+        f.write(yaml.safe_dump(dict([(key, value.get()) for key, value in setting_tab.widgets.items() if 'system' in key])))
 
     print('Completed')
 

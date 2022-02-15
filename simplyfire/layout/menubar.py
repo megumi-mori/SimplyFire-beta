@@ -19,21 +19,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import tkinter as Tk
 from tkinter import filedialog, messagebox
 import os
-from simplyfire.loader import config
-from simplyfire.utils import abfWriter
+from simplyfire.utils import abfWriter, formatting
 from simplyfire.backend import interface
 from simplyfire.layout import results_display
 import gc
 from simplyfire import app
 # from PyMini.Layout import keybind_popup
-from simplyfire.utils import formatting
 
 
 def load(menubar):
     global widgets
     widgets = {}
     global prev_trace_mode
-    prev_trace_mode = config.trace_mode
+    prev_trace_mode = app.config.get_value('trace_mode')
 
     parent=menubar.master
 
@@ -90,7 +88,7 @@ def load(menubar):
 
 
     # widgets['analysis_mode'].set(config.analysis_mode)
-    widgets['trace_mode'].set(config.trace_mode)
+    widgets['trace_mode'].set(app.config.get_value('trace_mode'))
     # view_menu.invoke({'continuous': 0, 'overlay': 1, 'compare':2}[config.trace_mode])
     # batch_menu.invoke({'mini': 0, 'evoked': 1}[config.analysis_mode])
 

@@ -19,15 +19,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import tkinter as Tk
 from tkinter import ttk
 
-# from simplyfire.loader import config
 from simplyfire.utils import validation
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import matplotlib as mpl
 import yaml
 from simplyfire import app
-from simplyfire.loader import config
-import textwrap
 import os
+
+#### values ####
+entry_width = 10
 
 class VarWidget():
     def __init__(
@@ -110,7 +110,7 @@ class VarEntry(VarWidget, Tk.Entry):
             type=type
         )
         if width is None:
-            width = config.entry_width
+            width = entry_width
         Tk.Entry.__init__(
             self,
             master=parent,
@@ -169,46 +169,6 @@ class VarEntry(VarWidget, Tk.Entry):
         self.set(value)
         self.focus_set()
         self.prev = value
-
-class LabelVarEntry(Tk.Frame):
-    def __init__(self,
-                 parent,
-                 name=None,
-                 label="",
-                 ** kwargs
-                 ):
-        Tk.Frame.__init__(self, parent)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-
-        # make label (left side of frame)
-        text = textwrap.wrap(label, width=config.default_label_length)
-        text='\n'.join(text)
-        self.label = ttk.Label(self, text=text)
-        self.label.grid(column=0, row=0, sticky='news')
-
-        self.widget = VarEntry(parent=self, name=name, **kwargs)
-        self.widget.grid(row=0, column=1, sticky='ews')
-
-def create_label_var_widget(widget, parent, label="", **kwargs):
-    frame=Tk.Frame(parent)
-    frame.grid_columnconfigure(0, weight=1)
-    frame.grid_rowconfigure(0, weight=1)
-
-    # make label
-    text = textwrap.wrap(label, width=config.default_label_length)
-    text = '\n'.join(text)
-
-    frame.label = ttk.Label(frame, text=text)
-    frame.label.grid(column=0, row=0, sticky='news')
-
-    frame.widget = widget(parent=frame, **kwargs)
-    frame.widget.grid(row=0, column=1, sticky='ews')
-
-    return frame
-
-
-
 
 class VarOptionmenu(VarWidget, ttk.OptionMenu):
     def __init__(
@@ -344,7 +304,7 @@ class VarText(VarWidget, Tk.Text):
         self.lock = lock
         if lock:
             Tk.Text.configure(self, state='disabled')
-        self.set(value)
+        self.var.set(value)
 
 
     def set(self, value):
@@ -560,27 +520,21 @@ class DataTable(Tk.Frame):
         if bindings is None:
             bindings = ('copy', 'select all', 'deselect', 'delete')
         if 'copy' in bindings:
-            for key in config.key_copy:
+            for key in app.interpreter.get_keys('copy'):
                 self.table.bind(key, self.copy, add="+")
         if 'select all' in bindings:
-            for key in config.key_select_all:
+            for key in app.interpreter.get_keys('select_all'):
                 self.table.bind(key, self.select_all, add="+")
         if 'deselect' in bindings:
-            for key in config.key_deselect:
+            for key in app.interpreter.get_keys('deselect'):
                 self.table.bind(key, self.unselect, add="+")
         if 'delete' in bindings:
-            for key in config.key_delete:
+            for key in app.interpreter.get_keys('delete'):
                 self.table.bind(key, self.delete_selected, add="+")
 
         self.menu = Tk.Menu(self.table, tearoff=0)
 
         self.table.bind("<Button-3>", self.popup, add="+")
-
-
-    def remove_binding(self, type=''):
-        if type == 'delete':
-            for key in config.key_delete:
-                self.table.bind(key)
 
     def popup(self, event):
         try:

@@ -22,7 +22,7 @@ import importlib
 from tkinter import BooleanVar, ttk
 import tkinter as Tk
 from simplyfire import app
-from simplyfire.loader import config
+from simplyfire.setting import config
 import inspect
 from threading import Thread
 

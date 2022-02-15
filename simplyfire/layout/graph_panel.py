@@ -16,91 +16,86 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-
+import simplyfire
 import tkinter as Tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 from simplyfire.utils import custom_widgets
 from simplyfire.utils import scrollable_option_frame
-from simplyfire.layout import trace_display
-from simplyfire.backend import interface
-from simplyfire.loader import config
 from simplyfire import app
+
 import os
 
+#### default values ####
+navigation_fps = 12
+navigation_mirror_x_scroll = 1 # 1 for normal, -1 for mirror
+navigation_mirror_y_scroll = 1 # 1  for normal, -1 for mirror
+navigation_scroll_x_percent = 10
+navigation_zoom_x_percent = 10
+navigation_scroll_y_percent = 10
+navigation_zoom_y_percent = 10
+
+force_channel = 0
+force_channel_id = 0
+
+#### variables ####
+inputs = {}
 
 def load(parent):
-    global widgets
-    widgets = {}
-
-    widgets['navigation_fps'] = Tk.IntVar(value=int(config.default_vars.get('default_navigation_fps')))
-    widgets['navigation_mirror_x_scroll'] = Tk.IntVar(
-        value=int(config.default_vars.get('default_navigation_mirror_x_scroll')))
-    widgets['navigation_scroll_x_percent'] = Tk.DoubleVar(
-        value=float(config.default_vars.get('default_navigation_scroll_x_percent')))
-    widgets['navigation_zoom_x_percent'] = Tk.DoubleVar(
-        value=float(config.default_vars.get('default_navigation_zoom_x_percent')))
-
-    widgets['navigation_scroll_y_percent'] = Tk.DoubleVar(
-        value=float(config.default_vars.get('default_navigation_scroll_y_percent')))
-    widgets['navigation_mirror_y_scroll'] = Tk.IntVar(
-        value=int(config.default_vars.get('default_navigation_mirror_y_scroll')))
-    widgets['navigation_zoom_y_percent'] = Tk.DoubleVar(
-        value=float(config.default_vars.get('default_navigation_zoom_y_percent')))
-
+    global inputs
     ##################################################
     #                    Methods                     #
     ##################################################
-    def force_channel(event=None):
-        if widgets['force_channel'].get() == '1':
-           widgets['force_channel_id'].config(state='normal')
+    def toggle_force_channel(event=None):
+        if inputs['force_channel'].get() == '1':
+           inputs['force_channel_id'].config(state='normal')
         else:
-            widgets['force_channel_id'].config(state='disabled')
+            inputs['force_channel_id'].config(state='disabled')
 
     def scroll_x(dir):
         # trace_display.start_animation()
         scroll_x_repeat(
-            dir * int(widgets['navigation_mirror_x_scroll'].get()),
-            int(widgets['navigation_fps'].get()),
-            float(widgets['navigation_scroll_x_percent'].get())
+            dir * int(navigation_mirror_x_scroll),
+            int(navigation_fps),
+            float(navigation_scroll_x_percent)
         )
     def scroll_y(dir):
         # trace_display.start_animation()
         scroll_y_repeat(
-            dir * int(widgets['navigation_mirror_y_scroll'].get()),
-            int(widgets['navigation_fps'].get()),
-            float(widgets['navigation_scroll_y_percent'].get())
+            dir * int(navigation_mirror_y_scroll),
+            int(navigation_fps),
+            float(navigation_scroll_y_percent)
         )
 
     def scroll_x_repeat(dir, fps, percent):
         global jobid
         jobid = app.root.after(int(1000 / fps), scroll_x_repeat, dir, fps, percent)
-        trace_display.scroll_x_by(dir, percent)
+        app.trace_display.scroll_x_by(dir, percent)
         pass
 
     def scroll_y_repeat(dir, fps, percent):
         global jobid
         jobid = app.root.after(int(1000 / fps), scroll_y_repeat, dir, fps, percent)
-        trace_display.scroll_y_by(dir, percent)
+        app.trace_display.scroll_y_by(dir, percent)
         pass
 
     def zoom_x(dir):
-        zoom_x_repeat(dir, int(widgets['navigation_fps'].get()),
-                      float(widgets['navigation_zoom_x_percent'].get()))
+        zoom_x_repeat(dir, int(navigation_fps),
+                      navigation_zoom_x_percent)
     def zoom_y(dir):
-        zoom_y_repeat(dir, int(widgets['navigation_fps'].get()),
-                      float(widgets['navigation_zoom_y_percent'].get()))
+        zoom_y_repeat(dir, int(navigation_fps),
+                      float(navigation_zoom_y_percent))
 
     def zoom_x_repeat(dir, fps, percent):
         global jobid
         jobid = app.root.after(int(1000 / fps), zoom_x_repeat, dir, fps, percent)
-        trace_display.zoom_x_by(dir, percent)
+        app.trace_display.zoom_x_by(dir, percent)
         return None
 
     def zoom_y_repeat(dir, fps, percent):
         global jobid
         jobid = app.root.after(int(1000 / fps), zoom_y_repeat, dir, fps, percent)
-        trace_display.zoom_y_by(dir, percent)
+        app.trace_display.zoom_y_by(dir, percent)
         return None
 
 
@@ -136,7 +131,7 @@ def load(parent):
     y_zoom_frame.grid_rowconfigure(0, weight=1)
     y_zoom_frame.grid_rowconfigure(1, weight=1)
 
-    IMG_DIR = config.IMG_DIR
+    IMG_DIR = app.config.IMG_DIR
 
     y_zoom_in = ttk.Button(y_zoom_frame)
     y_zoom_in.image = Tk.PhotoImage(file=os.path.join(IMG_DIR,'y_zoom_in.png'))
@@ -182,7 +177,7 @@ def load(parent):
     y_scrollbar.config(state='disabled')  # disabled until a trace is loaded
     y_scrollbar.set(50)
 
-    graph_frame = trace_display.load(big_frame) # can be replaced with any other plotting module  - must return a frame that can be gridded
+    graph_frame = app.trace_display.load(big_frame) # can be replaced with any other plotting module  - must return a frame that can be gridded
     graph_frame.grid(column=1, row=1, sticky='news')
 
     upper_frame = Tk.Frame(big_frame)
@@ -194,11 +189,11 @@ def load(parent):
     toolbar_frame = Tk.Frame(upper_frame)
     toolbar_frame.grid_columnconfigure(0, weight=1)
     toolbar_frame.grid(column=0, row=0, sticky='news')
-    navigation_toolbar = custom_widgets.NavigationToolbar(trace_display.canvas, toolbar_frame)
+    navigation_toolbar = custom_widgets.NavigationToolbar(app.trace_display.canvas, toolbar_frame)
     navigation_toolbar.grid(column=0, row=0, sticky='news')
 
-    widgets['trace_info'] = custom_widgets.VarLabel(toolbar_frame, text='no file open')
-    widgets['trace_info'].grid(column=0, row=1, sticky='news')
+    inputs['trace_info'] = custom_widgets.VarLabel(toolbar_frame, text='no file open')
+    inputs['trace_info'].grid(column=0, row=1, sticky='news')
 
     channel_frame = scrollable_option_frame.OptionFrame(upper_frame)#, scrollbar = False)
     channel_frame.grid(column=1, row=0, sticky='ews')
@@ -206,7 +201,7 @@ def load(parent):
     channel_frame.grid_rowconfigure(1, weight=1)
     channel_frame.grid_columnconfigure(0, weight=1)
 
-    widgets['channel_option'] = channel_frame.insert_label_optionmenu(
+    inputs['channel_option'] = channel_frame.insert_label_optionmenu(
         name='channel_option',
         text='channel',
         value='',
@@ -214,23 +209,25 @@ def load(parent):
         options=[''],
     )
 
-    widgets['force_channel'] = channel_frame.insert_label_checkbox(
+    inputs['force_channel'] = channel_frame.insert_label_checkbox(
         name='force_channel',
         text='Always open the same channel:',
         onvalue=1,
         offvalue=-1,
-        command=force_channel
+        command=toggle_force_channel,
+        default=force_channel,
+        value=app.config.get_value('force_channel')
     )
 
-    widgets['force_channel_id'] = custom_widgets.VarEntry(
-        parent=widgets['force_channel'].master,
+    inputs['force_channel_id'] = custom_widgets.VarEntry(
+        parent=inputs['force_channel'].master,
         name='force_channel_id',
         validate_type='int',
-        value=config.user_vars['force_channel_id'],
-        default=config.default_vars['default_force_channel_id']
+        value=app.config.get_value('force_channel_id'),
+        default=force_channel_id
     )
-    force_channel()
-    widgets['force_channel_id'].grid(column=2, row=0, sticky='ews')
+    toggle_force_channel()
+    inputs['force_channel_id'].grid(column=2, row=0, sticky='ews')
 
     x_zoom_frame = Tk.Frame(frame, bg='orange')
     x_zoom_frame.grid_rowconfigure(0, weight=1)
@@ -277,21 +274,23 @@ def load(parent):
     x_scrollbar.set(50)
     # x_scrollbar.bind('<ButtonRelease-1>', lambda e:trace_display.update_y_scrollbar)
 
-    for w in widgets:
-        value = getattr(config, w, None)
+    for w in inputs:
+        value = app.config.get_value(w)
         if value:
-            widgets[w].set(value)
+            inputs[w].set(value)
+        inputs[w].bind('<Return>', app.interface.focus)
+        inputs[w].bind('<FocusOut>', app.interface.focus)
     return frame
 
 def scroll_x_to(e):
-    interface.focus()
-    trace_display.scroll_x_to(e)
+    app.interface.focus()
+    app.trace_display.scroll_x_to(e)
 
 def scroll_y_to(e):
-    interface.focus()
-    trace_display.scroll_y_to(e)
+    app.interface.focus()
+    app.trace_display.scroll_y_to(e)
 def stop(e=None):
     app.root.after_cancel(jobid)
-    trace_display.update_x_scrollbar()
-    trace_display.update_y_scrollbar()
-    interface.focus()
+    app.trace_display.update_x_scrollbar()
+    app.trace_display.update_y_scrollbar()
+    app.interface.focus()

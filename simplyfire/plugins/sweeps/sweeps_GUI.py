@@ -1,8 +1,7 @@
 from simplyfire.utils.plugin_controller import PluginController
 from simplyfire.utils.plugin_form import PluginForm
 from simplyfire import app
-from simplyfire.loader import config
-from simplyfire.backend import analyzer2
+from simplyfire.utils import calculate
 from simplyfire.utils.scrollable_option_frame import ScrollableOptionFrame
 import numpy as np
 from tkinter import ttk
@@ -29,7 +28,7 @@ def canvas_draw_rect(event=None):
         if sweep_vars[i].get():
             xs = app.trace_display.sweeps[name].get_xdata()
             ys = app.trace_display.sweeps[name].get_ydata()
-            if analyzer2.contains_line(xlim, ylim, xs, ys, app.interface.recordings[0].sampling_rate):
+            if calculate.contains_line(xlim, ylim, xs, ys, app.interface.recordings[0].sampling_rate):
                 selection.append(name)
     set_highlight(selection, draw=True)
 
@@ -49,7 +48,7 @@ def canvas_mouse_release(event=None):
     for i, var in enumerate(sweep_vars):
         if var.get():
             line = app.trace_display.sweeps[sweep_namevars[i].get()] # consider making this part of module calc
-            d, idx, _ = analyzer2.point_line_min_distance(
+            d, idx, _ = calculate.point_line_min_distance(
                 (app.interpreter.mouse_event.xdata, app.interpreter.mouse_event.ydata),
                 xs=line.get_xdata(), ys=line.get_ydata(),
                 sampling_rate=app.interface.recordings[0].sampling_rate, radius=radius,
@@ -338,14 +337,19 @@ controller.listen_to_event('<<ChangeToContinuousView>>', controller.disable_plug
 controller.listen_to_event("<<CanvasMouseRelease>>", canvas_mouse_release, condition_function=form.has_focus)
 controller.listen_to_event('<<CanvasDrawRect>>', canvas_draw_rect, condition_function=form.has_focus)
 
-for key in config.key_deselect:
+for key in app.interpreter.get_keys('deselect'):
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=clear_higlight: form.call_if_focus(func),
                                                   add='+')
-for key in config.key_select_all:
+for key in app.interpreter.get_keys('select_all'):
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=highlight_all: form.call_if_focus(func),
                                                   add='+')
-for key in config.key_delete:
+for key in app.interpreter.get_keys('delete'):
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=hide_selected: form.call_if_focus(func),
                                                   add='+')
 if app.inputs['trace_mode'].get() != 'overlay':
     controller.disable_plugin()
+
+app.plugin_manager.sweeps.save = controller.save
+controller.load_values()
+controller.update_plugin_display()
+

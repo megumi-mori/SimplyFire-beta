@@ -399,3 +399,6 @@ controller.add_batch_command('Filter recording', filter_data)
 controller.load_values()
 _select_baseline_mode()
 _select_filter_mode()
+controller.update_plugin_display()
+
+app.plugin_manager.process_recording.save = controller.save

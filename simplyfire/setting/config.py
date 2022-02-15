@@ -25,7 +25,7 @@ import sys
 # set up default parameters during module import
 # Constants
 global CONFIG_DIR  # package config file path
-CONFIG_DIR = pkg_resources.resource_filename('simplyfire', 'loader/')
+CONFIG_DIR = pkg_resources.resource_filename('simplyfire', 'setting/')
 global IMG_DIR
 IMG_DIR = pkg_resources.resource_filename('simplyfire', 'img/')
 global TEMP_DIR
@@ -48,24 +48,24 @@ with open(default_config_path) as f:
     for c, v in configs.items():
         globals()[c] = v
         default_vars[c] = v
-        if c[0:8] == 'default_' and 'config' not in c:
-            globals()[c[8:]] = v
-            user_vars[c[8:]] = v
-        elif 'config' in c:
-            globals()[c[8:]] = v
-            system_vars[c[8:]] = v
+        if 'system' not in c:
+            globals()[c] = v
+            user_vars[c] = v
+        elif 'system' in c:
+            globals()[c] = v
+            system_vars[c] = v
 global default_config_user_dir
-default_config_user_dir = pkg_resources.resource_filename('simplyfire', '')
-global config_user_dir
-config_user_dir = default_config_user_dir
+default_system_user_dir = pkg_resources.resource_filename('simplyfire', '')
+global system_user_dir
+system_user_dir = default_system_user_dir
 print('completed')
 
 def load():
     # Load user configurations
-    global config_system_path
-    config_system_path = os.path.join(CONFIG_DIR, default_config_system_path)
+    global system_setting_path
+    system_setting_path = os.path.join(CONFIG_DIR, default_vars['system_setting_path'])
     try:
-        with open(config_system_path) as f:
+        with open(system_setting_path) as f:
             configs = yaml.safe_load(f)
             for c, v in configs.items():
                 globals()[c] = v
@@ -73,10 +73,10 @@ def load():
                 user_vars[c] = v
     except:
         pass
-    global config_user_dir
+    global sysetm_user_dir
     global PLUGIN_DIR
-    PLUGIN_DIR = os.path.join(config_user_dir, 'plugins')
-    sys.path.insert(0, config_user_dir)
+    PLUGIN_DIR = os.path.join(system_user_dir, 'plugins')
+    sys.path.insert(0, system_user_dir)
 
     # global config_keymap_path
     # config_keymap_path = os.path.join(CONFIG_DIR, default_config_keymap_path)
@@ -110,11 +110,11 @@ def load():
 
     global user_config_load_error
     user_config_load_error = None
-    if config_autoload == 1 or config_autoload == '1':
+    if system_autoload == 1 or system_autoload == '1':
         try:
-            print(f'loading user_config.yaml from {config_user_dir}')
-            config_user_path = os.path.join(config_user_dir, 'user_config.yaml')
-            with open(config_user_path) as f:
+            print(f'loading user_config.yaml from {system_user_dir}')
+            system_user_path = os.path.join(system_user_dir, 'user_config.yaml')
+            with open(system_user_path) as f:
                 configs = yaml.safe_load(f)
                 for c, v in configs.items():
                     globals()[c] = v
@@ -125,11 +125,8 @@ def load():
             user_config_load_error = e
             pass
 
-    print('config user path at config: {}'.format(config_user_path))
-
     try:
-        print(f'loading active_plugins.yaml from {config_user_dir}')
-        active_plugin_path = os.path.join(config_user_dir, 'active_plugins.yaml')
+        active_plugin_path = os.path.join(system_user_dir, 'active_plugins.yaml')
         with open(active_plugin_path) as f:
             configs = yaml.safe_load(f)
             globals()['active_plugins'] = configs['active_plugins']
@@ -152,3 +149,14 @@ def convert_to_path(paths):
     p = [i for i in paths]
     return os.path.join(*p)
 
+def get_value(key, none_value=None):
+    return user_vars.get(key, none_value)
+
+def get_default_value(key, none_value=None):
+    return default_vars.get(key, none_value)
+
+def get_plugin_value(plugin, key, none_value=None):
+    p = user_vars.get(plugin, None)
+    if p:
+        return user_vars[plugin].get(key, none_value)
+    return none_value

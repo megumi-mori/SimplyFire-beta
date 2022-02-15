@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from simplyfire.backend import analyzer2 as analyzer
+from simplyfire.utils import calculate
 from scipy import optimize
 from datetime import datetime
 
@@ -157,7 +157,7 @@ def find_mini_auto(xlim=None,
         ys = ys.copy()  # make a copy to edit
     try:
         xlim_idx = (
-        analyzer.search_index(xlim[0], xs, sampling_rate), analyzer.search_index(xlim[1], xs, sampling_rate))
+        calculate.search_index(xlim[0], xs, sampling_rate), calculate.search_index(xlim[1], xs, sampling_rate))
     except:
         xlim_idx = (0, len(xs))
 
@@ -295,7 +295,7 @@ def find_mini_manual(xlim: tuple = None,
             return {'success': False, 'failure': 'insufficient info'}
         try:
             xlim_idx = (
-            analyzer.search_index(xlim[0], xs, sampling_rate), analyzer.search_index(xlim[1], xs, sampling_rate))
+            calculate.search_index(xlim[0], xs, sampling_rate), calculate.search_index(xlim[1], xs, sampling_rate))
         except:
             return {'success': False,
                     'failure': 'xlim could not be found'}  # limits of the search window cannot be determined
@@ -682,7 +682,7 @@ def calculate_mini_decay(xs: np.ndarray,
     t = results[0][1]
     # d = results[0][2]
     # print((a, t, d))
-    decay_constant_idx = analyzer.search_index(t, x_data, sampling_rate) + start_idx  # offset to start_idx
+    decay_constant_idx = calculate.search_index(t, x_data, sampling_rate) + start_idx  # offset to start_idx
 
     return a, t, decay_constant_idx
 
@@ -785,7 +785,7 @@ def analyze_candidate_mini(xs,
     if delta_x_ms is not None:
         delta_x = int(delta_x_ms / 1000 * sampling_rate)
     if peak_t:
-        peak_idx = analyzer.search_index(peak_t, xs, sampling_rate)
+        peak_idx = calculate.search_index(peak_t, xs, sampling_rate)
     elif peak_idx:
         peak_idx = int(peak_idx)  # make sure is int
     if peak_t is None and peak_idx is None:
@@ -1124,7 +1124,7 @@ def analyze_candidate_mini(xs,
     if halfwidth_start_idx is not None and halfwidth_end_idx is None:  # decay doesn't happen long enough?
         if mini['decay_const'] is not None and extrapolate_hw:  # use decay to extrapolate 50% value of decay
             t = np.log(0.5) * -1 * mini['decay_const'] / 1000
-            halfwidth_end_idx = analyzer.search_index(xs[peak_idx] + t, xs[baseline_idx:], sampling_rate)
+            halfwidth_end_idx = calculate.search_index(xs[peak_idx] + t, xs[baseline_idx:], sampling_rate)
 
     if halfwidth_end_idx is None or halfwidth_start_idx is None:
         mini['success'] = False

@@ -2,7 +2,6 @@ from simplyfire.utils.plugin_controller import PluginController
 from simplyfire.utils.plugin_form import PluginForm
 from simplyfire.utils import custom_widgets
 from simplyfire import app
-from simplyfire.backend import plugin_manager
 
 from tkinter import ttk
 
@@ -88,4 +87,4 @@ controller.children.append(form)
 controller.load_values()
 controller.update_plugin_display()
 
-plugin_manager.style.save = controller.save
+app.plugin_manager.style.save = controller.save
