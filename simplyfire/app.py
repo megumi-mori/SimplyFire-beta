@@ -310,7 +310,7 @@ def clear_progress_bar():
 
 def dump_user_setting(filename=None):
     global inputs
-    ignore = ['config_', '_log', 'temp_']
+    ignore = ['system_', '_log', 'temp_']
     if filename is None:
         filename = os.path.join(inputs['system_data_dir'].var.get().strip(), config.get_value('system_user_path'))
         # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
