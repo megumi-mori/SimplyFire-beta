@@ -16,3 +16,4 @@ test_recordings/*
 
 simplyfire/active_plugins.yaml
 simplyfire/key_map.yaml
+simplyfire/setting/setting_config.yaml
