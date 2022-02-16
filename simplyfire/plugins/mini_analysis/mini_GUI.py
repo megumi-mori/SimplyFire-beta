@@ -725,7 +725,7 @@ def filter_all(event=None):
     update_event_markers(draw=True)
     update_module_table()
     app.clear_progress_bar()
-    log_delete()
+    controller.log('Filter all')
     log_search()
 
 
@@ -741,7 +741,7 @@ def filter_window(event=None):
     update_event_markers(draw=True)
     update_module_table()
     app.clear_progress_bar()
-    log_delete()
+    controller.log('Filter window')
     log_search()
 
 # parameter
