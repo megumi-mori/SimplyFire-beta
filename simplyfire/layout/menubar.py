@@ -28,8 +28,8 @@ from simplyfire import app
 
 
 def load(menubar):
-    global widgets
-    widgets = {}
+    global inputs
+    inputs = {}
     global prev_trace_mode
     prev_trace_mode = app.config.get_value('trace_mode')
 
@@ -67,7 +67,7 @@ def load(menubar):
     menubar.add_cascade(label='View', menu=view_menu)
     # track trace_mode
     trace_var = Tk.StringVar(parent, 0)
-    widgets['trace_mode'] = trace_var
+    inputs['trace_mode'] = trace_var
     view_menu.add_radiobutton(label='Continuous', command=set_view_continuous, variable=trace_var,
                               value='continuous')
     view_menu.add_radiobutton(label='Overlay', command=set_view_overlay, variable=trace_var, value='overlay')
@@ -87,8 +87,8 @@ def load(menubar):
     menubar.add_cascade(label='Settings', menu=settings_menu)
 
 
-    # widgets['analysis_mode'].set(config.analysis_mode)
-    widgets['trace_mode'].set(app.config.get_value('trace_mode'))
+    # inputs['analysis_mode'].set(config.analysis_mode)
+    inputs['trace_mode'].set(app.config.get_value('trace_mode'))
     # view_menu.invoke({'continuous': 0, 'overlay': 1, 'compare':2}[config.trace_mode])
     # batch_menu.invoke({'mini': 0, 'evoked': 1}[config.analysis_mode])
 
@@ -135,7 +135,7 @@ def save_recording(filename):
     recording.filepath = filename
     recording.filename= os.path.splitext(filename)[1]
     recording.filedir, recording.filename = os.path.split(filename)
-    app.graph_panel.widgets['trace_info'].set(
+    app.graph_panel.inputs['trace_info'].set(
         f'{recording.filename}: {recording.sampling_rate}Hz : {recording.channel_count} channels')
 
 def ask_export_results():
@@ -150,7 +150,7 @@ def ask_export_results():
                 results_display.dataframe.export(filename)
     app.root.event_generate('<<AskedExportResults>>')
 def set_view_continuous(save_undo=True):
-    global widgets
+    global inputs
     global prev_trace_mode
     if prev_trace_mode == 'continuous':
         return
@@ -159,17 +159,17 @@ def set_view_continuous(save_undo=True):
         interface.add_undo([
             lambda s=False: set_view_overlay(s),
         ])
-    widgets['trace_mode'].set('continuous')
+    inputs['trace_mode'].set('continuous')
 
     # switch to continuous mode tab
     # interface.config_cp_tab('continuous', state='normal')
 
     try:
         # interface.plot_continuous(interface.recordings[0], fix_axis=True)
-        interface.plot()
+        interface.plot(fix_y=True, fix_x=True, relim=True)
     except:
         pass
-    # if widgets['analysis_mode'].get() == 'mini':
+    # if inputs['analysis_mode'].get() == 'mini':
     #     interface.config_cp_tab('mini', state='normal')
     #     interface.config_data_tab('mini', state='normal')
     # interface.config_cp_tab('adjust', state='normal')
@@ -179,7 +179,7 @@ def set_view_continuous(save_undo=True):
 
 def set_view_overlay(save_undo=True):
     global prev_trace_mode
-    global widgets
+    global inputs
     if prev_trace_mode == 'overlay':
         return
     app.root.event_generate('<<ChangeToOverlayView>>')
@@ -191,10 +191,10 @@ def set_view_overlay(save_undo=True):
     #     interface.add_undo([
     #         lambda d=False: set_view_compare(d)
     #     ])
-    widgets['trace_mode'].set('overlay')
+    inputs['trace_mode'].set('overlay')
     # interface.config_cp_tab('overlay', state='normal')
     try:
-        interface.plot()
+        interface.plot(fix_x=True, fix_y=True, relim=True)
     except:
         pass
     prev_trace_mode = 'overlay'

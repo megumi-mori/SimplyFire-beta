@@ -164,7 +164,7 @@ def open_recording(fname: str,
         # data_display.clear()
         # evoked_data_display.clear()
         # update save file directory
-        # if app.setting_tab.widgets['config_file_autodir'].get() == '1':
+        # if app.setting_tab.inputs['config_file_autodir'].get() == '1':
         #     mpl.rcParams['savefig.directory'] = os.path.split(fname)[0]
         # set to channel specified by the user
         try:
@@ -210,9 +210,9 @@ def open_recording(fname: str,
     app.trace_display.draw_ani()
     # param_guide.update()
     if not append:
-        # if app.graph_panel.widgets['force_axis_limit'].get() == '1':
-        #     app.trace_display.set_axis_limit('x', (app.widgets['min_x'].get(), app.widgets['max_x'].get()))
-        #     app.trace_display.set_axis_limit('y', (app.widgets['min_y'].get(), app.widgets['max_y'].get()))
+        # if app.graph_panel.inputs['force_axis_limit'].get() == '1':
+        #     app.trace_display.set_axis_limit('x', (app.inputs['min_x'].get(), app.inputs['max_x'].get()))
+        #     app.trace_display.set_axis_limit('y', (app.inputs['min_y'].get(), app.inputs['max_y'].get()))
         if xlim:
             app.trace_display.set_axis_limit('x', xlim)
         if ylim:
@@ -299,19 +299,19 @@ def plot(fix_x=False, fix_y=False, clear=True, **kwargs):
         ylim= app.trace_display.get_axis_limits('y')
     if clear:
         app.trace_display.clear()
-    if app.menubar.widgets['trace_mode'].get() == 'continuous':
+    if app.menubar.inputs['trace_mode'].get() == 'continuous':
         plot_continuous(recordings[0], draw=False, **kwargs)
-    elif app.menubar.widgets['trace_mode'].get() == 'overlay':
+    elif app.menubar.inputs['trace_mode'].get() == 'overlay':
         plot_overlay(recordings[0], draw=False, **kwargs)
     if xlim:
         app.trace_display.set_axis_limit('x', xlim)
     if ylim:
         app.trace_display.set_axis_limit('y', ylim)
 
-    app.trace_display.ax.set_xlabel(recordings[0].x_label)#, fontsize=int(float(app.widgets['font_size'].get())))
-    app.trace_display.ax.set_ylabel(recordings[0].y_label)#, fontsize=int(float(app.widgets['font_size'].get())))
-    app.trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
-    app.trace_display.ax.tick_params(axis='x', which='major')#, labelsize=int(float(app.widgets['font_size'].get())))
+    app.trace_display.ax.set_xlabel(recordings[0].x_label)#, fontsize=int(float(app.inputs['font_size'].get())))
+    app.trace_display.ax.set_ylabel(recordings[0].y_label)#, fontsize=int(float(app.inputs['font_size'].get())))
+    app.trace_display.ax.tick_params(axis='y', which='major')#, labelsize=int(float(app.inputs['font_size'].get())))
+    app.trace_display.ax.tick_params(axis='x', which='major')#, labelsize=int(float(app.inputs['font_size'].get())))
     app.root.event_generate('<<Plotted>>')
     app.root.event_generate('<<PlotDone>>')
     app.trace_display.draw_ani()
@@ -393,7 +393,7 @@ def plot_overlay(recording, draw=False, sweep_name_suffix='Sweep', relim=True, *
 # update changes made to the y-data in the recording data to the plot
 def update_plot_ys(sweeps):
     global recordings
-    if app.menubar.widgets['trace_mode'].get() == 'continuous':
+    if app.menubar.inputs['trace_mode'].get() == 'continuous':
         app.trace_display.get_sweep(0).set_ydata(recordings[0].get_ys(mode='continuous'))
     else:
         for s in sweeps:

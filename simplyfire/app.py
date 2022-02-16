@@ -199,7 +199,7 @@ def load(window, splash):
 
     globals()['menubar'] = menubar
 
-    for k, v in menubar.widgets.items():
+    for k, v in menubar.inputs.items():
         inputs[k] = v
 
     setting_tab.load(root)
