@@ -82,7 +82,6 @@ from simplyfire import app
 
 def interrupt():
     # temporary deal with analyzer, will become contained later
-    app.interface.al.stop = True
     global stop
     stop = True
 

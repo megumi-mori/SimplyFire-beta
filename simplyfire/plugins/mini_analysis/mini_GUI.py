@@ -494,7 +494,7 @@ def find_mini_all(event=None, popup:bool=True, undo:bool=True):
     datapanel.unselect()
     if app.inputs['trace_mode'].get() != 'continuous': # should be disabled. Don't do anything
         return
-    threader.start_thread(lambda i=popup, u=undo: _find_mini_all_thread(i, undo=u), mini_analysis.interrupt,
+    threader.start_thread(lambda u=undo: _find_mini_all_thread(undo=u), mini_analysis.interrupt,
                              popup)
     # if detector_tab.changed:
     #     log_display.search_update('Auto')
@@ -503,7 +503,7 @@ def find_mini_all(event=None, popup:bool=True, undo:bool=True):
     #     detector_tab.changed = False
     log_search()
 
-def _find_mini_all_thread(popup=True, undo=True):
+def _find_mini_all_thread(undo=True):
     """
     Used to call the find-all algorithm from the mini_analysis module.
     Use this inside of a thread
@@ -536,6 +536,7 @@ def _find_mini_all_thread(popup=True, undo=True):
                 [lambda s=df[df.channel == app.interface.current_channel]['t']: delete_selection(s, undo=False)]
             )
     app.clear_progress_bar()
+    controller.log(f'Find mini all', header=True)
 
 
 def find_mini_at(x1, x2):
@@ -589,11 +590,11 @@ def find_mini_range(event=None, popup=True, undo=True):
         messagebox.showerror('Error', 'Please open a recording file first')
         return None
     datapanel.unselect()
-    threader.start_thread(lambda i=popup, u=undo: _find_mini_range_thread(popup=i, undo=u), mini_analysis.interrupt,
+    threader.start_thread(lambda u=undo: _find_mini_range_thread(undo=u), mini_analysis.interrupt,
                              popup)
     log_search()
 
-def _find_mini_range_thread(popup=True, undo=True):
+def _find_mini_range_thread(undo=True):
     """
     Used to call the find-in-range algorithm from the mini_analysis module.
     Use this inside of a thread
@@ -623,6 +624,7 @@ def _find_mini_range_thread(popup=True, undo=True):
                 [lambda s=df[df.channel == app.interface.current_channel]['t']: delete_selection(s, undo=False)]
             )
     app.clear_progress_bar()
+    controller.log(f'Find mini in range: {app.trace_display.ax.get_xlim()}', header=True)
 
 def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
     """
@@ -769,7 +771,7 @@ def log_search(event=None):
     global logged
     global changes
     if changes:
-        controller.log(f'{str(changes)}', header=True)
+        controller.log(f'Parameter update: {str(changes)}', header=False)
     changes = {}
     logged = True
 
@@ -811,6 +813,7 @@ def open_minis(filename, log=True, undo=True, append=False):
     update_event_markers(draw=True)
 
     app.clear_progress_bar()
+    controller.log(f'Open mini file: {filename}')
 
 def open_mini_csv(filename):
     df = pd.read_csv(filename, comment='@')
@@ -928,7 +931,7 @@ def open_minipy(filename):
             return df
         return pd.DataFrame()  # empty
 
-def ask_open_minis(self, event=None):
+def ask_open_minis(event=None):
     global mini_df
     if not saved and mini_df.shape[0]>0:
         choice = messagebox.askyesnocancel('Warning', 'Save mini data?')
@@ -1993,6 +1996,6 @@ for key in app.interpreter.get_keys('select_all'):
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=datapanel.datatable.select_all: form.call_if_focus(func),
                                                   add='+')
 
-parameters = {k:v.get() for k,v in form.inputs.items()}
+parameters = {k:v.get() for k,v in form.inputs.items() if 'detector' in k}
 changes = {k:v for k,v in parameters.items()}
 app.plugin_manager.mini_analysis.save = controller.save

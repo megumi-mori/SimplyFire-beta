@@ -83,7 +83,8 @@ def log(msg, header=True):
     if header:
         log_text.insert('{} {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     else:
-        log_text.insert('{}\n'.format(msg))
+        print('not header')
+        log_text.insert('                 {}\n'.format(msg))
     log_text.see(Tk.END)
 def copy():
     app.root.clipboard_clear()
@@ -91,28 +92,16 @@ def copy():
     # app.root.update()
 
 def user_update(e=None):
-    log_text.insert('{} @user: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), log_entry.get()))
+    log_text.insert('{} user: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), log_entry.get()))
     log_entry.set("")
     log_text.see(Tk.END)
 
-def system_update(msg):
-    log_text.insert('{} @system:  {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
-    log_text.see(Tk.END)
-
 def open_update(filename):
-    log_text.insert('{} @open: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), filename))
-    log_text.see(Tk.END)
-
-def search_update(msg):
-    log_text.insert('{} @search: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
-    log_text.see(Tk.END)
-
-def param_update(msg):
-    log_text.insert('{} @param: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.insert('{} open: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), filename))
     log_text.see(Tk.END)
 
 def save_update(msg):
-    log_text.insert('{} @saved: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
+    log_text.insert('{} saved: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     log_text.see(Tk.END)
 
 def save():

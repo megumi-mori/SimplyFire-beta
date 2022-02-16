@@ -1,10 +1,11 @@
 from simplyfire.utils.plugin_controller import PluginController
 from simplyfire.utils.plugin_form import PluginForm
-from simplyfire.utils import custom_widgets
+from simplyfire.utils import custom_widgets, formatting
 from . import process_recording
 from simplyfire import app
 import os
 import tkinter as Tk
+import numpy as np
 
 name = 'process_recording'
 menu_label = 'Process Recording'
@@ -136,6 +137,8 @@ def average_sweeps(event=None):
     if form.inputs['average_show_result'].get():
         getattr(app.plugin_manager, 'sweeps.sweeps_GUI').hide_all(undo=False)
         getattr(app.plugin_manager, 'sweeps.sweeps_GUI').show_list(selection=[app.interface.recordings[0].sweep_count - 1], undo=False)
+    controller.log(msg='Average sweeps', header=True)
+    controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}, Channels: {formatting.format_list_indices(target_channels)}', header=False)
 
 def subtract_baseline(event=None):
     if len(app.interface.recordings)==0:
@@ -194,6 +197,12 @@ def subtract_baseline(event=None):
         ])
 
     app.interface.plot(clear=False, fix_x=True)
+    controller.log(msg=f'Subtract baseline')
+    controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}', header=False)
+    avg_baseline = np.mean(baseline, axis=1)
+    std_baseline = np.std(baseline, axis=1)
+    for i,c in enumerate(target_channels):
+        controller.log(msg=f'channel: {c}, avg: {avg_baseline[i][0]}, stdev: {std_baseline[i][0]}', header=False)
     pass
 
 def filter_data(event=None):
@@ -246,6 +255,8 @@ def filter_data(event=None):
                                                    target_channels,
                                                    target_sweeps)
     app.interface.plot(fix_x=True, fix_y=True, clear=False, relim=False)
+    controller.log(msg=f'Apply filter: {filter_choice}, {filter_algorithm}, {params}')
+    controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}, Channels: {formatting.format_list_indices(target_channels)}', header=False)
 
 
 

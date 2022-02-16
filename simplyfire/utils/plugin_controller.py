@@ -163,12 +163,6 @@ class PluginController():
             self.file_menu = self.create_menubar_cascade(app.menubar.file_menu)
         return self.file_menu
 
-    def log(self, msg, header=True):
-        if header:
-            app.log_display.log(f'{self.name}: {msg}', True)
-        else:
-            app.log_display.log(msg, False)
-
     def add_undo(self, tasks):
         assert not isinstance(tasks, str)
         tasks.insert(0, self.select)
@@ -257,5 +251,5 @@ class PluginController():
         if header:
             msg = f'{self.name}:{msg}'
         else:
-            msg = f'    {msg}'
-        app.log_display.log(msg, header=True)
+            pass
+        app.log_display.log(msg, header=header)
