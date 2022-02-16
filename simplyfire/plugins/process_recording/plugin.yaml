@@ -1,0 +1,11 @@
+name: 'process_recording'
+title: 'Process Recording'
+author: 'MM'
+description: 'Post-processing for electrophysiology recording data'
+version: '1.0.0'
+minimumCoreVersion: '3.0.0'
+scripts:
+  - 'process_GUI'
+requirements:
+  - 'style'
+  - 'sweeps'

@@ -1,0 +1,174 @@
+#"""
+#SimplyFire - Customizable analysis of electrophysiology data
+#Copyright (C) 2022 Megumi Mori
+#This program comes with ABSOLUTELY NO WARRANTY
+#
+#This program is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+#
+#This program is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+#
+#You should have received a copy of the GNU General Public License
+#along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#"""
+#################################################################
+# PyMini Defaults
+#################################################################
+# This file contains the default configuration options
+# for PyMini. IT SHOULD NOT BE EDITED!
+#
+# user-defined parameters should be named exactly as the default
+# counterpart in this file, without the 'default_' tag
+#
+# widgets that use these parameters should also be named exactly
+# as the default variable name, without hte 'default_' tag
+#################################################################
+
+# version
+version : '3.0.1b0'
+
+#aesthetics
+geometry : '900x600'
+zoomed : 0
+
+relative_cp_width : 0.25
+cp_width : 270
+font_size : 9
+separator : true
+gp_height : 450
+pw_handlesize : 15
+
+# semantics
+validation_na :
+  - 'None'
+  - 'n/a'
+  - 'na'
+
+# temp file save path
+temp_path :
+  - 'temp'
+
+#system
+system_user_path : "user_config.yaml"
+system_data_dir: ~
+system_setting_path : 'setting_config.yaml'
+system_keymap_path: 'key_map.yaml'
+system_plugin_path: 'active_plugins.yaml'
+system_autoload : 1
+system_autosave : 1
+log_autosave : ""
+system_file_autodir : 1
+system_undo_stack : 2
+log_autosave_dir : ~
+
+# graph panel
+navigation_fps : 12
+navigation_mirror_x_scroll : 1 # 1 for normal, -1 for mirror
+navigation_mirror_y_scroll : 1 # 1  for normal, -1 for mirror
+navigation_scroll_x_percent : 10
+navigation_zoom_x_percent : 10
+navigation_scroll_y_percent : 10
+navigation_zoom_y_percent : 10
+channel_option : ""
+force_channel : 0
+force_channel_id : 0
+## compare
+#default_compare_color_list: # the colors are based on Okabe&Ito colorblind-friendly pallet (https://jfly.uni-koeln.de/color/)
+#- 'Black'
+#- '#0080ff'
+#- '#ff8000'
+#- '#e64dff'
+#- '#33ffff'
+#- '#e6f21a'
+#- '#33ffff'
+#- '#ff3300'
+#- '#08ff40'
+#- 'Black'
+### menu
+trace_mode : 'continuous'
+
+# plugins
+start_plugins:
+  - 'style'
+active_plugins:
+  - 'style'
+
+#####################
+#      key map      #
+#####################
+key_map:
+  key_deselect:
+    - '<Escape>'
+    - '<Key-q>'
+    - '<Key-o>'
+  key_delete:
+    - '<Delete>'
+    - '<BackSpace>'
+    - '<Key-e>'
+    - '<Key-u>'
+  key_select_all:
+    - '<Control-a>'
+  key_select_window:
+    - '<Control-Shift_L-A>'
+    - '<Control-Shift_R-A>'
+  key_multi_select:
+    - '<Shift_L>'
+    - '<Shift_R>'
+  # plot navigation
+  key_pan_left :
+    - '<Key-a>'
+  key_pan_right:
+    - '<Key-d>'
+  key_pan_up:
+    - '<Key-w>'
+  key_pan_down:
+    - '<Key-s>'
+  key_escape:
+    - '<Key-q>'
+  key_erase:
+    - '<Key-e>'
+  key_zoom_in_x:
+    - 'j'
+    - '<Shift_L-d>'
+  key_zoom_out_x:
+    - 'l'
+    - '<Shift_L-a>'
+  key_zoom_in_y:
+    - 'i'
+    - '<Shift_L-w>'
+  key_zoom_out_y:
+    - 'k'
+    - '<Shift_L-s>'
+  key_reset_focus:
+    - '<space>'
+  # toolbar
+  key_toolbar_pan:
+    - '<Key-c>'
+  key_toolbar_zoom:
+    - '<Key-v>'
+  key_select:
+    - '<Key-g>'
+
+  key_undo:
+    - '<Control-z>'
+
+  key_copy:
+    - '<Control-c>'
+
+  key_find_all:
+    - '<F4>'
+
+  key_find_in_window:
+    - '<F5>'
+
+  key_zoom_axis:
+    - '<Control_L>'
+    - '<Control_R>'
+
+  key_show_all:
+    - '<Key-Home>'

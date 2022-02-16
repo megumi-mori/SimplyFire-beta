@@ -1,0 +1,8 @@
+name: 'navigation'
+title: 'Navigation'
+author: 'MM'
+description: 'QOL addition for navigation'
+version: '1.0.0'
+minimumCoreVersion: '3.0.0'
+scripts:
+  - 'navigation'
