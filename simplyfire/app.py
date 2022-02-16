@@ -254,7 +254,6 @@ def load(window, splash):
     #         pass
     # for module_name, module in modules.items():
     #     module.update_module_display()
-    print('hide tab')
     cp_notebook.add(setting_tab.frame, text='Setting', state='disabled')
     cp_notebook.add(setting_tab.frame, text='Setting', state='hidden')
     root.update()
@@ -391,6 +390,8 @@ def dump_config_var(key, filename, title=None):
     print('Completed')
 
 def dump_log():
+    if not inputs['log_autosave'].get():
+        return
     dirname = os.path.join(inputs['system_data_dir'].var.get().strip(), 'log')
     if not os.path.exists(dirname):
         os.makedirs(dirname)
