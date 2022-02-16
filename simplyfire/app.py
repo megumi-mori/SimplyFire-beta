@@ -107,18 +107,13 @@ def load(window, splash):
     global app_root
     # app_root = splash
     # tracemalloc.start()
-    config.load()
     global root
+    root = window
     global loaded
     loaded = False
-    root = window
-    # root = Tk.Toplevel()
     root.withdraw()
-    root.title('simplyfire v{}'.format(config.version))
-    IMG_DIR = config.IMG_DIR
-    root.iconbitmap(os.path.join(IMG_DIR, 'logo_bw.ico'))
-    if config.zoomed:
-        root.state('zoomed')
+
+
     global menu
     menu = Tk.Menu(root)
     root.config(menu=menu)
@@ -130,10 +125,9 @@ def load(window, splash):
 
     # root.bind(config.key_reset_focus, lambda e: data_display.table.focus_set())
 
-
-    global arrow_img
-    arrow_img = Image.open(os.path.join(IMG_DIR, 'arrow.png'))
-
+    ##################################################
+    #                   DATA PANEL                   #
+    ##################################################
     global inputs
     global pw
     pw = Tk.PanedWindow(
@@ -145,20 +139,19 @@ def load(window, splash):
     )
 
     pw.grid(column=0, row=0, sticky='news')
-
-
-    ##################################################
-    #                   DATA PANEL                   #
-    ##################################################
-
     # set up frame
-    right = Tk.Frame(pw, background = 'pink')
+    right = Tk.Frame(pw, background='pink')
     right.grid(column=0, row=0, sticky='news')
     right.columnconfigure(0, weight=1)
     right.rowconfigure(0, weight=1)
 
     dp_notebook = ttk.Notebook(right)
     dp_notebook.grid(column=0, row=0, sticky='news')
+
+    log_frame = log_display.load(root)
+    config.load()
+    global arrow_img
+    arrow_img = Image.open(os.path.join(config.IMG_DIR, 'arrow.png'))
 
     global pw_2
     pw_2 = Tk.PanedWindow(
@@ -182,11 +175,8 @@ def load(window, splash):
     data_notebook.bind('<ButtonRelease>', interface.focus, add='+')
 
 
-
     pw_2.add(data_notebook)
     dp_notebook.add(pw_2, text='trace')
-
-    log_frame = log_display.load(root)
     dp_notebook.add(log_frame, text='log')
 
     results_frame = results_display.load(root)
@@ -210,39 +200,7 @@ def load(window, splash):
     cp_notebook.bind('<<NotebookTabChanged>>', synch_tab_focus, add='+')
     cp_notebook.bind('<ButtonRelease>', interface.focus, add='+')
 
-    #############################################################
-    # Insert custom tabs here to include in the control panel
-    #############################################################
-        # cp_tab_details = {
-    #     'mini': {'module': detector_tab, 'text': 'Analysis', 'partner': ['evoked'], 'name':'detector_rab'},
-    #     'evoked': {'module': evoked_tab, 'text': 'Analysis', 'partner': ['mini'], 'name':'evoked_tab'},
-    #     'continuous': {'module': continuous_tab, 'text': 'View', 'partner': ['overlay', 'compare'], 'name':'continuous_tab'},
-    #     'overlay': {'module': sweep_tab, 'text': 'View', 'partner': ['continuous', 'compare'], 'name':'sweep_tab'},
-    #     'compare':{'module': compare_tab, 'text': 'View', 'partner': ['continuous', 'overlay'], 'name':'compare_tab'},
-    #     'adjust': {'module': adjust_tab, 'text': 'Adjust', 'partner': [], 'name':'adjust_tab'},
-    #     'navigation': {'module': navigation_tab, 'text': 'Navi', 'partner': [], 'name':'navigation_tab'},
-    #     'style':{'module': style_tab, 'text': 'Style', 'partner': [], 'name':'style_tab'},
-    #     'setting':{'module': setting_tab, 'text': 'Setting', 'partner': [], 'name':'setting_tab'}
-    # }
-    #
-    # for i, t in enumerate(cp_tab_details):
-    #     cp_tab_details[t]['tab'] = cp_tab_details[t]['module'].load(cp)
-    #     cp_notebook.add(cp_tab_details[t]['tab'], text=cp_tab_details[t]['text'])
-    #     cp_tab_details[t]['index'] = i
-    #     globals()[cp_tab_details[t]['name']] = cp_tab_details[t]['module']
 
-
-    # root.bind('<Configure>', print)
-
-    # test = StyleTab(left, __import__(__name__), interface)
-    # cp_notebook.add(test, text='test')
-
-    # get reference to widgets
-    # for module in [detector_tab, evoked_tab, adjust_tab, navigation_tab, style_tab, setting_tab, graph_panel]:
-    #     for k, v in module.widgets.items():
-    #         widgets[k] = v
-    # setting_tab.set_fontsize(widgets['font_size'].get())
-    # # set focus rules
     for key in inputs:
         if type(inputs[key]) == custom_widgets.VarEntry:
             inputs[key].bind('<Return>', lambda e: interface.focus(), add='+')
@@ -348,6 +306,10 @@ def load(window, splash):
     loaded = True
     root.event_generate('<<LoadCompleted>>')
 
+    root.title('simplyfire v{}'.format(config.version))
+    root.iconbitmap(os.path.join(config.IMG_DIR, 'logo_bw.ico'))
+    if config.get_value('zoomed'):
+        root.state('zoomed')
     root.focus_force()
     interface.focus()
     splash.destroy()

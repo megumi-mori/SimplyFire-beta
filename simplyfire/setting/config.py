@@ -21,6 +21,7 @@ import yaml
 import os
 import pkg_resources
 import sys
+from simplyfire import app
 
 # set up default parameters during module import
 # Constants
@@ -43,7 +44,7 @@ keymap_vars = {}
 
 
 def load():
-    print('loading default config')
+    app.log_display.log('Loading...')
     default_config_path = os.path.join(SETTING_DIR, "default_config.yaml")  # config/default_config.yaml
     with open(default_config_path) as f:
         configs = yaml.safe_load(f)
@@ -59,7 +60,6 @@ def load():
     if default_vars['system_data_dir'] is None:
         default_vars['system_data_dir'] = PKG_DIR
         user_vars['system_data_dir'] = PKG_DIR
-    print('completed')
 
     # load where user data is located
     global system_setting_path
@@ -73,6 +73,7 @@ def load():
                 user_vars[c] = v
     except:
         pass
+
     if user_vars['system_data_dir'] is None:
         user_vars['system_data_dir'] = PKG_DIR
     elif not os.path.exists(user_vars['system_data_dir']):
@@ -116,7 +117,7 @@ def load():
     user_config_load_error = None
     if user_vars['system_autoload'] == 1 or user_vars['system_autoload'] == '1':
         try:
-            print(f'loading user_config.yaml from {user_vars["system_data_dir"]}')
+            app.log_display.log(f'User settings: {user_vars["system_user_path"]}')
             system_user_path = os.path.join(user_vars["system_data_dir"], user_vars['system_user_path'])
             with open(system_user_path) as f:
                 configs = yaml.safe_load(f)
@@ -126,7 +127,7 @@ def load():
         except FileNotFoundError:
             pass
         except AttributeError as e:
-            user_config_load_error = e
+            app.log_display.log(f'User setting load error: {e}', True)
             pass
 
     try:
@@ -136,9 +137,10 @@ def load():
             globals()['active_plugins'] = configs['active_plugins']
             user_vars['active_plugins'] = configs['active_plugins']
     except FileNotFoundError:
+        app.log_display.log(f'Active plugin list not found')
         pass
     except (AttributeError, KeyError) as e:
-        print(f'Error loading active plugins: {e}')
+        app.log_display.log(f'Plugin load error: {e}', True)
         pass
 
 
