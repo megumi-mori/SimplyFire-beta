@@ -33,7 +33,6 @@ def _run_target_func():
         _destroy_interrupt_popup(interrupt_function)
 
 def _show_interrupt_popup(interrupt_func):
-    print('show interrupt popup!')
     assert (callable(interrupt_func)), "interrupt_func must be callable"
     global popup_window
     popup_window = Tk.Toplevel(app.root)

@@ -70,7 +70,7 @@ def load(parent):
     copy_button = ttk.Button(button_frame, text='Copy', command=copy)
     copy_button.grid(column=0, row=0, sticky='nws')
 
-    save_button = ttk.Button(button_frame, text='Save log as...', command=save)
+    save_button = ttk.Button(button_frame, text='Save log as...', command=ask_save_as)
     save_button.grid(column=1, row=0, sticky='news')
 
     log_text.insert('{}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S')))
@@ -103,8 +103,8 @@ def save_update(msg):
     log_text.insert('{} saved: {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     log_text.see(Tk.END)
 
-def save():
-    d = filedialog.asksaveasfilename(filetypes=[('log file', '*.log')], defaultextension='.log')
+def ask_save_as():
+    d = filedialog.asksaveasfilename(filetypes=[('text file', '*.txt')], defaultextension='.txt')
     if d:
         try:
             with open(d, 'x') as f:
@@ -112,5 +112,16 @@ def save():
             save_update(d)
         except:
             messagebox.showerror('Cannot overwrite file', 'A file with the filename already exists. Please choose a different filename.')
-            save()
+            ask_save_as()
             return
+
+def save(filename=None):
+    if filename is None:
+        ask_save_as()
+        return
+    with open(filename, 'x') as f:
+        f.write(log_text.get())
+        save_update(filename)
+
+
+

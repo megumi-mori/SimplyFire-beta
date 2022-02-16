@@ -22,14 +22,12 @@ import tkinter as Tk
 import yaml
 from PIL import Image
 import os
-from simplyfire.utils import custom_widgets
+from simplyfire.utils import custom_widgets, formatting
 from simplyfire.backend import interpreter, plugin_manager, interface
 from simplyfire.layout import trace_display, menubar, graph_panel, setting_tab, batch_popup, \
     results_display, log_display, plugin_tab
-# from PyMini.DataVisualizer import data_display, log_display, evoked_data_display, results_display, trace_display, param_guide
-import importlib
 # debugging
-import time
+from datetime import datetime
 
 
 
@@ -50,60 +48,18 @@ def _on_close():
     global inputs
     # if widgets['config_autosave'].get():
     # try:
+    log_display.log('Closing...')
     dump_user_setting()
     dump_plugin_setting()
-    # except:
-    #     Tk.messagebox.showinfo(title='Error', message='Error while writing out user preferences.\n Please select a new filename.')
-    #     f = setting_tab.save_config_as()
-    #     if f:
-    #         widgets['config_user_path'].set(f)
-
-    # dump_config_var(key='key_', filename=os.path.join(inputs['system_user_dir'].get(), 'key_map.yaml'), title='Keymap')
     dump_system_setting()
     # dump_key_setting() # implement this for customizable keys
+    dump_log()
     root.destroy()
 
-def get_value(key, tab=None):
-    try:
-        v = inputs[key].get()
-        return v
-    except Exception as e:
-        pass
-
-def get_widget(key, tab=None):
-    try:
-        return inputs[key]
-    except:
-        pass
-
-
-def set_value(key, value, tab=None):
-    inputs[key].set(value)
-    try:
-        inputs[key].set(value)
-        return
-    except:
-        raise
-        None
-
-
-# def change_label(key, value, tab=None):
-#     try:
-#         tabs[tab].change_label(key, value)
-#         return True
-#     except:
-#         for t in tabs:
-#             try:
-#                 tabs[t].change_label(key, value)
-#                 return True
-#             except:
-#                 pass
-#     return False
 
 def load(window, splash):
     # debugging:
     global t0
-    t0 = time.time()
     global app_root
     # app_root = splash
     # tracemalloc.start()
@@ -324,51 +280,16 @@ def load(window, splash):
     return None
 
 
-
-
-def load_module(module_name):
-    global modules
-    if modules.get(module_name, None):
-        return
-    # load modules
-    module_path = os.path.join(config.MODULES_DIR, module_name)
-    try:
-        module = importlib.import_module(f'simplyfire.modules.{module_name}.{module_name}')
-    except ModuleNotFoundError:
-        log_display.log(f'Load error. Module {module_name} does not have file {module_name}.py', '@Load')
-        return
-
-    with open(os.path.join(module_path, 'config.yaml'), 'r') as config_file:
-        module_config = yaml.safe_load(config_file)
-    if module_config.get('dependencies', None):
-        # has dependencies
-        for req_module_name in module_config['dependencies']:
-            load_module(req_module_name)
-    try:
-        parent_module = getattr(module, 'Module', None)()
-    except TypeError as e:
-        log_display.log(f'Load error. Module {module_name}: {e}', '@Load')
-        return
-    modules[module_name] = parent_module
 def get_tab_focus():
     focus = {}
     focus['control_panel'] = cp_notebook.select()
     focus['data_panel'] = data_notebook.select()
     return focus
 
-def get_module(module_name, component=None):
-    module = modules.get(module_name, None)
-    if not module:
-        return None
-    if component:
-        return module.get(component, None)
-    else:
-        return module
-
 def synch_tab_focus(event=None):
     try:
-        module = root.children.get(cp_notebook.select().split('.')[-1]).module
-        module.select()
+        controller = root.children.get(cp_notebook.select().split('.')[-1]).controller
+        controller.select()
     except:
         pass
 
@@ -391,12 +312,10 @@ def clear_progress_bar():
 def dump_user_setting(filename=None):
     global inputs
     ignore = ['config_', '_log', 'temp_']
-    print('Writing out configuration variables....')
     if filename is None:
         filename = os.path.join(inputs['system_data_dir'].var.get().strip(), config.get_value('system_user_path'))
         # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
-        print('writing dump user config {}'.format(filename))
         # pymini.pb.initiate()
         d = {}
         for key in inputs.keys():
@@ -431,7 +350,7 @@ def dump_user_setting(filename=None):
         f.write(yaml.safe_dump(d))
         # pymini.pb.clear()
         # f.write(yaml.safe_dump(user_vars))
-    print('Completed')
+    log_display.log(msg=f'User settings saved in: {filename}')
 
 def dump_plugin_setting(filename=None):
     if filename is None:
@@ -444,12 +363,12 @@ def dump_plugin_setting(filename=None):
         f.write("#################################################################\n")
         f.write("\n")
         f.write(yaml.safe_dump(d))
+    log_display.log(msg=f'Plugin list saved in: {filename}')
 
 
 def dump_system_setting():
-    print('Saving config options....')
-    with open(config.system_setting_path, 'w') as f:
-        print('dumping system config {}'.format(config.system_setting_path))
+    filename = config.SYS_PATH
+    with open(filename, 'w') as f:
         f.write("#################################################################\n")
         f.write("# PyMini system configurations\n")
         f.write("#################################################################\n")
@@ -458,8 +377,7 @@ def dump_system_setting():
         # f.write(yaml.safe_dump(dict([(key, widgets[key].get()) for key in widgets if 'config' in key])))
         # f.write(yaml.safe_dump(dict([(n, getattr(config, n)) for n in config.user_vars if 'config' in n])))
         f.write(yaml.safe_dump(dict([(key, value.get()) for key, value in setting_tab.widgets.items() if 'system' in key])))
-
-    print('Completed')
+    log_display.log(msg=f'System load settings saved in: {filename}')
 
 def dump_config_var(key, filename, title=None):
     print('Saving "{}" config values...'.format(key))
@@ -471,6 +389,17 @@ def dump_config_var(key, filename, title=None):
         f.write("\n")
         f.write(yaml.safe_dump(dict([(n, getattr(config, n)) for n in config.user_vars if key in n])))
     print('Completed')
+
+def dump_log():
+    dirname = os.path.join(inputs['system_data_dir'].var.get().strip(), 'log')
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    filename = os.path.join(dirname, f'SimplyFire-{datetime.now().strftime("%m-%d-%y %H-%M-%S")}.txt')
+    filename = formatting.format_save_filename(filename, overwrite=False)
+    try:
+        log_display.save(filename)
+    except Exception as e:
+        print(f'Error writing log file: {e}')
 
 def load_config(filename=None):
     if not filename:

@@ -31,7 +31,8 @@ event_pick = False
 parameters = {}
 changes = {}
 changed = False
-logged = True
+logged_manual = False # log if a manual analysis was done on the file
+logged_delete = False # log if a mini was deleted by user
 
 popup_tracker = False
 popup_data = {}
@@ -331,23 +332,28 @@ def canvas_mouse_release(event=None):
     if event_pick:
         event_pick = False
         # a marker had been selected. Do not analyze the area
+        app.interface.focus()
         return
     if app.trace_display.canvas.toolbar.mode != "":
         # the matplotlib canvas is on pan/zoom or rect zoom mode
         # do nothing
+        app.interface.focus()
         return
     if len(app.interface.recordings) == 0:
         # no recording file has been opened yet
+        app.interface.focus()
         return
-    if form.has_focus(): # limit function to when the plugin is in focus
-        if app.inputs['trace_mode'].get() != 'continuous': # should be disabled - contingency
-            messagebox.showerror('Error', 'Please switch to continuous mode to analyze minis')
-            return
-        datapanel.unselect()
-        try:
-            find_mini_manual(app.interpreter.mouse_event.xdata) # get the stored mouse event from interpreter
-        except:
-            pass
+    if app.inputs['trace_mode'].get() != 'continuous': # should be disabled - contingency
+        messagebox.showerror('Error', 'Please switch to continuous mode to analyze minis')
+        app.interface.focus()
+        return
+    datapanel.unselect()
+    try:
+        find_mini_manual(app.interpreter.mouse_event.xdata) # get the stored mouse event from interpreter
+        app.interface.focus()
+    except Exception as e:
+        print(e)
+        pass
 
 
 
@@ -423,12 +429,15 @@ def delete_all(undo=True, draw=True):
     if draw:
         update_event_markers(draw=True)
     update_module_table()
+    log_delete()
 
 def delete_from_canvas(event=None, undo=True):
     """
     Delete button was pressed on the canvas while a mini was highlighted
     """
     datapanel.delete_selected(undo) # highlight = datapanel should be selected
+    app.interface.focus()
+
 
 def delete_in_window(event=None, undo=True):
     global mini_df
@@ -457,6 +466,7 @@ def delete_selection(selection:list, undo:bool=True, draw:bool=True):
     mini_df = mini_df[(~mini_df['t'].isin(selection)) | (mini_df['channel'] != app.interface.current_channel)]
     datapanel.datatable.delete(selection) # delete the entries in the datapanel
     update_event_markers(draw=draw)
+    log_delete()
 
 # getters
 def extract_column(colname:str, t:list=None) -> list:
@@ -537,6 +547,7 @@ def _find_mini_all_thread(undo=True):
     app.clear_progress_bar()
     controller.log(f'Find mini all', header=True)
     log_search()
+    log_auto()
 
 
 def find_mini_at(x1, x2):
@@ -569,6 +580,7 @@ def find_mini_at(x1, x2):
         )
     report_to_guide(mini=mini)
 
+
 def find_mini_manual(x):
     """
     Searches for a single mini centering around x
@@ -579,7 +591,9 @@ def find_mini_manual(x):
     xlim = app.trace_display.ax.get_xlim() # get the current window limits
     r = (xlim[1] - xlim[0]) * float(form.inputs['detector_core_search_radius'].get())/100 # calculate the search radius
     find_mini_at(max(x-r, xlim[0]), min(x+r, xlim[1]))
+    log_manual()
     log_search()
+
 
 def find_mini_range(event=None, popup=True, undo=True):
     """
@@ -625,6 +639,7 @@ def _find_mini_range_thread(undo=True):
     app.clear_progress_bar()
     controller.log(f'Find mini in range: {app.trace_display.ax.get_xlim()}', header=True)
     log_search()
+    log_auto()
 
 def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
     """
@@ -694,6 +709,7 @@ def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
     update_event_markers(draw=True)
     controller.log(msg='Reanalyze')
     log_search()
+
 # result filtering
 def filter_all(event=None):
     """
@@ -709,6 +725,9 @@ def filter_all(event=None):
     update_event_markers(draw=True)
     update_module_table()
     app.clear_progress_bar()
+    log_delete()
+    log_search()
+
 
 def filter_window(event=None):
     global mini_df
@@ -722,6 +741,8 @@ def filter_window(event=None):
     update_event_markers(draw=True)
     update_module_table()
     app.clear_progress_bar()
+    log_delete()
+    log_search()
 
 # parameter
 def get_params():
@@ -770,12 +791,29 @@ def log_search(event=None):
     """
     Log a message in the log_display
     """
-    global logged
     global changes
     if changes:
         controller.log(f'Parameter update: {str(changes)}', header=False)
     changes = {}
-    logged = True
+
+def log_auto(event=None):
+    global logged_manual
+    logged_manual = False # future manual analysis will be logged
+    global logged_delete
+    logged_delete = False # future mini deletion will be logged
+
+def log_manual(event=None):
+    global logged_manual
+    if not logged_manual:
+        controller.log('Manual analysis', header=True)
+        logged_manual = True # don't log again
+
+def log_delete(event=None):
+    global logged_delete
+    if not logged_delete:
+        controller.log('Delete minis', header=True)
+        logged_delete = True
+
 
 # open mini files
 def open_minis(filename, log=True, undo=True, append=False):
@@ -1508,6 +1546,10 @@ def ask_save_minis(event=None):
         return None
 
 # mini selection
+def select_all(event=None):
+    datapanel.datatable.select_all()
+    app.interface.focus()
+
 def select_from_event_pick(event=None):
     """
     Fire this function whenever a peak (pickable matplotlib scatter) is clicked by the user
@@ -1522,6 +1564,12 @@ def select_from_event_pick(event=None):
         datapanel.datatable.selection_toggle([round(xdata, app.interface.recordings[0].x_sigdig)])
     else:
         datapanel.datatable.selection_set([round(xdata, app.interface.recordings[0].x_sigdig)])
+    app.interface.focus()
+    def reset_event_pick():
+        global event_pick
+        event_pick = False
+    app.root.after(0, reset_event_pick)
+
 
 def select_from_table(event=None):
     """
@@ -1546,13 +1594,13 @@ def select_from_table(event=None):
     plot_highlight(xs, ys)  # get peak coordinates
     app.trace_display.draw_ani()
 
+
 def select_from_rect(event=None):
     """
     This function should be called in response to the user drawing a rect on the convas (drag)
     """
     if not form.has_focus():
         return None
-
     xlim = (app.interpreter.drag_coord_start[0], app.interpreter.drag_coord_end[0])
     xlim = (min(xlim), max(xlim))
     ylim = (app.interpreter.drag_coord_start[1], app.interpreter.drag_coord_end[1])
@@ -1565,14 +1613,14 @@ def select_from_rect(event=None):
             & (df['peak_coord_y'] > ylim[0]) & (df['peak_coord_y'] < ylim[1])]
 
     datapanel.datatable.selection_set(list(df['t']))
+    app.interface.focus()
 
 def select_clear(event=None):
     """
     Call this function to clear the mini selection
     """
-    if not form.has_focus():
-        return
     datapanel.unselect()
+    app.interface.focus()
 
 # update components
 def update_event_markers(event=None, draw=False):
@@ -1978,7 +2026,8 @@ controller.listen_to_event('<<LoadCompleted>>', datapanel.datatable.fit_columns)
 controller.listen_to_event('<<LoadCompleted>>', controller.update_plugin_display)
 def _on_open(event=None):
     delete_clear(undo=False, draw=False)
-    logged = False
+    global logged_manual
+    logged_manual = False
 controller.listen_to_event('<<OpenRecording>>', _on_open)
 controller.listen_to_event('<<CanvasDrawRect>>', select_from_rect, condition_function=form.has_focus)
 controller.listen_to_event('<<Plot>>', update_event_markers, condition_function=controller.is_enabled)
@@ -1995,7 +2044,7 @@ for key in app.interpreter.get_keys('deselect'):
     app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=select_clear: form.call_if_focus(func),
                                                   add='+')
 for key in app.interpreter.get_keys('select_all'):
-    app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=datapanel.datatable.select_all: form.call_if_focus(func),
+    app.trace_display.canvas.get_tk_widget().bind(key, lambda e, func=select_all: form.call_if_focus(func),
                                                   add='+')
 
 parameters = {k:v.get() for k,v in form.inputs.items() if 'detector' in k}

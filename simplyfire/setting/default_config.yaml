@@ -61,15 +61,22 @@ system_keymap_path: 'key_map.yaml'
 system_plugin_path: 'active_plugins.yaml'
 system_autoload : 1
 system_autosave : 1
+log_autosave : ""
 system_file_autodir : 1
 system_undo_stack : 2
-#
-#
-## channel
+log_autosave_dir : ~
+
+# graph panel
+navigation_fps : 12
+navigation_mirror_x_scroll : 1 # 1 for normal, -1 for mirror
+navigation_mirror_y_scroll : 1 # 1  for normal, -1 for mirror
+navigation_scroll_x_percent : 10
+navigation_zoom_x_percent : 10
+navigation_scroll_y_percent : 10
+navigation_zoom_y_percent : 10
 channel_option : ""
 force_channel : 0
-force_channel_id: 0
-
+force_channel_id : 0
 ## compare
 #default_compare_color_list: # the colors are based on Okabe&Ito colorblind-friendly pallet (https://jfly.uni-koeln.de/color/)
 #- 'Black'

@@ -42,7 +42,6 @@ row += 1
 def insert_VarEntry(column, row, name, width, validate_type, default):
     entry = custom_widgets.VarEntry(parent=form.main_panel, validate_type=validate_type, width=width, default=default)
     entry.grid(column=column, row=row, sticky='news')
-    print(entry.default)
     form.inputs[name] = entry
 
 ttk.Label(form.main_panel, text='Trace plot').grid(column=label_column, row=row, sticky='news')

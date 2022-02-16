@@ -27,16 +27,16 @@ from simplyfire import app
 import os
 
 #### default values ####
-navigation_fps = 12
-navigation_mirror_x_scroll = 1 # 1 for normal, -1 for mirror
-navigation_mirror_y_scroll = 1 # 1  for normal, -1 for mirror
-navigation_scroll_x_percent = 10
-navigation_zoom_x_percent = 10
-navigation_scroll_y_percent = 10
-navigation_zoom_y_percent = 10
+navigation_fps = app.config.get_default_value('navigation_fps')
+navigation_mirror_x_scroll = app.config.get_default_value('navigation_mirror_x_scroll')
+navigation_mirror_y_scroll = app.config.get_default_value('navigation_mirror_y_scroll')
+navigation_scroll_x_percent = app.config.get_default_value('navigation_scroll_x_percent')
+navigation_zoom_x_percent = app.config.get_default_value('navigation_zoom_x_percent')
+navigation_scroll_y_percent = app.config.get_default_value('navigation_scroll_y_percent')
+navigation_zoom_y_percent = app.config.get_default_value('navigation_zoom_y_percent')
 
-force_channel = 0
-force_channel_id = 0
+force_channel = app.config.get_default_value('force_channel')
+force_channel_id = app.config.get_default_value('force_channel_id')
 
 #### variables ####
 inputs = {}

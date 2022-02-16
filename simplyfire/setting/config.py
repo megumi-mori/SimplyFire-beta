@@ -30,7 +30,7 @@ PKG_DIR = pkg_resources.resource_filename('simplyfire', '') # base directory
 SETTING_DIR = pkg_resources.resource_filename('simplyfire', 'setting/') # location of config
 IMG_DIR = pkg_resources.resource_filename('simplyfire', 'img/') # location of image files
 TEMP_DIR = pkg_resources.resource_filename('simplyfire', 'temp/') # location of temp files
-
+SYS_PATH = ""
 # Load defaults
 global default_vars
 default_vars = {}
@@ -62,10 +62,13 @@ def load():
         user_vars['system_data_dir'] = PKG_DIR
 
     # load where user data is located
-    global system_setting_path
-    system_setting_path = os.path.join(SETTING_DIR, default_vars['system_setting_path'])
+
+    user_vars['system_setting_path'] = os.path.join(SETTING_DIR, default_vars['system_setting_path'])
+    global SYS_PATH
+    SYS_PATH = user_vars['system_setting_path']
+    app.log_display.log(f'System settings: {SYS_PATH}')
     try:
-        with open(system_setting_path) as f:
+        with open(SYS_PATH) as f:
             configs = yaml.safe_load(f)
             for c, v in configs.items():
                 globals()[c] = v
@@ -117,8 +120,8 @@ def load():
     user_config_load_error = None
     if user_vars['system_autoload'] == 1 or user_vars['system_autoload'] == '1':
         try:
-            app.log_display.log(f'User settings: {user_vars["system_user_path"]}')
             system_user_path = os.path.join(user_vars["system_data_dir"], user_vars['system_user_path'])
+            app.log_display.log(f'User settings: {system_user_path}')
             with open(system_user_path) as f:
                 configs = yaml.safe_load(f)
                 for c, v in configs.items():

@@ -34,27 +34,6 @@ def load(parent):
     #                    Methods                     #
     ##################################################
 
-    def _ask_dirname(e=None):
-        global widgets
-        # d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
-                                           # defaultextension='.yaml')
-        d = filedialog.askdirectory(title='Select a directory')
-        if d:
-            widgets['system_data_dir'].config(state="normal")
-            widgets['system_data_dir'].set(d)
-            widgets['system_data_dir'].config(state='disabled')
-            if os.path.exists(os.path.join(d, 'user_config.yaml')):
-                answer = messagebox.askyesnocancel(title='Load config?', message='A configuration file already exists in this directory.\nLoad configuration?\n(The file will be overwritten when the program closes.)')
-                if answer is None:
-                    return
-                if answer:
-                    load_config(filename = os.path.join(d, 'user_config.yaml'))
-                if not answer:
-                    pass
-            else:
-                app.dump_user_setting()
-                app.dump_system_setting()
-                app.dump_plugin_setting()
 
     ##################################################
     #                    Populate                    #
@@ -103,6 +82,14 @@ def load(parent):
         value=app.config.get_value('system_autosave'),
         default=app.config.get_default_value('system_autosave')
     )
+    widgets['log_autosave'] = optionframe.insert_label_checkbox(
+        name='log_autosave',
+        text='Save log at the end of this session',
+        onvalue='1',
+        offvalue='',
+        value=app.config.get_value('log_autosave'),
+        default=app.config.get_default_value('log_autosave', '1')
+    )
 
     # auto_load directory panel
 
@@ -150,12 +137,7 @@ def load(parent):
         name='misc',
         text='Misc'
     )
-    # widgets['config_file_autodir'] = optionframe.insert_label_checkbox(
-    #     name='config_file_autodir',
-    #     text='Use trace file directory as default export directory (figures, data)',
-    #     onvalue="1",
-    #     offvalue=""
-    # )
+
 
     widgets['system_undo_stack'] = optionframe.insert_label_entry(
         name='system_undo_stack',
@@ -302,3 +284,25 @@ def set_fontsize(fontsize=None):
         Tk.Text.configure(app.batch_popup.batch_log, font=Tk.font.Font(size=fontsize))
     except:
         pass
+
+def _ask_dirname(e=None):
+    global widgets
+    # d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
+                                       # defaultextension='.yaml')
+    d = filedialog.askdirectory(title='Select a directory')
+    if d:
+        widgets['system_data_dir'].config(state="normal")
+        widgets['system_data_dir'].set(d)
+        widgets['system_data_dir'].config(state='disabled')
+        if os.path.exists(os.path.join(d, 'user_config.yaml')):
+            answer = messagebox.askyesnocancel(title='Load config?', message='A configuration file already exists in this directory.\nLoad configuration?\n(The file will be overwritten when the program closes.)')
+            if answer is None:
+                return
+            if answer:
+                load_config(filename = os.path.join(d, 'user_config.yaml'))
+            if not answer:
+                pass
+        else:
+            app.dump_user_setting()
+            app.dump_system_setting()
+            app.dump_plugin_setting()
