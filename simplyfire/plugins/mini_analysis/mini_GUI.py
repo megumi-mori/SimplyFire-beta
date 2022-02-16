@@ -1148,6 +1148,7 @@ def popup_plot_decay_extrapolate(xs, end, data):
     Plot info on the popup guide
     Plot the single-exponential decay offset by the decay of the previous mini of the compound mini
     """
+    print('plot decay extrap')
     xs = xs[int(data['peak_idx']):end]
     A = data['decay_A']
     tau = data['decay_const'] / 1000
@@ -1162,9 +1163,9 @@ def popup_plot_decay_extrapolate(xs, end, data):
     prev_decay = data['prev_decay_const'] / 1000
     prev_base = data['prev_decay_baseline']
 
-    prev_ys = mini_analysis.single_exponent_constant(xs - xs[0] + delta_t, prev_A, prev_decay, prev_base) * direction
+    prev_ys = mini_analysis.single_exponent_constant(xs - xs[0] + delta_t, prev_A, prev_decay, prev_base) * direction + prev_base
 
-    ys = ys + prev_ys + baseline
+    ys = ys + prev_ys
 
     popup.ax.plot(xs, ys, linewidth=app.trace_display.trace_width,
                   c=decay_color,
@@ -1725,7 +1726,7 @@ form.insert_label_entry(name='detector_core_p_valley',
                         default=detector_core_p_valley)
 form.insert_label_entry(name='detector_core_max_compound_interval',
                         text='Maximum inverval between two peaks to use compound mini analysis (ms)',
-                        validate_type='flat',
+                        validate_type='float',
                         default=detector_core_max_compound_interval)
 form.insert_label_entry(name='detector_core_min_peak2peak',
                         text='Ignore minis closer than (ms)',
@@ -1733,7 +1734,7 @@ form.insert_label_entry(name='detector_core_min_peak2peak',
                         default=detector_core_min_peak2peak)
 
 form.insert_button(text='Apply', command=_apply_parameters)
-form.insert_button(text='Defauly', command=_default_core_params)
+form.insert_button(text='Default', command=_default_core_params)
 
 form.insert_title(text='Filtering parameters')
 
