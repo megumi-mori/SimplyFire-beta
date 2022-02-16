@@ -1,36 +1,36 @@
 """
-SimplyFire - Customizable analysis of electrophysiology data
-Copyright (C) 2022 Megumi Mori
-This program comes with ABSOLUTELY NO WARRANTY
+SimplyFire is a customizable analysis software for electrophysiologists.
+It is written in Python.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+SimplyFire can be downloaded from TestPyPI as follows:
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+pip install -i https://test.pypi.org/simple/ simplyfire
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+To run the software from command line, use script:
+
+py -m simplyfire
+
+The software is currently under pre-release.
+The package will be made available on PyPI once a stable-release is ready.
+
+
+
 """
 from setuptools import setup, find_packages
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
 setup(
-    name='SimplyFire',
-    version='3.0.1b2',
+    name='simplyfire',
+    version='3.0.1b3',
     author='Megumi Mori',
     description='Customizable electrophysiology analysis software',
     long_description=readme,
-    pakage_dir={'SimplyFire':'SimplyFire'},
+    pakage_dir={'simplyfire':'simplyfire'},
     packages = find_packages(),
     entry_points={
         'console_scripts': [
-            'SimplyFire = SimplyFire.__main__:SimplyFire'
+            'simplyfire = simplyfire.__main__:simplyfire'
         ]
     },
     include_package_data = True,
@@ -45,7 +45,8 @@ setup(
     ],
     license='GNU General Public License v3',
     zip_safe = False,
-    keywords ='neuroscience',
+    keywords = ['neuroscience', 'biology', 'electrophysiology'],
+    lincense='GPLv3',
     classifiers = [
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',

@@ -2,22 +2,36 @@
 A customizable analysis package for electrophysiologists
 
 
+## Installation
 
-# Disclaimer
-SimplyFire - Customizable analysis of electrophysiology data
-Copyright (C) 2022 Megumi Mori
-This program comes with ABSOLUTELY NO WARRANTY
+You can install SimplyFire from [TestPyPI](https://test.pypi.org/project/SimplyFire/) using 
+`pip` as follows:
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+```bash 
+pip install -i https://test.pypi.org/simple/ simplyfire
+```
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""
+The package will be made avaialble on PyPI in the future for stable releases. 
+
+## Usage 
+
+Once installed, you can run SimplyFire from any directory: 
+
+```bash
+py -m simplyfire
+```
+
+SimplyFire is mainly a GUI-based software. 
+However, the algorithms for analyses can be imported as packages and used in Python scripts. 
+
+## Development
+
+SimplyFire has been written to make electrophysiology analysis straightforward, automatable, and customizable.
+Tools are provided to easily create custome plugins. 
+
+Pull-requests for fixes and additions are welcome! 
+Details on the development workflow will be available in the future. 
+
+## License
+SimplyFire is released under the GPLv3 or later license. 
