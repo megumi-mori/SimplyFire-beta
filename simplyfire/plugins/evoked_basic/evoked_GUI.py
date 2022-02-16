@@ -117,7 +117,7 @@ def calculate_min_max(event=None):
             lambda l=new_list: datapanel.datatable.delete(l)
         ])
     controller.log(msg=f'Calculate min/max')
-    controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}, Channels: {formatting.format_list_indices(target_channels)}')
+    controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}, Channels: {formatting.format_list_indices(target_channels)}', header=False)
 # reporting
 def report(event=None):
     if len(app.interface.recordings) == 0:

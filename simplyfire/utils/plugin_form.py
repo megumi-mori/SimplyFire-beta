@@ -133,10 +133,10 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         app.cp_notebook.select(self)
 
     def is_visible(self):
-        return self.module.is_visible()
+        return self.controller.is_visible()
 
     def is_enabled(self):
-        return self.module.is_enabled()
+        return self.controller.is_enabled()
 
     def hide_widget(self, widgetname=None, target=None):
         if widgetname:

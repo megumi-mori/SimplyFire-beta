@@ -32,8 +32,8 @@ class PluginGUI():
     def __init__(self,
                  plugin_controller:PluginController):
         self.inputs = {}
-        self.module = plugin_controller
-        self.module.children.append(self)
+        self.controller = plugin_controller
+        self.controller.children.append(self)
         pass
 
     def call_if_enabled(self, function):

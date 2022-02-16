@@ -501,7 +501,6 @@ def find_mini_all(event=None, popup:bool=True, undo:bool=True):
     #     log_display.param_update(detector_tab.changes)
     #     detector_tab.changes = {}
     #     detector_tab.changed = False
-    log_search()
 
 def _find_mini_all_thread(undo=True):
     """
@@ -537,6 +536,7 @@ def _find_mini_all_thread(undo=True):
             )
     app.clear_progress_bar()
     controller.log(f'Find mini all', header=True)
+    log_search()
 
 
 def find_mini_at(x1, x2):
@@ -592,7 +592,6 @@ def find_mini_range(event=None, popup=True, undo=True):
     datapanel.unselect()
     threader.start_thread(lambda u=undo: _find_mini_range_thread(undo=u), mini_analysis.interrupt,
                              popup)
-    log_search()
 
 def _find_mini_range_thread(undo=True):
     """
@@ -625,6 +624,7 @@ def _find_mini_range_thread(undo=True):
             )
     app.clear_progress_bar()
     controller.log(f'Find mini in range: {app.trace_display.ax.get_xlim()}', header=True)
+    log_search()
 
 def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
     """
@@ -692,6 +692,8 @@ def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
     if new_df.shape[0] <= 1:
         report_to_guide(mini=mini)
     update_event_markers(draw=True)
+    controller.log(msg='Reanalyze')
+    log_search()
 # result filtering
 def filter_all(event=None):
     """
@@ -1473,7 +1475,7 @@ def save_minis(filename, overwrite=True, log=False, update_status = True):
         controller.log(f'Minis saved to: {filename}', header=True)
     app.clear_progress_bar()
 
-def ask_save_minis(self, event=None):
+def ask_save_minis(event=None):
     """
     filedialog to ask where to save the mini data
     """

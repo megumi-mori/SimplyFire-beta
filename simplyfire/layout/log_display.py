@@ -83,8 +83,7 @@ def log(msg, header=True):
     if header:
         log_text.insert('{} {}\n'.format(datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), msg))
     else:
-        print('not header')
-        log_text.insert('                 {}\n'.format(msg))
+        log_text.insert('                    {}\n'.format(msg))
     log_text.see(Tk.END)
 def copy():
     app.root.clipboard_clear()

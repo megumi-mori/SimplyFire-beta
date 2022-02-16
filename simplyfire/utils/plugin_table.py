@@ -67,7 +67,7 @@ class PluginTable(Tk.Frame, PluginGUI):
             self.select()
         if undo and app.interface.is_accepting_undo():
             d = (datadict[self.datatable.iid_header],)
-            self.module.add_undo(
+            self.controller.add_undo(
                 [lambda l=d: self.datatable.delete(l)]
             )
 
@@ -81,7 +81,7 @@ class PluginTable(Tk.Frame, PluginGUI):
         if undo and app.interface.is_accepting_undo():
             if dataframe is not None:
                 sel = tuple([i for i in dataframe[self.datatable.iid_header]])
-                self.module.add_undo([
+                self.controller.add_undo([
                    lambda l=sel:self.datatable.delete(l)
                 ])
 
@@ -99,7 +99,7 @@ class PluginTable(Tk.Frame, PluginGUI):
             for i in self.datatable.table.get_children():
                 undo_df[i] = self.datatable.table.set(i)
             undo_df = pd.DataFrame.from_dict(undo_df, orient='index')
-            self.module.add_undo(
+            self.controller.add_undo(
                 [lambda df=undo_df, u=False: self.append(df, u)]
             )
         self.datatable.clear()
@@ -111,7 +111,7 @@ class PluginTable(Tk.Frame, PluginGUI):
             for i in selection:
                 undo_df[i] = self.datatable.table.set(i)
             undo_df = pd.DataFrame.from_dict(undo_df, orient='index')
-            self.module.add_undo(
+            self.controller.add_undo(
                 [lambda df = undo_df, u=False: self.append(df, u)]
             )
         self.datatable.delete_selected()
@@ -154,6 +154,7 @@ class PluginTable(Tk.Frame, PluginGUI):
             else:
                 mode = 'x'
         self.datatable.export(filename, mode)
+        self.controller.log(f'Export data: {filename}', header=True)
 
     def ask_export_data(self, event=None, overwrite=None, mode=None):
         if overwrite is None and mode is None:
@@ -166,7 +167,7 @@ class PluginTable(Tk.Frame, PluginGUI):
             if not messagebox.askyesno('Warning', 'The data table is empty. Proceed?'):
                 app.interface.focus()
                 return None
-        initialfilename = os.path.splitext(app.interface.recordings[0].filename)[0] + '_'+self.module.name
+        initialfilename = os.path.splitext(app.interface.recordings[0].filename)[0] + '_'+self.controller.name
         filename = filedialog.asksaveasfilename(filetypes=[('csv file', '*.csv')],
                                                 defaultextension='.csv',
                                                 initialfile=initialfilename)
