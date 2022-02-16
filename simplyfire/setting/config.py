@@ -73,8 +73,9 @@ def load():
                 user_vars[c] = v
     except:
         pass
-
     if user_vars['system_data_dir'] is None:
+        user_vars['system_data_dir'] = PKG_DIR
+    elif not os.path.exists(user_vars['system_data_dir']):
         user_vars['system_data_dir'] = PKG_DIR
 
     global PLUGIN_DIR
