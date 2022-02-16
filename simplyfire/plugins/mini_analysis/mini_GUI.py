@@ -546,7 +546,7 @@ def _find_mini_all_thread(undo=True):
             )
     app.clear_progress_bar()
     controller.log(f'Find mini all', header=True)
-    log_search()
+    log_param()
     log_auto()
 
 
@@ -592,7 +592,7 @@ def find_mini_manual(x):
     r = (xlim[1] - xlim[0]) * float(form.inputs['detector_core_search_radius'].get())/100 # calculate the search radius
     find_mini_at(max(x-r, xlim[0]), min(x+r, xlim[1]))
     log_manual()
-    log_search()
+    log_param()
 
 
 def find_mini_range(event=None, popup=True, undo=True):
@@ -638,7 +638,7 @@ def _find_mini_range_thread(undo=True):
             )
     app.clear_progress_bar()
     controller.log(f'Find mini in range: {app.trace_display.ax.get_xlim()}', header=True)
-    log_search()
+    log_param()
     log_auto()
 
 def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
@@ -708,7 +708,7 @@ def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
         report_to_guide(mini=mini)
     update_event_markers(draw=True)
     controller.log(msg='Reanalyze')
-    log_search()
+    log_param()
 
 # result filtering
 def filter_all(event=None):
@@ -726,7 +726,7 @@ def filter_all(event=None):
     update_module_table()
     app.clear_progress_bar()
     controller.log('Filter all')
-    log_search()
+    log_param()
 
 
 def filter_window(event=None):
@@ -742,7 +742,7 @@ def filter_window(event=None):
     update_module_table()
     app.clear_progress_bar()
     controller.log('Filter window')
-    log_search()
+    log_param()
 
 # parameter
 def get_params():
@@ -787,7 +787,7 @@ def get_params():
     return params
 
 # log
-def log_search(event=None):
+def log_param(event=None):
     """
     Log a message in the log_display
     """
