@@ -968,7 +968,7 @@ def analyze_candidate_mini(xs,
     next_peak_idx = None
     if compound:
         next_search_start = np.where((ys[int(peak_idx + min_peak2peak):int(peak_idx + max_compound_interval_idx)] -
-                                      mini['baseline']) * direction < mini['amp'] * p_valley / 100 * direction)
+                                      mini['baseline']) * direction < mini['amp'] * (1-p_valley) / 100 * direction)
         if len(next_search_start[0] > 0):
             next_peak_idx = find_peak_recursive(xs=xs,
                                                      ys=ys,
