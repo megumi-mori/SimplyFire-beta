@@ -4,6 +4,7 @@ import tkinter as Tk
 from simplyfire.utils.scrollable_option_frame import ScrollableOptionFrame
 from packaging.version import parse
 
+changed = False
 def load():
     global plugin_vars
     plugin_vars = {}
@@ -49,9 +50,30 @@ def load():
     active_plugins = [p for p in app.config.get_value('active_plugins', [])]
 
 def apply():
+    # check for requirements
+    manifests = app.plugin_manager.manifests
+    needed_plugins = []
+    for plugin_name in plugin_vars.keys():
+        if plugin_vars[plugin_name].get(): # activated plugin
+            manifest = manifests[plugin_name]
+            for r in manifest.get('requirements', []):
+                # check if requirement is installed
+                if not plugin_vars[r].get() and r not in needed_plugins:
+                    needed_plugins.append(r)
+    if len(needed_plugins) > 0:
+        msg = 'Some required plugins are not activated.\n'
+        msg += 'Turn on the following plugins?\n'
+        msg+= ','.join(needed_plugins)
+        answer = messagebox.askyesno('Warning', msg)
+        window.lift()
+        if answer:
+            for r in needed_plugins:
+                plugin_vars[r].set(True)
     messagebox.showwarning('Warning', 'Please reopen the software to apply changes')
     global active_plugins
     active_plugins = [plugin_name for plugin_name in plugin_vars.keys() if plugin_vars[plugin_name].get()]
+    global changed
+    changed=False
     window.withdraw()
 
 def cancel():
@@ -61,9 +83,16 @@ def cancel():
             var.set(True)
         else:
             var.set(False)
+    global changed
+    changed = False
 
 def _on_close():
-    window.withdraw()
+    if changed:
+        answer = messagebox.askyesno('Warning', 'Unsaved changes to the plugin list will be lost. Continue?')
+        if not answer:
+            window.lift()
+            return
+    cancel()
     # add commands to cancel the changes made on the window
 
 def _populate_plugins():
@@ -98,33 +127,16 @@ def _populate_plugins():
         var = Tk.BooleanVar(frame)
         plugin_vars[plugin_name] = var
         var.set(False)
-        checkbutton = ttk.Checkbutton(frame, var=var, onvalue=True, offvalue=False)
+        checkbutton = ttk.Checkbutton(frame, var=var, onvalue=True, offvalue=False, command=log_change)
         checkbutton.grid(column=2, row=i, sticky='news')
         i += 1
 
 def get_plugins():
     return [plugin_name for plugin_name in plugin_vars.keys() if plugin_vars[plugin_name].get()]
 
-#
-#
-# def _load_plugin(self, plugin_name):
-#     # set toggle ON
-#     self.plugins[plugin_name]['toggle'].set(True)
-#     # load using the manifest
-#     manifest = self.plugins[plugin_name]
-#     requirements = manifest.get('requirements', [])
-#     for r in requirements:
-#         if not self.plugins[r].get('loaded', False):
-#             self._load_plugin(r)
-#     sources = manifest.get('sources', [])
-#     directory = config.PLUGIN_DIR
-#     for filename in sources:
-#         source_path = os.path.join(directory, filename)
-#         importlib.import_module(source_path)
-#     manifest['loaded'] = True
-#     pass
-
-
+def log_change(event=None):
+    global changed
+    changed = True
 
 
 
