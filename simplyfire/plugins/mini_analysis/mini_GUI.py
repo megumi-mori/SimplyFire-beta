@@ -1117,7 +1117,8 @@ def popup_plot_base_extrapolate(xs, end, data):
     decay = data['prev_decay_const'] / 1000
     baseline = data['prev_baseline']
     direction = data['direction']
-    popup.ax.plot(xs, mini_analysis.single_exponent(xs - xs[0], A, decay) * direction + baseline,
+    prev_direction = data['prev_mini_direction']
+    popup.ax.plot(xs, mini_analysis.single_exponent(xs - xs[0], A, decay) * prev_direction + baseline,
                   linewidth=app.trace_display.trace_width,
                   c='black',
                   alpha=0.9,
@@ -1185,9 +1186,10 @@ def popup_plot_decay_extrapolate(xs, end, data):
     prev_decay = data['prev_decay_const'] / 1000
     prev_decay_base = data['prev_decay_baseline']
     prev_base = data['prev_baseline']
+    prev_direction = data['prev_mini_direction']
 
 
-    prev_ys = mini_analysis.single_exponent_constant(xs - xs[0] + delta_t, prev_A, prev_decay, prev_decay_base) * direction + prev_base
+    prev_ys = mini_analysis.single_exponent_constant(xs - xs[0] + delta_t, prev_A, prev_decay, prev_decay_base) * prev_direction + prev_base
 
     ys = ys + prev_ys
 
@@ -2021,7 +2023,7 @@ def _on_open(event=None):
     logged_manual = False
 controller.listen_to_event('<<OpenRecording>>', _on_open)
 controller.listen_to_event('<<CanvasDrawRect>>', select_from_rect, condition_function=form.has_focus)
-controller.listen_to_event('<<Plot>>', update_event_markers, condition_function=controller.is_enabled)
+controller.listen_to_event('<<Plot>>', update_event_markers)
 controller.listen_to_event('<<Plotted>>', update_module_table, condition_function=controller.is_enabled)
 controller.listen_to_event('<<CanvasMouseRelease>>', canvas_mouse_release, condition_function=form.has_focus)
 controller.listen_to_event('<<ChangeToOverlayView>>', controller.disable_plugin)

@@ -527,6 +527,7 @@ def find_mini_halfwidth(amp: float,
                         prev_mini_decay: float = None,
                         prev_mini_decay_baseline: float = None,
                         prev_mini_baseline: float = None,
+                        prev_mini_direction: float=None
                         ):
     """
     calculates the halfwidth of a mini event
@@ -547,9 +548,11 @@ def find_mini_halfwidth(amp: float,
     """
     if prev_mini_A is not None:
         prev_mini_t_ms = prev_mini_t * 1000
-        y_data = ys * direction - single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A,
+        if prev_mini_direction is None:
+            prev_mini_direction = direction
+        y_data = ys * direction + single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A,
                                                            prev_mini_decay,
-                                                           prev_mini_decay_baseline) - prev_mini_baseline * direction
+                                                           prev_mini_decay_baseline)*prev_mini_direction - prev_mini_baseline * direction
     else:
         y_data = (ys - baseline) * direction
     left_idx = np.where(y_data[:peak_idx] <= (amp * 0.5) * direction)
@@ -576,7 +579,8 @@ def fit_mini_decay(xs: np.ndarray,
                    prev_mini_A: float = None,
                    prev_mini_decay_baseline: float = None,
                    prev_mini_baseline: float = None,
-                   prev_mini_t: int = None
+                   prev_mini_t: int = None,
+                   prev_mini_direction: int=None
                    ):
     """
     decay fitting, takes into account prev mini
@@ -597,8 +601,10 @@ def fit_mini_decay(xs: np.ndarray,
 
     if prev_mini_t is not None:  # compound mini
         prev_mini_t_ms = prev_mini_t * 1000
-        y_data = ys * direction - single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A, prev_mini_decay,
-                                                           prev_mini_decay_baseline) - prev_mini_baseline * direction
+        if prev_mini_direction is None:
+            prev_mini_direction = direction
+        y_data = ys * direction + single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A, prev_mini_decay,
+                                                           prev_mini_decay_baseline)*prev_mini_direction - prev_mini_baseline * direction
 
     else:
         y_data = (ys - baseline) * direction  # baseline subtract
@@ -904,6 +910,7 @@ def analyze_candidate_mini(xs,
                     mini['prev_baseline'] = prev_peak['baseline']
                     mini['prev_decay_const'] = prev_peak['decay_const']
                     mini['prev_decay_A'] = prev_peak['decay_A']
+                    mini['prev_mini_direction'] = prev_peak['direction']
                     try:
                         mini['prev_decay_baseline'] = prev_peak['decay_baseline']
                     except:
@@ -1030,7 +1037,8 @@ def analyze_candidate_mini(xs,
                 prev_mini_A=mini['prev_decay_A'],
                 prev_mini_decay_baseline=mini['prev_decay_baseline'],
                 prev_mini_t=mini['prev_t'],
-                prev_mini_baseline=mini['prev_baseline']
+                prev_mini_baseline=mini['prev_baseline'],
+                prev_mini_direction=mini['prev_mini_direction']
             )
         except:
             mini['decay_A'], mini['decay_const'], mini['decay_baseline'] = fit_mini_decay(
@@ -1112,7 +1120,8 @@ def analyze_candidate_mini(xs,
             peak_idx=peak_idx - baseline_idx, baseline=mini['baseline'], direction=direction,
             prev_mini_t=mini['prev_t'], prev_mini_decay=mini['prev_decay_const'], prev_mini_A=mini['prev_decay_A'],
             prev_mini_decay_baseline=mini['prev_decay_baseline'],
-            prev_mini_baseline=mini['prev_baseline']
+            prev_mini_baseline=mini['prev_baseline'],
+            prev_mini_direction=mini['prev_mini_direction']
         )
     else:
         halfwidth_start_idx, halfwidth_end_idx = find_mini_halfwidth(
