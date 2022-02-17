@@ -22,7 +22,7 @@ with open('README.md') as readme_file:
 
 setup(
     name='simplyfire',
-    version='3.0.1b3',
+    version='3.0.2b0',
     author='Megumi Mori',
     description='Customizable electrophysiology analysis software',
     long_description=readme,
