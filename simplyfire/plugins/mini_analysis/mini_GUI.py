@@ -371,12 +371,12 @@ def canvas_mouse_release(event=None):
 
 # batch specific functions
 def batch_find_all():
-    _find_mini_all_thread(popup=False, undo=False)
+    _find_mini_all_thread(undo=False)
     app.batch_popup.batch_log.insert(f'{mini_df.shape[0]} minis found.\n')
 
 
 def batch_find_in_range():
-    _find_mini_range_thread(popup=False, undo=False)
+    _find_mini_range_thread(undo=False)
     app.batch_popup.batch_log.insert(f'{mini_df.shape[0]} minis found.\n')
 
 

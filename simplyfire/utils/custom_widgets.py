@@ -463,7 +463,9 @@ class NavigationToolbar(NavigationToolbar2Tk):
                 os.path.dirname(str(fname)))
         try:
             # This method will handle the delegation to the correct type
-            self.canvas.figure.savefig(fname, transparent=app.trace_display.transparent_background)
+            self.canvas.figure.set_linewidth(0)
+            self.canvas.figure.savefig(fname, transparent=True)
+            self.canvas.figure.set_linewidth(1)
         except Exception as e:
             Tk.messagebox.showerror("Error saving file", str(e))
 

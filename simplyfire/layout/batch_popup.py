@@ -486,17 +486,18 @@ def ask_open_batch(event=None):
     with open(fname, 'r') as f:
         lines = f.readlines()
         for l in lines:
-            protocol_table.table.insert('', 'end', values=(l.strip(),), tag='selectable')
+            print(l)
+            protocol_table.table.insert('', 'end', text=l.strip(), tag='selectable')
 
 def save_batch(event=None):
     global protocol_fname
     if protocol_fname is not None:
         global protocol_table
-        commands = protocol_table.table.get_children()
+        command_list = [protocol_table.table.item(i, 'text') for i in protocol_table.table.get_children()]
         with open(protocol_fname, 'w') as f:
-            for c in commands:
-                f.write(protocol_table.table.item(c, 'values')[0])
-                f.write('\n')
+            for c in command_list:
+                f.write(c)
+                # f.write('\n')
         window.lift()
     else:
         ask_save_batch()
@@ -538,7 +539,9 @@ def save_abf(event=None):
 def export_plot(event=None, ext='.png'):
     global batch_log
     fname = formatting.format_save_filename(os.path.splitext(file_list[file_idx])[0]+ext, overwrite=False)
-    app.trace_display.canvas.figure.savefig(fname, tranparent=app.trace_display.transparent_background)
+    app.trace_display.canvas.figure.set_linewidth(0)
+    app.trace_display.canvas.toolbar.savefig(fname, tranparent=True)
+    app.trace_display.canvas.figure.set_linewidth(1)
     batch_log.insert(f'Image saved to: {fname}\n')
 
 
@@ -590,11 +593,14 @@ def process_start(event=None):
     stop = False
     global processing
     processing = True
-
+    basedir = path_entry.get().strip()
     global file_entry
     global file_list
     file_list = file_entry.get(1.0, Tk.END).split('\n')
     file_list = [f for f in file_list if f != ""]
+    for i,f in enumerate(file_list):
+        if not os.path.isdir(os.path.dirname(f)):
+            file_list[i] = os.path.join(basedir, f) # format file names
 
     global protocol_table
     global command_list
@@ -620,7 +626,7 @@ def process_batch():
     total_steps = len(command_list)
     total_files = len(file_list)
     global path_entry
-    basedir = path_entry.get().strip()
+
     # add support for truncated filenames (without directory names) using the path entry
     global stop
     global progress_message
@@ -641,11 +647,7 @@ def process_batch():
                     f = file_list[file_idx]
                     current_filename = f
                     if f:
-                        if not os.path.isdir(os.path.dirname(f)):
-                            batch_log.insert(f'Opening file {f} from directory {basedir}\n')
-                            f = os.path.join(basedir, f)
-                        else:
-                            batch_log.insert(f'Opening file {f}\n')
+                        batch_log.insert(f'Opening file {f}\n')
                         try:
                             interface.open_recording(f)
                         except:
@@ -694,25 +696,4 @@ def process_batch():
     global processing
     processing = False
 
-def report_data_display(e=None):
-    global batch_log
-    if len(app.data_display.table.get_children())==0:
-        batch_log.insert('Warning: no minis to report\n')
-    data_display.report()
-    pass
 
-def report_evoked_data_display(e=None):
-    global batch_log
-    if len(app.evoked_data_display.table.get_children()) ==0:
-        batch_log.insert('Warning: No analysis to report\n')
-    evoked_data_display.report()
-
-def save_minis(e=None):
-    global batch_log
-    if interface.al.mini_df.shape[0]==0:
-        batch_log.insert('Warning: No minis detected\n')
-    fname = file_list[file_idx].split('.')[0] + '.event'
-    interface.save_events(fname, mode='x')
-    pass
-def disable_event():
-    pass

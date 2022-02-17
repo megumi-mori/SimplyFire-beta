@@ -195,7 +195,7 @@ class PluginController():
 
     def _batch_command_decorator(self, func):
         if not self.is_enabled():
-            app.batch_popup.batch_log.insert(f'WARNING: {self.menu_label} is not enabled. Command not executed.')
+            app.batch_popup.batch_log.insert(f'WARNING: {self.menu_label} is not enabled. Command not executed.\n')
             return
         func()
 
