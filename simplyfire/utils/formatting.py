@@ -64,7 +64,8 @@ def translate_indices_bool(s, max_num):
     indices = translate_indices(s)
 
     for i in indices:
-        bool_list[i] = True
+        if i < max_num:
+            bool_list[i] = True
     return bool_list
 def is_indices(s):
     # check formatting

@@ -30,16 +30,17 @@ class CompareController(PluginController):
         elif self.is_visible():
             plot_recordings(draw=False)
             for detail_dict in panels:
-                apply(detail_dict, draw=False)
+                apply(detail_dict, draw=False, undo=False)
             app.trace_display.draw_ani()
 
 #### functions ####
-def add_file(event=None):
+def add_file(event=None, recording=None, undo=True):
     temp_undo_stack = []
     if app.interface.has_open_recording(): # check if a file is open
-        recording = ask_open_recording()
         if recording is None:
-            return None # no file opened
+            recording = ask_open_recording()
+            if recording is None:
+                return None # no file opened
         compared_recordings.append(recording) # append the file
         try:
             recording.set_channel(app.interface.current_channel)  # 0 indexing
@@ -57,7 +58,7 @@ def add_file(event=None):
     # plot the data
     plot_recordings(draw=False)
     # apply the initial details
-    apply(details, draw=False)
+    apply(details, draw=False, undo=False)
 
     app.trace_display.update_default_lim(x=True, y=True, fix_x=True, fix_y=False)
     app.trace_display.draw_ani()
@@ -67,7 +68,14 @@ def add_file(event=None):
     app.pb.update()
     app.interface.focus()
 
-def apply(details, draw=True):
+    if undo and app.interface.is_accepting_undo():
+        # filename =
+        # temp_undo_stack.insert(0, lambda i=panel_index:remove(panel_index=i, undo=False))
+        # controller.add_undo(temp_undo_stack)
+        panel_index=details['index']+1
+        controller.add_undo([lambda i=panel_index:remove(panel_index=i, undo=False)])
+
+def apply(details, draw=True, undo=True):
     index = details['index']
     if index < 0:
         recording = app.interface.recordings[0]
@@ -81,13 +89,32 @@ def apply(details, draw=True):
         for i, b in enumerate(show_indices):
             compared_lines[index][i].set_linestyle({True:'-', False:'None'}[b])
             compared_lines[index][i].set_color(details['color_entry'].get())
+
     else:
+        undo_indices = [i for i in range(recording.sweep_count) if app.trace_display.sweeps[f'Sweep_{i}'].get_linestyle() == '-']
+        undo_color = app.trace_display.sweeps[f'Sweep_{0}'].get_color()  # get color
         for i, b in enumerate(show_indices):
             app.trace_display.sweeps[f'Sweep_{i}'].set_linestyle({True:'-', False: 'None'}[b])
             app.trace_display.sweeps[f'Sweep_{i}'].set_color(details['color_entry'].get())
     if draw:
         app.trace_display.draw_ani()
+    if undo and app.interface.is_accepting_undo():
+        undo_color = details['undo_color']
+        undo_indices = details['undo_indices']
+        if details['undo_color'] != details['color_entry'].get() or details['undo_indices'] != details[
+            'sweeps_entry'].get():
+            controller.add_undo([lambda i=index, c=undo_color, x=undo_indices: apply_undo(i, c, x)])
+    details['undo_color'] = details['color_entry'].get()
+    details['undo_indices'] = details['sweeps_entry'].get()
 
+
+
+def apply_undo(index, color, indices):
+    panels[index+1]['sweeps_entry'].set(indices)
+    panels[index+1]['color_entry'].set(color)
+
+    apply(panels[index+1], draw=True, undo=False)
+    pass
 
 
 def populate_panel(recording):
@@ -119,6 +146,8 @@ def populate_panel(recording):
         entry = custom_widgets.VarEntry(parent=entry_panel, validate_type='indices',
                                     default=formatting.format_list_indices(range(recording.sweep_count)))
     entry.grid(column=1, row=0, sticky='news')
+    entry.bind('<Return>', lambda e, w=widgets: apply(details=w), add='+')
+    entry.bind('<FocusOut>', lambda e, w=widgets: apply(details=w), add='+')
     widgets['sweeps_entry'] = entry
     label = ttk.Label(master=entry_panel, text='Color:')
     label.grid(column=0, row=1, sticky='news')
@@ -131,6 +160,8 @@ def populate_panel(recording):
                                     default='black')
     entry.grid(column=1, row=1, stick='news')
     entry_panel.grid(column=0, row=1, sticky='news')
+    entry.bind('<Return>', lambda e, w=widgets:apply(details=w), add='+')
+    entry.bind('<FocusOut>', lambda e, w=widgets: apply(details=w), add='+')
     widgets['color_entry'] = entry
     # buttons
     button_panel = Tk.Frame(frame)
@@ -174,7 +205,6 @@ def change_channel(event=None):
 
 def change_mode(event=None):
     clear_lines()
-    print('change mode')
     if app.inputs['trace_mode'].get() == 'continuous':
         for detail_dict in panels:
             detail_dict['sweeps_entry'].set(0)
@@ -190,7 +220,7 @@ def change_mode(event=None):
         app.trace_display.update_default_lim()
     if controller.is_visible():
         for detail_dict in panels:
-            apply(detail_dict, draw=False)
+            apply(detail_dict, draw=False, undo=False)
 
 
 def clear_lines(event=None):
@@ -299,10 +329,20 @@ def plot_trace(xs, ys, color=None, recording_index=0, sweep_num=0):
         compared_lines[recording_index][sweep_num].set_xdata(xs)
         compared_lines[recording_index][sweep_num].set_ydata(ys)
 
-def remove(details:dict):
+def remove(details:dict=None, panel_index=None, undo=True):
+    if details is None:
+        details = panels[panel_index]
     # remove a recording being overlayed
+    fname = compared_recordings[details['index']].filepath
     remove_file(panel_index=details['index']+1)
     app.trace_display.update_default_lim()
+    if undo and app.interface.is_accepting_undo():
+        controller.add_undo([lambda f=fname:remove_undo(f)])
+
+def remove_undo(fname):
+    record = Recording(fname)
+    add_file(recording = record, undo=False)
+
 
 def comparison_mode(event=None):
     return len(compared_recordings)>0 and controller.is_visible()

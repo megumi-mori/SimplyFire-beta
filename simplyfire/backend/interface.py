@@ -88,7 +88,6 @@ def is_accepting_undo():
         return False
 
 def undo(e=None):
-    print(f'undo called: {undo_stack}')
     app.pb['value'] = 0
     app.pb.update()
     if len(undo_stack) > 0:
@@ -100,7 +99,9 @@ def undo(e=None):
             try:
                 task()
             except Exception as e:
-                log(f'Error during undo: {e}')
+                log(f'Error during undo:')
+                log(f'task = {task}', header=False)
+                log(f'error = {e}', header=False)
             del task
 
         del task_stack
