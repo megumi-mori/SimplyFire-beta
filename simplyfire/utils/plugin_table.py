@@ -126,10 +126,8 @@ class PluginTable(Tk.Frame, PluginGUI):
             self.notebook.index(self.notebook.select())
         except Exception as e:
             self.select()
-        if not self._loaded:
-            if self.datatable.winfo_width() > 1:
-                self.datatable.fit_columns()
-                self._loaded = True
+        self.datatable.fit_columns()
+
 
     def disable(self):
         self.notebook.tab(self, state='disable')
@@ -139,10 +137,8 @@ class PluginTable(Tk.Frame, PluginGUI):
 
     def select(self):
         self.notebook.select(self)
-        if not self._loaded:
-            if self.datatable.winfo_width() > 1:
-                self.datatable.fit_columns()
-                self._loaded = True
+        self.datatable.fit_columns()
+
 
     def unselect(self):
         self.datatable.unselect()

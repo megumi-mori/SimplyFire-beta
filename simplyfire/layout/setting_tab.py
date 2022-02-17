@@ -27,9 +27,35 @@ from simplyfire import app
 import os
 
 
+parameters = {}
+
+def apply_parameters(event=None, undo=True):
+    if undo and app.interface.is_accepting_undo():
+        global parameters
+        undo_params = {}
+        for i in inputs.keys():
+            try:
+                if parameters[i] != inputs[i].get():
+                    undo_params[i] = parameters[i]
+            except:
+                pass
+        if len(undo_params.keys()) > 0:
+            app.interface.add_undo([lambda p=undo_params: apply_undo(p)])
+    parameters = {k:w.get() for k, w in inputs.items()}
+    apply_geometry()
+    set_fontsize()
+    app.interface.focus()
+
+
+def apply_undo(params):
+    global inputs
+    for key, value in params.items():
+        inputs[key].set(value)
+    apply_parameters(undo=False)
+
 def load(parent):
-    global widgets
-    widgets = {}
+    global inputs
+    inputs = {}
     ##################################################
     #                    Methods                     #
     ##################################################
@@ -52,11 +78,12 @@ def load(parent):
         name='visual_settings',
         text='Application Font'
     )
-    widgets['font_size'] = optionframe.insert_label_optionmenu(
+    inputs['font_size'] = optionframe.insert_label_optionmenu(
         name='font_size',
         text="Font size",
         options=range(9,20,1),
-        command=set_fontsize
+        default=9,
+        command=apply_parameters
     )
 
     ##################################################
@@ -66,29 +93,32 @@ def load(parent):
         name='config_settings',
         text='Config Auto-save/load'
     )
-    widgets['system_autoload'] = optionframe.insert_label_checkbox(
+    inputs['system_autoload'] = optionframe.insert_label_checkbox(
         name='system_autoload',
         text='Automatically load configurations at the beginning of the next session',
         onvalue='1',
         offvalue="",
         value=app.config.get_value('system_autoload'),
-        default=app.config.get_default_value('system_autoload')
+        default=app.config.get_default_value('system_autoload'),
+        command=apply_parameters
     )
-    widgets['system_autosave'] = optionframe.insert_label_checkbox(
+    inputs['system_autosave'] = optionframe.insert_label_checkbox(
         name='system_autosave',
         text='Automatically save configurations at the end of this session',
         onvalue='1',
         offvalue="",
         value=app.config.get_value('system_autosave'),
-        default=app.config.get_default_value('system_autosave')
+        default=app.config.get_default_value('system_autosave'),
+        command=apply_parameters
     )
-    widgets['log_autosave'] = optionframe.insert_label_checkbox(
+    inputs['log_autosave'] = optionframe.insert_label_checkbox(
         name='log_autosave',
         text='Save log at the end of this session',
         onvalue='1',
         offvalue='',
         value=app.config.get_value('log_autosave'),
-        default=app.config.get_default_value('log_autosave', '1')
+        default=app.config.get_default_value('log_autosave', '1'),
+        command=apply_parameters
     )
 
     # auto_load directory panel
@@ -108,7 +138,7 @@ def load(parent):
     )
     dir_entry.configure(state='disabled', height=2)
     dir_entry.grid(column=0,row=1,sticky='news')
-    widgets['system_data_dir'] = dir_entry
+    inputs['system_data_dir'] = dir_entry
 
     Tk.Button(
         master=dir_frame,
@@ -139,40 +169,40 @@ def load(parent):
     )
 
 
-    widgets['system_undo_stack'] = optionframe.insert_label_entry(
+    inputs['system_undo_stack'] = optionframe.insert_label_entry(
         name='system_undo_stack',
         text='Number of steps to store in memory for undo (Experimental)',
         value=app.config.get_value('system_undo_stack'),
-        default=app.config.get_default_value('system_undo_stack')
+        default=app.config.get_default_value('system_undo_stack'),
     )
 
     optionframe.insert_title(
         text='Window size'
     )
-    widgets['window_width'] = optionframe.insert_label_entry(
+    inputs['window_width'] = optionframe.insert_label_entry(
         name='window_width',
         text='Window width (px)',
         value=app.config.get_value('geometry').split('x')[0],
         default=app.config.get_default_value('geometry').split('x')[0]
     )
-    widgets['window_width'].bind('<Return>', apply_geometry)
-    widgets['window_height'] = optionframe.insert_label_entry(
+    inputs['window_height'] = optionframe.insert_label_entry(
         name='window_height',
         text='Window height (px)',
         value=app.config.get_value('geometry').split('x')[1],
         default=app.config.get_default_value('geometry').split('x')[1]
     )
-    widgets['window_height'].bind('<Return>', apply_geometry)
-    widgets['cp_width'] = optionframe.insert_label_entry(
+    inputs['cp_width'] = optionframe.insert_label_entry(
         name='cp_width',
         text='Control panel width (px)',
+        value=app.config.get_value('cp_width'),
+        default=app.config.get_default_value('cp_width')
     )
-    widgets['cp_width'].bind('<Return>', apply_geometry)
-    widgets['gp_height'] = optionframe.insert_label_entry(
+    inputs['gp_height'] = optionframe.insert_label_entry(
         name='gp_height',
-        text='Graph panel height (px)'
+        text='Graph panel height (px)',
+        value=app.config.get_value('gp_height'),
+        default=app.config.get_default_value('gp_height')
     )
-    widgets['gp_height'].bind('<Return>', apply_geometry)
     app.root.bind('<Configure>', change_geometry_entries)
     app.cp.bind('<Configure>', change_pw_entries)
     app.gp.bind('<Configure>', change_gp_entries)
@@ -201,11 +231,17 @@ def load(parent):
                                              onvalue=True,
                                              offvalue=False)
 
-    for w in widgets:
-        value = app.config.get_value(w, None)
+    for k, w in inputs.items():
+        value = app.config.get_value(k, None)
         if value:
-            widgets[w].set(value)
-    set_fontsize(widgets['font_size'].get())
+            w.set(value)
+        if type(w) == custom_widgets.VarEntry:
+            w.bind('<Return>', apply_parameters, add='+')
+            w.bind('<FocusOut>', apply_parameters, add='+')
+        parameters[k] = w.get()
+
+    apply_parameters(undo=False)
+
     return frame
 
 def load_config(e=None, filename=None):
@@ -216,24 +252,27 @@ def load_config(e=None, filename=None):
     app.root.event_generate('<<LoadedConfig>>')
 
 def apply_geometry(e=None):
-    app.root.geometry(f'{widgets["window_width"].get()}x{widgets["window_height"].get()}')
-    app.pw.paneconfig(app.cp, width=int(widgets['cp_width'].get()))
-    app.pw_2.paneconfig(app.gp, height=int(widgets['gp_height'].get()))
+    app.root.geometry(f'{inputs["window_width"].get()}x{inputs["window_height"].get()}')
+    app.pw.paneconfig(app.cp, width=int(inputs['cp_width'].get()))
+    app.pw_2.paneconfig(app.gp, height=int(inputs['gp_height'].get()))
 def change_geometry_entries(e=None):
     try:
         geometry = app.root.geometry().split('+')
         geometry[0] = geometry[0].split('x')
-        widgets['window_width'].set(geometry[0][0])
-        widgets['window_height'].set(geometry[0][1])
+        inputs['window_width'].set(geometry[0][0])
+        inputs['window_height'].set(geometry[0][1])
     except:
         pass
 def change_gp_entries(e=None):
-    widgets['gp_height'].set(app.gp.winfo_height())
+    inputs['gp_height'].set(app.gp.winfo_height())
 def change_pw_entries(e=None):
-    widgets['cp_width'].set(app.cp.winfo_width())
+    inputs['cp_width'].set(app.cp.winfo_width())
 def default(e=None):
     app.interface.focus()
-    optionframe.default(widgets=widgets)
+    # optionframe.default(widgets=inputs)
+    for key, widget in inputs.items():
+        widget.set_to_default()
+    apply_parameters()
 
 def save_config():
     app.interface.focus()
@@ -252,10 +291,8 @@ def save_config_as():
             save_config_as()
     return d
 
-def set_fontsize(fontsize=None):
-    app.interface.focus()
-    if fontsize is None:
-        fontsize=widgets['font_size'].get()
+def set_fontsize():
+    fontsize=inputs['font_size'].get()
     fontsize=int(float(fontsize))
     fonts = [
         "TkDefaultFont",
@@ -286,14 +323,14 @@ def set_fontsize(fontsize=None):
         pass
 
 def _ask_dirname(e=None):
-    global widgets
+    global inputs
     # d = filedialog.asksaveasfilename(title='Select a directory', filetypes=[('yaml file', '*.yaml')],
                                        # defaultextension='.yaml')
     d = filedialog.askdirectory(title='Select a directory')
     if d:
-        widgets['system_data_dir'].config(state="normal")
-        widgets['system_data_dir'].set(d)
-        widgets['system_data_dir'].config(state='disabled')
+        inputs['system_data_dir'].config(state="normal")
+        inputs['system_data_dir'].set(d)
+        inputs['system_data_dir'].config(state='disabled')
         if os.path.exists(os.path.join(d, 'user_config.yaml')):
             answer = messagebox.askyesnocancel(title='Load config?', message='A configuration file already exists in this directory.\nLoad configuration?\n(The file will be overwritten when the program closes.)')
             if answer is None:
@@ -306,3 +343,4 @@ def _ask_dirname(e=None):
             app.dump_user_setting()
             app.dump_system_setting()
             app.dump_plugin_setting()
+    apply_parameters()

@@ -30,22 +30,29 @@ width = 11
 filter_Lowpass_algorithm = 'Boxcar'
 filter_Highpass_algorithm = 'Not yet supported'
 
+#### modify the PluginForm class ####
+class ProcessForm(PluginForm):
+    def apply_parameters(self, undo=True):
+        super().apply_parameters(undo=undo)
+        _select_filter_mode()
+        _select_baseline_mode()
 
 
 #### define functions ####
 # private functions
 def _default_averaging_params(event=None):
     form.set_to_default(filter='average')
+    form.apply_parameters(undo=False)
     app.interface.focus()
 
 def _default_baseline_params(event=None):
     form.set_to_default(filter='baseline')
-    _select_baseline_mode()
+    form.apply_parameters(undo=True)
     app.interface.focus()
 
 def _default_filter_params(event=None):
     form.set_to_default(filter='filter')
-    _select_filter_mode()
+    form.apply_parameters(undo=True)
     app.interface.focus()
 
 def _select_baseline_mode(event=None):
@@ -111,7 +118,7 @@ def average_sweeps(event=None):
     #         # account for more recordings being open (consider only the main file open)
     #         target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
     elif form.inputs['sweep_target'].get() == 'Highlighted sweeps':
-        target_sweeps = getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_highlighted_sweeps()
+        target_sweeps = app.plugin_manager.get_script('sweeps', 'sweeps_GUI').get_highlighted_sweeps()
         # account for more recordings being open (consider only the main file open)
         if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
             target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -122,21 +129,22 @@ def average_sweeps(event=None):
                                        channels=target_channels,
                                        sweeps=target_sweeps)
     if app.interface.is_accepting_undo():
-        sweep_list = tuple(getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_visible_sweeps())
+        sweep_list = tuple(app.plugin_manager.get_script('sweeps', 'sweeps_GUI').get_visible_sweeps())
         controller.add_undo(
             [
                 app.interface.recordings[0].delete_last_sweep,
                 lambda c=False:app.interface.plot(c, fix_y=True, fix_x=True, relim=False),
-                getattr(app.plugin_manager, 'sweeps.sweeps_GUI').synch_sweep_list,
-                lambda l=sweep_list, u=False: getattr(app.plugin_manager, 'sweeps.sweeps_GUI').show_list(selection=l, undo=u)
+                app.plugin_manager.get_script('sweeps', 'sweeps_GUI').synch_sweep_list,
+                lambda l=sweep_list, u=False: app.plugin_manager.get_script('sweeps', 'sweeps_GUI').show_list(selection=l, undo=u),
+                lambda msg='Undo average sweeps': controller.log(msg)
             ]
         )
     app.interface.recordings[0].append_sweep(avg_sweep)
     app.interface.plot(fix_x=True, fix_y=True, clear=False, relim=False)
-    getattr(app.plugin_manager, 'sweeps.sweeps_GUI').synch_sweep_list()
+    app.plugin_manager.get_script('sweeps', 'sweeps_GUI').synch_sweep_list()
     if form.inputs['average_show_result'].get():
-        getattr(app.plugin_manager, 'sweeps.sweeps_GUI').hide_all(undo=False)
-        getattr(app.plugin_manager, 'sweeps.sweeps_GUI').show_list(selection=[app.interface.recordings[0].sweep_count - 1], undo=False)
+        app.plugin_manager.get_script('sweeps', 'sweeps_GUI').hide_all(undo=False)
+        app.plugin_manager.get_script('sweeps', 'sweeps_GUI').show_list(selection=[app.interface.recordings[0].sweep_count - 1], undo=False)
     controller.log(msg='Average sweeps', header=True)
     controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}, Channels: {formatting.format_list_indices(target_channels)}', header=False)
 
@@ -163,14 +171,14 @@ def subtract_baseline(event=None):
     if form.inputs['sweep_target'].get() == 'All sweeps':
         target_sweeps = range(app.interface.recordings[0].sweep_count)
     elif form.inputs['sweep_target'].get() == 'Visible sweeps':
-        target_sweeps = getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_visible_sweeps()
+        target_sweeps = app.plugin_manager.get_script('sweeps', 'sweeps_GUI').get_visible_sweeps()
         if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif app.inputs['trace_mode'].get () == 'overlay':
             # account for more recordings being open (consider only the main file open)
             target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
     elif form.inputs['sweep_target'].get() == 'Highlighted sweeps':
-        target_sweeps = getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_highlighted_sweeps()
+        target_sweeps = app.plugin_manager.get_script('sweeps', 'sweeps_GUI').get_highlighted_sweeps()
         # account for more recordings being open (consider only the main file open)
         if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
             target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -191,6 +199,7 @@ def subtract_baseline(event=None):
     # deal with undo later
     if app.interface.is_accepting_undo():
         controller.add_undo([
+            lambda msg='Undo subtract baseline':controller.log(msg),
             lambda r=app.interface.recordings[0], s=baseline, m=plot_mode, c=target_channels,
                    t=target_sweeps: process_recording.shift_y_data(r, s, m, c, t),
             lambda c=False:app.interface.plot(clear=c, fix_x=True)
@@ -198,12 +207,16 @@ def subtract_baseline(event=None):
 
     app.interface.plot(clear=False, fix_x=True)
     controller.log(msg=f'Subtract baseline')
-    controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}', header=False)
-    avg_baseline = np.mean(baseline, axis=1)
-    std_baseline = np.std(baseline, axis=1)
-    for i,c in enumerate(target_channels):
-        controller.log(msg=f'channel: {c}, avg: {avg_baseline[i][0]}, stdev: {std_baseline[i][0]}', header=False)
-    pass
+    controller.log(
+        msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}, Channels: {formatting.format_list_indices(target_channels)}',
+        header=False)
+    controller.log(msg=f'Baseline mode: {form.inputs["baseline_mode"].get()}. xlim: {xlim} fixed value: {shift}')
+    if form.inputs['baseline_mode'].get() != 'Fixed value':
+        avg_baseline = np.mean(baseline, axis=1)
+        std_baseline = np.std(baseline, axis=1)
+        for i,c in enumerate(target_channels):
+            controller.log(msg=f'channel: {c}, avg: {avg_baseline[i][0]}, stdev: {std_baseline[i][0]}', header=False)
+        pass
 
 def filter_data(event=None):
     if len(app.interface.recordings)==0:
@@ -217,14 +230,14 @@ def filter_data(event=None):
     if form.inputs['sweep_target'].get() == 'All sweeps':
         target_sweeps = range(app.interface.recordings[0].sweep_count)
     elif form.inputs['sweep_target'].get() == 'Visible sweeps':
-        target_sweeps = getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_visible_sweeps()
+        target_sweeps = app.plugin_manager.get_script('sweeps', 'sweeps_GUI').get_visible_sweeps()
         if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
             target_sweeps = range(app.interface.recordings[0].sweep_count)
         elif app.inputs['trace_mode'].get() == 'overlay':
             # account for more recordings being open (consider only the main file open)
             target_sweeps = [i for i in target_sweeps if i < app.interface.recordings[0].sweep_count]
     elif form.inputs['sweep_target'].get() == 'Highlighted sweeps':
-        target_sweeps = getattr(app.plugin_manager, 'sweeps.sweeps_GUI').get_highlighted_sweeps()
+        target_sweeps = app.plugin_manager.get_script('sweeps', 'sweeps_GUI').get_highlighted_sweeps()
         # account for more recordings being open (consider only the main file open)
         if app.inputs['trace_mode'].get() == 'continuous' and 0 in target_sweeps:
             target_sweeps = range(app.interface.recordings[0].sweep_count)
@@ -240,7 +253,8 @@ def filter_data(event=None):
         controller.add_undo([
             lambda f=temp_filename, c=target_channels, s=target_sweeps: app.interface.recordings[0].load_y_data(f,c,s),
             lambda c=False:app.interface.plot(clear=c, relim=False, fix_x=True, fix_y=True),
-            lambda f=temp_filename:os.remove(f)
+            lambda f=temp_filename:os.remove(f),
+            lambda msg='Undo filter': controller.log(msg)
         ])
     filter_choice = form.inputs['filter_algorithm'].get()
     filter_algorithm = form.inputs[f'filter_{filter_choice}_algorithm'].get()
@@ -263,7 +277,7 @@ def filter_data(event=None):
 #### Make GUI Components ####
 controller = PluginController(name=name,
                               menu_label=menu_label)
-form = PluginForm(plugin_controller=controller,
+form = ProcessForm(plugin_controller=controller,
                   tab_label=tab_label,
                   scrollbar=True,
                   notebook=app.cp_notebook)
@@ -295,7 +309,7 @@ form.insert_label_optionmenu(
     name='baseline_mode',
     text='',
     options=['Mean of all targets', 'Mean of x-axis range', 'Fixed value'],
-    command=_select_baseline_mode,
+    command=form.apply_parameters,
     separator=False,
     default=baseline_mode
 )
@@ -363,7 +377,7 @@ form.insert_label_optionmenu(
     text="Select low or high pass:",
     options=filter_choices,
     separator=False,
-    command=_select_filter_mode,
+    command=form.apply_parameters,
     default=filter_algorithm
 )
 
@@ -372,7 +386,7 @@ form.insert_label_optionmenu(
     text='Algorithm:',
     options=lowpass_algorithms,
     separator=False,
-    command=_select_lowpass_algorithm,
+    command=form.apply_parameters,
     default=filter_Lowpass_algorithm
 )
 
@@ -391,7 +405,7 @@ form.insert_label_optionmenu(
     text='Algorithm:',
     options=highpass_algorithms,
     separator=False,
-    command=_select_highpass_algorithm,
+    command=form.apply_parameters,
     default=filter_Highpass_algorithm
 )
 
@@ -412,4 +426,6 @@ _select_baseline_mode()
 _select_filter_mode()
 controller.update_plugin_display()
 
-app.plugin_manager.process_recording.save = controller.save
+app.plugin_manager.get_plugin('process_recording').save = controller.save
+
+form.apply_parameters(undo=False)

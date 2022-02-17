@@ -60,7 +60,7 @@ detector_core_std_lag_ms = 10
 detector_core_extrapolate_hw = '1'
 
 # decay
-detector_core_decay_algorithm = 'Curve fit (sing. exp.)'
+detector_core_decay_algorithm = 'Curve fit'
 detector_core_decay_p_amp = 37
 detector_core_decay_ss_min = 0
 detector_core_decay_ss_max = 10
@@ -152,12 +152,12 @@ decay_params = {
             'decay_best_guess': {
                 'name': 'detector_core_decay_best_guess',
                 'conversion': float,
-                'algorithm': ['Curve fit (sing. exp.)']
+                'algorithm': ['Curve fit']
             },
             'decay_max_interval': {
                 'name': 'detector_core_decay_max_interval',
                 'conversion': float,
-                'algorithm': ['Curve fit (sing. exp.)', '% amplitude']
+                'algorithm': ['Curve fit', '% amplitude']
             }
         }
 compound_params = {
@@ -206,6 +206,24 @@ class MiniPopup(PluginPopup):
         popup_clear()
         super().show_window()
 
+#### modify the PluginForm class ####
+class MiniForm(PluginForm):
+    def apply_parameters(self, undo=True):
+        global changed
+        global changes
+        for i in self.inputs.keys():
+            try:
+                if self.parameters.get(i, None) != self.inputs[i].get():
+                    changes[i] = self.inputs[i].get()
+            except:
+                pass
+        if len(changes.keys()) > 0:
+            changed = True
+        super().apply_parameters(undo=undo)
+        _populate_compound_params()
+        _populate_decay_algorithms()
+        _apply_column_options()
+
 #### define functions ####
 # private functions
 def _apply_column_options(event=None):
@@ -216,21 +234,6 @@ def _apply_column_options(event=None):
     datapanel.datatable.show_columns(
         [k for k,v in mini_header2config.items() if form.inputs[v].get()]
     )
-
-def _apply_parameters(event=None):
-    """
-    Called when 'Apply' button is pressed or the user inputs a value in the form.
-    Compares the current user input with stored values. If there are any changes, stores the changes
-    Used to log the changes made to the parameters by the user.
-    """
-    global changed
-    app.interface.focus()
-    for i in parameters.keys():
-        if parameters[i] != form.inputs[i].get():
-            changes[i] = form.inputs[i].get()
-            changed = True
-            parameters[i] = form.inputs[i].get()
-
 
 def _apply_styles(event=None, draw=True, undo=True):
     """
@@ -245,17 +248,26 @@ def _apply_styles(event=None, draw=True, undo=True):
     global highlight_size
     global highlight_color
     if undo and app.interface.is_accepting_undo():
-        controller.add_undo([
-            lambda c=peak_size:form.inputs['style_mini_size'].set(c),
-            lambda c=peak_color:form.inputs['style_mini_color'].set(c),
-            lambda c=start_size:form.inputs['style_start_size'].set(c),
-            lambda c=start_color:form.inputs['style_start_color'].set(c),
-            lambda c=decay_size:form.inputs['style_decay_size'].set(c),
-            lambda c=decay_color:form.inputs['style_decay_color'].set(c),
-            lambda c=highlight_size:form.inputs['style_highlight_size'].set(c),
-            lambda c=highlight_color:form.inputs['style_highlight_color'].set(c),
-            lambda u=False:_apply_styles(undo=u)
-        ])
+        undo_stack = []
+        if peak_size != float(form.inputs['style_mini_size'].get()):
+            undo_stack.append(lambda c=peak_size:form.inputs['style_mini_size'].set(c))
+        if peak_color != form.inputs['style_mini_color'].get():
+            undo_stack.append(lambda c=peak_color: form.inputs['style_mini_color'].set(c))
+        if start_size != float(form.inputs['style_start_size'].get()):
+            undo_stack.append(lambda c=start_size: form.inputs['style_start_size'].set(c))
+        if start_color != form.inputs['style_start_color'].get():
+            undo_stack.append(lambda c=start_color:form.inputs['style_start_size'].set(c))
+        if decay_size != float(form.inputs['style_decay_size'].get()):
+            undo_stack.append(lambda c=decay_size:form.inputs['style_start_size'].set(c))
+        if decay_color != form.inputs['style_decay_color'].get():
+            undo_stack.append(lambda c=decay_color: form.inputs['style_start_size'].set(c))
+        if highlight_size != float(form.inputs['style_highlight_size'].get()):
+            undo_stack.append(lambda c=highlight_size:form.inputs['style_highlight_size'].set(c))
+        if highlight_color != form.inputs['style_highlight_color'].get():
+            undo_stack.append(lambda c=highlight_color:form.inputs['style_highlight_color'].set(c))
+        if len(undo_stack) > 0:
+            undo_stack.append(lambda u=False: _apply_styles(undo=u))
+            app.plugin_manager.get_script('style', 'style_tab').controller.add_undo(undo_stack)
     app.interface.focus()
     peak_size = float(form.inputs['style_mini_size'].get())
     peak_color = form.inputs['style_mini_color'].get()
@@ -267,7 +279,7 @@ def _apply_styles(event=None, draw=True, undo=True):
     highlight_color = form.inputs['style_highlight_color'].get()
 
     if draw and form.is_enabled():
-        update_event_markers()
+        update_event_markers(draw=True)
         if popup.is_visible():
             popup_update()
 
@@ -277,7 +289,7 @@ def _columns_show_all(event=None):
     """
     for option in data_display_options:
         form.inputs[option].set('1')
-    _apply_column_options()
+    form.apply_parameters()
 
 def _columns_hide_all(event=None):
     """
@@ -285,20 +297,20 @@ def _columns_hide_all(event=None):
     """
     for option in data_display_options:
         form.inputs[option].set('1')
-    _apply_column_options()
+    form.apply_parameters()
 
-def _default_core_params(event=None):
+def _default_core_params(event=None, undo=True):
     """
     Called by the 'Default' button for core parameters.
     Fill the form with default values, and show/hide some widgets accordingly
     """
     app.interface.focus()
     form.set_to_default('detector_core')
-    _populate_decay_algorithms()
-    _populate_compound_params()
 
 def _default_style_params(event=None):
-    form.set_to_default('style_')
+    for k, w in form.inputs.items():
+        if 'style' in k:
+            form.inputs[k].set_to_default()
     app.interface.focus()
     _apply_styles()
 
@@ -307,20 +319,19 @@ def _populate_decay_algorithms(event=None):
     algorithm = form.inputs['detector_core_decay_algorithm'].get()
     for k, d in decay_params.items():
         if algorithm in d['algorithm']:
-            form.show_widget(form.inputs[d['name']])
+            form.show_widget(target=form.inputs[d['name']])
         else:
-            form.hide_widget(form.inputs[d['name']])
-    record_param_change('decay algorithm', algorithm)
+            form.hide_widget(target=form.inputs[d['name']])
     app.interface.focus()
 
 def _populate_compound_params(event=None):
     state = form.inputs['detector_core_compound'].get()
     if state:
         for k, d in compound_params.items():
-            form.show_widget(form.inputs[d['name']])
+            form.show_widget(target=form.inputs[d['name']])
     else:
         for k, d in compound_params.items():
-            form.hide_widget(form.inputs[d['name']])
+            form.hide_widget(target=form.inputs[d['name']])
     app.interface.focus()
 
 # canvas response
@@ -406,6 +417,7 @@ def delete_clear(undo=False, draw=True):
     update_module_table()
     if draw:
         update_event_markers(draw=True)
+    log_delete()
 
 def delete_all(undo=True, draw=True):
     """
@@ -437,7 +449,7 @@ def delete_from_canvas(event=None, undo=True):
     """
     datapanel.delete_selected(undo) # highlight = datapanel should be selected
     app.interface.focus()
-
+    log_delete()
 
 def delete_in_window(event=None, undo=True):
     global mini_df
@@ -446,6 +458,7 @@ def delete_in_window(event=None, undo=True):
                         & (mini_df['t']<xlim[1])
                         & (mini_df['channel'] == app.interface.current_channel)].t.values # corresponding t values
     delete_selection(selection, undo)
+    log_delete()
 
 def delete_selection(selection:list, undo:bool=True, draw:bool=True):
     """
@@ -461,12 +474,12 @@ def delete_selection(selection:list, undo:bool=True, draw:bool=True):
             mini_df.to_csv(filename)
             controller.add_undo([
                 lambda f=filename: open_minis(filename, log=False, undo=False, append=True),
-                lambda f=filename: os.remove(f)
+                lambda f=filename: os.remove(f),
+                lambda msg='Undo delete': controller.log(msg)
             ])
     mini_df = mini_df[(~mini_df['t'].isin(selection)) | (mini_df['channel'] != app.interface.current_channel)]
     datapanel.datatable.delete(selection) # delete the entries in the datapanel
     update_event_markers(draw=draw)
-    log_delete()
 
 # getters
 def extract_column(colname:str, t:list=None) -> list:
@@ -531,6 +544,7 @@ def _find_mini_all_thread(undo=True):
                                          x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
     mini_df = pd.concat([mini_df, df])
     global saved
+    undo_stack = []
     if df.shape[0] > 0:
         # if int(app.widgets['config_undo_stack'].get()) > 0:
         #     add_undo([
@@ -541,11 +555,15 @@ def _find_mini_all_thread(undo=True):
         datapanel.append(df, undo=False)
         saved = False  # track change
         if undo and app.interface.is_accepting_undo():
-            controller.add_undo(
-                [lambda s=df[df.channel == app.interface.current_channel]['t']: delete_selection(s, undo=False)]
+            undo_stack.append(
+                lambda s=df[df.channel == app.interface.current_channel]['t']: delete_selection(s, undo=False)
             )
+    undo_stack.append(lambda msg=f'Undo find mini all. Delete {df.shape[0]} minis':controller.log(msg))
+    controller.add_undo(undo_stack)
+
     app.clear_progress_bar()
     controller.log(f'Find mini all', header=True)
+    controller.log(f'{df.shape[0]} minis found', header=False)
     log_param()
     log_auto()
 
@@ -628,16 +646,21 @@ def _find_mini_range_thread(undo=True):
                                          x_unit=app.interface.recordings[0].x_unit, progress_bar=app.pb, **params)
     mini_df = pd.concat([mini_df, df])
     global saved
+    undo_stack = []
     if df.shape[0] > 0:
         update_event_markers(draw=True)
         datapanel.append(df, undo=False)
         saved = False  # track change
         if undo and app.interface.is_accepting_undo():
-            controller.add_undo(
-                [lambda s=df[df.channel == app.interface.current_channel]['t']: delete_selection(s, undo=False)]
+            undo_stack.append(
+                lambda s=df[df.channel == app.interface.current_channel]['t']: delete_selection(s, undo=False)
             )
+    undo_stack.append(lambda msg=f'Undo find mini range. Delete {df.shape[0]} minis':controller.log(msg))
+
+    controller.add_undo(undo_stack)
     app.clear_progress_bar()
     controller.log(f'Find mini in range: {app.trace_display.ax.get_xlim()}', header=True)
+    controller.log(f'{df.shape[0]} minis found', header=False)
     log_param()
     log_auto()
 
@@ -776,8 +799,6 @@ def get_params():
                 params[k] = None
             else:
                 params[k] = form.inputs[d['name']].get()
-    if params['decay_algorithm'] == 'Curve fit (sing. exp.)':
-        params['decay_algorithm'] = 'Curve fit'
     if params['compound']:
         for k, d in compound_params.items():
             try:
@@ -792,9 +813,11 @@ def log_param(event=None):
     Log a message in the log_display
     """
     global changes
-    if changes:
+    global changed
+    if changed or len(changes.keys())>0:
         controller.log(f'Parameter update: {str(changes)}', header=False)
     changes = {}
+    changed = False
 
 def log_auto(event=None):
     global logged_manual
@@ -804,7 +827,7 @@ def log_auto(event=None):
 
 def log_manual(event=None):
     global logged_manual
-    if not logged_manual:
+    if not logged_manual or (changed or len(changes.keys())>0):
         controller.log('Manual analysis', header=True)
         logged_manual = True # don't log again
 
@@ -1148,7 +1171,6 @@ def popup_plot_decay_extrapolate(xs, end, data):
     Plot info on the popup guide
     Plot the single-exponential decay offset by the decay of the previous mini of the compound mini
     """
-    print('plot decay extrap')
     xs = xs[int(data['peak_idx']):end]
     A = data['decay_A']
     tau = data['decay_const'] / 1000
@@ -1161,9 +1183,11 @@ def popup_plot_decay_extrapolate(xs, end, data):
     delta_t = data['t'] - data['prev_t']
     prev_A = data['prev_decay_A']
     prev_decay = data['prev_decay_const'] / 1000
-    prev_base = data['prev_decay_baseline']
+    prev_decay_base = data['prev_decay_baseline']
+    prev_base = data['prev_baseline']
 
-    prev_ys = mini_analysis.single_exponent_constant(xs - xs[0] + delta_t, prev_A, prev_decay, prev_base) * direction + prev_base
+
+    prev_ys = mini_analysis.single_exponent_constant(xs - xs[0] + delta_t, prev_A, prev_decay, prev_decay_base) * direction + prev_base
 
     ys = ys + prev_ys
 
@@ -1349,18 +1373,6 @@ def popup_update(event=None):
             marker.set_markersize(peak_size)
 
     popup.canvas.draw()
-
-
-# store change in parameters # link to this later
-def record_param_change(pname, pvalue):
-    """
-    call this function to record the change in parameter
-    Sets the changed attribute to True and records the parameter and value within changes
-    """
-    global changed
-    global changes
-    changed = True
-    changes[pname] = pvalue
 
 # report to other components
 def report_results(event=None):
@@ -1654,7 +1666,7 @@ def update_module_table():
 #### Make GUI Components ####
 
 controller = MiniController(name=name, menu_label=menu_label)
-form = PluginForm(plugin_controller=controller, tab_label=tab_label, scrollbar=True, notebook=app.cp_notebook)
+form = MiniForm(plugin_controller=controller, tab_label=tab_label, scrollbar=True, notebook=app.cp_notebook)
 datapanel = MiniTable(plugin_controller=controller, tab_label=tab_label, notebook=app.data_notebook)
 popup = MiniPopup(plugin_controller=controller)
 
@@ -1692,14 +1704,12 @@ form.insert_label_checkbox(name='detector_core_extrapolate_hw',
                            text='Use decay to extrapolate halfwidth',
                            onvalue='1',
                            offvalue='',
-                           default=detector_core_extrapolate_hw,
-                           command=_apply_parameters)
+                           default=detector_core_extrapolate_hw)
 # decay
 form.insert_title(text='Decay fitting options')
 form.insert_label_optionmenu(name='detector_core_decay_algorithm',
                              text='Decay calculation method:',
-                             options=['Curve fit (sing. exp.)', '% amplitude'],
-                             command=_populate_decay_algorithms,
+                             options=['Curve fit', '% amplitude'],
                              default=detector_core_decay_algorithm)
 form.insert_label_entry(name='detector_core_decay_p_amp',
                         text='Percent peak to mark as decay constant (%)',
@@ -1718,7 +1728,6 @@ form.insert_label_checkbox(name='detector_core_compound',
                            text='Analyze compound minis',
                            onvalue='1',
                            offvalue='',
-                           command=_populate_compound_params,
                            default=detector_core_compound)
 form.insert_label_entry(name='detector_core_p_valley',
                         text='Minimum valley size in % of peak amplitude',
@@ -1733,7 +1742,7 @@ form.insert_label_entry(name='detector_core_min_peak2peak',
                         validate_type='float',
                         default=detector_core_min_peak2peak)
 
-form.insert_button(text='Apply', command=_apply_parameters)
+form.insert_button(text='Apply', command=form.apply_parameters)
 form.insert_button(text='Default', command=_default_core_params)
 
 form.insert_title(text='Filtering parameters')
@@ -1786,7 +1795,7 @@ form.insert_label_entry(name='detector_filter_max_s2n',
                         text='Maximum signal-to-noise ratio (amp/std)',
                         validate_type='float/None',
                         default=detector_filter_max_s2n)
-form.insert_button(text='Confirm', command=_apply_parameters)
+form.insert_button(text='Confirm', command=form.apply_parameters)
 form.insert_button(text='Default', command=lambda filter='detector_filter':form.set_to_default(filter))
 form.insert_button(text='Apply filter\n(all)', command=filter_all)
 form.insert_button(text='Apply filter\n(window)', command=filter_window)
@@ -1794,70 +1803,57 @@ form.insert_button(text='Apply filter\n(window)', command=filter_window)
 # column display
 form.insert_label_checkbox(name='data_display_time',
                            text='Peak time',
-                           command=_apply_column_options,
                            onvalue='1',
                            offvalue='',
                            default='1')
 form.insert_label_checkbox(name='data_display_amplitude',
                            text='Amplitude',
-                           command=_apply_column_options,
                            onvalue='1',
                            offvalue='',
                            default='1')
 form.insert_label_checkbox(name='data_display_decay',
                            text='Decay constant',
-                           command=_apply_column_options,
                            onvalue='1',
                            offvalue='',
                            default='1')
 form.insert_label_checkbox(name='data_display_rise',
                            text='Rise duration',
-                           command=_apply_column_options,
                            onvalue='1',
                            offvalue='',
                            default='1')
 form.insert_label_checkbox(name='data_display_halfwidth',
                            text='Halfwidth',
-                           command=_apply_column_options,
                            onvalue='1',
                            offvalue='',
                            default='1')
 form.insert_label_checkbox(name='data_display_baseline',
                            text='Baseline',
-                           command=_apply_column_options,
                            onvalue='1',
                            offvalue='',
                            default='1')
 form.insert_label_checkbox(name='data_display_channel',
                            text='Channel',
-                           command=_apply_column_options,
                            onvalue='1',
                            offvalue='',
                            default='1')
 form.insert_label_checkbox(name='data_display_std',
                            text='Baseline stdev',
-                           command=_apply_column_options,
                            onvalue='1',
                            offvalue='',
                            default='1')
 form.insert_label_checkbox(name='data_display_direction',
                            text='Peak direction',
-                           command=_apply_column_options,
                            onvalue='1',
                            offvalue='',
                            default='1')
 form.insert_label_checkbox(name='data_display_compound',
                            text='Compound',
-                           command=_apply_column_options,
                            onvalue='1',
                            offvalue='',
                            default='1')
 form.insert_button(text='Show All', command=_columns_show_all)
 form.insert_button(text='Hide All', command=_columns_hide_all)
-for widget in form.inputs:
-    if type(form.inputs[widget]) == custom_widgets.VarEntry:
-        form.inputs[widget].bind('<Return>', _apply_parameters, add='+')
-        form.inputs[widget].bind('<FocusOut>', _apply_parameters, add='+')
+
 
 ##### Batch Commands #####
 controller.create_batch_category()
@@ -1945,9 +1941,9 @@ controller.add_file_menu_command(label='Save minis as...', command=ask_save_mini
 controller.add_file_menu_command(label='Export data table', command=datapanel.ask_export_data)
 
 # style tab
-style_plugin = getattr(app.plugin_manager, 'style', None)
+style_plugin = app.plugin_manager.get_script('style', 'style_tab')
 if style_plugin is not None:
-    style_form = style_plugin.style_tab.form
+    style_form = style_plugin.form
     style_form.insert_separator()
     style_form.insert_title(text='Mini Analysis plot style')
     style_panel = style_form.make_panel(separator=False)
@@ -1956,9 +1952,9 @@ if style_plugin is not None:
     style_panel.grid_columnconfigure(2, weight=1)
 
     row = 0
-    ttk.Label(style_panel, text='size', justify=Tk.CENTER).grid(column=style_plugin.style_tab.size_column, row=row,
+    ttk.Label(style_panel, text='size', justify=Tk.CENTER).grid(column=style_plugin.size_column, row=row,
                                                           sticky='news')
-    ttk.Label(style_panel, text='color', justify=Tk.CENTER).grid(column=style_plugin.style_tab.color_column, row=row,
+    ttk.Label(style_panel, text='color', justify=Tk.CENTER).grid(column=style_plugin.color_column, row=row,
                                                            sticky='news')
 
 
@@ -1966,13 +1962,15 @@ if style_plugin is not None:
         form.inputs[name] = custom_widgets.VarEntry(frame, width=width, default=default,
                                                     validate_type=validate_type)
         form.inputs[name].grid(column=column, row=row, sticky='news')
+        form.inputs[name].bind('<Return>', _apply_styles, add='+')
+        form.inputs[name].bind('<FocusOut>', _apply_styles, add='+')
 
     row += 1
-    label_column = style_plugin.style_tab.label_column
-    size_column = style_plugin.style_tab.size_column
-    size_width = style_plugin.style_tab.size_width
-    color_column = style_plugin.style_tab.color_column
-    color_width = style_plugin.style_tab.color_width
+    label_column = style_plugin.label_column
+    size_column = style_plugin.size_column
+    size_width = style_plugin.size_width
+    color_column = style_plugin.color_column
+    color_width = style_plugin.color_width
 
     ttk.Label(style_panel, text='Peak marker').grid(column=label_column, row=row, sticky='news')
     place_VarEntry(name='style_mini_size', column=size_column, row=row, frame=style_panel,
@@ -2000,21 +1998,13 @@ if style_plugin is not None:
     place_VarEntry(name='style_highlight_color', column=color_column, row=row, frame=style_panel,
                    width=color_width, validate_type='color', default=highlight_color)
 
-
-    for key in form.inputs.keys():
-        if 'style' in key:
-            form.inputs[key].bind('<Return>', _apply_styles)
-            form.inputs[key].bind('<FocusOut>', _apply_styles)
-
     style_form.insert_button(text='Apply', command=_apply_styles)
     style_form.insert_button(text='Default', command=_default_style_params)
 
 
 controller.load_values()
-_populate_decay_algorithms()
-_populate_compound_params()
-_apply_styles()
-_apply_column_options()
+form.apply_parameters(undo=False)
+_apply_styles(undo=False)
 
 if app.inputs['trace_mode'].get() != 'continuous':
     try:
@@ -2023,7 +2013,7 @@ if app.inputs['trace_mode'].get() != 'continuous':
         pass
 
 controller.listen_to_event('<<LoadCompleted>>', _apply_column_options)
-controller.listen_to_event('<<LoadCompleted>>', datapanel.datatable.fit_columns)
+# controller.listen_to_event('<<LoadCompleted>>', datapanel.datatable.fit_columns)
 controller.listen_to_event('<<LoadCompleted>>', controller.update_plugin_display)
 def _on_open(event=None):
     delete_clear(undo=False, draw=False)
@@ -2050,4 +2040,4 @@ for key in app.interpreter.get_keys('select_all'):
 
 parameters = {k:v.get() for k,v in form.inputs.items() if 'detector' in k}
 changes = {k:v for k,v in parameters.items()}
-app.plugin_manager.mini_analysis.save = controller.save
+app.plugin_manager.get_plugin('mini_analysis').save = controller.save

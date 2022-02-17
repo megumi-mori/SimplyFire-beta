@@ -21,6 +21,12 @@ navigation_mirror_x_scroll = 1
 
 key_show_all = ['<Key-Home>']
 
+#### modify PluginForm class ####
+class NaviForm(PluginForm):
+    def apply_parameters(self, undo=True):
+        super().apply_parameters(undo=undo)
+        apply_navigation()
+
 #### functions ####
 def apply_window(event=None):
     min_x = form.inputs['window_min_x'].get()
@@ -68,18 +74,22 @@ def get_current_lim(event=None):
     form.inputs['window_max_x'].set(xlim[1])
     form.inputs['window_min_y'].set(ylim[0])
     form.inputs['window_max_y'].set(ylim[1])
+    form.apply_parameters(undo=True)
     app.interface.focus()
+
 def get_current_xlim(event=None):
     xlim = app.trace_display.get_axis_limits('x')
     form.inputs['window_min_x'].set(xlim[0])
     form.inputs['window_max_x'].set(xlim[1])
     app.interface.focus()
+    form.apply_parameters(undo=True)
 
 def get_current_ylim(event=None):
     ylim = app.trace_display.get_axis_limits('y')
     form.inputs['window_min_y'].set(ylim[0])
     form.inputs['window_max_y'].set(ylim[1])
     app.interface.focus()
+    form.apply_parameters(undo=True)
 
 def on_open(event=None):
     if form.inputs['window_force_lim'].get():
@@ -92,7 +102,7 @@ def show_all(event=None):
 
 #### make GUI components ####
 controller = PluginController(name='navigation', menu_label='Navigation')
-form = PluginForm(controller, tab_label='Navi', scrollbar=True, notebook=app.cp_notebook)
+form = NaviForm(controller, tab_label='Navi', scrollbar=True, notebook=app.cp_notebook)
 
 #### form layout ####
 form.insert_title(text='Navigation')
@@ -152,13 +162,14 @@ form.insert_label_entry(name='navigation_zoom_y_percent', text='Zoom speed (perc
                         validation_type='float', default=navigation_zoom_y_percent)
 for key in form.inputs.keys():
     if 'navigation' in key:
-        form.inputs[key].bind('<Return>', apply_navigation, add='+')
+        form.inputs[key].bind('<Return>', form.apply_parameters, add='+')
+        form.inputs[key].bind('<FocusOut>', form.apply_parameters, add='+')
 
 form.insert_label_checkbox(name='navigation_mirror_x_scroll', text='Mirror x-axis scroll',
-                           onvalue=-1, offvalue=1, type=int, command=apply_navigation,
+                           onvalue=-1, offvalue=1, type=int,
                            default=navigation_mirror_x_scroll)
 form.insert_label_checkbox(name='navigation_mirror_y_scroll', text=' Mirror y-axis scroll',
-                           onvalue=-1, offvalue=1, type=int, command=apply_navigation,
+                           onvalue=-1, offvalue=1, type=int,
                            default=navigation_mirror_y_scroll)
 
 form.insert_button(text='Apply', command=apply_navigation)
@@ -174,4 +185,5 @@ for key in key_show_all:
 #### initialize ####
 controller.load_values()
 controller.update_plugin_display()
-app.plugin_manager.navigation.save = controller.save
+app.plugin_manager.get_plugin('navigation').save = controller.save
+form.apply_parameters(undo=False)

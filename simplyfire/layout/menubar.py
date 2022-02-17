@@ -160,7 +160,7 @@ def set_view_continuous(save_undo=True):
             lambda s=False: set_view_overlay(s),
         ])
     inputs['trace_mode'].set('continuous')
-
+    app.log_display.log('change to continuous mode')
     # switch to continuous mode tab
     # interface.config_cp_tab('continuous', state='normal')
 
@@ -192,6 +192,7 @@ def set_view_overlay(save_undo=True):
     #         lambda d=False: set_view_compare(d)
     #     ])
     inputs['trace_mode'].set('overlay')
+    app.log_display.log('change to overlay mode')
     # interface.config_cp_tab('overlay', state='normal')
     try:
         interface.plot(fix_x=True, fix_y=True, relim=True)

@@ -92,13 +92,6 @@ class PluginController():
             for c in self.children:
                 c.disable()
 
-    def select(self, event=None):
-        for c in self.children:
-            try:
-                c.select()
-            except:
-                pass
-
     def _add_disable(self, event=None, source:str=None):
         if not source:
             source = self.name

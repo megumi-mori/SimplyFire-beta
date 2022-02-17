@@ -270,12 +270,12 @@ def change_channel(num: int,
         current_channel = num
         for r in recordings:
             r.set_channel(num)
-        app.log_display.log(f'@ graph_viewer: switch to channel {num}')
+        app.log_display.log(f'graph_viewer: switch to channel {num}')
     except:
         current_channel = 0
         for r in recordings:
             r.set_channel(0)
-        app.log_display.log(f'@ graph_viewer: unable to switch to channel {num}. Reverting to channel 0')
+        app.log_display.log(f'graph_viewer: unable to switch to channel {num}. Reverting to channel 0')
     app.graph_panel.inputs['channel_option'].set(f'{recordings[0].channel}: {recordings[0].y_label}') #0 indexing for channel num
 
     # plot data points

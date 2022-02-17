@@ -203,7 +203,7 @@ def load(window, splash):
         inputs[k] = v
 
     setting_tab.load(root)
-    for k, v in setting_tab.widgets.items():
+    for k, v in setting_tab.inputs.items():
         inputs[k] = v
 
     batch_popup.load()
@@ -335,7 +335,7 @@ def dump_user_setting(filename=None):
                 d['cp_width'] = cp.winfo_width()
                 d['gp_height'] = gp.winfo_height()
                 d['geometry'] = root.geometry().split('+')[0]
-
+        d['user_config_version'] = config.version
         # d['compare_color_list'] = config.compare_color_list
         # d['compare_color_list'][:len(compare_tab.trace_list)] = [c['color_entry'].get() for c in compare_tab.trace_list]
         save_data = plugin_manager.save_plugin_data()
@@ -357,6 +357,7 @@ def dump_plugin_setting(filename=None):
         # filename = os.path.join(pkg_resources.resource_filename('PyMini', 'config'), 'test_user_config.yaml')
     with open(filename, 'w') as f:
         d = {'active_plugins':plugin_tab.get_plugins()}
+        d['active_plugins_version'] = config.version
         f.write("#################################################################\n")
         f.write("# PyMini active plugin list\n")
         f.write("#################################################################\n")
@@ -373,9 +374,9 @@ def dump_system_setting():
         f.write("#################################################################\n")
         f.write("\n")
 
-        # f.write(yaml.safe_dump(dict([(key, widgets[key].get()) for key in widgets if 'config' in key])))
-        # f.write(yaml.safe_dump(dict([(n, getattr(config, n)) for n in config.user_vars if 'config' in n])))
-        f.write(yaml.safe_dump(dict([(key, value.get()) for key, value in setting_tab.widgets.items() if 'system' in key])))
+        d = dict([(key, value.get()) for key, value in setting_tab.inputs.items() if 'system' in key])
+        d['setting_config_version'] = config.version
+        f.write(yaml.safe_dump(d))
     log_display.log(msg=f'System load settings saved in: {filename}')
 
 def dump_config_var(key, filename, title=None):

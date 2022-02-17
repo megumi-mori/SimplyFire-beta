@@ -3,6 +3,7 @@ from simplyfire import app
 import yaml
 import importlib
 error_free = True
+plugins = {}
 def load_manifests():
     global manifests
     manifests = {}
@@ -53,18 +54,23 @@ def load_plugin(plugin_name):
     scripts = plugin_manifest.get('scripts', []) # get list scripts to load
     plugin_path = os.path.join(app.config.PLUGIN_DIR, plugin_name)
     # from plugins import style
-    globals()[plugin_name] = importlib.import_module(f'plugins.{plugin_name}')
+    plugins[plugin_name] = importlib.import_module(f'plugins.{plugin_name}')
     for filename in scripts:
-        globals()[f'{plugin_name}.{filename}'] = importlib.import_module(f'plugins.{plugin_name}.{filename}')
+        plugins[f'{plugin_name}.{filename}'] = importlib.import_module(f'plugins.{plugin_name}.{filename}')
     pass
 
 def save_plugin_data():
     data = {}
     for plugin_name in plugin_list:
         try:
-            data[plugin_name] = globals()[plugin_name].save()
+            data[plugin_name] = plugins[plugin_name].save()
         except:
             data[plugin_name] = app.config.get_value(plugin_name, {}) #keep old save data
 
     return data
 
+def get_plugin(plugin_name):
+    return plugins.get(plugin_name, None)
+
+def get_script(plugin_name, script_name):
+    return plugins.get(f'{plugin_name}.{script_name}', None)

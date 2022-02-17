@@ -51,16 +51,11 @@ def load():
         for c, v in configs.items():
             globals()[c] = v
             default_vars[c] = v
-            # if 'system' not in c:
             globals()[c] = v
             user_vars[c] = v
-            # elif 'system' in c:
-            #     globals()[c] = v
-            #     system_vars[c] = v
     if default_vars['system_data_dir'] is None:
         default_vars['system_data_dir'] = PKG_DIR
         user_vars['system_data_dir'] = PKG_DIR
-
     # load where user data is located
 
     user_vars['system_setting_path'] = os.path.join(SETTING_DIR, default_vars['system_setting_path'])

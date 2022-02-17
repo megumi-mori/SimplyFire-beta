@@ -50,6 +50,25 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         self.tab_label = tab_label
         if notebook:
             self.notebook.add(self, text=self.tab_label)
+        self.parameters = {}
+
+    def apply_parameters(self, undo=True):
+        if undo and app.interface.is_accepting_undo():
+            undo_params = {}
+            for i in self.inputs.keys():
+                try:
+                    if self.parameters[i] != self.inputs[i].get():
+                        undo_params[i] = self.parameters[i]
+                except:
+                    pass
+            if len(undo_params.keys()) > 0:
+                self.controller.add_undo([lambda p=undo_params: self.apply_undo(p)])
+        self.parameters = {k:w.get() for k, w in self.inputs.items()}
+        app.interface.focus()
+    def apply_undo(self, params):
+        for key, value in params.items():
+            self.inputs[key].set(value)
+        self.apply_parameters(undo=False)
 
     def insert_title(self, **kwargs):
         # title = self.optionframe.insert_title(**kwargs)
@@ -61,13 +80,11 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         return title
 
     def insert_label_entry(self, **kwargs):
-        # if 'value' not in kwargs.keys():
-        #     kwargs['value'] = self.values.get(kwargs['name'], None)
-        # if 'default' not in kwargs.keys():
-        #     kwargs['default'] = self.defaults.get(kwargs['name'], None)
+        if 'command' not in kwargs.keys():
+            kwargs['command'] = self.apply_parameters
         entry = self.frame.insert_label_entry(**kwargs)
-        entry.bind('<Return>', app.interface.focus, add="+")
-        entry.bind('<FocusOut>', app.interface.focus, add="+")
+        entry.bind('<Return>', kwargs['command'], add="+")
+        entry.bind('<FocusOut>', kwargs['command'], add="+")
         try:
             self.inputs[kwargs['name']] = entry
         except:
@@ -83,12 +100,8 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         return button
 
     def insert_label_checkbox(self, **kwargs):
-        # if 'value' not in kwargs.keys():
-        #     kwargs['value'] = self.values.get(kwargs['name'], None)
-        # if 'default' not in kwargs.keys():
-        #     kwargs['default'] = self.defaults.get(kwargs['name'], None)
-        if kwargs.get('command', None) is None:
-            kwargs['command'] = app.interface.focus
+        if 'command' not in kwargs.keys():
+            kwargs['command'] = self.apply_parameters
         checkbox = self.frame.insert_label_checkbox(**kwargs)
         try:
             self.inputs[kwargs['name']] = checkbox
@@ -97,10 +110,8 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         return checkbox
 
     def insert_label_optionmenu(self, **kwargs):
-        # if 'value' not in kwargs.keys():
-        #     kwargs['value'] = self.values.get(kwargs['name'], None)
-        # if 'default' not in kwargs.keys():
-        #     kwargs['default'] = self.defaults.get(kwargs['name'], None)
+        if 'command' not in kwargs.keys():
+            kwargs['command'] = self.apply_parameters
         optionmenu = self.frame.insert_label_optionmenu(**kwargs)
         try:
             self.inputs[kwargs['name']] = optionmenu
@@ -164,7 +175,7 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
         except:
             target.grid()
 
-    def set_to_default(self, filter=""):
+    def set_to_default(self, filter="", undo=True):
         for k, v in self.inputs.items():
             if filter:
                 if filter in k:
@@ -179,6 +190,7 @@ class PluginForm(ScrollableOptionFrame, PluginGUI):
                     self.inputs[k].set_to_default()
                 except:
                     pass
+        self.apply_parameters(undo=undo)
         app.interface.focus()
 
     def get_widget_dict(self):

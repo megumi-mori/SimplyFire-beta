@@ -20,6 +20,7 @@ range_right = 1
 #### variables ####
 index = 0
 range_option_panels = {}
+parameters = {}
 
 
 
@@ -38,7 +39,12 @@ class EvokedTable(PluginTable):
                 data['#'] = 0
         super().add(data, **kwargs)
 
+class EvokedForm(PluginForm):
+    def apply_parameters(self, undo=True):
+        super().apply_parameters(undo=undo)
+        _populate_xlim_mode()
 #### define functions ####
+
 # batch processing
 def batch_calculate_min_max():
     # check visibility and show warning
@@ -117,6 +123,8 @@ def calculate_min_max(event=None):
             lambda l=new_list: datapanel.datatable.delete(l)
         ])
     controller.log(msg=f'Calculate min/max')
+    controller.log(msg=f'Analysis mode: {window}', header=False)
+    controller.log(msg=f'xlim: {xlim}', header=False)
     controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}, Channels: {formatting.format_list_indices(target_channels)}', header=False)
 # reporting
 def report(event=None):
@@ -239,7 +247,10 @@ def average_column(data):
 def std_column(data):
     return np.std(data)
 
-def _select_xlim_mode(event=None):
+def _select_xlim_mode(event=None, undo=True):
+    _apply_parameters(undo=undo)
+
+def _populate_xlim_mode(event=None):
     selection = form.inputs['range_target'].get()
     for key in range_option_panels:
         if key != selection:
@@ -250,7 +261,7 @@ def _select_xlim_mode(event=None):
 
 #### make GUI Components ####
 controller = PluginController(name='evoked_basic', menu_label='Evoked Analysis')
-form = PluginForm(controller, tab_label='Evoked', scrollbar=True, notebook=app.cp_notebook)
+form = EvokedForm(controller, tab_label='Evoked', scrollbar=True, notebook=app.cp_notebook)
 datapanel = EvokedTable(controller, tab_label='Evoked', notebook=app.data_notebook)
 #### load layout ####
 form.insert_title(text='Evoked Analysis', separator=True)
@@ -266,7 +277,7 @@ form.insert_title(text='Limit x-axis for analysis to:', separator=False)
 
 form.insert_label_optionmenu(name='range_target', text='',
                              options=['Entire sweep', 'Visible window', 'Defined range'],
-                             command=_select_xlim_mode, separator=False, default=range_target)
+                             separator=False, default=range_target)
 
 range_option_panels['Entire sweep'] = form.make_panel(separator=False)
 range_option_panels['Visible window'] = form.make_panel(separator=False)
@@ -281,10 +292,14 @@ form.inputs['range_left'] = custom_widgets.VarEntry(parent=panel, name='range_le
                                                      validate_type='float',
                                                      default=range_left)
 form.inputs['range_left'].grid(column=0, row=0, sticky='news')
-form.inputs['range_right'] = custom_widgets.VarEntry(parent=panel, name='range_rigjt',
+form.inputs['range_left'].bind('<Return>', form.apply_parameters, add='+')
+form.inputs['range_left'].bind('<FocusOut>', form.apply_parameters, add='+')
+form.inputs['range_right'] = custom_widgets.VarEntry(parent=panel, name='range_right',
                                                       validate_type='float',
                                                       default=range_right)
 form.inputs['range_right'].grid(column=1, row=0, sticky='news')
+form.inputs['range_right'].bind('<Return>', form.apply_parameters, add='+')
+form.inputs['range_right'].bind('<FocusOut>', form.apply_parameters, add='+')
 form.insert_separator()
 
 form.insert_title(text='Min/Max', separator=False)
@@ -313,4 +328,6 @@ controller.listen_to_event('<<LoadCompleted>>', datapanel.datatable.fit_columns)
 
 controller.load_values()
 controller.update_plugin_display()
-app.plugin_manager.evoked_basic.save = controller.save
+app.plugin_manager.get_plugin('evoked_basic').save = controller.save
+
+form.apply_parameters(undo=False)

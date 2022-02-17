@@ -27,16 +27,16 @@ from simplyfire import app
 import os
 
 #### default values ####
-navigation_fps = app.config.get_default_value('navigation_fps')
-navigation_mirror_x_scroll = app.config.get_default_value('navigation_mirror_x_scroll')
-navigation_mirror_y_scroll = app.config.get_default_value('navigation_mirror_y_scroll')
-navigation_scroll_x_percent = app.config.get_default_value('navigation_scroll_x_percent')
-navigation_zoom_x_percent = app.config.get_default_value('navigation_zoom_x_percent')
-navigation_scroll_y_percent = app.config.get_default_value('navigation_scroll_y_percent')
-navigation_zoom_y_percent = app.config.get_default_value('navigation_zoom_y_percent')
+navigation_fps = 12
+navigation_mirror_x_scroll = 1
+navigation_mirror_y_scroll = 1
+navigation_scroll_x_percent = 10
+navigation_zoom_x_percent = 10
+navigation_scroll_y_percent = 10
+navigation_zoom_y_percent = 10
 
-force_channel = app.config.get_default_value('force_channel')
-force_channel_id = app.config.get_default_value('force_channel_id')
+force_channel = ''
+force_channel_id = 0
 
 #### variables ####
 inputs = {}
@@ -46,11 +46,35 @@ def load(parent):
     ##################################################
     #                    Methods                     #
     ##################################################
-    def toggle_force_channel(event=None):
+    def toggle_force_channel(event=None, undo=True):
         if inputs['force_channel'].get() == '1':
-           inputs['force_channel_id'].config(state='normal')
+            inputs['force_channel_id'].config(state='normal')
+            if undo and app.interface.is_accepting_undo():
+                app.interface.add_undo([
+                    reset_force_channel
+                ])
         else:
             inputs['force_channel_id'].config(state='disabled')
+            if undo and app.interface.is_accepting_undo():
+                app.interface.add_undo([
+                    reset_force_channel
+                ])
+    def reset_force_channel(event=None):
+        inputs['force_channel'].set({'1':'', '':'1'}[inputs['force_channel'].get()])
+        toggle_force_channel(undo=False)
+
+    def set_force_channel_id(event=None, undo=True):
+        global force_channel_id
+        if undo and app.interface.is_accepting_undo():
+            if force_channel_id != inputs['force_channel_id'].get():
+                app.interface.add_undo(
+                    [
+                        lambda:inputs['force_channel_id'].set(force_channel_id),
+                    ]
+                )
+                force_channel_id = inputs['force_channel_id'].get()
+        app.interface.focus()
+
 
     def scroll_x(dir):
         # trace_display.start_animation()
@@ -207,6 +231,7 @@ def load(parent):
         value='',
         default='',
         options=[''],
+        command=app.interface.focus
     )
 
     inputs['force_channel'] = channel_frame.insert_label_checkbox(
@@ -226,8 +251,10 @@ def load(parent):
         value=app.config.get_value('force_channel_id'),
         default=force_channel_id
     )
-    toggle_force_channel()
+    toggle_force_channel(undo=False)
     inputs['force_channel_id'].grid(column=2, row=0, sticky='ews')
+    inputs['force_channel_id'].bind('<Return>', set_force_channel_id, add='+')
+    inputs['force_channel_id'].bind('<FocusOut>', set_force_channel_id, add='+')
 
     x_zoom_frame = Tk.Frame(frame, bg='orange')
     x_zoom_frame.grid_rowconfigure(0, weight=1)
@@ -276,10 +303,8 @@ def load(parent):
 
     for w in inputs:
         value = app.config.get_value(w)
-        if value:
+        if value and 'channel_option' not in w:
             inputs[w].set(value)
-        inputs[w].bind('<Return>', app.interface.focus)
-        inputs[w].bind('<FocusOut>', app.interface.focus)
     return frame
 
 def scroll_x_to(e):

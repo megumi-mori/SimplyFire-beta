@@ -213,20 +213,6 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
             self.command(e)
         except Exception:
             pass
-        #     interface.add_undo([
-        #         lambda v=self.undo_value: self.var.set(v),
-        #         self.command,
-        #         self.set_undo,
-        #     ])
-        # except:
-        #     interface.add_undo([
-        #         lambda v=self.undo_value: self.var.set(v),
-        #         self.set_undo
-        #     ])
-        # self.undo_value = self.get()
-
-    def set_undo(self):
-        self.undo_value = self.get()
 
     def clear_options(self):
         self['menu'].delete(0, 'end')
@@ -238,8 +224,6 @@ class VarOptionmenu(VarWidget, ttk.OptionMenu):
         if val != self.get():
             self.undo_value = self.get()
             self.var.set(val)
-        if self.command is not None:
-            self.command()
 
 
 class VarCheckbutton(VarWidget, ttk.Checkbutton):
