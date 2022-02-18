@@ -1646,6 +1646,7 @@ def update_event_markers(event=None, draw=False):
         plot_peak(None, None)
         plot_decay(None, None)
         plot_start(None, None)
+        plot_highlight(None, None)
     elif app.inputs['trace_mode'].get() == 'continuous':
         plot_peak(extract_column('peak_coord_x'), extract_column('peak_coord_y'))
         plot_decay(extract_column('decay_coord_x'), extract_column('decay_coord_y'))
@@ -2023,8 +2024,10 @@ def _on_open(event=None):
     logged_manual = False
 controller.listen_to_event('<<OpenRecording>>', _on_open)
 controller.listen_to_event('<<CanvasDrawRect>>', select_from_rect, condition_function=form.has_focus)
-controller.listen_to_event('<<Plot>>', update_event_markers)
-controller.listen_to_event('<<Plotted>>', update_module_table, condition_function=controller.is_enabled)
+controller.listen_to_event('<<Plotted>>', update_event_markers)
+# controller.listen_to_event('<<Plotted>>', update_module_table, condition_function=controller.is_enabled)
+controller.listen_to_event('<<ChangedChannel>>', update_module_table, condition_function=form.is_enabled)
+controller.listen_to_event('<<ChangedToContinuousView>>', update_module_table, condition_function=form.is_enabled)
 controller.listen_to_event('<<CanvasMouseRelease>>', canvas_mouse_release, condition_function=form.has_focus)
 controller.listen_to_event('<<ChangeToOverlayView>>', controller.disable_plugin)
 controller.listen_to_event('<<ChangeToContinuousView>>', controller.enable_plugin)

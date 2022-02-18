@@ -86,12 +86,14 @@ class PluginTable(Tk.Frame, PluginGUI):
                 ])
 
     def set_data(self, dataframe):
+        select = self.has_focus()
         if self.is_visible():
             self.disable()
         self.datatable.set_data(dataframe)
         if self.is_visible():
             self.enable()
-            self.select()
+            if select:
+                self.select()
 
     def delete_all(self, e=None, undo=True):
         if undo and app.interface.is_accepting_undo():
@@ -119,6 +121,9 @@ class PluginTable(Tk.Frame, PluginGUI):
     def is_visible(self):
         state = self.notebook.tab(self, option='state')
         return state == 'normal' or state == 'disabled'
+
+    def has_focus(self):
+        return self.notebook.select() == str(self)
 
     def enable(self):
         self.notebook.tab(self, state='normal')
