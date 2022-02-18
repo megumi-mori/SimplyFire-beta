@@ -72,12 +72,6 @@ class PluginController():
         else:
             self.hide()
 
-        if undo and app.interface.is_accepting_undo():
-            app.interface.add_undo([
-                lambda v=not self.inputs['is_visible'].get(): self.inputs['is_visible'].set(v),
-                lambda u=False: self.toggle_module_display(undo=u)]
-            )
-
     def update_plugin_display(self, event=None):
         if self.inputs['is_visible'].get(): # menu checkbutton is ON
             self.show_tab()
@@ -158,8 +152,13 @@ class PluginController():
 
     def add_undo(self, tasks):
         assert not isinstance(tasks, str)
-        tasks.insert(0, self.select)
+        tasks.insert(0, self.show_and_select)
         app.interface.add_undo(tasks)
+
+    def show_and_select(self, event=None):
+        self.show_tab()
+        if self.is_enabled():
+            self.select()
 
     # def start_thread(self, target_func, target_interrupt, popup=True):
     #     t = Thread(target=target_func)

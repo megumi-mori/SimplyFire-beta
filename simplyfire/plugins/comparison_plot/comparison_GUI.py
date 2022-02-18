@@ -32,6 +32,11 @@ class CompareController(PluginController):
             for detail_dict in panels:
                 apply(detail_dict, draw=False, undo=False)
             app.trace_display.draw_ani()
+        if undo and app.interface.is_accepting_undo():
+            app.interface.add_undo([
+                lambda v=not self.inputs['is_visible'].get():self.inputs['is_visible'].set(v),
+                lambda u=False: self.toggle_module_display(undo=u)
+            ])
 
 #### functions ####
 def add_file(event=None, recording=None, undo=True):
@@ -91,8 +96,6 @@ def apply(details, draw=True, undo=True):
             compared_lines[index][i].set_color(details['color_entry'].get())
 
     else:
-        undo_indices = [i for i in range(recording.sweep_count) if app.trace_display.sweeps[f'Sweep_{i}'].get_linestyle() == '-']
-        undo_color = app.trace_display.sweeps[f'Sweep_{0}'].get_color()  # get color
         for i, b in enumerate(show_indices):
             app.trace_display.sweeps[f'Sweep_{i}'].set_linestyle({True:'-', False: 'None'}[b])
             app.trace_display.sweeps[f'Sweep_{i}'].set_color(details['color_entry'].get())
@@ -230,15 +233,15 @@ def clear_lines(event=None):
     for lines in compared_lines:
         while len(lines)>0:
             l = lines.pop()
-            # try:
-            l.remove()
-            # except:
-            #     pass
-            # try:
-            del l
-            # except:
-            #     pass
-
+            try:
+                l.remove()
+            except:
+                pass
+            try:
+                del l
+            except:
+                pass
+    app.interface.plot(fix_y=True, fix_x=True, relim=True)
 
 def on_open(event=None):
     # clear the panels

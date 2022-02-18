@@ -133,7 +133,7 @@ def average_sweeps(event=None):
         controller.add_undo(
             [
                 app.interface.recordings[0].delete_last_sweep,
-                lambda c=False:app.interface.plot(c, fix_y=True, fix_x=True, relim=False),
+                lambda :app.interface.plot(fix_y=True, fix_x=True, clear=True, relim=False),
                 app.plugin_manager.get_script('sweeps', 'sweeps_GUI').synch_sweep_list,
                 lambda l=sweep_list, u=False: app.plugin_manager.get_script('sweeps', 'sweeps_GUI').show_list(selection=l, undo=u),
                 lambda msg='Undo average sweeps': controller.log(msg)
