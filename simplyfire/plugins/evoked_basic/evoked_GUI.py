@@ -87,7 +87,7 @@ def calculate_min_max(event=None):
 
     xlim=None
     window = form.inputs['range_target'].get()
-    if window == 'Visible sweeps':
+    if window == 'Visible window':
         xlim = app.trace_display.ax.get_xlim()
     elif window == 'Defined range':
         xlim = (float(form.inputs['range_left'].get()), float(form.inputs['range_right'].get()))
