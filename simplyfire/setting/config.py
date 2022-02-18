@@ -79,6 +79,10 @@ def load():
 
     global PLUGIN_DIR
     PLUGIN_DIR = os.path.join(user_vars['system_data_dir'], 'plugins')
+    global TEMP_DIR
+    TEMP_DIR = os.path.join(user_vars['system_data_dir'], 'temp')
+    if not os.path.exists(TEMP_DIR):
+        os.makedirs(TEMP_DIR)
     sys.path.insert(0, user_vars['system_data_dir'])
 
     # global config_keymap_path

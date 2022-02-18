@@ -55,6 +55,12 @@ def _on_close():
     # dump_key_setting() # implement this for customizable keys
     dump_log()
     root.destroy()
+    for i in range(int(inputs['system_undo_stack'].get())):
+        fname = os.path.join(config.TEMP_DIR, f'temp_{i}.temp')
+        if os.path.exists(fname):
+            os.remove(fname)
+
+
 
 
 def load(window, splash):

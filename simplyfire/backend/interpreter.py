@@ -354,8 +354,8 @@ def scroll_x_key(event, direction):
     #                           float(app.widgets['navigation_scroll_percent'].get()))
     if not scrolling_x:
         scroll_x_repeat(direction * int(app.graph_panel.navigation_mirror_x_scroll),
-                        int(app.inputs['navigation_fps'].get()),
-                        float(app.inputs['navigation_scroll_x_percent'].get()) * navigation_speed)
+                        int(app.graph_panel.navigation_fps),
+                        float(app.graph_panel.navigation_scroll_x_percent) * navigation_speed)
     scrolling_x = True
 
 def scroll_y_key(event, direction):
@@ -363,9 +363,9 @@ def scroll_y_key(event, direction):
     if not scrolling_y:
         # app.trace_display.scroll_y_by(direction * int(app.widgets['navigation_mirror_x_scroll'].get())*navigation_speed,
         #                       float(app.widgets['navigation_scroll_percent'].get()))
-        scroll_y_repeat(direction * int(app.inputs['navigation_mirror_y_scroll'].get()),
-                        int(app.inputs['navigation_fps'].get()),
-                        float(app.inputs['navigation_scroll_y_percent'].get()))
+        scroll_y_repeat(direction * int(app.graph_panel.navigation_mirror_y_scroll),
+                        int(app.graph_panel.navigation_fps),
+                        float(app.graph_panel.navigation_scroll_y_percent))
     scrolling_y = True
 
 def scroll_x_repeat(direction, fps, percent):
@@ -434,8 +434,8 @@ def zoom_x_key(event, direction):
     global zooming_x
     if not zooming_x:
         zoom_x_repeat(direction,
-                      int(app.inputs['navigation_fps'].get()),
-                      float(app.inputs['navigation_zoom_x_percent'].get()))
+                      int(app.graph_panel.navigation_fps),
+                      float(app.graph_panel.navigation_zoom_x_percent))
     zooming_x = True
 
 def zoom_x_repeat(direction, fps, percent):
@@ -458,8 +458,8 @@ def zoom_y_key(event, direction):
     if not zooming_y:
         zoom_y_repeat(
             direction,
-            int(app.inputs['navigation_fps'].get()),
-            float(app.inputs['navigation_zoom_y_percent'].get())
+            int(app.graph_panel.navigation_fps),
+            float(app.graph_panel.navigation_zoom_y_percent)
         )
     zooming_y = True
 
