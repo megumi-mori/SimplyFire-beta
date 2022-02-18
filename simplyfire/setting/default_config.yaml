@@ -1,14 +1,18 @@
 #################################################################
 # PyMini Defaults
 #################################################################
-# This file contains the default configuration options
-# for PyMini. IT SHOULD NOT BE EDITED!
+# This file contains the default configuration options for SimplyFire
+# This file typically should not be edited.
 #
-# user-defined parameters should be named exactly as the default
-# counterpart in this file, without the 'default_' tag
+# During startup, these values are read by setting/config.py
+# and stored in the default_vars dict and user_vars dict.
+# Values in the user_vars dict can be overwritten by user-input
+# saved in user_config.yaml
 #
-# widgets that use these parameters should also be named exactly
-# as the default variable name, without hte 'default_' tag
+# The key_map dict is used to map most of the core key-bindings.
+# Key names follow the tkinter convention.
+# Until a key-mapper feature is added (planned for future releases),
+# the keys can be edited here.
 #################################################################
 
 # version
@@ -94,12 +98,10 @@ key_map:
   key_deselect:
     - '<Escape>'
     - '<Key-q>'
-    - '<Key-o>'
   key_delete:
     - '<Delete>'
     - '<BackSpace>'
     - '<Key-e>'
-    - '<Key-u>'
   key_select_all:
     - '<Control-a>'
   key_select_window:
