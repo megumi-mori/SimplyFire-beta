@@ -156,7 +156,7 @@ def find_mini_auto(xlim=None,
         ys = ys.copy()  # make a copy to edit
     try:
         xlim_idx = (
-        calculate.search_index(xlim[0], xs, sampling_rate), calculate.search_index(xlim[1], xs, sampling_rate))
+            calculate.search_index(xlim[0], xs, sampling_rate), calculate.search_index(xlim[1], xs, sampling_rate))
     except:
         xlim_idx = (0, len(xs))
 
@@ -294,7 +294,7 @@ def find_mini_manual(xlim: tuple = None,
             return {'success': False, 'failure': 'insufficient info'}
         try:
             xlim_idx = (
-            calculate.search_index(xlim[0], xs, sampling_rate), calculate.search_index(xlim[1], xs, sampling_rate))
+                calculate.search_index(xlim[0], xs, sampling_rate), calculate.search_index(xlim[1], xs, sampling_rate))
         except:
             return {'success': False,
                     'failure': 'xlim could not be found'}  # limits of the search window cannot be determined
@@ -527,7 +527,7 @@ def find_mini_halfwidth(amp: float,
                         prev_mini_decay: float = None,
                         prev_mini_decay_baseline: float = None,
                         prev_mini_baseline: float = None,
-                        prev_mini_direction: float=None
+                        prev_mini_direction: float = None
                         ):
     """
     calculates the halfwidth of a mini event
@@ -552,7 +552,7 @@ def find_mini_halfwidth(amp: float,
             prev_mini_direction = direction
         y_data = ys * direction + single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A,
                                                            prev_mini_decay,
-                                                           prev_mini_decay_baseline)*prev_mini_direction - prev_mini_baseline * direction
+                                                           prev_mini_decay_baseline) * prev_mini_direction - prev_mini_baseline * direction
     else:
         y_data = (ys - baseline) * direction
     left_idx = np.where(y_data[:peak_idx] <= (amp * 0.5) * direction)
@@ -567,6 +567,7 @@ def find_mini_halfwidth(amp: float,
         right_idx = None
     return left_idx, right_idx  # pick the shortest length
 
+
 def fit_mini_decay(xs: np.ndarray,
                    ys: np.ndarray,
                    sampling_rate: float,
@@ -580,7 +581,7 @@ def fit_mini_decay(xs: np.ndarray,
                    prev_mini_decay_baseline: float = None,
                    prev_mini_baseline: float = None,
                    prev_mini_t: int = None,
-                   prev_mini_direction: int=None
+                   prev_mini_direction: int = None
                    ):
     """
     decay fitting, takes into account prev mini
@@ -604,7 +605,7 @@ def fit_mini_decay(xs: np.ndarray,
         if prev_mini_direction is None:
             prev_mini_direction = direction
         y_data = ys * direction + single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A, prev_mini_decay,
-                                                           prev_mini_decay_baseline)*prev_mini_direction - prev_mini_baseline * direction
+                                                           prev_mini_decay_baseline) * prev_mini_direction - prev_mini_baseline * direction
 
     else:
         y_data = (ys - baseline) * direction  # baseline subtract
@@ -848,10 +849,10 @@ def analyze_candidate_mini(xs,
     mini['peak_coord_y'] = ys[peak_idx]
 
     baseline_idx, mini['baseline'] = find_mini_start(peak_idx=peak_idx,
-                                                          ys=ys,
-                                                          lag=lag,
-                                                          delta_x=delta_x,
-                                                          direction=direction)
+                                                     ys=ys,
+                                                     lag=lag,
+                                                     delta_x=delta_x,
+                                                     direction=direction)
 
     # check if baseline calculation was successful
     if baseline_idx is None:  # not successful
@@ -975,18 +976,17 @@ def analyze_candidate_mini(xs,
     next_peak_idx = None
     if compound:
         next_search_start = np.where((ys[int(peak_idx + min_peak2peak):int(peak_idx + max_compound_interval_idx)] -
-                                      mini['baseline']) * direction < mini['amp'] * (1-p_valley) / 100 * direction)
-        if len(next_search_start[0] > 0):
+                                      mini['baseline']) * direction < mini['amp'] * (100 - p_valley) / 100 * direction)
+        if len(next_search_start[0]) > 0:
             next_peak_idx = find_peak_recursive(xs=xs,
-                                                     ys=ys,
-                                                     start=int(min(next_search_start[0][0] + peak_idx + min_peak2peak,
-                                                                   len(ys) - 1)),
-                                                     end=int(min(next_search_start[0][
-                                                                     0] + peak_idx + min_peak2peak + max_compound_interval_idx,
-                                                                 len(ys) - 1)),
-                                                     direction=direction
-                                                     )
-
+                                                ys=ys,
+                                                start=int(min(next_search_start[0][0] + peak_idx + min_peak2peak,
+                                                              len(ys) - 1)),
+                                                end=int(min(next_search_start[0][
+                                                                0] + peak_idx + max_compound_interval_idx,
+                                                            len(ys) - 1)),
+                                                direction=direction
+                                                )
     end_idx = None
     if next_peak_idx is not None:
         # estimate amplitude of next peak
@@ -1192,6 +1192,7 @@ def analyze_candidate_mini(xs,
             return mini
 
     return mini
+
 
 def calculate_frequency(mini_df, channel):
     df = mini_df[mini_df['channel'] == channel]
