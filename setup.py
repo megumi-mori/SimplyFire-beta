@@ -26,6 +26,7 @@ setup(
     author='Megumi Mori',
     description='Customizable electrophysiology analysis software',
     long_description=readme,
+    url="https://github.com/megumi-mori/SimplyFire-beta",
     pakage_dir={'simplyfire':'simplyfire'},
     packages = find_packages(),
     entry_points={
@@ -45,7 +46,7 @@ setup(
     ],
     license='GNU General Public License v3',
     zip_safe = False,
-    keywords = ['neuroscience', 'biology', 'electrophysiology'],
+    keywords = ['neuroscience', 'analysis', 'electrophysiology', 'gui-application'],
     lincense='GPLv3',
     classifiers = [
         'Development Status :: 4 - Beta',

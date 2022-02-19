@@ -9,7 +9,7 @@ You can install SimplyFire from [TestPyPI](https://test.pypi.org/project/SimplyF
 
 
 ```bash 
-pip install -i https://test.pypi.org/simple/ simplyfire
+pip install -i https://test.pypi.org/simple/ simplyfirebeta
 ```
 
 The package will be made avaialble on PyPI in the future for stable releases. 

@@ -267,7 +267,7 @@ def load(window, splash):
     loaded = True
     root.event_generate('<<LoadCompleted>>')
 
-    root.title('simplyfire v{}'.format(config.version))
+    root.title('SimplyFire Beta v{}'.format(config.version))
     root.iconbitmap(os.path.join(config.IMG_DIR, 'logo_bw.ico'))
     if config.get_value('zoomed'):
         root.state('zoomed')
