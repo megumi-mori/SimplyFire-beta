@@ -550,9 +550,14 @@ def find_mini_halfwidth(amp: float,
         prev_mini_t_ms = prev_mini_t * 1000
         if prev_mini_direction is None:
             prev_mini_direction = direction
-        y_data = ys * direction + single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A,
-                                                           prev_mini_decay,
-                                                           prev_mini_decay_baseline) * prev_mini_direction - prev_mini_baseline * direction
+        y_data = ys - prev_mini_baseline
+        y_data = y_data - single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A, prev_mini_decay,
+                                                   prev_mini_decay_baseline) * prev_mini_direction
+        y_data = y_data * direction
+
+        # y_data = ys * direction + single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A,
+        #                                                    prev_mini_decay,
+        #                                                    prev_mini_decay_baseline) * prev_mini_direction - prev_mini_baseline * direction
     else:
         y_data = (ys - baseline) * direction
     left_idx = np.where(y_data[:peak_idx] <= (amp * 0.5) * direction)
@@ -604,8 +609,15 @@ def fit_mini_decay(xs: np.ndarray,
         prev_mini_t_ms = prev_mini_t * 1000
         if prev_mini_direction is None:
             prev_mini_direction = direction
-        y_data = ys * direction + single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A, prev_mini_decay,
-                                                           prev_mini_decay_baseline) * prev_mini_direction - prev_mini_baseline * direction
+        # y_data = ys * direction + single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A, prev_mini_decay,
+        #                                                    prev_mini_decay_baseline) * prev_mini_direction - prev_mini_baseline * direction
+        # y_data = ys - single_exponent_constant((xs*1000 - prev_mini_t_ms), prev_mini_A, prev_mini_decay, prev_mini_decay_baseline) * prev_mini_direction
+        # y_data = (y_data - prev_mini_baseline) * direction
+
+        y_data = ys - prev_mini_baseline
+        y_data = y_data - single_exponent_constant((xs * 1000 - prev_mini_t_ms), prev_mini_A, prev_mini_decay,
+                                                   prev_mini_decay_baseline) * prev_mini_direction
+        y_data = y_data * direction
 
     else:
         y_data = (ys - baseline) * direction  # baseline subtract
@@ -918,12 +930,22 @@ def analyze_candidate_mini(xs,
                         mini['prev_decay_baseline'] = prev_peak['baseline']
 
                     # extrapolate start from previous decay
+                    # plot the previous mini decay
                     y_decay = single_exponent((xs[prev_peak_idx_offset:peak_idx + 1] - xs[prev_peak_idx_offset]) * 1000,
-                                              mini['prev_decay_A'], mini['prev_decay_const']) + mini[
-                                  'prev_baseline'] * direction
+                                              mini['prev_decay_A'], mini['prev_decay_const'])
+                    # orient the decay to the direction of the previous mini
+                    y_decay = y_decay * mini['prev_mini_direction']
+                    # add the offset from the baselin of the previous mini
+                    y_decay = y_decay + mini['prev_baseline']
+
+                    # calculate where the intersection between the decay and the raw data
+                    # mark point right before the raw data crosses the decay function
                     try:
-                        baseline_idx_ex = np.where(y_decay >= ys[prev_peak_idx_offset:peak_idx + 1] * direction)[0][
-                                              -1] + prev_peak_idx_offset
+                        baseline_idx_ex = np.where(y_decay * direction >= ys[prev_peak_idx_offset:peak_idx + 1] * direction)[0][
+                                              -1]
+                        # reset the index value (np.where will set first index to 0)
+                        baseline_idx_ex += prev_peak_idx_offset
+
                     except:
                         baseline_idx_ex = None
                     # find where the 'min' valley value is between previous peak and current peak
@@ -938,7 +960,7 @@ def analyze_candidate_mini(xs,
                     # extrapolate baseline at peak from previous decay
                     mini['baseline'] = single_exponent((xs[peak_idx] - xs[prev_peak_idx_offset]) * 1000,
                                                        mini['prev_decay_A'],
-                                                       mini['prev_decay_const']) * direction + mini[
+                                                       mini['prev_decay_const']) * mini['prev_mini_direction'] + mini[
                                            'prev_baseline']  # get the extrapolated baseline value
 
     mini['amp'] = (mini['peak_coord_y'] - mini['baseline'])  # signed
@@ -991,8 +1013,9 @@ def analyze_candidate_mini(xs,
     if next_peak_idx is not None:
         # estimate amplitude of next peak
         if (ys[next_peak_idx] - mini['baseline']) * direction > min_amp:
-            end_idx = np.where(ys[peak_idx:next_peak_idx] * direction == min(
-                ys[peak_idx:next_peak_idx] * direction))[0][0] + peak_idx
+            # make sure to ignore peak_idx to min_peak2peak (user-defined area to ignore compounds)
+            end_idx = np.where(ys[int(peak_idx+min_peak2peak):next_peak_idx] * direction == min(
+                ys[int(peak_idx+min_peak2peak):next_peak_idx] * direction))[0][0] + int(peak_idx+min_peak2peak)
     if end_idx is None:
         end_idx = min(peak_idx + decay_max_points, len(xs) - 1)
 
@@ -1096,7 +1119,7 @@ def analyze_candidate_mini(xs,
                 mini['prev_decay_A'],
                 mini['prev_decay_const'],
                 mini['prev_decay_baseline']
-            ) * direction + mini['prev_baseline']
+            ) * mini['prev_mini_direction'] + mini['prev_baseline']
             mini['decay_coord_y'] = prev_decay_y + single_exponent_constant(
                 mini['decay_const'],
                 mini['decay_A'],
@@ -1158,13 +1181,13 @@ def analyze_candidate_mini(xs,
                                                                    mini['prev_decay_A'],
                                                                    mini['prev_decay_const'],
                                                                    mini['prev_decay_baseline']
-                                                                   ) * direction + mini['prev_baseline'] + 0.5 * \
+                                                                   ) * mini['prev_mini_direction'] + mini['prev_baseline'] + 0.5 * \
                                           mini['amp']
         mini['halfwidth_end_coord_y'] = single_exponent_constant((xs[halfwidth_end_idx] - mini['prev_t']) * 1000,
                                                                  mini['prev_decay_A'],
                                                                  mini['prev_decay_const'],
                                                                  mini['prev_decay_baseline']
-                                                                 ) * direction + mini['prev_baseline'] + 0.5 * mini[
+                                                                 ) * mini['prev_mini_direction'] + mini['prev_baseline'] + 0.5 * mini[
                                             'amp']
     else:
         mini['halfwidth_start_coord_y'] = mini['halfwidth_end_coord_y'] = mini['baseline'] + 0.5 * mini['amp']
