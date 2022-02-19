@@ -410,6 +410,7 @@ def delete_clear(undo=False, draw=True):
             filename = app.interface.get_temp_filename()
             mini_df.to_csv(filename)
             controller.add_undo([
+                lambda msg='Undo delete': controller.log(msg=msg, header=True),
                 lambda f=filename: open_minis(filename, log=False, undo=False, append=True),
                 lambda f=filename: os.remove(f)
             ])
@@ -430,6 +431,7 @@ def delete_all(undo=True, draw=True):
             filename = app.interface.get_temp_filename()
             mini_df.to_csv(filename)
             controller.add_undo([
+                lambda msg='Undo delete': controller.log(msg=msg, header=True),
                 lambda f=filename: open_minis(filename, log=False, undo=False, append=True),
                 lambda f=filename: os.remove(f)
             ])
@@ -872,11 +874,10 @@ def open_minis(filename, log=True, undo=True, append=False):
         mini_df = mini_df.append(df)
         update_module_table()
     if log:
-        controller.log(f'Open: {filename}', True)
+        controller.log(f'Open mini file: {filename}', True)
     update_event_markers(draw=True)
 
     app.clear_progress_bar()
-    controller.log(f'Open mini file: {filename}')
 
 def open_mini_csv(filename):
     df = pd.read_csv(filename, comment='@')
