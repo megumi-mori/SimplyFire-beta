@@ -2,8 +2,6 @@
 *.xml
 *.iml
 *.pyc
-simplyfire/setting/key_map.yaml
-simplyfire/setting/system_config.yaml
 simplyfire/user_config.yaml
 *.temp
 *.csv
@@ -17,3 +15,4 @@ test_recordings/*
 simplyfire/active_plugins.yaml
 simplyfire/key_map.yaml
 simplyfire/setting/setting_config.yaml
+simplyfire.egg-info/*
