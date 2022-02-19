@@ -236,15 +236,18 @@ def bind_key(key, press_function=None, release_function=None, target=None, add='
 
 # app.trace_display mouse events
 def plot_mouse_press(event):
-    if app.trace_display.canvas.toolbar.mode == "" and event.button == 3:
+    if app.trace_display.canvas.toolbar.mode == "" and event.button == 1:
         global drag_coord_start
+        global drag_pix_coord_start
         if event.xdata and event.ydata:
             drag_coord_start = (event.xdata, event.ydata)
+            drag_pix_coord_start = (event.x, event.y)
 
 def plot_mouse_move(event):
     global drag_coord_start
     global drag_coord_end
-    if app.trace_display.canvas.toolbar.mode == "" and event.button == 3 and event.xdata and event.ydata:
+    global drag_pix_coord_end
+    if app.trace_display.canvas.toolbar.mode == "" and event.button == 1 and event.xdata and event.ydata:
         if drag_coord_start:
             xlim = app.trace_display.ax.get_xlim()
             ylim = app.trace_display.ax.get_ylim()
@@ -258,6 +261,7 @@ def plot_mouse_move(event):
                 app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
                 return
         drag_coord_end = (event.xdata, event.ydata)
+        drag_pix_coord_end = (event.x, event.y)
 
 def plot_event_pick(event):
     global event_pick
@@ -294,26 +298,24 @@ def plot_mouse_release(event):
     if app.trace_display.canvas.toolbar.mode != "":
         # take care of other cases here
         return None
+    global drag_pix_coord_start
 
     # plot is clicked, not zoom/pan or zoom rect
     global drag_coord_end
     global drag_coord_start
-    if drag_coord_start and event.button == 3:
+    delta_x_pix = drag_pix_coord_start[0] - event.x
+    delta_y_pix = drag_pix_coord_start[1] - event.y
+    if drag_coord_start and event.button == 1:
         # take care of rect multiselection here
         if event.xdata and event.ydata:
-            drag_coord_end = (event.xdata, event.ydata)
-        # if app.widgets['analysis_mode'].get() == 'mini' and app.widgets['trace_mode'].get() == 'continuous':
-        #     app.interface.highlight_events_in_range((drag_coord_start[0], drag_coord_end[0]),
-        #                                      (drag_coord_start[1], drag_coord_end[1]))
-        # elif app.widgets['trace_mode'].get() == 'overlay':
-        #     app.interface.highlight_sweep_in_range((drag_coord_start[0], drag_coord_end[0]),
-        #                                      (drag_coord_start[1], drag_coord_end[1]),
-        #                                        draw=True)
-        app.root.event_generate('<<CanvasDrawRect>>') # events bound to this will have access to drag_coord_start and drag_coord_end
-        drag_coord_end = None
-        drag_coord_start = None
-        app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
-        return None
+            if delta_x_pix > 0 and delta_y_pix >0:
+                drag_coord_end = (event.xdata, event.ydata)
+                app.root.event_generate('<<CanvasDrawRect>>') # events bound to this will have access to drag_coord_start and drag_coord_end
+            drag_coord_end = None
+            drag_coord_start = None
+            app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
+            if delta_x_pix>0 and delta_y_pix>0:
+                return None
     global mouse_event
     mouse_event = event
     if event.button == 1:
