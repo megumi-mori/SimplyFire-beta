@@ -70,8 +70,9 @@ def filter_Bessel(recording:Recording,
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lsim.html
         ys = recording.get_y_matrix(mode='continuous', channels=[c], sweeps=sweeps).flatten()
         xs = recording.get_x_matrix(mode='continuous', channels=[c], sweeps=sweeps).flatten()
-        tout, yout, xout = lsim((b,a), U=ys, T=xs)
-        recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=yout)
+        tout, filtered, xout = lsim((b,a), U=ys, T=xs)
+        filtered = np.reshape(filtered, (1, 1, len(filtered)))
+        recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
 
     pass
 
