@@ -26,6 +26,7 @@ class NaviForm(PluginForm):
     def apply_parameters(self, undo=True):
         super().apply_parameters(undo=undo)
         apply_navigation()
+        app.interface.focus()
 
 #### functions ####
 def apply_window(event=None):
@@ -94,6 +95,7 @@ def get_current_ylim(event=None):
 def on_open(event=None):
     if form.inputs['window_force_lim'].get():
         apply_window()
+    app.interface.focus()
 
 def show_all(event=None):
     app.trace_display.set_axis_limit('x', app.trace_display.default_xlim)

@@ -153,6 +153,7 @@ class PluginController():
     def add_undo(self, tasks):
         assert not isinstance(tasks, str)
         tasks.insert(0, self.show_and_select)
+        tasks.append(app.interface.focus)
         app.interface.add_undo(tasks)
 
     def show_and_select(self, event=None):

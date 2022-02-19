@@ -150,6 +150,7 @@ def average_sweeps(event=None):
         app.plugin_manager.get_script('sweeps', 'sweeps_GUI').show_list(selection=[app.interface.recordings[0].sweep_count - 1], undo=False)
     controller.log(msg='Average sweeps', header=True)
     controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}, Channels: {formatting.format_list_indices(target_channels)}', header=False)
+    app.interface.focus()
 
 def subtract_baseline(event=None):
     if len(app.interface.recordings)==0:
@@ -220,6 +221,7 @@ def subtract_baseline(event=None):
         for i,c in enumerate(target_channels):
             controller.log(msg=f'channel: {c}, avg: {avg_baseline[i][0]}, stdev: {std_baseline[i][0]}', header=False)
         pass
+    app.interface.focus()
 
 def filter_data(event=None):
     if len(app.interface.recordings)==0:
@@ -274,6 +276,7 @@ def filter_data(event=None):
     app.interface.plot(fix_x=True, fix_y=True, clear=False, relim=False)
     controller.log(msg=f'Apply filter: {filter_choice}, {filter_algorithm}, {params}')
     controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}, Channels: {formatting.format_list_indices(target_channels)}', header=False)
+    app.interface.focus()
 
 
 

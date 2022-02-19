@@ -258,7 +258,10 @@ def plot_mouse_move(event):
                 0] + height * pad / 100 < event.ydata < \
                     ylim[1] + height * pad / 100:
                 drag_coord_end = (event.xdata, event.ydata)
-                app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
+                try:
+                    app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
+                except Exception as e:
+                    print(f'Canvas draw rect error: {e}')
                 return
         drag_coord_end = (event.xdata, event.ydata)
         drag_pix_coord_end = (event.x, event.y)
@@ -303,8 +306,8 @@ def plot_mouse_release(event):
     # plot is clicked, not zoom/pan or zoom rect
     global drag_coord_end
     global drag_coord_start
-    delta_x_pix = drag_pix_coord_start[0] - event.x
-    delta_y_pix = drag_pix_coord_start[1] - event.y
+    delta_x_pix = abs(drag_pix_coord_start[0] - event.x)
+    delta_y_pix = abs(drag_pix_coord_start[1] - event.y)
     if drag_coord_start and event.button == 1:
         # take care of rect multiselection here
         if event.xdata and event.ydata:
@@ -313,8 +316,11 @@ def plot_mouse_release(event):
                 app.root.event_generate('<<CanvasDrawRect>>') # events bound to this will have access to drag_coord_start and drag_coord_end
             drag_coord_end = None
             drag_coord_start = None
-            app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
-            if delta_x_pix>0 and delta_y_pix>0:
+            try:
+                app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
+            except Exception as e:
+                print(f'Canvas draw rect error: {e}')
+            if delta_x_pix>0 or delta_y_pix>0:
                 return None
     global mouse_event
     mouse_event = event
@@ -322,6 +328,7 @@ def plot_mouse_release(event):
         app.root.event_generate('<<CanvasMouseRelease>>')
     if event.button == 3:
         app.root.event_generate('<<CanvasMouseRightRelease>>')
+    app.interface.focus()
 
     # if event.button == 3:
     #     return None

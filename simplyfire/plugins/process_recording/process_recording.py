@@ -1,7 +1,7 @@
 import numpy as np
 from simplyfire.utils.recording import Recording
-from scipy.signal import bessel, lsim
-import scipy.signal
+from scipy import signal
+
 def subtract_baseline(recording:Recording,
                       plot_mode:str='continuous',
                       channels:list=None,
@@ -65,12 +65,12 @@ def filter_Bessel(recording:Recording,
     pole = int(params['pole'])
     Hz = int(params['Hz'])
     Wn = 2*np.pi*Hz
-    b,a = bessel(pole, Wn, btype='low', analog=True, output='ba')
+    b,a = signal.bessel(pole, Wn, btype='low', analog=True, output='ba')
     for c in channels:
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lsim.html
         ys = recording.get_y_matrix(mode='continuous', channels=[c], sweeps=sweeps).flatten()
         xs = recording.get_x_matrix(mode='continuous', channels=[c], sweeps=sweeps).flatten()
-        tout, filtered, xout = lsim((b,a), U=ys, T=xs)
+        tout, filtered, xout = signal.lsim((b,a), U=ys, T=xs)
         filtered = np.reshape(filtered, (1, 1, len(filtered)))
         recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
 
