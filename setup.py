@@ -4,7 +4,7 @@ It is written in Python.
 
 SimplyFire can be downloaded from TestPyPI as follows:
 
-pip install -i https://test.pypi.org/simple/ simplyfire
+pip install -i https://test.pypi.org/simple/ simplyfirebeta
 
 To run the software from command line, use script:
 
@@ -13,15 +13,13 @@ py -m simplyfire
 The software is currently under pre-release.
 The package will be made available on PyPI once a stable-release is ready.
 
-
-
 """
 from setuptools import setup, find_packages
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
 setup(
-    name='simplyfire',
+    name='simplyfirebeta',
     version='3.0.2b0',
     author='Megumi Mori',
     description='Customizable electrophysiology analysis software',
@@ -54,5 +52,6 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
         'Operating System :: Microsoft :: Windows'
-    ]
+    ],
+    python_requires = '>=3.10'
 )
