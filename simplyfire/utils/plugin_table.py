@@ -41,13 +41,13 @@ class PluginTable(Tk.Frame, PluginGUI):
         self.status_var = BooleanVar()
         self.enabled = True
 
-        self.datatable.add_menu_command(label='Copy selection', command=self.datatable.copy)
-        self.datatable.add_menu_command(label='Select all', command=self.datatable.select_all)
+        self.datatable.add_menu_command(label='Copy selection', command=self.copy)
+        self.datatable.add_menu_command(label='Select all', command=self.select_all)
         self.datatable.add_menu_command(label='Delete selected', command=self.delete_selected)
 
         self.datatable.add_menu_separator()
-        self.datatable.add_menu_command(label='Fit columns', command=self.datatable.fit_columns)
-        self.datatable.add_menu_command(label='Clear data', command=self.datatable.clear)
+        self.datatable.add_menu_command(label='Fit columns', command=self.fit_columns)
+        self.datatable.add_menu_command(label='Clear data', command=self.clear)
         self.datatable.add_menu_command(label='Report all', command=self.report)
         self.datatable.add_menu_command(label='Report selected', command=self.report_selected)
 
@@ -84,6 +84,26 @@ class PluginTable(Tk.Frame, PluginGUI):
                 self.controller.add_undo([
                    lambda l=sel:self.datatable.delete(l)
                 ])
+
+    def copy(self, event=None):
+        # called by the right-click popup menu
+        # overwrite this to get a different response from the menu 'Copy Selected' command
+        self.datatable.copy()
+
+    def select_all(self, event=None):
+        # called by the right-click popup menu
+        # overwrite this to get a different response from the menu 'Select All' command
+
+        self.datatable.select_all()
+
+    def clear(self, event=None):
+        self.delete_all()
+
+    def fit_columns(self, event=None):
+        self.datatable.fit_columns()
+
+    def menu_delete_selected(self, event=None):
+        self.delete_selected()
 
     def set_data(self, dataframe):
         select = self.has_focus()
