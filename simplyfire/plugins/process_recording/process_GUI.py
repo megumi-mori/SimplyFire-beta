@@ -4,6 +4,7 @@ from simplyfire.utils import custom_widgets, formatting
 from . import process_recording
 from simplyfire import app
 import os
+from tkinter import messagebox
 import tkinter as Tk
 import numpy as np
 
@@ -105,6 +106,8 @@ def _select_highpass_algorithm(event=None):
 # processing functions
 def average_sweeps(event=None):
     if app.inputs['trace_mode'].get() == 'continuous':
+        messagebox.showwarning('Warning', 'Cannot average continuous plot')
+        app.interface.focus()
         return
     if form.inputs['channel_target'].get():
         target_channels = [app.interface.current_channel]

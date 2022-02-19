@@ -101,6 +101,7 @@ def show_all(event=None):
     app.trace_display.set_axis_limit('x', app.trace_display.default_xlim)
     app.trace_display.set_axis_limit('y', app.trace_display.default_ylim)
     app.trace_display.draw_ani()
+    app.interface.focus()
 
 #### make GUI components ####
 controller = PluginController(name='navigation', menu_label='Navigation')

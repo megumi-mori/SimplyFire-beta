@@ -109,6 +109,7 @@ def apply(details, draw=True, undo=True):
             controller.add_undo([lambda i=index, c=undo_color, x=undo_indices: apply_undo(i, c, x)])
     details['undo_color'] = details['color_entry'].get()
     details['undo_indices'] = details['sweeps_entry'].get()
+    app.interface.focus()
 
 
 
@@ -341,6 +342,7 @@ def remove(details:dict=None, panel_index=None, undo=True):
     app.trace_display.update_default_lim()
     if undo and app.interface.is_accepting_undo():
         controller.add_undo([lambda f=fname:remove_undo(f)])
+    app.interface.focus()
 
 def remove_undo(fname):
     record = Recording(fname)

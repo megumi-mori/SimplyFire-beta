@@ -126,6 +126,11 @@ def calculate_min_max(event=None):
     controller.log(msg=f'Analysis mode: {window}', header=False)
     controller.log(msg=f'xlim: {xlim}', header=False)
     controller.log(msg=f'Sweeps: {formatting.format_list_indices(target_sweeps)}, Channels: {formatting.format_list_indices(target_channels)}', header=False)
+    app.interface.focus()
+
+def delete_all(event=None, undo=True):
+    datapanel.delete_all(undo=undo)
+    app.interface.focus()
 # reporting
 def report(event=None):
     if len(app.interface.recordings) == 0:
@@ -178,6 +183,7 @@ def report(event=None):
             except:
                 output[c] = summarize_column(df[c])
     app.results_display.dataframe.add(output)
+    app.interface.focus()
 
 def report_selected(event=None):
     if len(app.interface.recordings) == 0:
@@ -230,6 +236,7 @@ def report_selected(event=None):
             except:
                 output[c] = summarize_column(df[c])
     app.results_display.dataframe.add(output)
+    app.interface.focus()
 
 # report helper
 def summarize_column(data):
@@ -307,7 +314,7 @@ form.insert_button(text='Calculate Min/Max', command=calculate_min_max)
 
 form.insert_separator()
 form.insert_button(text='Report stats', command=report)
-form.insert_button(text='Delete all', command=datapanel.delete_all)
+form.insert_button(text='Delete all', command=delete_all)
 #### datapanel ####
 datapanel.datatable.define_columns(('#', 'sweep', 'channel'), iid_header='#')
 
@@ -323,7 +330,7 @@ controller.add_file_menu_command(label='Export data table', command=datapanel.as
 
 
 #### load binding ####
-controller.listen_to_event('<<OpenRecording>>', lambda u=False:datapanel.delete_all(undo=u))
+controller.listen_to_event('<<OpenRecording>>', lambda u=False:delete_all(undo=u))
 controller.listen_to_event('<<LoadCompleted>>', datapanel.datatable.fit_columns)
 
 controller.load_values()

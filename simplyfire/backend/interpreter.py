@@ -288,6 +288,7 @@ def plot_event_pick(event):
         # data_display.toggle_one(str(xdata))
 
 def plot_mouse_release(event):
+    app.interface.focus()
     global event_pick
     if event_pick:
         event_pick = False
@@ -306,9 +307,9 @@ def plot_mouse_release(event):
     # plot is clicked, not zoom/pan or zoom rect
     global drag_coord_end
     global drag_coord_start
-    delta_x_pix = abs(drag_pix_coord_start[0] - event.x)
-    delta_y_pix = abs(drag_pix_coord_start[1] - event.y)
     if drag_coord_start and event.button == 1:
+        delta_x_pix = abs(drag_pix_coord_start[0] - event.x)
+        delta_y_pix = abs(drag_pix_coord_start[1] - event.y)
         # take care of rect multiselection here
         if event.xdata and event.ydata:
             if delta_x_pix > 0 and delta_y_pix >0:

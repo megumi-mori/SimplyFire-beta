@@ -298,7 +298,7 @@ def _columns_hide_all(event=None):
     called by the 'Hide All' button. Sets all the datapanel columsn to 'Hidden'
     """
     for option in data_display_options:
-        form.inputs[option].set('1')
+        form.inputs[option].set('')
     form.apply_parameters()
 
 def _default_core_params(event=None, undo=True):
@@ -761,6 +761,7 @@ def filter_all(event=None):
     app.clear_progress_bar()
     controller.log('Filter all')
     log_param()
+    app.interface.focus()
 
 
 def filter_window(event=None):
@@ -777,6 +778,7 @@ def filter_window(event=None):
     app.clear_progress_bar()
     controller.log('Filter window')
     log_param()
+    app.interface.focus()
 
 # parameter
 def get_params():
@@ -1447,6 +1449,7 @@ def report_results(event=None):
     data['Hz'] = df.shape[0] / (df['t'].max() - df['t'].min())
 
     app.results_display.report(data)
+    app.interface.focus()
 
 def report_selected_results(event=None):
     """
@@ -1501,6 +1504,7 @@ def report_selected_results(event=None):
     data['Hz'] = df.shape[0] / (df['t'].max() - df['t'].min())
 
     app.results_display.report(data)
+    app.interface.focus()
 
 def report_to_guide(event=None, mini=None):
     if popup.is_visible():
