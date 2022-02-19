@@ -13,8 +13,9 @@ tab_label = 'Process'
 
 baseline_option_panels={}
 filter_choices = ['Highpass', 'Lowpass']
-lowpass_algorithms = ['Boxcar', 'Test']
-filter_param_set = {'Boxcar':['width']} # list the parameters required for each algorithm
+lowpass_algorithms = ['Boxcar', 'Bessel']
+filter_param_set = {'Boxcar':['width'],
+                    'Bessel':['pole', 'Hz']} # list the parameters required for each algorithm
 filter_params = {} # populate parameters and widgets requried for different filtering options
 
 #### default values ####
@@ -27,6 +28,8 @@ baseline_mode = 'Mean of all targets'
 filter_algorithm = 'Lowpass'
 average_show_result = '1'
 width = 11
+pole = 8
+Hz = 1000
 filter_Lowpass_algorithm = 'Boxcar'
 filter_Highpass_algorithm = 'Not yet supported'
 
@@ -90,7 +93,7 @@ def _select_lowpass_algorithm(event=None):
     choice = form.inputs['filter_Lowpass_algorithm'].get()
     for w in filter_params:
         form.hide_widget(w)
-    if choice == 'Boxcar':
+    if choice in lowpass_algorithms:
         for key in filter_param_set[choice]:
             form.show_widget(key)
 
@@ -395,7 +398,22 @@ filter_params['width'] = form.insert_label_entry(
     name='width',
     text='Width',
     validate_type='int',
-    default=width
+    default=width,
+    separator=False
+)
+filter_params['pole'] = form.insert_label_entry(
+    name='pole',
+    text='Pole',
+    validate_type='int',
+    default=pole,
+    separator=False
+)
+filter_params['Hz'] = form.insert_label_entry(
+    name='Hz',
+    text='Hz',
+    validate_type='int',
+    default=Hz,
+    separator=False
 )
 form.inputs['width'].bind('<Return>', app.interface.focus)
 

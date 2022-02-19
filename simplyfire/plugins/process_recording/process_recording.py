@@ -1,6 +1,7 @@
 import numpy as np
 from simplyfire.utils.recording import Recording
-
+from scipy.signal import bessel, lsim
+import scipy.signal
 def subtract_baseline(recording:Recording,
                       plot_mode:str='continuous',
                       channels:list=None,
@@ -55,6 +56,24 @@ def filter_Boxcar(recording:Recording,
         recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=filtered)
 
     return recording
+
+def filter_Bessel(recording:Recording,
+                  params:dict=None,
+                  channels:list=None,
+                  sweeps:list=None):
+    assert type(recording) == Recording, f'data passed must be of type {Recording}'
+    pole = int(params['pole'])
+    Hz = int(params['Hz'])
+    Wn = 2*np.pi*Hz
+    b,a = bessel(pole, Wn, btype='low', analog=True, output='ba')
+    for c in channels:
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lsim.html
+        ys = recording.get_y_matrix(mode='continuous', channels=[c], sweeps=sweeps).flatten()
+        xs = recording.get_x_matrix(mode='continuous', channels=[c], sweeps=sweeps).flatten()
+        tout, yout, xout = lsim((b,a), U=ys, T=xs)
+        recording.replace_y_data(mode='continuous', channels=[c], sweeps=sweeps, new_data=yout)
+
+    pass
 
 
 # implement Boxel 8pole 1000Hz!
