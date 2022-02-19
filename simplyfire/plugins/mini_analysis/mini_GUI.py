@@ -223,6 +223,7 @@ class MiniForm(PluginForm):
         _populate_compound_params()
         _populate_decay_algorithms()
         _apply_column_options()
+        app.interface.focus()
 
 #### define functions ####
 # private functions
@@ -234,6 +235,7 @@ def _apply_column_options(event=None):
     datapanel.datatable.show_columns(
         [k for k,v in mini_header2config.items() if form.inputs[v].get()]
     )
+    app.interface.focus()
 
 def _apply_styles(event=None, draw=True, undo=True):
     """
@@ -359,12 +361,12 @@ def canvas_mouse_release(event=None):
         app.interface.focus()
         return
     datapanel.unselect()
-    try:
-        find_mini_manual(app.interpreter.mouse_event.xdata) # get the stored mouse event from interpreter
-        app.interface.focus()
-    except Exception as e:
-        print(e)
-        pass
+    # try:
+    find_mini_manual(app.interpreter.mouse_event.xdata) # get the stored mouse event from interpreter
+    app.interface.focus()
+    # except Exception as e:
+    #     print(e)
+    #     pass
 
 
 
@@ -419,6 +421,7 @@ def delete_clear(undo=False, draw=True):
     if draw:
         update_event_markers(draw=True)
     log_delete()
+    app.interface.focus()
 
 def delete_all(undo=True, draw=True):
     """
@@ -444,6 +447,7 @@ def delete_all(undo=True, draw=True):
         update_event_markers(draw=True)
     update_module_table()
     log_delete()
+    app.interface.focus()
 
 def delete_from_canvas(event=None, undo=True):
     """
@@ -482,6 +486,7 @@ def delete_selection(selection:list, undo:bool=True, draw:bool=True):
     mini_df = mini_df[(~mini_df['t'].isin(selection)) | (mini_df['channel'] != app.interface.current_channel)]
     datapanel.datatable.delete(selection) # delete the entries in the datapanel
     update_event_markers(draw=draw)
+    app.interface.focus()
 
 # getters
 def extract_column(colname:str, t:list=None) -> list:
@@ -526,6 +531,7 @@ def find_mini_all(event=None, popup:bool=True, undo:bool=True):
     #     log_display.param_update(detector_tab.changes)
     #     detector_tab.changes = {}
     #     detector_tab.changed = False
+    app.interface.focus()
 
 def _find_mini_all_thread(undo=True):
     """
@@ -587,9 +593,8 @@ def find_mini_at(x1, x2):
 
     global saved
     if mini['success']:
-        mini_df = mini_df.append(mini,
-                                           ignore_index=True,
-                                           sort=False)
+        mini_df = pd.concat([mini_df, mini.to_frame().T], axis=0, ignore_index=True, sort=False, copy=False)
+
         mini_df = mini_df.sort_values(by='t')
         datapanel.add({key: value for key, value in mini.items() if key in mini_header2config},
                                  undo=False)
@@ -599,6 +604,7 @@ def find_mini_at(x1, x2):
             [lambda s=(mini.get('t'),): delete_selection(s, undo=False)]
         )
     report_to_guide(mini=mini)
+    app.interface.focus()
 
 
 def find_mini_manual(x):
@@ -613,6 +619,7 @@ def find_mini_manual(x):
     find_mini_at(max(x-r, xlim[0]), min(x+r, xlim[1]))
     log_manual()
     log_param()
+    app.interface.focus()
 
 
 def find_mini_range(event=None, popup=True, undo=True):
@@ -626,6 +633,7 @@ def find_mini_range(event=None, popup=True, undo=True):
     datapanel.unselect()
     threader.start_thread(lambda u=undo: _find_mini_range_thread(undo=u), mini_analysis.interrupt,
                              popup)
+    app.interface.focus()
 
 def _find_mini_range_thread(undo=True):
     """
@@ -723,9 +731,10 @@ def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
             hits.append(mini)
     new_df = pd.DataFrame.from_dict(hits)
     if new_df.shape[0] > 0:
-        mini_df = mini_df.append(new_df,
-                                           ignore_index=True,
-                                           sort=False)
+        mini_df = pd.concat([mini_df, new_df], axis=0, ignore_index=True, sort=False, copy=False)
+        # mini_df = mini_df.append(new_df,
+        #                                    ignore_index=True,
+        #                                    sort=False) # deprecated
         mini_df = mini_df.sort_values(by='t')
         datapanel.append(new_df, undo=False)
         saved = False  # track change
@@ -871,7 +880,8 @@ def open_minis(filename, log=True, undo=True, append=False):
         saved = True
     else:
         delete_clear(undo=False, draw=False)
-        mini_df = mini_df.append(df)
+        # mini_df = mini_df.append(df) # deprecated
+        mini_df = pd.concat([mini_df, df], axis=0, ignore_index=True, sort=False, copy=False)
         update_module_table()
     if log:
         controller.log(f'Open mini file: {filename}', True)
