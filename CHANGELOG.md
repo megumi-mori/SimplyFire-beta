@@ -1,4 +1,4 @@
-# Beta 3.0.2
+# Beta 0.3.0
 - SimplyFire-beta made public
 - Plugins can be activated/inactivated
 - Bug fixes for mini finding algorithm (compound minis)
