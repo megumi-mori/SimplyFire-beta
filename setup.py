@@ -70,5 +70,5 @@ setup(
         'Programming Language :: Python :: 3',
         'Operating System :: Microsoft :: Windows'
     ],
-    python_requires = '>=3.10'
+    python_requires = '>=3.8'
 )
