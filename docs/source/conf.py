@@ -33,12 +33,12 @@ pygments_style = 'sphinx'
 # import sphinx_rtd_theme
 html_theme = 'default'
 # html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+#
+# if not on_rtd:  # only import and set the theme if we're building docs locally
+import sphinx_rtd_theme
+html_theme = 'sphinx_rtd_theme'
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 html_static_path = ['_static']
 
