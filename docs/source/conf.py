@@ -6,6 +6,7 @@ project = 'SimplyFire'
 copyright = '2022, Megumi Mori'
 author = 'Megumi Mori'
 
+release = '0.3'
 version = '0.3.0'
 
 # -- General configuration
