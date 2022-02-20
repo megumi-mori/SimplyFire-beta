@@ -2,9 +2,9 @@
 
 # -- Project information
 
-project = 'SimplyFire'
-copyright = '2022, Megumi Mori'
-author = 'Megumi Mori'
+project = u'SimplyFire'
+copyright = u'2022, Megumi Mori'
+author = u'Megumi Mori'
 
 release = '0.3'
 version = '0.3.0'
@@ -26,11 +26,15 @@ intersphinx_mapping = {
 intersphinx_disabled_domains = ['std']
 
 templates_path = ['_templates']
-
+master_doc = 'index'
+exclude_patterns = ['_build']
+pygments_style = 'sphinx'
 # -- Options for HTML output
 # import sphinx_rtd_theme
 html_theme = 'default'
 # html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+html_static_path = ['_static']
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
