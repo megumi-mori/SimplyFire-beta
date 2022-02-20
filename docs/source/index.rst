@@ -10,8 +10,6 @@ Welcome to simplyfire's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   index
-
 
 Indices and tables
 ==================
