@@ -1,5 +1,5 @@
 Welcome to SimplyFire's documentation!
-===================================
+=======================================
 
 hello world!
 
