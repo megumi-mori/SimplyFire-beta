@@ -1,4 +1,7 @@
 """
+module to write abf files.
+Can be imported independently from the UI, but requires the recording module
+
 SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY

@@ -1,5 +1,7 @@
 """
-simplyfire - Customizable analysis of electrophysiology data
+Base UI for plugin popup.
+
+SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 

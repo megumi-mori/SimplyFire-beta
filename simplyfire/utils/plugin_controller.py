@@ -1,5 +1,9 @@
 """
-simplyfire - Customizable analysis of electrophysiology data
+Use to easily handle various plugin UI components.
+Can be inherited to customize the class.
+Use with the plugin_form, plugin_table, and plugin_popup modules.
+
+SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 

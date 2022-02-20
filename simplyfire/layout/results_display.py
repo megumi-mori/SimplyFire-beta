@@ -1,5 +1,7 @@
 """
-simplyfire - Customizable analysis of electrophysiology data
+Loads and handles the results_display widget.
+
+SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 

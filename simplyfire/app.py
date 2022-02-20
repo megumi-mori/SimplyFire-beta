@@ -1,5 +1,7 @@
 """
-simplyfire - Customizable analysis of electrophysiology data
+Loader for the UI system. Connects to all components of the software.
+
+SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 

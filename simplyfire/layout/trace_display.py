@@ -1,5 +1,7 @@
 """
-simplyfire - Customizable analysis of electrophysiology data
+Matplotlib interface with the UI. Handles plotting of the traces in the base UI.
+
+SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 

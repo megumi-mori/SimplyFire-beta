@@ -1,5 +1,7 @@
 """
-simplyfire - Customizable analysis of electrophysiology data
+UI for batch-processing and runs user-specified routine.
+
+SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 

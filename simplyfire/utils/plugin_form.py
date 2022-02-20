@@ -1,5 +1,8 @@
 """
-simplyfire - Customizable analysis of electrophysiology data
+Base class for making forms in the system UI.
+Use with plugin_controller for automated plugin-controls
+
+SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 

@@ -1,5 +1,8 @@
 """
-appomizable analysis of electrophysiology data
+Useful widgets for the UI - combines tkinter UI widgets with variables
+for simpler value setting and retrieval.
+
+Simplyfire - customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 

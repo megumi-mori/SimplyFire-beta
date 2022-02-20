@@ -1,5 +1,8 @@
 """
-simplyfire - Customizable analysis of electrophysiology data
+Loads and handles interactions with the log widget
+
+
+SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 

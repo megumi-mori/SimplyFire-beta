@@ -1,5 +1,8 @@
 """
-simplyfire - Customizable analysis of electrophysiology data
+Read abf files and store as Recording class
+Data format for recording data used in the SimplyFire software.
+
+SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 

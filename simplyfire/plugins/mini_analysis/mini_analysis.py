@@ -1,3 +1,24 @@
+"""
+mini_analysis plugin - analysis algorithms to find mini synaptic events
+The module can be imported independently of the base UI system.
+
+SimplyFire - Customizable analysis of electrophysiology data
+Copyright (C) 2022 Megumi Mori
+This program comes with ABSOLUTELY NO WARRANTY
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
 import numpy as np
 import pandas as pd
 from simplyfire.utils import calculate

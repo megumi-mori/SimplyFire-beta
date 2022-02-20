@@ -1,5 +1,8 @@
 """
-simplyfire - Customizable analysis of electrophysiology data
+Custom class for scrollable and customizable tkinter frame.
+Used in various ready-to-use base classes.
+
+SimplyFire - Customizable analysis of electrophysiology data
 Copyright (C) 2022 Megumi Mori
 This program comes with ABSOLUTELY NO WARRANTY
 
