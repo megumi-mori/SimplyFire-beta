@@ -3,8 +3,7 @@ Welcome to SimplyFire's documentation!
 
 hello world!
 
-Check out the :doc:`usage` section for further information, including
-how to :ref:`installation` the project.
+Check out the :doc:`usage` the project.
 
 Lumache has its documentation hosted on Read the Docs.
 
