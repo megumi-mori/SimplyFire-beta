@@ -16,3 +16,7 @@ simplyfire/active_plugins.yaml
 simplyfire/key_map.yaml
 simplyfire/setting/setting_config.yaml
 simplyfire.egg-info/*
+
+docs/_build/*
+docs/_static/*
+docs/_templates/*
