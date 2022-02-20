@@ -2,12 +2,11 @@
 
 # -- Project information
 
-project = 'Lumache'
-copyright = '2021, Graziella'
-author = 'Graziella'
+project = 'SimplyFire'
+copyright = '2022, Megumi Mori'
+author = 'Megumi Mori'
 
-release = '0.1'
-version = '0.1.0'
+version = '0.3.0'
 
 # -- General configuration
 
