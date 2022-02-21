@@ -12,11 +12,10 @@ SimplyFire's documentation is hosted on Read the Docs.
 
    This project is under active development.
 
-Contents
---------
-
 .. toctree::
+  :caption: GUI application
+  :maxdepth: 2
+  :hidden:
 
-   installation
-   basic
-   plugins
+  start
+  analysis
