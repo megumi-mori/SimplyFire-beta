@@ -1,11 +1,12 @@
 Welcome to SimplyFire's documentation!
 =======================================
 
-hello world!
+SimplyFire is a open-source software for analyzing electrophysiology data.
+The software is developed with ease of use and customizability in mind.
 
-Check out the :doc:`usage` the project.
+Check out the :doc:`Installation` section on how to get started.
 
-Lumache has its documentation hosted on Read the Docs.
+SimplyFire's documentation is hosted on Read the Docs.
 
 .. note::
 
@@ -16,4 +17,4 @@ Contents
 
 .. toctree::
 
-   usage
+   installation
