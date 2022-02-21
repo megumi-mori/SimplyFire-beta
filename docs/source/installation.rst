@@ -2,8 +2,8 @@
 Installation
 ============
 
-.exe Installation (beginner friendly)
--------------------------------------
+.exe Installation for Windows (simple)
+--------------------------------------
 
 Download the software zip file from the latest github repository.
 
@@ -15,8 +15,14 @@ Run the executable file to begin the application.
 
 That's it!
 
+
 Head over to the analysis section for goal-oriented overviews
 or read the plugin-specific documentations for detailed instructions.
+
+Supported systems
+^^^^^^^^^^^^^^^^^^
+
+* Windows 10
 
 
 Python Installation (advanced)
@@ -26,10 +32,10 @@ SimplyFire can be installed as a Python module through PyPI.
 Install SimplyFire from `TestPyPI <https://test.pypi.org/project/SimplyFire/>`_ using
 `pip` as follows::
 
-  install -i https://test.pypi.org/simple/ simplyfirebeta
+  pip install -i https://test.pypi.org/simple/ simplyfirebeta
 
 
-The package will be made available on PyPI in the future for stable releases.
+The package will be made available on the main PyPI database in the future for stable releases.
 
 Once installed, run SimplyFire from any directory::
 
@@ -37,6 +43,9 @@ Once installed, run SimplyFire from any directory::
 
 SimplyFire is mainly a GUI-based software.
 However, the algorithms for analyses can be imported as packages and used in Python scripts.
+
+Required Packages
+^^^^^^^^^^^^^^^^^
 
 SimplyFire is dependent on the following packages (with tested version numbers):
 
@@ -47,6 +56,16 @@ SimplyFire is dependent on the following packages (with tested version numbers):
 * `pyyaml <https://pyyaml.org/>`_ (>=6.0)
 * `pyabf <https://swharden.com/pyabf/>`_ (>=2.3.5)
 
+Earlier packages have not been tested, but they may still work.
+
+Supported Systems
+^^^^^^^^^^^^^^^^^^
+The code has been developed on Windows 10.
+
+While most of the code should work on any platform,
+some of the GUI event-handling and file read/write may be system specific.
+
+OSX and Linux testers are welcome to submit system-specific issues!
 
 Source Code (developer)
 ------------------------
@@ -56,3 +75,13 @@ The source code can be found in the `GitHub repository <https://github.com/megum
 
 Algorithm specific to a plugin are stored as separate submodules.
 These modules do not require the GUI component, and may be imported independently of the GUI application.
+
+
+Supported Systems
+^^^^^^^^^^^^^^^^^^
+The code has been developed on Windows 10.
+
+The GUI component may have system-specific code.
+The analysis modules should work independently of the system environment.
+
+System-specific issues are welcome!

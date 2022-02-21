@@ -18,3 +18,5 @@ Contents
 .. toctree::
 
    installation
+   basic
+   plugins
