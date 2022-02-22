@@ -1,6 +1,6 @@
 
 Getting Started
-================
+=================
 Installation
 --------------
 
@@ -12,7 +12,7 @@ Download the software zip file from the latest github repository.
 `Download SimplyFire zip <https://github.com/megumi-mori/SimplyFire-beta/releases/download/v0.3.0-beta/SimplyFire0.3.0.zip>`_.
 
 Extract the contents of the zip file.
-Within the `SimplyFire` root folder, locate `SimplyFire.exe`.
+Within the ``SimplyFire`` root folder, locate ``SimplyFire.exe``.
 Run the executable file to begin the application.
 
 That's it!
@@ -28,16 +28,20 @@ Python Installation (advanced)
 SimplyFire can be installed as a Python module through PyPI.
 
 Install SimplyFire from `TestPyPI <https://test.pypi.org/project/SimplyFire/>`_ using
-`pip` as follows::
+`pip` as follows:
 
-  pip install -i https://test.pypi.org/simple/ simplyfirebeta
+.. code:: console
+
+  $ pip install -i https://test.pypi.org/simple/ simplyfirebeta
 
 
 The package will be made available on the main PyPI database in the future for stable releases.
 
-Once installed, run SimplyFire from any directory::
+Once installed, run SimplyFire from any directory:
 
-  py -m simplyfire
+.. code:: console
+
+  $ py -m simplyfire
 
 SimplyFire is mainly a GUI-based software.
 However, the algorithms for analyses can be imported as packages and used in Python scripts.
@@ -85,4 +89,99 @@ System-specific issues are welcome!
 
 Using the software
 ---------------------
-SimplyFire can read files stored in `.abf` format
+Open recordings
+^^^^^^^^^^^^^^^^^^^
+
+SimplyFire can read files stored in ``.abf`` format.
+Other file formats are currently not supported, but feature requests
+are always welcome.
+
+
+To open a new file, go to ``File`` menu -> ``Open Recording`` or press ``Alt+o``.
+
+Recording data from a single channel will be plotted on the ``graph-panel``.
+
+Change the channel displayed through the ``channel`` drop-down menu located
+above the plot.
+
+.. Tip::
+
+  If the same channel is always analyzed, the channel selection process
+  can be skipped by checking the ``Always open the same channel`` check box
+  located above the plot. Enter the index of the channel to be accessed.
+  The channels are numbered starting from 0 ('0-indexing').
+
+A recording can be shown in **continuous** mode or **overlay** mode.
+To change the display mode, go to the ``View`` menu and select the desired mode.
+
+continuous
+  the recording is shown as a single trace.
+  Each subsequent sweep is concatenated after the last.
+  Mini analysis mode requires the recording to be in this mode.
+
+overlay
+  multiple sweeps are superimposed
+
+Navigation
+^^^^^^^^^^^
+Navigate the recording data by using the navigation buttons located around
+the plot.
+Both x- and y- axes have buttons to zoom in/out and pan.
+The y-axis scrollbar controls the position of the left-most visible datapoint
+in the y-axis.
+The x-axis scrollbar controls the visible x-axis window relative to the
+entire recording.
+
+Several ``matplotlib`` tools are available above the plot for navigation.
+
+.. |ico_pan| image:: img/matplotlib/move.png
+
+|ico_pan| pan/zoom
+  Left click and drag to move the trace.
+  Right click and drag to zoom the axes
+
+.. |ico_zoom| image:: img/matplotlib/zoom_to_rect.png
+
+|ico_zoom| zoom to rect
+  Click and drag to draw a rectangle.
+  Left click and drag to zoom in.
+  Right click and drag to zoom out.
+
+.. |ico_save| image:: img/matplotlib/filesave.png
+
+|ico_save| save figure
+  Saves the visible plot as an image file.
+  Everything that is visible on the plot, including
+  markers from plugins will be saved.
+  Vector image file format is available for making figures for publication.
+
+Analysis
+^^^^^^^^^
+
+Other navigation, data-processing, and analysis options
+are available via various plugins.
+
+All GUI-based plugins are hidden by default.
+To make them visible, go to ``Plug-ins`` menu -> click on the
+desired plugin name.
+Plugins that require user-input will typically have a form appear
+in the **control-panel**, located on the left-hand side of the application.
+
+Use the tabs in the **control-panel** to navigate between various plugins.
+
+
+Check out the :doc:`workflow` section for primers on analysis methods.
+Check out the :doc:`plugins_gui` section for details on each plugin.
+
+
+Plugins
+^^^^^^^^
+Plugins can be turned off/on.
+By default, all of the plugins in the package are turned on.
+To control which plugins are in use, go to ``Plug-ins`` menu -> ``Manage plug-ins``.
+
+Toggle the check box for each plugin and click on ``Apply``.
+
+Restart the software to reflect the changes.
+
+Custom and external plugins can be added to the ``plugins`` folder located within the software data directory.
