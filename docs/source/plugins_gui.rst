@@ -1,4 +1,8 @@
 Plugins (GUI)
 ==============
 
-hello world
+
+.. toctree::
+  :maxdepth: 1
+
+  plugin_gui/process

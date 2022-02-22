@@ -89,7 +89,9 @@ System-specific issues are welcome!
 
 Using the software
 ---------------------
-Open recordings
+.. _open-recording:
+
+Open a recording
 ^^^^^^^^^^^^^^^^^^^
 
 SimplyFire can read files stored in ``.abf`` format.
@@ -122,8 +124,10 @@ continuous
 overlay
   multiple sweeps are superimposed
 
-Navigation
-^^^^^^^^^^^
+.. _navigation:
+
+Navigation Tools
+^^^^^^^^^^^^^^^^^
 Navigate the recording data by using the navigation buttons located around
 the plot.
 Both x- and y- axes have buttons to zoom in/out and pan.
