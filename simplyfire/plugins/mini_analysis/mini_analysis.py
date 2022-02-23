@@ -1018,7 +1018,7 @@ def analyze_candidate_mini(xs,
     ####### calculate end of event #######
     next_peak_idx = None
     if compound:
-        next_search_start = np.where((ys[int(peak_idx + min_peak2peak):int(peak_idx + max_compound_interval_idx)] -
+        next_search_start = np.where((ys[int(peak_idx):int(peak_idx + max_compound_interval_idx)] -
                                       mini['baseline']) * direction < mini['amp'] * (100 - p_valley) / 100 * direction)
         if len(next_search_start[0]) > 0:
             next_peak_idx = find_peak_recursive(xs=xs,
@@ -1034,9 +1034,10 @@ def analyze_candidate_mini(xs,
     if next_peak_idx is not None:
         # estimate amplitude of next peak
         if (ys[next_peak_idx] - mini['baseline']) * direction > min_amp:
-            # make sure to ignore peak_idx to min_peak2peak (user-defined area to ignore compounds)
-            end_idx = np.where(ys[int(peak_idx+min_peak2peak):next_peak_idx] * direction == min(
-                ys[int(peak_idx+min_peak2peak):next_peak_idx] * direction))[0][0] + int(peak_idx+min_peak2peak)
+            # include peak_idx:peak_idx+min_peak2peak because the valley happens before the next peak
+            # pick the last point if there are multiple minimums
+            end_idx = np.where(ys[int(peak_idx):next_peak_idx] * direction == min(
+                ys[int(peak_idx):next_peak_idx] * direction))[0][-1] + int(peak_idx)
     if end_idx is None:
         end_idx = min(peak_idx + decay_max_points, len(xs) - 1)
 
