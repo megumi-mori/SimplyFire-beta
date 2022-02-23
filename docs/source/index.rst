@@ -9,6 +9,7 @@ Check out the :doc:`start` section.
 .. image:: /_static/img/representative.png
   :align: center
 
+
 SimplyFire's documentation is hosted on Read the Docs.
 
 .. note::

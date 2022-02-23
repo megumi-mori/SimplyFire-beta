@@ -4,10 +4,10 @@ Mini Analysis Plugin
 The purpose of this plugin is to detect, analyze, and annotate mini
 synaptic events.
 
-.. .. figure:: ../_static/img/mini_analysis.png
-..   :align: center
-..
-..   A typical layout of the Mini Analysis Plugin.
+.. figure:: ../_static/img/mini_analysis.png
+  :align: center
+
+  A typical layout of the Mini Analysis Plugin.
 
 Required plugins
   * Style
@@ -248,10 +248,10 @@ Click the ``Open guide`` button to open a popup.
 Triggering a manual analysis or selecting a single mini will plot the
 same mini in the popup window.
 
-.. .. figure:: /_static/img/mini_guide.png
-..   :align: center
-..
-..   An example mEJC shown in the **mini guide**
+.. figure:: /_static/img/mini_guide.png
+  :align: center
+
+  An example mEJC shown in the **mini guide**
 
 In the plot area, the following details are plotted:
   * Raw data points including and around the mini
