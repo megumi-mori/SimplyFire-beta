@@ -94,14 +94,14 @@ GUI Layout
 ^^^^^^^^^^^
 
 Upon startup, the software will look like this:
-
-.. figure:: /_static/img/main_annotated.png
-  :align: center
-
-  Default layout of the software.
-  Many plugins will show forms to input parameters in the **control-panel**.
-  Recording data appear in the **graph-panel**.
-  Data for analysis appear in the **trace-display**.
+..
+.. .. figure:: /_static/img/main_annotated.png
+..   :align: center
+  ..
+  .. Default layout of the software.
+  .. Many plugins will show forms to input parameters in the **control-panel**.
+  .. Recording data appear in the **graph-panel**.
+  .. Data for analysis appear in the **trace-display**.
 
 .. _open-recording:
 
@@ -159,27 +159,27 @@ The following keyboard shortcuts are available to navigate the plot:
   Zoom the x- and y-axes
 
 Several ``matplotlib`` tools are available above the plot for navigation.
-
-.. |ico_pan| image:: /_static/img/move.png
-
-|ico_pan| pan/zoom
-  Left click and drag to move the trace.
-  Right click and drag to zoom the axes
-
-.. |ico_zoom| image:: /_static/img/zoom_to_rect.png
-
-|ico_zoom| zoom to rect
-  Click and drag to draw a rectangle.
-  Left click and drag to zoom in.
-  Right click and drag to zoom out.
-
-.. |ico_save| image:: /_static/img/filesave.png
-
-|ico_save| save figure
-  Saves the visible plot as an image file.
-  Everything that is visible on the plot, including
-  markers from plugins will be saved.
-  Vector image file format is available for making figures for publication.
+..
+.. .. |ico_pan| image:: /_static/img/move.png
+..
+.. |ico_pan| pan/zoom
+..   Left click and drag to move the trace.
+..   Right click and drag to zoom the axes
+..
+.. .. |ico_zoom| image:: /_static/img/zoom_to_rect.png
+..
+.. |ico_zoom| zoom to rect
+..   Click and drag to draw a rectangle.
+..   Left click and drag to zoom in.
+..   Right click and drag to zoom out.
+..
+.. .. |ico_save| image:: /_static/img/filesave.png
+..
+.. |ico_save| save figure
+..   Saves the visible plot as an image file.
+..   Everything that is visible on the plot, including
+..   markers from plugins will be saved.
+..   Vector image file format is available for making figures for publication.
 
 Analysis
 ^^^^^^^^^
