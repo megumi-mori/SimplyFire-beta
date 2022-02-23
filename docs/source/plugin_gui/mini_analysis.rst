@@ -4,10 +4,10 @@ Mini Analysis Plugin
 The purpose of this plugin is to detect, analyze, and annotate mini
 synaptic events.
 
-.. figure:: ../_static/img/mini_analysis.png
-  :align: center
-
-  A typical layout of the Mini Analysis Plugin.
+.. .. figure:: ../_static/img/mini_analysis.png
+..   :align: center
+..
+..   A typical layout of the Mini Analysis Plugin.
 
 Required plugins
   * Style
