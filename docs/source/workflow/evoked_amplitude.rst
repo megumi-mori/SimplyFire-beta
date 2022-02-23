@@ -68,7 +68,7 @@ If the artefact is larger than the evoked response, set the
 ``Limit x-axis for analysis to:  `` parameter to ``Visible window`` and adjust
 the plot so that the artefact are outside of the visible window.
 
-Alternatively, set the ``Limit x-axis for analysis to:  `` parameter to
+Alternatively, set the :gluilabel:`Limit x-axis for analysis to:` parameter to
 ``Defined range  `` and enter the lower and upper x-axis limits for the analysis.
 
 Click on ``Calculate Min/Max  `` button.
