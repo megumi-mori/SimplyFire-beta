@@ -6,3 +6,4 @@ Plugins (GUI)
   :maxdepth: 1
 
   plugin_gui/process
+  plugin_gui/mini_analysis

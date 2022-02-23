@@ -89,6 +89,20 @@ System-specific issues are welcome!
 
 Using the software
 ---------------------
+
+GUI Layout
+^^^^^^^^^^^
+
+Upon startup, the software will look like this:
+
+.. figure:: img/layout/main_annotated.png
+  :align: center
+
+  Default layout of the software.
+  Many plugins will show forms to input parameters in the **control-panel**.
+  Recording data appear in the **graph-panel**.
+  Data for analysis appear in the **trace-display**.
+
 .. _open-recording:
 
 Open a recording
@@ -124,7 +138,7 @@ continuous
 overlay
   multiple sweeps are superimposed
 
-.. _navigation:
+.. _navigation-tools:
 
 Navigation Tools
 ^^^^^^^^^^^^^^^^^
@@ -136,6 +150,14 @@ in the y-axis.
 The x-axis scrollbar controls the visible x-axis window relative to the
 entire recording.
 
+The following keyboard shortcuts are available to navigate the plot:
+
+``w``/``a``/``s``/``d`` keys
+  Pan the x- and y-axes
+
+``i``/``j``/``k``/``l`` keys
+  Zoom the x- and y-axes
+  
 Several ``matplotlib`` tools are available above the plot for navigation.
 
 .. |ico_pan| image:: img/matplotlib/move.png

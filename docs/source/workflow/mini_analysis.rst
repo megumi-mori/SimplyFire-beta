@@ -3,49 +3,63 @@ Mini analysis
 Overview
 ---------
 Goal:
-  Identify and analyze spontaneous mini synaptic events (mEPSP, mEPSC, mEJP, mEJC)
+  Identify, annotate, and analyze spontaneous mini synaptic events
+  (mEPSP, mEPSC, mEJP, mEJC)
   in the recording
 
 Output:
   * Visual markers for individual minis
   * Exportable table of mini data (csv)
   * Data stored for future use
+  * Summary
 
 Plugins used:
   * Navigation (optional)
-  * Process Recording (optional)
-  * Mini Analysis
+  * :doc:`../plugin_gui/process` (optional)
+  * :doc:`../plugin_gui/mini_analysis`
 
-Open recording
-----------------
-
-:ref:`open-recording` and set to ``continuous`` view mode.
-Select the channel to analyze.
-
-Navigate
+Set up
 ---------
 
-For automated analysis, use the :ref:`navigation` to adjust
-the x-axis such that only the desired range for analysis is displayed on the plot.
-For manual analysis, use the :ref:`navigation` so that the minis are
-visually recognizable.
+:ref:`open-recording` from ``file`` menu -> ``Open recording`` or ``Alt+o``.
+Set the view mode to ``continuous`` by ``View`` menu -> ``continuous``
+Select the channel to analyze in the channel dropdown menu.
 
-Additionally, the ``Navigation`` plugin offers additional ways to easily
-navigate through the recording data.
+Open plugins to use by ``Plug-ins`` menu -> select the desired plugin names.
+Plugins typically have user-input forms that appear in the **control-panel**
+as individual tabs.
 
-Filter
---------
+Use the :ref:`navigation-tools` located around the plot to adjust
+the x- and y-axes.
+
+Alternatively, use the ``Navigation`` plugin to set the desired x- and y-axes
+limits.
+
+
+Filtering (optional)
+^^^^^^^^^^^^^^^^^^^^^
 
 If noise is high in the raw recording data, a filter may be applied.
 
-The ``Process Recording`` plugin offers some filtering options.
+The ``Process Recording`` plugin offers 'Lowpass Boxcar' and 'Lowpass Bessel'
+filtering. Under the ``Filtering`` section, select the desired filtering
+algorithm and enter the required parameters.
+Save the filtered recording data by ``file`` menu -> ``Save recording data as``.
+
+.. Caution::
+  ``.abf`` files cannot be overwritten by SimplyFire.
+  Filtered data should be stored as new files.
+
 
 Alternatively, a filter may be applied outside of the SimplyFire environment.
-As long as the filtered data is stored in ``.abf`` format,
-SimplyFire is able to handle the filtered data.
+Ensure that the filtered data is saved in ``.abf`` format.
+Open the filtered recording using SimplyFire.
 
-Set mini analysis parameters
+Analysis
 ------------------------------
+
+Parameters
+^^^^^^^^^^^^^
 
 The ``Mini Analysis`` plugin depends on a handful of parameters to find minis.
 The basic parameters are described here. For more information on all the
@@ -87,23 +101,24 @@ Minimum amplitude (absolute value)
   Setting this to 0 (without other filtering parameters) will result in
   most noise being annotated as a mini.
 
-Automated analysis
--------------------
 
-Once the desired parameters are set, click on ``Find all`` to scan through
-the entire trace.
-To only sample from a subset of the trace, click on ``Find in window`` to
-search only the visible x-axis.
+
+Automated analysis
+^^^^^^^^^^^^^^^^^^^
+
+Two automated analysis modes are available:
+``Find all`` searches through the entire trace.
+``Find in window`` searches the visible x-axis.
 
 All discovered minis will be annotated on the plot, and the details
-should appear in the data tab underneath the plot.
+should appear in the **data-panel** located below the plot.
 
 .. Caution::
   Find in window only uses the x-axis to exclude parts of the trace from analysis.
   Parts of the y-axis that are out of view may still be included in the analysis.
 
 Manual analysis
--------------------
+^^^^^^^^^^^^^^^^
 
 Navigate through the trace and click on the plot near the desired mini events.
 
@@ -114,19 +129,18 @@ Navigate through the trace and click on the plot near the desired mini events.
 
 If the software detects a mini near the clicked location, it will annotate the
 event on the plot.
-Details of the minis will be added to the table underneath the plot
+Details of the minis will be added to the table below the plot
 as new minis are discovered.
 
 Delete minis
----------------
+^^^^^^^^^^^^^
 
 Discovered minis can be discarded using several methods.
 
-Delete all
-  Click on the ``Delete all`` button to clear all minis found within the channel.
+Delete buttons
+  ``Delete all`` button clears all minis found within the channel.
 
-Delete in window
-  Click on the ``Delete in window`` button to clear data for minis found within
+  ``Delete in window`` button clears data for minis found within
   the visible x-axis.
 
   .. Caution::
@@ -134,52 +148,72 @@ Delete in window
     Minis that are out of the visible y-axis may still be discarded if it
     lands within the visible x-axis boundaries.
 
-Single selection from plot
+Select minis on the plot
   Clicking on the peak marker for a mini highlights it.
+  Clicking on the peakr marker while holding the ``Shift`` key highlights
+  multiple peaks.
+  Alternatively, ``left-click`` + drag to highlight minis found
+  within the rectangle.
+  Press the ``Escape``/``q`` key to remove the highlights.
+  Press ``Ctrl+a`` to select all minis.
+
   Hitting the ``Delete``/``Backspace``/``e`` key deletes the data for the mini.
 
-Multiple selection from plot
-  Left-click and dragging highlights multiple minis.
+Select minis from the table
+  Selecting entries in the **data-panel** highlights the corresponding
+  mini markers on the plot.
+  Press ``Shift`` and ``left-click`` to select a range of entries
+  or press ``Ctrl`` and select multiple entries.
+  Press ``Ctrl+a`` to select all entries.
+  Press the ``Escape``/``q`` key to remove all the highlights.
+
+
   Hitting the ``Delete``/``Backspace``/``e`` key deletes all highlighted minis.
 
-Selection from the table
-  A single or multiple entries in the table highlights the corresponding mini.
-  Hitting the ``Delete``/``Backspace``/``e`` key deletes all highlighted minis.
+Output
+-----------
 
-Read the data
---------------------
+Details for all minis discovered appear in the **data-panel** located below
+the plot area. The panel should have a tab labeled 'Mini'.
 
-Details for all minis discovered appear in the table located beneath
-the plot area. The table should have a tab labeled 'Mini'.
+Mini analysis calculates/stores the following properties of each mini
+in the **data-panel**:
 
-Mini analysis calculates the following properties of each mini:
-
-* amplitude
+* peak time
+* amplitude (signed)
 * decay constant (tau)
 * rise time (0-100)
 * halfwidth
 * baseline value
+* channel number
 * standard deviation of the baseline noise
+* direction of the mini (-1 or 1)
 * whether or not the mini is a compound mini
 
 Each numerical column can be sorted by clicking on the column header.
-The sort switches between highest-to-lowest and lowest-to-highest.
+
+Columns can be hidden or shown by toggling the checkboxes located at the
+bottom of the plugin's control-panel.
 
 Export the data
---------------------
+^^^^^^^^^^^^^^^^
 
-The selected data (``Ctrl+a`` to select all) can be copied and pasted to
-Excel or text editors of choice. Data can be copied by ``Ctrl+c`` key stroke
-or by ``right click`` on the data table -> ``Copy selected``.
+Selected entries in the datapanel can be copied onto the
+clipboard.
+Data can be copied by ``Ctrl+c`` key stroke
+or ``right-click`` on the **data-panel** -> ``Copy selected``.
 
-The data can also be exported to a **comma separated value (CSV)** format
-by ``file`` menu -> ``Mini Analysis`` -> ``Export datatable``. All data visible
-in the data table are stored in the exported file.
+The copied data can be pasted into Excel or other programs of choice.
 
-Save the discovered minis
----------------------------
+The **data-panel** can also be exported to a **comma separated value (CSV)** format
+by ``file`` menu -> ``Mini Analysis`` -> ``Export data table``. All data visible
+in the **data-panel** are stored in the exported file.
 
-The data for the discovered minis can be stored in a format that can be
+Save the mini data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The annotations and details for the discovered minis can be stored in a
+format that can be
 opened by SimplyFire later.
 
 Go to ``file`` menu -> ``Mini Analysis`` -> ``Save minis as...`` and follow
@@ -188,21 +222,25 @@ the file save prompt.
 The default extension for the mini data is ``.mini``.
 The files can also be saved as ``.csv`` files and opened in other programs.
 Mini data saved this way contains more details than data exported from
-the data table.
+the **data-panel**.
 
 Open previously analyzed minis
---------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Previously analyzed minis can be opened by
 ``file`` menu -> ``Mini Analysis`` -> ``Open mini file``.
+Doing so will discard any changes in the unsaved mini data.
 
 Summarize the data
-----------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
-A summary of the discovered minis can be added to the  ``results display``.
-The ``results display`` is found in the ``results`` tab under the plot.
+A summary of the discovered minis can be added to the  **results-display**.
+The **results-display** is found in the ``results`` tab under the plot.
 
-``Right click`` on the data table -> ``Report all`` or ``Report selected``
-to calculate the averages and standard deviations of the numerical properties
-of the discovered minis.
-The result can be found in the ``results display``. 
+``Right-click`` on the **data-panel** -> ``Report all`` or ``Report selected``
+or press the ``Report stats`` on the **control-panel**
+to calculate the averages and standard deviations of numerical properties of minis.
+Additionally, the frequency of the minis between the first and last mini
+is calculated.
+
+The result can be found in the **results-display**.
