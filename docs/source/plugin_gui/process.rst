@@ -4,10 +4,10 @@ Process Recording Plugin
 The purpose of this plugin is to perform post-processing of acquired electrophysiology data.
 
 
-.. .. figure:: /_static/process_recording.png
-..   :align: center
+.. figure:: /_static/process_recording.png
+  :align: center
 
-  .. A typical layout of the Process Recording Plugin.
+  A typical layout of the Process Recording Plugin.
 
 Required plugins
   * Sweeps
