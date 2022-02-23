@@ -95,7 +95,7 @@ GUI Layout
 
 Upon startup, the software will look like this:
 
-.. figure:: /_static/img/layout/main_annotated.png
+.. figure:: /_static/img/main_annotated.png
   :align: center
 
   Default layout of the software.
@@ -160,20 +160,20 @@ The following keyboard shortcuts are available to navigate the plot:
 
 Several ``matplotlib`` tools are available above the plot for navigation.
 
-.. |ico_pan| image:: /_static/img/matplotlib/move.png
+.. |ico_pan| image:: /_static/img/move.png
 
 |ico_pan| pan/zoom
   Left click and drag to move the trace.
   Right click and drag to zoom the axes
 
-.. |ico_zoom| image:: /_static/img/matplotlib/zoom_to_rect.png
+.. |ico_zoom| image:: /_static/img/zoom_to_rect.png
 
 |ico_zoom| zoom to rect
   Click and drag to draw a rectangle.
   Left click and drag to zoom in.
   Right click and drag to zoom out.
 
-.. |ico_save| image:: /_static/img/matplotlib/filesave.png
+.. |ico_save| image:: /_static/img/filesave.png
 
 |ico_save| save figure
   Saves the visible plot as an image file.
