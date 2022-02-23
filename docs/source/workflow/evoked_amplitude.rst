@@ -65,13 +65,13 @@ Analysis
 Analysis is performed by the :doc:`../plugin_gui/evoked_basic`.
 
 If the artefact is larger than the evoked response, set the
-``Limit x-axis for analysis to:  `` parameter to ``Visible window`` and adjust
+``Limit x-axis for analysis to:`` parameter to ``Visible window`` and adjust
 the plot so that the artefact are outside of the visible window.
 
-Alternatively, set the :guilabel:`Limit x-axis for analysis to:` parameter to
-``Defined range  `` and enter the lower and upper x-axis limits for the analysis.
+Alternatively, set the ``Limit x-axis for analysis to:`` parameter to
+``Defined range`` and enter the lower and upper x-axis limits for the analysis.
 
-Click on ``Calculate Min/Max  `` button.
+Click on ``Calculate Min/Max`` button.
 Minimum and maximum values per sweep (per channel, if multiple channels are analyzed)
 will be entered into the data panel.
 
