@@ -99,9 +99,40 @@ Upon startup, the software will look like this:
   :align: center
 
   Default layout of the software.
-  Many plugins will show forms to input parameters in the **control-panel**.
-  Recording data appear in the **graph-panel**.
-  Data for analysis appear in the **trace-display**.
+
+control-panel
+  Most plugins use this area to display buttons and parameter inputs.
+  Multiple plugins can be opened at the same time, and they are
+  displayed as separate tabs in the panel.
+
+trace-display
+  This area handles plotting of the recording data.
+  Navigation tools are located around the plot.
+
+data-panel
+  Plugins for analysis will have a unique table that show up in this area
+  to display the data.
+
+.. figure:: /_static/img/log.png
+  :align: center
+
+  Log-display
+
+log-display
+  Can be reached by selecting the ``log`` tab beneath the **trace-display**.
+  A log of activity while using the software can be found here.
+  User annotations can also be added to the log.
+  The details of the log can be saved in to a text file.
+
+
+.. figure:: /_static/img/results.png
+  :align: center
+
+  Results-display
+
+results-display
+  Summary of data from analyses may be entered here by various plugins.
+  Typically, average and standard deviations of the data are reported. 
 
 .. _open-recording:
 

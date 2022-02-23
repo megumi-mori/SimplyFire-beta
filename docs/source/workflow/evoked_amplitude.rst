@@ -66,7 +66,7 @@ Analysis is performed by the :doc:`../plugin_gui/evoked_basic`.
 
 If the artefact is larger than the evoked response, set the
 ``Limit x-axis for analysis to:`` parameter to ``Visible window`` and adjust
-the plot so that the artefact are outside of the visible window.
+the plot so that the artefact is outside of the visible window.
 
 Alternatively, set the ``Limit x-axis for analysis to:`` parameter to
 ``Defined range`` and enter the lower and upper x-axis limits for the analysis.
