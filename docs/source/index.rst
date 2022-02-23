@@ -4,8 +4,12 @@ Welcome to SimplyFire's documentation!
 SimplyFire is a open-source software for analyzing electrophysiology data.
 The software is developed with ease of use and customizability in mind.
 
-Check out the :doc:`start` section on how to get started.
+Check out the :doc:`start` section.
 
+.. figure:: /_static/img/layout/representative.png
+  :align: center
+
+  
 SimplyFire's documentation is hosted on Read the Docs.
 
 .. note::

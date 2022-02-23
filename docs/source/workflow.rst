@@ -17,5 +17,5 @@ Use the tabs in the **control-panel** to navigate between various plugins.
 .. toctree::
   :maxdepth: 1
 
+  workflow/evoked_amplitude
   workflow/mini_analysis
-  

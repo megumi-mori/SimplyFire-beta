@@ -1,12 +1,16 @@
-Mini Analysis
-===============
-.. figure:: ../img/plugin_gui/mini_analysis.png
+Mini Analysis Plugin
+=====================
+
+The purpose of this plugin is to detect, analyze, and annotate mini
+synaptic events.
+
+.. figure:: /_static/img/plugin_gui/mini_analysis.png
   :align: center
 
   A typical layout of the Mini Analysis Plugin.
 
 Required plugins
-* Style
+  * Style
 
 Analysis Buttons
 -----------------
@@ -230,3 +234,65 @@ Apply button
 
 Default button
   Sets the input parameters to default values
+
+.. _workflow-mini-guide:
+
+Mini guide
+------------
+Sometimes it can be unclear why a mini was chosen or why the parameters
+look different from what was expected.
+The **mini guide** attempts to clear such questions by providing a detailed
+report of a given mini.
+
+Click the ``Open guide`` button to open a popup.
+Triggering a manual analysis or selecting a single mini will plot the
+same mini in the popup window.
+
+.. figure:: /_static/img/plugin_gui/mini_guide.png
+  :align: center
+
+  An example mEJC shown in the **mini guide**
+
+In the plot area, the following details are plotted:
+  * Raw data points including and around the mini
+  * The data point representing the start of mini
+  * The data point representing the peak
+  * Data points sampled to calculate the baseline
+  * Single exponential decay function fitted to the decay phase
+  * A point within the decay function where t = decay constant
+  * A line plotting the baseline (a single y-value for a regular mini,
+    extrapolated decay from previous mini for compound minis)
+  * A line representing the amplitude
+  * A line connecting the two data points used to calculate the halfwidth
+
+
+In the text box below the plot, the following details can be found:
+  * Whether or not there was a mini in the region
+  * Peak data point
+  * Baseline value
+  * x-axis limits used to calculate the baseline
+  * Amplitude
+  * Rise constant (0-100)
+  * Decay (tau)
+  * Decay/rise ratio
+  * Halfwidth
+  * Signal-to-noise ratio
+
+  .. Tip::
+    If no mini is discovered with manual analysis,
+    the reason for the failure will be available in the text box.
+    Adjusting the parameters or easing the filtering criteria may help
+    detect the mini
+
+Remove Restrictions button
+  Clicking this button when a manual analysis fails to detect a mini
+  re-analyzes the region but without any of the filtering parameters.
+
+Reanalyze button
+  Clicking this button when a manual analysis fails to detect a mini
+  re-analyzes the region with the parameters set in the **control-panel**.
+  Use this button to reanalyze minis after changing parameters.
+
+Reject button
+  Clicking this button when a mini is highlighted discards the mini
+  from the data.

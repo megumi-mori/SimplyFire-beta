@@ -1,13 +1,17 @@
-Process Recording
-==================
+Process Recording Plugin
+=========================
 
-.. figure:: ../img/plugin_gui/process_recording.png
+The purpose of this plugin is to perform post-processing of acquired electrophysiology data.
+
+
+.. figure:: /_static/img/plugin_gui/process_recording.png
   :align: center
 
   A typical layout of the Process Recording Plugin.
 
 Required plugins
   * Sweeps
+
 Target setting
 ---------------
 Processing algorithm can be applied to all or a subset of the recording data.
@@ -70,7 +74,7 @@ Hide original sweeps
 Apply button
   Apply the average sweeps process
 
-Default
+Default button
   Sets the ``Hide original sweeps`` option on.
 
 
@@ -89,5 +93,5 @@ Selecting the filtering algorithm makes widgets for required parameters visible.
 Apply button
   Apply the filter to the sweeps
 
-Default
+Default button
   Sets all input parameters to default values

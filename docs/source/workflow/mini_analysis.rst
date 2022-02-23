@@ -58,12 +58,15 @@ Open the filtered recording using SimplyFire.
 Analysis
 ------------------------------
 
+Analysis is performed by :doc:`../plugin_gui/mini_analysis`.
+
+The :doc:`../plugin_gui/mini_analysis` uses several parameters to
+analyze minis.
+The basic parameters are described here. For more information on all the
+parameters that can be adjusted, see the :doc:`../plugin_gui/mini_analysis` page.
+
 Parameters
 ^^^^^^^^^^^^^
-
-The ``Mini Analysis`` plugin depends on a handful of parameters to find minis.
-The basic parameters are described here. For more information on all the
-parameters that can be adjusted, see the ``Mini Analysis`` plugin page.
 
 Direction
   Indicates the expected sign of the minis.
@@ -150,12 +153,12 @@ Delete buttons
 
 Select minis on the plot
   Clicking on the peak marker for a mini highlights it.
-  Clicking on the peakr marker while holding the ``Shift`` key highlights
+  Clicking on the peak marker while holding the ``Shift`` key highlights
   multiple peaks.
   Alternatively, ``left-click`` + drag to highlight minis found
   within the rectangle.
-  Press the ``Escape``/``q`` key to remove the highlights.
-  Press ``Ctrl+a`` to select all minis.
+  Use the ``Escape``/``q`` key to remove the highlights.
+  Use ``Ctrl+a`` to select all minis.
 
   Hitting the ``Delete``/``Backspace``/``e`` key deletes the data for the mini.
 
@@ -164,8 +167,8 @@ Select minis from the table
   mini markers on the plot.
   Press ``Shift`` and ``left-click`` to select a range of entries
   or press ``Ctrl`` and select multiple entries.
-  Press ``Ctrl+a`` to select all entries.
-  Press the ``Escape``/``q`` key to remove all the highlights.
+  Use ``Ctrl+a`` to select all entries.
+  Use the ``Escape``/``q`` key to remove all the highlights.
 
 
   Hitting the ``Delete``/``Backspace``/``e`` key deletes all highlighted minis.
