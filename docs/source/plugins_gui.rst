@@ -9,3 +9,4 @@ Plugins (GUI)
   plugin_gui/mini_analysis
   plugin_gui/navigation
   plugin_gui/process
+  plugin_gui/sweeps
