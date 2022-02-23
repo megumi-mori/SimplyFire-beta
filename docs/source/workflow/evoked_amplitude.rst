@@ -48,12 +48,12 @@ If the amplitude of the artefact is larger than the evoked response,
 use the :ref:`navigation-tools` located around the plot to adjust
 the x- and y-axes so that the artefact is outside of the visible x-axis.
 
-Alternatively, use the :docs:`../plugin_gui/navigation` to set the desired x- and y-axes
+Alternatively, use the :doc:`../plugin_gui/navigation` to set the desired x- and y-axes
 limits.
 
 If not all sweeps should be analyzed (i.e. some sweeps failed to respond),
-use the :docs:`../plugin_gui/sweeps` to hide unwanted sweeps.
-While the :docs:`../plugin_gui/sweeps` is in focus, a sweep can be highlighted
+use the :doc:`../plugin_gui/sweeps` to hide unwanted sweeps.
+While the :doc:`../plugin_gui/sweeps` is in focus, a sweep can be highlighted
 by clicking on or near the sweep.
 Pressing the ``Delete``/``Backspace``/``e`` key will hide the sweep from view.
 
@@ -62,7 +62,7 @@ The sweeps that are currently visible are indicated in the **control-panel**.
 Analysis
 ----------
 
-Analysis is performed by the :docs:`../plugin_gui/evoked_basic`.
+Analysis is performed by the :doc:`../plugin_gui/evoked_basic`.
 
 If the artefact is larger than the evoked response, set the
 ``  Limit x-axis for analysis to:`` parameter to ``Visible window`` and adjust
@@ -129,4 +129,4 @@ When opening a new recording file, the data in the **data-panel** are cleared.
 The entries can also be deleted by selecting the entries and using
 ``Delete``/``Backspace``/``e`` key.
 
-Alternatively, the ``Delete all`` button in the **control-panel** can be pressed. 
+Alternatively, the ``Delete all`` button in the **control-panel** can be pressed.
