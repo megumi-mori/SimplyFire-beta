@@ -1000,7 +1000,10 @@ def analyze_candidate_mini(xs,
         return mini
 
     ####### calculate stdev ########
-    mini['stdev'] = np.std(ys[max(0, baseline_idx - lag):baseline_idx])
+    if mini['compound'] is False:
+        mini['stdev'] = np.std(ys[max(0, baseline_idx - lag):baseline_idx])
+    else:
+        mini['stdev'] = prev_peak['stdev'] #
     # else:
     #     mini['stdev'] = None
     #     if (min_s2n and min_s2n > 0) or (max_2n and max_s2n < np.inf): # cannot filter
@@ -1011,7 +1014,7 @@ def analyze_candidate_mini(xs,
         mini['success'] = False
         mini['failure'] = 'Min signal to noise ratio not met'
         return mini
-    if mini['stdev'] and max_s2n and mini['amp'] * direction / mini['stdev'] > max_s2n:
+    if mini['stdev'] and max_s2n is not None and mini['amp'] * direction / mini['stdev'] > max_s2n:
         mini['success'] = False
         mini['failure'] = 'Max signal to noise exceeded'
         return mini
@@ -1023,17 +1026,24 @@ def analyze_candidate_mini(xs,
         if len(next_search_start[0]) > 0:
             next_peak_idx = find_peak_recursive(xs=xs,
                                                 ys=ys,
-                                                start=int(min(next_search_start[0][0] + peak_idx + min_peak2peak,
+                                                start=int(min(next_search_start[0][0] + peak_idx,
                                                               len(ys) - 1)),
-                                                end=int(min(next_search_start[0][
-                                                                0] + peak_idx + max_compound_interval_idx,
+                                                end=int(min(peak_idx + max_compound_interval_idx,
                                                             len(ys) - 1)),
                                                 direction=direction
                                                 )
+            if next_peak_idx is not None and next_peak_idx < peak_idx + min_peak2peak and peak_idx+min_peak2peak<len(ys)-1:
+                next_peak_idx = find_peak_recursive(xs=xs,
+                                                    ys=ys,
+                                                    start=int(peak_idx+min_peak2peak),
+                                                    end=int(min(peak_idx + max_compound_interval_idx,
+                                                                len(ys) - 1)),
+                                                    direction=direction
+                                                    )
     end_idx = None
     if next_peak_idx is not None:
         # estimate amplitude of next peak
-        if (ys[next_peak_idx] - mini['baseline']) * direction > min_amp:
+        if min_amp is None or (ys[next_peak_idx] - mini['baseline']) * direction > min_amp:
             # include peak_idx:peak_idx+min_peak2peak because the valley happens before the next peak
             # pick the last point if there are multiple minimums
             end_idx = np.where(ys[int(peak_idx):next_peak_idx] * direction == min(
@@ -1056,7 +1066,7 @@ def analyze_candidate_mini(xs,
         mini['failure'] = 'Min rise not met'
         return mini
 
-    if max_rise and mini['rise_const'] > max_rise:
+    if max_rise is not None and mini['rise_const'] > max_rise:
         mini['success'] = False
         mini['failure'] = 'Max rise exceeded'
         return mini
@@ -1219,7 +1229,7 @@ def analyze_candidate_mini(xs,
         mini['failure'] = 'Min halfwidth not met'
         return mini
 
-    if max_hw and mini['halfwidth'] > max_hw:
+    if max_hw is not None and mini['halfwidth'] > max_hw:
         mini['success'] = False
         mini['failure'] = 'Max halfwidth exceeded'
         return mini
@@ -1231,7 +1241,7 @@ def analyze_candidate_mini(xs,
             mini['success'] = False
             mini['failure'] = 'Min Decay:Rise ratio not met'
             return mini
-        if max_drr and drr > max_drr:
+        if max_drr is not None and drr > max_drr:
             mini['success'] = False
             mini['failure'] = 'Max Decay:Rise ratio not met'
             return mini

@@ -1266,12 +1266,18 @@ def popup_plot_peak(x, y):
 
 def popup_plot_recording(xs, ys, data):
     start_lim_idx = int(max(data.get('start_idx', 0) - data.get('lag', 0) - data.get('delta_x', 0), 0))
-    start_idx = int(min(start_lim_idx, data.get('xlim_idx_L', np.inf)))
+    xlim_idx_L = data.get('xlim_idx_L')
+    if xlim_idx_L is None:
+        xlim_idx_L = np.inf
+    start_idx = int(min(start_lim_idx, xlim_idx_L))
     if data['compound']:
         start_idx = int(min(start_idx, int(data['prev_peak_idx'])))
 
     end_lim_idx = int(min(data.get('peak_idx', 0) + data.get('decay_max_points', 0), len(xs) - 1))
-    end_idx = int(max(end_lim_idx, data.get('xlim_idx_R', 0)))
+    xlim_idx_R = data.get('xlim_idx_R')
+    if xlim_idx_R is None:
+        xlim_idx_R = 0
+    end_idx = int(max(end_lim_idx, xlim_idx_R))
 
     popup.ax.plot(xs[start_idx:end_idx],
                  ys[start_idx:end_idx],
@@ -1309,7 +1315,8 @@ def popup_report(xs:np.ndarray, ys:np.ndarray, data:dict):
         popup.msg_label.insert(text='Success!' + '\n')
     try:
         start, end = popup_plot_recording(xs, ys, data)  # start coordinate and the plot
-    except:
+    except Exception as e:
+        # print(e)
         pass
     try:
         popup.msg_label.insert(f'Peak: {data["peak_coord_x"]:.3f}, {data["peak_coord_y"]:.3f}\n')
