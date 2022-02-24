@@ -263,7 +263,7 @@ def plot_mouse_move(event):
                 try:
                     app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
                 except Exception as e:
-                    print(f'Canvas draw rect error: {e}')
+                    print(f'Canvas draw rect error (drag): {e}')
                 return
         drag_coord_end = (event.xdata, event.ydata)
         drag_pix_coord_end = (event.x, event.y)
@@ -322,7 +322,7 @@ def plot_mouse_release(event):
             try:
                 app.trace_display.draw_rect(drag_coord_start, drag_coord_end)
             except Exception as e:
-                print(f'Canvas draw rect error: {e}')
+                print(f'Canvas draw rect error (release): {e}')
             if delta_x_pix>0 or delta_y_pix>0:
                 return None
     global mouse_event
