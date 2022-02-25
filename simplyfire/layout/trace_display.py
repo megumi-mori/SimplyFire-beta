@@ -531,7 +531,10 @@ def draw_rect(coord_start, coord_end):
         canvas.blit(fig.bbox)
         return
     if rect:
-        ax.patches.remove(rect)
+        try:
+            ax.patches.remove(rect)
+        except: # rect was deleted elsewhere
+            pass
         rect = None
         # canvas.draw()
         draw_ani()

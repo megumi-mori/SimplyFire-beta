@@ -895,8 +895,7 @@ def open_minis(filename, log=True, undo=True, append=False):
         temp_filename = app.interface.get_temp_filename()
         save_minis(temp_filename, overwrite=True, log=False, update_status=False)
         controller.add_undo([
-            lambda: open_minis(temp_filename, log=False, undo=False, append=False),
-            lambda f=filename: os.remove(f)
+            lambda: open_minis(temp_filename, log=False, undo=False, append=False) # don't delete the original file (event if temp)
             ])
     if not append:
         mini_df = df
