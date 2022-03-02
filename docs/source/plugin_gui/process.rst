@@ -9,8 +9,8 @@ The purpose of this plugin is to perform post-processing of acquired electrophys
 
   A typical layout of the Process Recording Plugin.
 
-Required plugins
-  * Sweeps
+Requirements
+  * Sweeps plugin
 
 Target setting
 ---------------

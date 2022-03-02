@@ -132,7 +132,7 @@ log-display
 
 results-display
   Summary of data from analyses may be entered here by various plugins.
-  Typically, average and standard deviations of the data are reported. 
+  Typically, average and standard deviations of the data are reported.
 
 .. _open-recording:
 
