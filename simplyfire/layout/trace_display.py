@@ -492,7 +492,7 @@ def adjust_default_ylim(adjust):
     default_ylim = (default_ylim[0]+adjust,
                     default_ylim[1]+adjust)
 
-def set_axis_limit(axis, lim):
+def set_axis_limit(axis, lim, draw=True):
     if axis == 'x':
         l = [float(e) if e != 'auto' else default_xlim[i] for i, e in enumerate(lim)]
         if l[0] < default_xlim[0] or l[0] > default_xlim[1]:
@@ -504,7 +504,8 @@ def set_axis_limit(axis, lim):
         l = [float(e) if e != 'auto' else default_ylim[i] for i, e in enumerate(lim)]
         ax.set_ylim(l)
     # canvas.draw()
-    draw_ani()
+    if draw:
+        draw_ani()
 
 ##################
 def draw_rect(coord_start, coord_end):
