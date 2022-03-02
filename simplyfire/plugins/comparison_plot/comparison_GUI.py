@@ -85,7 +85,11 @@ def add_file(event=None, recording=None, undo=True):
     # apply the initial details
     apply(details, draw=False, undo=False)
 
+    xlim = app.trace_display.ax.get_xlim()
+    ylim = app.trace_display.ax.get_ylim()
     app.trace_display.update_default_lim(x=True, y=True, fix_x=True, fix_y=False)
+    app.trace_display.set_axis_limit('x', xlim, draw=False)
+    app.trace_display.set_axis_limit('y', ylim, draw=False)
     app.trace_display.draw_ani()
     # param_guide.update()
 
@@ -359,7 +363,11 @@ def remove(details:dict=None, panel_index=None, undo=True):
     # remove a recording being overlayed
     fname = compared_recordings[details['index']].filepath
     remove_file(panel_index=details['index']+1)
+    xlim = app.trace_display.ax.get_xlim()
+    ylim = app.trace_display.ax.get_ylim()
     app.trace_display.update_default_lim()
+    app.trace_display.set_axis_limit('x', xlim, draw=False)
+    app.trace_display.set_axis_limit('y', ylim, draw=False)
     if undo and app.interface.is_accepting_undo():
         controller.add_undo([lambda f=fname:remove_undo(f)])
     app.interface.focus()
