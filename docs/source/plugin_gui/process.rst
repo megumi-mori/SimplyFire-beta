@@ -81,7 +81,7 @@ Default button
 Filtering
 ------------
 
-``Proccess Recording`` plugin currently offers the following filtering options:
+``Process Recording`` plugin currently offers the following filtering options:
 
 * Lowpass Boxcar
 * Lowpass Bessel

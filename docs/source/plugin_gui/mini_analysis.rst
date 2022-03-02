@@ -9,8 +9,10 @@ synaptic events.
 
   A typical layout of the Mini Analysis Plugin.
 
-Required plugins
-  * Style
+Requirements
+  * View mode must be ``continuous`` 
+  * Style plugin
+
 
 Analysis Buttons
 -----------------
@@ -21,7 +23,7 @@ Find all
 Delete all
   Delete all minis in the current channel.
 
-Find in windw
+Find in window
   Automated analysis of the recording in the visible x-axis.
   Only the current channel is considered.
 
@@ -29,10 +31,10 @@ Delete in window
   Delete minis annotated in the visible x-axis.
 
 Report stats
-  Report the summary of the discovered minis to the **results-panel**.
+  Reports the summary of the discovered minis to the **results-panel**.
 
 Open guide
-  Open the mini guide popup window.
+  Opens the mini guide popup window.
 
 Core Parameters
 ---------------------
@@ -86,11 +88,11 @@ Window averaged to find start of mini (ms)
 Use decay to extrapolate halfwidth
   If a mini does not decay below 50% of the amplitude, halfwidth cannot
   be calculated. Checking this option allows SimplyFire to estimate
-  the halfwdith using the decay properties.
+  the halfwidth using the decay properties.
 
 Decay calculation method
   Two algorithms are available to estimate the decay constant (tau):
-  ``Curve fit`` or ``% ampltude``
+  ``Curve fit`` or ``% amplitude``
   ``Curve fit`` uses the ``scipy`` package to fit a single exponential to
   the raw data.
   ``% amplitude`` uses the first data point that reaches a certain percentage of the
@@ -113,10 +115,10 @@ Maximum x-interval considered for decay (ms)
   Enter the maximum range of data points that should be sampled to calculate the
   decay constant.
 
-Analze compound minis
+Analyze compound minis
   Select this checkbox to analyze compound minis
 
-Minium valley size in % of peak amplitude
+Minimum valley size in % of peak amplitude
   Input available if analyzing compound minis.
   Enter a percentage of the maximum amplitude that must be reached during the
   decay phase before the next mini.
@@ -160,7 +162,7 @@ decay constant (tau) (ms)
   Specify the minimum/maximum decay constant required for a mini in ms.
 
 halfwidth (ms)
-  Specify the minimum/maximum halfwidth requried for a mini in ms.
+  Specify the minimum/maximum halfwidth required for a mini in ms.
   Halfwidth is calculated as the minimum time between data points at 50% of the
   maximum amplitude during the rise and decay phases.
 
@@ -296,3 +298,7 @@ Reanalyze button
 Reject button
   Clicking this button when a mini is highlighted discards the mini
   from the data.
+
+
+data-panel
+-----------
