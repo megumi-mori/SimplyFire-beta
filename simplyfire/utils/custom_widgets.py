@@ -400,6 +400,8 @@ class NavigationToolbar(NavigationToolbar2Tk):
 
         # self.test_button = self._custom_button('test', command=self.test)
 
+        self.defaultextension = '.png'
+
     def _custom_button(self, text, command, **kwargs):
         button = Tk.Button(master=self, text=text, padx=2, pady=2, command=command, **kwargs)
         button.pack(side = Tk.LEFT, fill='y')
@@ -447,8 +449,13 @@ class NavigationToolbar(NavigationToolbar2Tk):
         # work - JDH!
         # defaultextension = self.canvas.get_default_filetype()
         defaultextension = ''
-        initialdir = os.path.expanduser(mpl.rcParams['savefig.directory'])
-        initialfile = self.canvas.get_default_filename()
+        # initialdir = os.path.expanduser(mpl.rcParams['savefig.directory'])
+        try:
+            initialdir = app.interface.recordings[0].filedir
+            initialfile = app.interface.recordings[0].filename+'_image'
+        except:
+            initialdir = os.path.expanduser(mpl.rcParams['savefig.directory'])
+            initialfile = os.path.splitext(self.canvas.get_default_filename())[0]
         fname = Tk.filedialog.asksaveasfilename(
             master=self.canvas.get_tk_widget().master,
             title='Save the figure',
@@ -460,6 +467,8 @@ class NavigationToolbar(NavigationToolbar2Tk):
 
         if fname in ["", ()]:
             return
+
+        self.defaultextension = os.path.splitext(fname)[1]
         # Save dir for next time, unless empty str (i.e., use cwd).
         if initialdir != "":
             mpl.rcParams['savefig.directory'] = (
