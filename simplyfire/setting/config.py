@@ -31,7 +31,8 @@ from simplyfire import app
 PKG_DIR = pkg_resources.resource_filename('simplyfire', '') # base directory
 SETTING_DIR = pkg_resources.resource_filename('simplyfire', 'setting/') # location of config
 IMG_DIR = pkg_resources.resource_filename('simplyfire', 'img/') # location of image files
-TEMP_DIR = pkg_resources.resource_filename('simplyfire', 'temp/') # location of temp files
+# TEMP_DIR = pkg_resources.resource_filename('simplyfire', 'temp/') # location of temp files
+TEMP_DIR = os.path.join(PKG_DIR, 'temp')
 SYS_PATH = ""
 # Load defaults
 global default_vars
@@ -80,11 +81,10 @@ def load():
         user_vars['system_data_dir'] = PKG_DIR
 
     global PLUGIN_DIR
-    PLUGIN_DIR = os.path.join(user_vars['system_data_dir'], 'plugins')
+    candidate_plugin_dir = os.path.join(user_vars['system_data_dir'], 'plugins')
+    if os.path.exists(candidate_plugin_dir):
+        PLUGIN_DIR = candidate_plugin_dir
     global TEMP_DIR
-    TEMP_DIR = os.path.join(user_vars['system_data_dir'], 'temp')
-    if not os.path.exists(TEMP_DIR):
-        os.makedirs(TEMP_DIR)
     sys.path.insert(0, user_vars['system_data_dir'])
 
     # global config_keymap_path

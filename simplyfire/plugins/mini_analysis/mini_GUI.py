@@ -436,7 +436,7 @@ def delete_clear(undo=False, draw=True):
             controller.add_undo([
                 lambda msg='Undo delete': controller.log(msg=msg, header=True),
                 lambda f=filename: open_minis(filename, log=False, undo=False, append=True),
-                lambda f=filename: os.remove(f)
+                lambda f=filename: app.interface.delete_temp_file(f)
             ])
     mini_df = mini_df.iloc[0:0] # delete all data
     update_module_table()
@@ -458,7 +458,7 @@ def delete_all(undo=True, draw=True):
             controller.add_undo([
                 lambda msg='Undo delete': controller.log(msg=msg, header=True),
                 lambda f=filename: open_minis(filename, log=False, undo=False, append=True),
-                lambda f=filename: os.remove(f)
+                lambda f=filename: app.interface.delete_temp_file(f)
             ])
     try:
         mini_df = mini_df[mini_df['channel'] != app.interface.current_channel]
@@ -502,7 +502,7 @@ def delete_selection(selection:list, undo:bool=True, draw:bool=True):
             mini_df.to_csv(filename)
             controller.add_undo([
                 lambda f=filename: open_minis(filename, log=False, undo=False, append=True),
-                lambda f=filename: os.remove(f),
+                lambda f=filename: app.interface.delete_temp_file(f),
                 lambda msg='Undo delete': controller.log(msg)
             ])
     mini_df = mini_df[(~mini_df['t'].isin(selection)) | (mini_df['channel'] != app.interface.current_channel)]
@@ -715,7 +715,7 @@ def find_mini_reanalyze(selection:list or tuple, accept:bool=False, undo=True):
         mini_df.to_csv(filename)
         controller.add_undo([
             lambda f=filename: open_minis(filename, log=False, undo=False, append=True),
-            lambda f=filename: os.remove(f),
+            lambda f=filename: app.interface.delete_temp_file(f),
         ])
     try:
         if data.shape[0] > 0:  # assume reanalyzing all existing minis
