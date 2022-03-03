@@ -82,11 +82,8 @@ def load():
 
     global PLUGIN_DIR
     PLUGIN_DIR = os.path.join(user_vars['system_data_dir'], 'plugins')
-    print(f'{PLUGIN_DIR} exists: {os.path.exists(PLUGIN_DIR)}')
     if not os.path.exists(PLUGIN_DIR):
         PLUGIN_DIR = os.path.join(PKG_DIR, 'plugins')
-
-    print(PLUGIN_DIR)
     global TEMP_DIR
     sys.path.insert(0, user_vars['system_data_dir'])
 
