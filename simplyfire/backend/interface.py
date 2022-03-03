@@ -55,6 +55,13 @@ def get_prev_temp_num():
     except:
         return None
 
+def delete_temp_file(filepath):
+    if os.path.dirname(filepath) != app.config.TEMP_DIR:
+        return None # wrong folder
+    if os.path.splitext(filepath)[1] in ('.temp', '.tmp', '.TEMP'):
+        os.remove(filepath)
+        return None
+
 global undo_stack
 undo_stack = []
 

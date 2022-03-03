@@ -283,7 +283,7 @@ def filter_data(event=None):
         controller.add_undo([
             lambda f=temp_filename, c=target_channels, s=target_sweeps: app.interface.recordings[0].load_y_data(f,c,s),
             lambda c=False:app.interface.plot(clear=c, relim=False, fix_x=True, fix_y=True),
-            lambda f=temp_filename:os.remove(f),
+            lambda f=temp_filename:app.interface.delete_temp_file(f),
             lambda msg='Undo filter': controller.log(msg)
         ])
     filter_choice = form.inputs['filter_algorithm'].get()

@@ -177,6 +177,7 @@ def populate_panel(recording):
     entry.bind('<Return>', lambda e, w=widgets: apply(details=w), add='+')
     entry.bind('<FocusOut>', lambda e, w=widgets: apply(details=w), add='+')
     widgets['sweeps_entry'] = entry
+    widgets['undo_indices'] = entry.get()
     label = ttk.Label(master=entry_panel, text='Color:')
     label.grid(column=0, row=1, sticky='news')
     widgets['color_label'] = label
@@ -186,6 +187,7 @@ def populate_panel(recording):
         color = app.trace_display.trace_color
     entry = custom_widgets.VarEntry(parent=entry_panel, validate_type='color', value=color,
                                     default='black')
+    widgets['undo_color'] = 'black'
     entry.grid(column=1, row=1, stick='news')
     entry_panel.grid(column=0, row=1, sticky='news')
     entry.bind('<Return>', lambda e, w=widgets:apply(details=w), add='+')
