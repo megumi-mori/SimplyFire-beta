@@ -28,7 +28,7 @@ def load_manifests():
     global manifests
     manifests = {}
 
-    plugins_main_dir = os.path.join(app.config.get_value('system_data_dir'), 'plugins')
+    plugins_main_dir = app.config.PLUGIN_DIR
     global plugin_list
     try:
         plugin_list = os.listdir(plugins_main_dir)
