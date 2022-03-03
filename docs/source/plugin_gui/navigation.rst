@@ -7,7 +7,7 @@ to navigate the trace plot.
 .. figure:: /_static/img/navigation.png
   :align: center
 
-  A typical layout of the Navigaion Plugin.
+  A typical layout of the Navigation Plugin.
 
 Set axes limits
 -----------------

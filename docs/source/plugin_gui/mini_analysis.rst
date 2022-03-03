@@ -217,7 +217,7 @@ Hide all button
 
 Style setting
 --------------
-The markers on the plot for minis can be altered in the ``Style`` Plugin
+The markers on the plot for minis can be altered in the :doc:`style`
 **control-panel**.
 
 The size and color of the following markers can be changed.
@@ -240,7 +240,7 @@ Decay
 Highlight
   Marks only the selected minis with a dot.
   Minis can be selected by clicking on existing peak markers or by
-  :guilabel:`left-click`+:guilabel:`drag`. 
+  :guilabel:`left-click` + :guilabel:`drag`.
 
 Apply button
   Apply the stylistic parameters
