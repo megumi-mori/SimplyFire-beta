@@ -32,17 +32,18 @@ master_doc = 'index'
 exclude_patterns = ['_build']
 pygments_style = 'sphinx'
 # -- Options for HTML output
-# import sphinx_rtd_theme
-html_theme = 'default'
-# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 #
 # if not on_rtd:  # only import and set the theme if we're building docs locally
 import sphinx_rtd_theme
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-
 html_static_path = ['_static']
+html_logo = '_static/img/logo_rtd.png'
+html_theme_options = {
+    'logo_only': True,
+    'display_version': True,
+}
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
