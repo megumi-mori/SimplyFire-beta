@@ -24,3 +24,4 @@ SimplyFire's documentation is hosted on Read the Docs.
   start
   workflow
   plugins_gui
+  settings
