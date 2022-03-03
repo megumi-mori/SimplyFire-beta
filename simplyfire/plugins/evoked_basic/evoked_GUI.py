@@ -358,5 +358,6 @@ controller.listen_to_event('<<LoadCompleted>>', datapanel.datatable.fit_columns)
 controller.load_values()
 controller.update_plugin_display()
 app.plugin_manager.get_plugin('evoked_basic').save = controller.save
+app.plugin_manager.get_plugin('evoked_basic').load_values = controller.load_values
 
 form.apply_parameters(undo=False)

@@ -473,5 +473,6 @@ _select_filter_mode()
 controller.update_plugin_display()
 
 app.plugin_manager.get_plugin('process_recording').save = controller.save
+app.plugin_manager.get_plugin('process_recording').load_values = controller.load_values
 
 form.apply_parameters(undo=False)

@@ -121,4 +121,5 @@ controller.load_values()
 controller.update_plugin_display()
 
 app.plugin_manager.get_plugin('style').save = controller.save
+app.plugin_manager.get_plugin('style').load_values = controller.load_values
 form.apply_parameters(undo=False)
