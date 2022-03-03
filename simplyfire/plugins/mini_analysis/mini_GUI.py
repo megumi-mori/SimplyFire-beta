@@ -2089,3 +2089,4 @@ for key in app.interpreter.get_keys('select_all'):
 parameters = {k:v.get() for k,v in form.inputs.items() if 'detector' in k}
 changes = {k:v for k,v in parameters.items()}
 app.plugin_manager.get_plugin('mini_analysis').save = controller.save
+app.plugin_manager.get_plugin('mini_analysis').load_values = controller.load_values

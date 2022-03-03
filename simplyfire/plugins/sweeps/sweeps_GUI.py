@@ -372,6 +372,7 @@ if app.inputs['trace_mode'].get() != 'overlay':
     controller.disable_plugin()
 
 app.plugin_manager.get_plugin('sweeps').save = controller.save
+app.plugin_manager.get_plugin('sweeps').load_values = controller.load_values
 controller.load_values()
 controller.update_plugin_display()
 

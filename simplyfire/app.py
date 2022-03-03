@@ -420,6 +420,7 @@ def load_config(filename=None):
                 inputs[key].set(value)
         except:
             pass
+    plugin_manager.load_values(loaded_configs)
 
 
 def print_time_lapse(msg=""):

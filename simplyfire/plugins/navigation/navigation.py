@@ -210,4 +210,5 @@ for key in key_show_all:
 controller.load_values()
 controller.update_plugin_display()
 app.plugin_manager.get_plugin('navigation').save = controller.save
+app.plugin_manager.get_plugin('navigation').load_values = controller.load_values
 form.apply_parameters(undo=False)

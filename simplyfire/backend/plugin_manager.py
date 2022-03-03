@@ -79,6 +79,14 @@ def load_plugin(plugin_name):
         plugins[f'{plugin_name}.{filename}'] = importlib.import_module(f'plugins.{plugin_name}.{filename}')
     pass
 
+def load_values(data):
+    for plugin_name in plugin_list:
+        try:
+            plugins[plugin_name].load_values(data[plugin_name])
+        except Exception as e:
+            print(f'Could not load preferences for {plugin_name}')
+            print(e)
+
 def save_plugin_data():
     data = {}
     for plugin_name in plugin_list:
