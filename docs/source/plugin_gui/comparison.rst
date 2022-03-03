@@ -19,13 +19,13 @@ Add File
 Sweeps
   This entry appears for each file that is opened within the plugin.
 
-  ``{i}..{j}`` is equivalent to ``[i:j]``
+  ``i..j`` indicates a range from i to j, inclusive. i.e. ``[i:j]``
 
-  ``{i},{j}`` is equivalent to ``[i,j]``
+  ``i,j`` indicates a list containing elements i and j. i.e. ``[i,j]``
 
 Color
   This entry appears for each file that is opened within the plugin.
   Color can be specified as hex code (including the ``#`` sign) or
   as a color name.
   See the `matplotlib documentation <https://matplotlib.org/stable/gallery/color/named_colors.html>`_
-  for more details on supported color names. 
+  for more details on supported color names.
