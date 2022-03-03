@@ -10,7 +10,7 @@ synaptic events.
   A typical layout of the Mini Analysis Plugin.
 
 Requirements
-  * View mode must be ``continuous`` 
+  * View mode must be ``continuous``
   * Style plugin
 
 
@@ -70,16 +70,21 @@ Search window in ms (Auto)
     single mini event.
 
 Window before peak to estimate baseline (ms)
-  The baseline is calculated as an average of data points before the peak.
-  Setting this parameter to >0 fixes the start of data points that are sampled
-  to the specified ms before the peak.
-  Set this parameter to 0 to ignore the parameter.
+  The baseline is calculated by averaging data points.
+  Setting this value >0 fixes where the data points are sampled
+  in relation to the peak time to
+  calculate the baseline.
+  The value specifies the left most (earliest) data point to sample for
+  baseline calculation.
+
+  Set this parameter to 0 to ignore the parameter and use the
+  trailing-moving-average.
 
 Window averaged to find start of mini (ms)
-  The baseline is calculated as an average of data points before the peak.
-  This parameter sets the x-axis range that should be sampled to caculate the
-  average.
-  Higher numbers tend to result in increased robustness against consistant
+  The baseline is calculated by averaging data points.
+  This parameter sets the size of the x-axis window that should be
+  sampled to calculate the average.
+  Higher numbers tend to result in increased robustness against consistent
   baseline noise;
   however, higher numbers can result in effects of unusually large and rapid
   deviations from the baseline (i.e. artefacts) affecting the surrounding
@@ -216,6 +221,10 @@ The markers on the plot for minis can be altered in the ``Style`` Plugin
 **control-panel**.
 
 The size and color of the following markers can be changed.
+Size should be an integer.
+Color should be a hex code or a color name accepted by ``matplotlib``.
+See the `matplotlib documentation <https://matplotlib.org/stable/gallery/color/named_colors.html>`_
+for more details on supported color names.
 
 Peak
   Marks the data point in the mini with the maximum amplitude as a dot.
@@ -229,7 +238,9 @@ Decay
   an actual data point in the recording.
 
 Highlight
-  Marks the highlighted mini peaks as a dot.
+  Marks only the selected minis with a dot.
+  Minis can be selected by clicking on existing peak markers or by
+  :guilabel:`left-click`+:guilabel:`drag`. 
 
 Apply button
   Apply the stylistic parameters

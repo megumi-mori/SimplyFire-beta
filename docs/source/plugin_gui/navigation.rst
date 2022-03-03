@@ -1,7 +1,7 @@
 Navigation Plugin
 =================
-The purpose of this plugin is to provide quality-of-life improvements
-to easily navigate the trace plot.
+The purpose of this plugin is to provide ease of use improvements
+to navigate the trace plot.
 
 
 .. figure:: /_static/img/navigation.png
