@@ -1,0 +1,39 @@
+name: Bug report
+description: File a bug report if SimplyFire is breaking / not behaving the way you expect.
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of bug
+      description: |
+        A clear and concise decription of what the bug is.
+  - type: textarea
+    id: reproduce
+    attributes:
+        label: To Reproduce
+        description: |
+          Steps to reproduce the behavior:
+          1. Go to '...'
+          2. Click on '....'
+          3. Scroll down to '....'
+          4. See error
+  - type: textarea
+    id: console
+    attributes:
+      label: Console Error or SimplyFire Log
+      description: |
+        Please paste any error codes available on the console or on the log-display.
+  - type: input
+    id: os
+    attributes:
+      label: OS details
+      description: Please indicate what OS was used to run SimplyFire
+  - type: dropdown
+    id: format
+    attributes:
+      label: Software format
+      description: Which format did you use to run SimplyFire?
+      options:
+        - .exe (Default)
+        - .py from source code
+        - SimplyFire package from pip
