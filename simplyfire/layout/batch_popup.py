@@ -114,6 +114,7 @@ def load():
     window.lift()
     window.focus_set()
     window.protocol('WM_DELETE_WINDOW', _on_close)
+    window.title('Batch Processing')
 
     ####################################
     # Populate batch processing window #
@@ -455,7 +456,7 @@ def ask_add_files(event=None):
 def ask_import_file(event=None):
     fname = filedialog.askopenfilename(title='Open', filetypes=[('yaml files', '*.yaml'), ('All files', '*.*')])
     window.lift()
-    if fname is None:
+    if not fname:
         return None
     with open(fname) as f:
         data = yaml.safe_load(f)
@@ -488,7 +489,6 @@ def ask_open_batch(event=None):
     with open(fname, 'r') as f:
         lines = f.readlines()
         for l in lines:
-            print(l)
             protocol_table.table.insert('', 'end', text=l.strip(), tag='selectable')
 
 def save_batch(event=None):
@@ -601,9 +601,8 @@ def process_start(event=None):
     file_list = file_entry.get(1.0, Tk.END).split('\n')
     file_list = [f for f in file_list if f != ""]
     for i,f in enumerate(file_list):
-        if not os.path.isdir(os.path.dirname(f)):
+        if not os.path.exists(os.path.dirname(f)) and not os.path.isdir(os.path.dirname(f)):
             file_list[i] = os.path.join(basedir, f) # format file names
-
     global protocol_table
     global command_list
     command_list = [protocol_table.table.item(i, 'text') for i in protocol_table.table.get_children()]
