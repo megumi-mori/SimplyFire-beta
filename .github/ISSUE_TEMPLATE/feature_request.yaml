@@ -5,6 +5,6 @@ body:
     id: description
     attributes:
       label: Description of feature
-      descrption: Please describe your suggestion for a new feature.
+      description: Please describe your suggestion for a new feature.
     validations:
       required: true
