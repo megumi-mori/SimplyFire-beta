@@ -51,7 +51,7 @@ setup(
     },
     include_package_data = True,
     install_requires=[
-        'numpy>=1.22.0',
+        'numpy>=1.21.5',
         'pandas>=1.3.5',
         'matplotlib>=3.5.1',
         'scipy>=1.7.3',
@@ -70,5 +70,5 @@ setup(
         'Programming Language :: Python :: 3',
         'Operating System :: Microsoft :: Windows'
     ],
-    python_requires = '>=3.10'
+    python_requires = '>=3.8'
 )
