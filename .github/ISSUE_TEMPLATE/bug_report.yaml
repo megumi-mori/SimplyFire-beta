@@ -43,6 +43,6 @@ body:
       label: Anything else?
       description: |
         Any other info that would help resolve the issue.
-      Tip:
-        You can attach images by clicking this area to highlight it and then dragging files in.
+
+        Tip: You can attach images by clicking this area to highlight it and then dragging files in.
 
