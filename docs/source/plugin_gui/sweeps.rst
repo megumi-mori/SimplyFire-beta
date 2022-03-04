@@ -13,6 +13,8 @@ which sweeps are shown/hidden in overlay mode.
 Requirements
   * View mode must be set to ``overlay``
 
+Tab title: Sweeps
+
 While this plugin is in focus, individual sweeps can be highlighted
 (which can be used to specify the sweeps to analyze in other plugins).
 Use the :guilabel:`Delete`/:guilabel:`Backspace`/:guilabel:`e` key to

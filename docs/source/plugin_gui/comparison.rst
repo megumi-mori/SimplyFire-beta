@@ -11,6 +11,8 @@ The purpose of this plugin is to visually compare multiple recordings.
 This plugin can be activated by ``View`` menu -> ``Comparison``.
 The plugin can be used in ``continuous`` mode or ``overlay`` mode.
 
+Tab title: Compare
+
 Controls
 ---------
 Add File

@@ -9,6 +9,8 @@ to navigate the trace plot.
 
   A typical layout of the Navigation Plugin.
 
+Tab title: Navi
+
 Set axes limits
 -----------------
 Lower and upper limits of the x- and y- axes can be inputted into the

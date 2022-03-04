@@ -55,7 +55,8 @@ If not all sweeps should be analyzed (i.e. some sweeps failed to respond),
 use the :doc:`../plugin_gui/sweeps` to hide unwanted sweeps.
 While the :doc:`../plugin_gui/sweeps` is in focus, a sweep can be highlighted
 by clicking on or near the sweep.
-Pressing the ``Delete``/``Backspace``/``e`` key will hide the sweep from view.
+Pressing the :guilabel:`Delete`/:guilabel:`Backspace`/:guilabel:`e`
+key will hide the sweep from view.
 
 The sweeps that are currently visible are indicated in the **control-panel**.
 
@@ -91,16 +92,16 @@ The following properties for each sweep analyzed can be found:
 Export the data
 ^^^^^^^^^^^^^^^^
 
-Selected entries in the **data panel** can be copied onto the
+Selected entries in the **data-panel** can be copied onto the
 clipboard.
 
-Press ``Shift`` and ``left-click`` to select a range of entries
-or press ``Ctrl`` and select multiple entries.
-Use ``Ctrl+a`` to select all entries.
-Use the ``Escape``/``q`` key to remove all the highlights.
+:guilabel:`Shift+left click` to select a range of entries
+or hold :guilabel:`Ctrl` to select multiple entries
+:guilabel:`Ctrl + a` to select all entries.
+Use the :guilabel:`Esc`/:guilabel:`q` key to remove all the highlights.
 
-Data can be copied by ``Ctrl+c`` key stroke
-or ``right-click`` on the **data-panel** -> ``Copy selected``.
+Data can be copied by :guilabel:`Ctrl + c`
+or :guilabel:`right click` on the **data-panel** -> ``Copy selected``.
 
 The copied data can be pasted into Excel or other programs of choice.
 
@@ -114,7 +115,7 @@ Summarize the data
 A summary of the discovered minis can be added to the  **results-display**.
 The **results-display** is found in the ``results`` tab under the plot.
 
-``Right-click`` on the **data-panel** -> ``Report all`` or ``Report selected``
+:guilabel:`Right click` on the **data-panel** -> ``Report all`` or ``Report selected``
 or press the ``Report stats`` on the **control-panel**. Averages and standard
 deviation of maximum/minimum y-values will be added to the **results-display**.
 Additionally, the indices of channels and sweeps sampled will be indicated.
@@ -127,6 +128,6 @@ Clear the data
 When opening a new recording file, the data in the **data-panel** are cleared.
 
 The entries can also be deleted by selecting the entries and using
-``Delete``/``Backspace``/``e`` key.
+:guilabel:`Delete`/:guilabel:`Backspace`/:guilabel:`e` key.
 
 Alternatively, the ``Delete all`` button in the **control-panel** can be pressed.

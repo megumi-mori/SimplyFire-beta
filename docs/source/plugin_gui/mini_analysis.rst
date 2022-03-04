@@ -11,8 +11,9 @@ synaptic events.
 
 Requirements
   * View mode must be ``continuous``
-  * Style plugin
+  * :doc:`style`
 
+Tab title: Mini
 
 Analysis Buttons
 -----------------
@@ -311,5 +312,20 @@ Reject button
   from the data.
 
 
-data-panel
+Data-panel
 -----------
+
+Every mini marked in the trace plot is also annotated in the data-panel.
+
+An entry can be selected by :guilabel:`left click`
+
+Multiple entries can be selected by :guilabel:`left click + Shift`
+or :guilabel:`left click + Ctrl`.
+Selecting entries in the data-panel also highlights minis in the trace plot,
+adjusting the x- and y-axes so that all the selected minis are visible.
+Conversely, minis selected from the trace plot are also selected in the data-panel.
+
+Pressing :guilabel:`Delete`/:guilabel:`Backspace`/:guilabel:`e` deletes
+the entries in the data-panel and associated mini markers on the trace.
+
+Mini data are cleared when a new recording is opened.

@@ -4,7 +4,17 @@ Welcome to SimplyFire's documentation!
 SimplyFire is a open-source software for analyzing electrophysiology data.
 The software is developed with ease of use and customizability in mind.
 
-Check out the :doc:`start` section.
+Check out the :doc:`start` section to begin using the software.
+
+Common workflows are detailed in the :doc:`workflow` section.
+
+Details on the core plugins can be found in the :doc:`plugins_gui` section.
+
+Instructions on how to change the system setting scan be found in the
+:doc:`settings` section.
+
+Instructions on how to set up batch processing can be found in the
+:doc:`batch` section.
 
 .. image:: /_static/img/representative.png
   :align: center
@@ -22,6 +32,7 @@ SimplyFire's documentation is hosted on Read the Docs.
   :hidden:
 
   start
-  workflow
   plugins_gui
   settings
+  batch
+  workflow

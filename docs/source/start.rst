@@ -183,10 +183,10 @@ entire recording.
 
 The following keyboard shortcuts are available to navigate the plot:
 
-``w``/``a``/``s``/``d`` keys
+:guilabel:`w`/:guilabel:`a`/:guilabel:`s`/:guilabel:`d` keys
   Pan the x- and y-axes
 
-``i``/``j``/``k``/``l`` keys
+:guilabel:`i`/:guilabel:`j`/:guilabel:`k`/:guilabel:`l` keys
   Zoom the x- and y-axes
 
 Several ``matplotlib`` tools are available above the plot for navigation.
@@ -195,19 +195,27 @@ Several ``matplotlib`` tools are available above the plot for navigation.
 
 |ico_pan| pan/zoom
   Left click and drag to move the trace.
+
   Right click and drag to zoom the axes
+
+  Toggle on/off using :guilabel:`c` while **trace-display** has focus.
 
 .. |ico_zoom| image:: /_static/img/zoom_to_rect.png
 
 |ico_zoom| zoom to rect
   Click and drag to draw a rectangle.
+
   Left click and drag to zoom in.
+
   Right click and drag to zoom out.
+
+  Toggle on/off using :guilabel:`v` while **trace-display** has focus.
 
 .. |ico_save| image:: /_static/img/filesave.png
 
 |ico_save| save figure
   Saves the visible plot as an image file.
+
   Everything that is visible on the plot, including
   markers from plugins will be saved.
   Vector image file format is available for making figures for publication.

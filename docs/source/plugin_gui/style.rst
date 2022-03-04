@@ -9,6 +9,8 @@ trace plot.
 
   A typical layout of the Style Plugin.
 
+Tab title: Style
+
 Basic Features
 ---------------
 Trace plot: size
@@ -33,4 +35,4 @@ Other features
 -----------------
 
 Other plugins may use the space in the Style Plugin **control-panel** tab to
-populate other stylistic options. 
+populate other stylistic options.

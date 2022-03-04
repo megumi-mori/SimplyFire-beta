@@ -8,6 +8,10 @@ The purpose of this plugin is to facilitate analysis of evoked release.
 
   A typical layout of the Evoked Analysis Plugin.
 
+Requirements:
+  * :doc:`sweeps`
+  
+Tab title: Evoked
 
 Target setting
 ---------------
@@ -16,7 +20,7 @@ Processing algorithm can be applied to all or a subset of the recording data.
 Apply processing to the following sweeps
   Select between ``All sweeps``, ``Visible sweeps``, ``Highlighted sweeps``
   Processing algorithm will be applied to the corresponding sweeps.
-  Visibility and highlight of sweeps can be changed in the ``Sweeps`` plugin
+  Visibility and highlight of sweeps can be changed in the :doc:`sweeps`
   and are only applicable in the ``overlay`` mode.
 
 Limit process to the current channel
@@ -46,7 +50,23 @@ Buttons
 Report stats
   Reports the summary of entries in the data-panel to the **results-table**.
   Average and standard deviation of the minimum and maximum values are calculated.
-  Note that all entries are summarized into a single entry. 
+  Note that all entries are summarized into a single entry.
 
 Delete all
   Clears all entries in the data-panel.
+
+
+Data-panel
+-----------
+Results from the calculations are entered into the data-panel.
+
+New data are appended to existing entries unless a new recording file is opened.
+The data are cleared when a new file is opened.
+
+An entry can be selected by :guilabel:`left click`
+
+Multiple entries can be selected by :guilabel:`left click + Shift`
+or :guilabel:`left click + Ctrl`.
+
+Pressing :guilabel:`Delete`/:guilabel:`Backspace`/:guilabel:`e` deletes
+the entries in the data-panel and associated mini markers on the trace.
