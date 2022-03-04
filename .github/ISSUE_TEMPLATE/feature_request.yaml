@@ -1,0 +1,10 @@
+name: Feature request
+description: Suggest an idea for SimplyFire
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of feature
+      descrption: Please describe your suggestion for a new feature.
+    validations:
+      required: true

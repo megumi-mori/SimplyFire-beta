@@ -7,6 +7,8 @@ body:
       label: Description of bug
       description: |
         A clear and concise decription of what the bug is.
+    validatoins:
+      required: true
   - type: textarea
     id: reproduce
     attributes:
