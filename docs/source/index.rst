@@ -36,3 +36,10 @@ SimplyFire's documentation is hosted on Read the Docs.
   settings
   batch
   workflow
+
+.. toctree::
+  :caption: Development
+  :maxdepth: 2
+  :hidden:
+
+  issues
