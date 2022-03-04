@@ -26,7 +26,7 @@ body:
   - type: input
     id: os
     attributes:
-      label: OS details
+      label: Environment
       description: Please indicate what OS was used to run SimplyFire
   - type: dropdown
     id: format
@@ -34,6 +34,15 @@ body:
       label: Software format
       description: Which format did you use to run SimplyFire?
       options:
-        - .exe (Default)
+        - .exe
         - .py from source code
         - SimplyFire package from pip
+  - type: textarea
+    id: other
+    attributes:
+      label: Anything else?
+      description: |
+        Any other info that would help resolve the issue.
+      Tip:
+        You can attach images by clicking this area to highlight it and then dragging files in.
+
