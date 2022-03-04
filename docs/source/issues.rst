@@ -1,9 +1,12 @@
 Reporting Issues
 ====================
 
-If you discover bugs while working with SimplyFire, please report them
-to `GitHub Issues <https://github.com/megumi-mori/SimplyFire-beta/issues>`_.
+If you discover bugs while working with SimplyFire, please visit
+`GitHub Issues <https://github.com/megumi-mori/SimplyFire-beta/issues>`_.
+Previously opened issues can also be browsed there.
 
-Please follow the prompts and fill as much information as possible.
+Click on ``New issue`` and follow the prompts.
+Please fill in as much information as possible.
 
-Feel free to also submit feature requests and updates. 
+New feature requests can also be posted on
+`GitHub Issues <https://github.com/megumi-mori/SimplyFire-beta/issues>`_.
