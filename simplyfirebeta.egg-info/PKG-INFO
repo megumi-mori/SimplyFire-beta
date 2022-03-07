@@ -1,3 +1,20 @@
+Metadata-Version: 2.1
+Name: simplyfirebeta
+Version: 0.3.2
+Summary: Customizable electrophysiology analysis software
+Home-page: https://github.com/megumi-mori/SimplyFire-beta
+Author: Megumi Mori
+License: GNU General Public License v3
+Keywords: neuroscience,analysis,electrophysiology,gui-application
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: Microsoft :: Windows
+Requires-Python: >=3.8
+License-File: LICENSE
+
 # SimplyFire
 A customizable analysis package for electrophysiologists
 
@@ -44,3 +61,4 @@ Details on the development workflow will be available in the future.
 
 ## License
 SimplyFire is released under the GPLv3 or later license. 
+

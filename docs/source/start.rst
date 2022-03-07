@@ -7,9 +7,15 @@ Installation
 .exe Installation for Windows (simple)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Download the software zip file from the latest github repository.
+Executable files (for Windows) are made available for each release on GitHub.
+Check out the latest GitHub releases `here <https://github.com/megumi-mori/SimplyFire-beta/releases>`_.
 
-`Download SimplyFire zip <https://github.com/megumi-mori/SimplyFire-beta/releases/download/v0.3.0-beta/SimplyFire0.3.0.zip>`_.
+`Download the SimplyFire zip file <https://github.com/megumi-mori/SimplyFire-beta/releases/download/v0.3.0-beta/SimplyFire0.3.2.zip>`_
+
+The executable and associated files are found in a zip file named
+
+
+
 
 Extract the contents of the zip file.
 Within the ``SimplyFire`` root folder, locate ``SimplyFire.exe``.

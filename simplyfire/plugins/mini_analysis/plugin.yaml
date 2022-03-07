@@ -3,7 +3,7 @@ title: 'Mini Analysis'
 author: 'MM'
 description: 'Analyze miniature synaptic events. Part of CORE plugins'
 version: '1.0.0'
-minimumCoreVersion: '3.0.0'
+minimumCoreVersion: '0.3.1'
 scripts:
   - 'mini_GUI'
 requirements:

@@ -2,8 +2,8 @@ name: 'evoked_basic'
 title: 'Evoked Analysis'
 author: 'MM'
 description: 'Analyze evoked synaptic events. Calculates min/max.'
-version: '1.0.0'
-minimumCoreVersion: '3.0.0'
+version: '0.0.0'
+minimumCoreVersion: '0.3.0'
 scripts:
   - 'evoked_GUI'
 requirements:

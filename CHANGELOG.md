@@ -1,5 +1,9 @@
 # Changelog
 
+## Beta 0.3.2 
+
+- fix build error 
+
 ## Beta 0.3.1
 
 - Compare plugin bug fix - stores default style values for 'undo' values
@@ -8,6 +12,10 @@
   parts of the code
 - mini_GUI does not delete ``.mini`` files during undo
 - checks in place to only delete temp files located within the temp directory
+- compare plugin does not change the viewing axes limits when adding or removing recording files
+  (unless the maximum axes limits are changed)
+- The plugin manager defaults to the package folder when no plugins can be found
+  in the user-specified data folder.
 
 ## Beta 0.3.0
 
