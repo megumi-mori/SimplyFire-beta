@@ -19,6 +19,14 @@ Run the executable file to begin the application.
 
 That's it!
 
+.. WARNING::
+  Some users have reported slow startup of SimplyFire (load stuck at the splash screen).
+
+  If this happens, check the Task Manager to see if the memory usage for SimplyFire is increasing.
+  After a complete load, SimplyFire should use about 100MB of RAM.
+
+  If you encounter this error, please report `here <https://github.com/megumi-mori/SimplyFire-beta/issues/24>`_.
+
 Supported systems:
 
 * Windows 10
