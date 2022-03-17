@@ -293,14 +293,15 @@ def _apply_styles(event=None, draw=True, undo=True):
             undo_stack.append(lambda u=False: _apply_styles(undo=u))
             app.plugin_manager.get_script('style', 'style_tab').controller.add_undo(undo_stack)
     app.interface.focus()
-    peak_size = float(form.inputs['style_mini_size'].get())
-    peak_color = form.inputs['style_mini_color'].get()
-    start_size = float(form.inputs['style_start_size'].get())
-    start_color = form.inputs['style_start_color'].get()
-    decay_size = float(form.inputs['style_decay_size'].get())
-    decay_color = form.inputs['style_decay_color'].get()
-    highlight_size = float(form.inputs['style_highlight_size'].get())
-    highlight_color = form.inputs['style_highlight_color'].get()
+    if style_plugin is not None:
+        peak_size = float(form.inputs['style_mini_size'].get())
+        peak_color = form.inputs['style_mini_color'].get()
+        start_size = float(form.inputs['style_start_size'].get())
+        start_color = form.inputs['style_start_color'].get()
+        decay_size = float(form.inputs['style_decay_size'].get())
+        decay_color = form.inputs['style_decay_color'].get()
+        highlight_size = float(form.inputs['style_highlight_size'].get())
+        highlight_color = form.inputs['style_highlight_color'].get()
 
     if draw and form.is_enabled():
         update_event_markers(draw=True)

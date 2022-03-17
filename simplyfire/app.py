@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+import time
 from simplyfire.setting import config
 from tkinter import ttk, messagebox
 import tkinter as Tk
@@ -64,6 +65,7 @@ def _on_close():
 
 def load(window, splash):
     # debugging:
+    print_time_lapse('Start loading main application')
     global t0
     global app_root
     # app_root = splash
@@ -80,6 +82,7 @@ def load(window, splash):
     root.config(menu=menu)
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)
+    print_time_lapse('Load menubar')
 
     frame = Tk.Frame(root, bg='red')
     frame.grid(column=0, row=0, sticky='news')
@@ -142,6 +145,7 @@ def load(window, splash):
 
     results_frame = results_display.load(root)
     dp_notebook.add(results_frame, text='results', sticky='news')
+    print_time_lapse('Create datapanel')
 
 
     ##################################################
@@ -161,6 +165,7 @@ def load(window, splash):
     cp_notebook.bind('<<NotebookTabChanged>>', synch_tab_focus, add='+')
     cp_notebook.bind('<ButtonRelease>', interface.focus, add='+')
 
+    print_time_lapse('Create control panel')
 
     for key in inputs:
         if type(inputs[key]) == custom_widgets.VarEntry:
@@ -172,6 +177,7 @@ def load(window, splash):
         if type(inputs[key]) == custom_widgets.VarCheckbutton:
             inputs[key].bind('<ButtonRelease>', lambda e: interface.focus(), add='+')
 
+    print_time_lapse('Bind mouse events')
     # set up font adjustment bar
     # fb = font_bar.load(left, config.font_size)
     # widgets['font_size'] = font_bar.font_scale
@@ -212,6 +218,7 @@ def load(window, splash):
         inputs[k] = v
 
     batch_popup.load()
+    print_time_lapse('Create batch popup')
     menubar.batch_menu.add_command(label='Batch Processing', command=batch_popup.show)
 
     global control_panel_dict
@@ -230,7 +237,9 @@ def load(window, splash):
     # plugin_controller = plugin_tab.PluginController()
     # plugin_controller.load_plugins()
     plugin_tab.load()
+    print_time_lapse('Create plugin panel')
     plugin_manager.load_plugins()
+    print_time_lapse('Load plugins')
 
             # except Exception as e:
             #     print(e)
@@ -251,6 +260,7 @@ def load(window, splash):
 
     # set up event bindings
     interpreter.initialize()
+    print_time_lapse('Initialize Interpreter')
 
     # for modulename in config.start_module:
     #     try:
@@ -264,7 +274,10 @@ def load(window, splash):
     root.update()
     ## root2 = root
     loaded = True
+    print_time_lapse('Add settings panel to the control panel')
+
     root.event_generate('<<LoadCompleted>>')
+    print_time_lapse('Event <<LoadCompleted>> generated')
 
     root.title('SimplyFire Beta v{}'.format(config.version))
     root.iconbitmap(os.path.join(config.IMG_DIR, 'logo_bw.ico'))
@@ -277,6 +290,7 @@ def load(window, splash):
     root.deiconify()
     # # finalize the data viewer - table
     root.geometry(config.geometry)
+    print_time_lapse('Finalize application')
     if config.user_config_load_error is not None:
         messagebox.showwarning('Warning', f'Error while loading user settings: {config.user_config_load_error}\nReverting to default configurations.')
     if not plugin_manager.error_free:
@@ -421,7 +435,6 @@ def load_config(filename=None):
         except:
             pass
     plugin_manager.load_values(loaded_configs)
-
 
 def print_time_lapse(msg=""):
     global t0

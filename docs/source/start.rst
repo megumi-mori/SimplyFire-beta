@@ -26,6 +26,7 @@ That's it!
   After a complete load, SimplyFire should use about 100MB of RAM.
 
   If you encounter this error, please report `here <https://github.com/megumi-mori/SimplyFire-beta/issues/24>`_.
+  Please include the load log on the console (version>=0.3.3).
 
 Supported systems:
 

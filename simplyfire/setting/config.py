@@ -59,6 +59,7 @@ def load():
     if default_vars['system_data_dir'] is None:
         default_vars['system_data_dir'] = PKG_DIR
         user_vars['system_data_dir'] = PKG_DIR
+    app.print_time_lapse('Load default config')
     # load where user data is located
 
     user_vars['system_setting_path'] = os.path.join(SETTING_DIR, default_vars['system_setting_path'])
@@ -74,11 +75,13 @@ def load():
                 user_vars[c] = v
     except:
         pass
+    app.print_time_lapse('Load system settings')
 
     if user_vars['system_data_dir'] is None:
         user_vars['system_data_dir'] = PKG_DIR
     elif not os.path.exists(user_vars['system_data_dir']):
         user_vars['system_data_dir'] = PKG_DIR
+    app.print_time_lapse('Set system DIR')
 
     global PLUGIN_DIR
     PLUGIN_DIR = os.path.join(user_vars['system_data_dir'], 'plugins')
@@ -86,6 +89,7 @@ def load():
         PLUGIN_DIR = os.path.join(PKG_DIR, 'plugins')
     global TEMP_DIR
     sys.path.insert(0, user_vars['system_data_dir'])
+    app.print_time_lapse('Set Plugin DIR')
 
     # global config_keymap_path
     # config_keymap_path = os.path.join(CONFIG_DIR, default_config_keymap_path)
@@ -133,6 +137,7 @@ def load():
         except AttributeError as e:
             app.log_display.log(f'User setting load error: {e}', True)
             pass
+    app.print_time_lapse('Load user parameters')
 
     try:
         active_plugin_path = os.path.join(user_vars['system_data_dir'], user_vars['system_plugin_path'])

@@ -70,13 +70,15 @@ def load_plugin(plugin_name):
             global error_free
             error_free = False
             app.log_display.log(f'Missing requirement for {plugin_name}: {r}', 'Load Plug-in')
+    print(f'loading plugin: {plugin_name}')
     plugin_manifest = manifests[plugin_name]
     scripts = plugin_manifest.get('scripts', []) # get list scripts to load
     plugin_path = os.path.join(app.config.PLUGIN_DIR, plugin_name)
     # from plugins import style
     plugins[plugin_name] = importlib.import_module(f'plugins.{plugin_name}')
     for filename in scripts:
-        plugins[f'{plugin_name}.{filename}'] = importlib.import_module(f'plugins.{plugin_name}.{filename}')
+        # plugins[f'{plugin_name}.{filename}'] = \
+        importlib.import_module(f'plugins.{plugin_name}.{filename}')
     pass
 
 def load_values(data):
@@ -101,4 +103,7 @@ def get_plugin(plugin_name):
     return plugins.get(plugin_name, None)
 
 def get_script(plugin_name, script_name):
-    return plugins.get(f'{plugin_name}.{script_name}', None)
+    # return plugins.get(f'{plugin_name}.{script_name}', None)
+    return getattr(plugins.get(plugin_name), script_name)
+
+

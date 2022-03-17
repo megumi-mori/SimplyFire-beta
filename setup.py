@@ -37,7 +37,7 @@ with open('README.md') as readme_file:
 
 setup(
     name='simplyfirebeta',
-    version='0.3.2',
+    version='0.3.3',
     author='Megumi Mori',
     description='Customizable electrophysiology analysis software',
     long_description=readme,
