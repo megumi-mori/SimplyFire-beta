@@ -725,6 +725,24 @@ def calculate_mini_decay(xs: np.ndarray,
 
     return a, t, decay_constant_idx
 
+def calculate_mini_10_90_rise(xs:np.ndarray,
+                              ys:np.ndarray,
+                              baseline:float,
+                              amp:float,
+                              start_idx:int,
+                              peak_idx:int,
+                              direction:int=1,
+                              sampling_rate:int=None):
+    low_idx = np.where((ys[start_idx:peak_idx]-baseline)*direction>amp*direction*0.1)[0][0] # take first spot
+    high_idx = np.where((ys[start_idx:peak_idx]-baseline)*direction<amp*direction*0.9)[0][-1] # take last spot
+    if sampling_rate:
+        return (high_idx-low_idx)*1/sampling_rate*1000
+    else:
+        return (xs[high_idx] - xs[low_idx]) *1000
+
+
+
+
 
 def analyze_candidate_mini(xs,
                            ys,
@@ -761,6 +779,8 @@ def analyze_candidate_mini(xs,
                            max_amp=np.inf,
                            min_rise=0.0,
                            max_rise=np.inf,
+                           min_10_90=0.0,
+                           max_10_90=np.inf,
                            min_hw=0.0,
                            max_hw=np.inf,
                            min_decay=0.0,
@@ -1070,6 +1090,10 @@ def analyze_candidate_mini(xs,
         mini['success'] = False
         mini['failure'] = 'Max rise exceeded'
         return mini
+
+    ###### calculate 10-90 rise ######
+    mini['10_90_rise'] = calculate_mini_10_90_rise(xs, ys, baseline=mini['baseline'], amp=mini['amp'], start_idx=mini['start_idx'],
+                              peak_idx=mini['peak_idx'],direction=direction, sampling_rate=sampling_rate)
 
     ####### calculate decay ########
     mini['decay_start_idx'] = mini['peak_idx']  # peak = start of decay
