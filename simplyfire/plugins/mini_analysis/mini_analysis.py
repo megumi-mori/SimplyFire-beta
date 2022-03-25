@@ -208,7 +208,11 @@ def find_mini_auto(xlim=None,
     prev_peak = None
     while start_idx < xlim_idx[1] and not stop:
         peak_idx = find_peak_recursive(xs, ys, start=start_idx, end=end_idx, direction=direction)
-        if peak_idx is not None:
+        try:
+            different_peak = (peak_idx != prev_peak['peak_idx'])
+        except:
+            different_peak = True
+        if peak_idx is not None and different_peak:
             # print(f'before analysis, prev peak is: {prev_peak}')
             mini = analyze_candidate_mini(
                 xs=xs,
@@ -226,21 +230,15 @@ def find_mini_auto(xlim=None,
                 mini['xlim_idx_L'] = start_idx
                 mini['xlim_idx_R'] = end_idx
                 hits.append(mini)
-                start_idx = peak_idx + 1
                 prev_peak = mini
             else:
                 if mini['failure'] == 'Mini was previously found':
                     # make sure the failure code matches here
                     prev_peak = mini
-                    start_idx = peak_idx + 1
-                else:
-                    start_idx += stride
+
             # print(f'end of analysis, mini was: {mini}')
             # print(f'end of analysis, prev_peak is set to: {prev_peak}')
-
-        else:
-            start_idx += stride
-            pass
+        start_idx += stride
         # start_idx += stride
         end_idx = min(start_idx + kernel, xlim_idx[1])
         try:
@@ -734,7 +732,8 @@ def calculate_mini_10_90_rise(xs:np.ndarray,
                               direction:int=1,
                               sampling_rate:int=None):
     low_idx = np.where((ys[start_idx:peak_idx]-baseline)*direction>amp*direction*0.1)[0][0] # take first spot
-    high_idx = np.where((ys[start_idx:peak_idx]-baseline)*direction<amp*direction*0.9)[0][-1] # take last spot
+    high_idx = np.where((ys[start_idx:peak_idx+1]-baseline)*direction>amp*direction*0.9)[0][0] # take first spot #peak_idx inclusive
+
     if sampling_rate:
         return (high_idx-low_idx)*1/sampling_rate*1000
     else:
@@ -945,6 +944,10 @@ def analyze_candidate_mini(xs,
             # print(prev_peak['peak_idx'])
             # print(f'at the problematic location, prev peak is set to: {prev_peak}')
             prev_peak_idx_offset = int(prev_peak['peak_idx']) - offset
+            if prev_peak_idx_offset == peak_idx: # mini already found but was missed by an earlier check
+                mini['success'] = False
+                mini['failure'] = 'Mini was previously found'
+                return mini
             # check if previous peak has decayed sufficiently
             if compound:
                 if prev_peak_idx_offset + max_compound_interval * sampling_rate / 1000 > peak_idx:
