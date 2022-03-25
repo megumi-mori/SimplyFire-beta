@@ -130,6 +130,7 @@ mini_header2config = {
     # ('decay_t', 'data_display_decay_time'),
     'rise_const': 'data_display_rise',
     'rise_unit': 'data_display_rise',
+    '10_90_rise': 'data_display_rise',
     'halfwidth': 'data_display_halfwidth',
     'halfwidth_unit': 'data_display_halfwidth',
     'baseline': 'data_display_baseline',
