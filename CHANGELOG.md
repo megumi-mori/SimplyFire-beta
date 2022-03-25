@@ -1,5 +1,9 @@
 # Changelog
 
+- use decay to extrapolate the halfwidth - fix typo 
+- move window by stride after finding peak in auto-search 
+- calculate 10-90 rise ([#13](https://github.com/megumi-mori/SimplyFire-beta/issues/13))
+
 ## Beta 0.3.3
 
 - print load log with load time ([#24](https://github.com/megumi-mori/SimplyFire-beta/issues/24))
