@@ -150,7 +150,11 @@ core_params = {
     'manual_radius': {'name': 'detector_core_search_radius', 'conversion': float},
     'auto_radius': {'name': 'detector_core_auto_radius', 'conversion': float},
     'delta_x_ms': {'name': 'detector_core_deltax_ms', 'conversion': float},
-    'lag_ms': {'name': 'detector_core_lag_ms', 'conversion': float}
+    'lag_ms': {'name': 'detector_core_lag_ms', 'conversion': float},
+    'min_peak2peak_ms': {'name': 'detector_core_min_peak2peak', 'conversion': float},
+    'p_valley': {'name': 'detector_core_p_valley', 'conversion': float},
+    'extrapolate_hw': {'name':'detector_core_extrapolate_hw','conversion':bool},
+
 }
 filter_params = {
             'min_amp': {'name': 'detector_filter_min_amp', 'conversion': float},
@@ -184,10 +188,7 @@ decay_params = {
             }
         }
 compound_params = {
-    'p_valley': {'name': 'detector_core_p_valley', 'conversion': float},
     'max_compound_interval': {'name': 'detector_core_max_compound_interval', 'conversion': float},
-    'min_peak2peak_ms': {'name': 'detector_core_min_peak2peak', 'conversion': float},
-
 }
 #### modify the PluginController class ####
 class MiniController(PluginController):
@@ -1753,6 +1754,14 @@ form.insert_label_checkbox(name='detector_core_extrapolate_hw',
                            onvalue='1',
                            offvalue='',
                            default=detector_core_extrapolate_hw)
+form.insert_label_entry(name='detector_core_p_valley',
+                        text='Minimum valley size in % of peak amplitude',
+                        validate_type='float',
+                        default=detector_core_p_valley)
+form.insert_label_entry(name='detector_core_min_peak2peak',
+                        text='Ignore minis closer than (ms)',
+                        validate_type='float',
+                        default=detector_core_min_peak2peak)
 # decay
 form.insert_title(text='Decay fitting options')
 form.insert_label_optionmenu(name='detector_core_decay_algorithm',
@@ -1777,18 +1786,11 @@ form.insert_label_checkbox(name='detector_core_compound',
                            onvalue='1',
                            offvalue='',
                            default=detector_core_compound)
-form.insert_label_entry(name='detector_core_p_valley',
-                        text='Minimum valley size in % of peak amplitude',
-                        validate_type='float',
-                        default=detector_core_p_valley)
 form.insert_label_entry(name='detector_core_max_compound_interval',
                         text='Maximum inverval between two peaks to use compound mini analysis (ms)',
                         validate_type='float',
                         default=detector_core_max_compound_interval)
-form.insert_label_entry(name='detector_core_min_peak2peak',
-                        text='Ignore minis closer than (ms)',
-                        validate_type='float',
-                        default=detector_core_min_peak2peak)
+
 
 form.insert_button(text='Apply', command=form.apply_parameters)
 form.insert_button(text='Default', command=_default_core_params)

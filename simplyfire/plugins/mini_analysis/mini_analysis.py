@@ -944,11 +944,17 @@ def analyze_candidate_mini(xs,
             # print(prev_peak['peak_idx'])
             # print(f'at the problematic location, prev peak is set to: {prev_peak}')
             prev_peak_idx_offset = int(prev_peak['peak_idx']) - offset
-            if prev_peak_idx_offset == peak_idx: # mini already found but was missed by an earlier check
+            if xs[peak_idx] - xs[prev_peak_idx_offset] < min_peak2peak_ms/1000: # mini already found but was missed by an earlier check
                 mini['success'] = False
-                mini['failure'] = 'Mini was previously found'
+                mini['failure'] = 'Minimum peak to peak separation not met'
                 return mini
             # check if previous peak has decayed sufficiently
+            if min((ys[prev_peak_idx_offset:peak_idx] - prev_peak['baseline']) * direction) > prev_peak[
+                'amp'] * direction * (100 - p_valley) / 100:
+                mini['success'] = False
+                mini['failure'] = 'Minimum peak_to_valley % not reached for the previous mini'
+                return mini
+            # calculate start and baseline based on previous decay
             if compound:
                 if prev_peak_idx_offset + max_compound_interval * sampling_rate / 1000 > peak_idx:
                     # current peak is within set compound interval from the previous peak
@@ -959,11 +965,7 @@ def analyze_candidate_mini(xs,
                     if prev_peak_idx_offset < 0 or prev_peak_idx_offset > len(ys):  # not sufficient datapoints
                         mini['success'] = False
                         mini['failure'] = 'The compound mini could not be analyzed - need more data points'
-                    if min((ys[prev_peak_idx_offset:peak_idx] - prev_peak['baseline']) * direction) > prev_peak[
-                        'amp'] * direction * (100 - p_valley) / 100:
-                        mini['success'] = False
-                        mini['failure'] = 'Minimum peak_to_valley % not reached for the previous mini'
-                        return mini
+
                     mini['prev_baseline'] = prev_peak['baseline']
                     mini['prev_decay_const'] = prev_peak['decay_const']
                     mini['prev_decay_A'] = prev_peak['decay_A']
@@ -1210,7 +1212,6 @@ def analyze_candidate_mini(xs,
             amp=mini['amp'], xs=xs[baseline_idx:end_idx], ys=ys[baseline_idx:end_idx],
             peak_idx=peak_idx - baseline_idx, baseline=mini['baseline'], direction=direction
         )
-
     if halfwidth_start_idx is not None and halfwidth_end_idx is None:  # decay doesn't happen long enough?
         if mini['decay_const'] is not None and extrapolate_hw:  # use decay to extrapolate 50% value of decay
             t = np.log(0.5) * -1 * mini['decay_const'] / 1000
