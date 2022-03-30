@@ -3,6 +3,11 @@ A customizable analysis package for electrophysiologists
 
 Read the full manual [here](https://simplyfire-beta.readthedocs.io/).
 
+
+# Notice for new users 
+We are transitioning from the "-beta" repository to the [main repository](https://github.com/megumi-mori/SimplyFire). 
+This "-beta" repository will be discontinued. 
+
 ## .exe Installation
 
 Download the software zip file from the recent [release](https://github.com/megumi-mori/SimplyFire-beta/releases).
