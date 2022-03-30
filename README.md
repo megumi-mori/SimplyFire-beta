@@ -1,7 +1,7 @@
 # SimplyFire
 A customizable analysis package for electrophysiologists
 
-
+Read the full manual [here](https://simplyfire-beta.readthedocs.io/).
 
 ## .exe Installation
 
